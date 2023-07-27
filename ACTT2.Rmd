@@ -1,6 +1,6 @@
 ---
 title: "ACTT2"
-author: "A.Amstutz"
+author: "A. Amstutz"
 date: "2023-07-27"
 output:
   html_document:
