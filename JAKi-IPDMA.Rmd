@@ -1,6 +1,6 @@
 ---
 title: "JAKi-IPDMA"
-author: "A.Amstutz"
+author: "A. Amstutz"
 date: "2023-07-26"
 output:
   html_document:
