@@ -20,7 +20,6 @@ library(tableone)
 library(data.table)
 library(writexl)
 library(lme4)
-library(msm)
 library(sjPlot) # for tab_model
 library(jtools) # for summ()
 
