@@ -2,7 +2,7 @@
 
 JAK inhibitor IPDMA
 
-Through this GitHub repository, we collaboratively develop and review the analysis code for a global individual patient data meta-analysis (IPDMA) of randomized clinical trials that evaluated the effect of any JAK inhibitor among hospitalized patients with COVID-19. 
+Through this GitHub repository, we collaboratively develop and review the analysis code for a global individual patient data meta-analysis (IPDMA) of randomized clinical trials that evaluated the effect of any JAK inhibitor among hospitalized patients with COVID-19. This repository will be public, but no actual trial data will be shared, as per signed agreements with the individual trials.
 
 The study protocol, outlining all pre-specified primary, secondary and subgroup analyses, is registered on PROSPERO (CRD42023431817) and available on the project homepage: www.jakinhibitoripdma.org
 
