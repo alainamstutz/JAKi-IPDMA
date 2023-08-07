@@ -19,7 +19,7 @@ output:
 
 
 # Define ITT set
-9 participants (3 in int. / 6 in control) did not receive a single dose of baricitinib, or placebo, respectively.
+9 participants (3 in int. / 6 in cont.) did not receive a single dose of baricitinib, or placebo, respectively.
 Take them out, as done in results publication (mITT set)
 
 ```r
@@ -28,12 +28,9 @@ df <- df %>%
 ```
 
 # Baseline Characteristics
-Ethnicity: Only country of birth available => missing for Bari-Solidact
-Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91). -> Discuss for sens-analysis
-// steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate
 
 ```r
-df <- df %>% 
+df <- df %>% ## no missing data
   rename(id_pat = PARTICIPANT_ID,
          trt = arm,
          age = D1_AGE,
@@ -41,15 +38,32 @@ df <- df %>%
          sex = GENDER,
          country = COUNTRY,
          icu = ICU_YN)
-## no missing data
 
 # Days with symptoms prior to randomization
-df <- df %>% 
-  mutate(sympdur = randdate - SCR_SYMPSTDATED1)
-## table(df$sympdur, useNA = "always") / ## no missing data / equals delay_symprando
+df <- df %>% ## table(df$sympdur, useNA = "always") / ## no missing data / equals delay_symprando
+  mutate(sympdur = randdate - SCR_SYMPSTDATED1,
+         sympdur = as.numeric(sympdur))
+ggplot(df, aes(x = sympdur)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Symptom Duration",
+       x = "Symptom Duration",
+       y = "Density")
+```
 
+![](barisolidact_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
+skewness_value <- skewness(df$sympdur, na.rm = TRUE)
+cat("Skewness:", skewness_value, "\n")
+```
+
+```
+## Skewness: 3.4207
+```
+
+```r
 # Severity of COVID-19 with respect to respiratory support at randomisation / Bari-Solidact used WHO score, transform
-df <- df %>% 
+df <- df %>% ## no missing data // publication: 139 bari vs 136 placebo. In this dataset, slightly more (142 bari vs 138 placebo), due to additional randomized participants during extension of the trial
   mutate(clinstatus_baseline = case_when(whoscore_D1 == 0 | whoscore_D1 == 1 | whoscore_D1 == 3 ~ 1,
                                          whoscore_D1 == 4 ~ 2,
                                          whoscore_D1 == 5 ~ 3,
@@ -57,7 +71,7 @@ df <- df %>%
                                          whoscore_D1 == 7 | whoscore_D1 == 8 | whoscore_D1 == 9 ~ 5,
                                          whoscore_D1 == 10 ~ 6))
 df$clinstatus_baseline <- factor(df$clinstatus_baseline, levels = 1:6) ## no missing data
-addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always")) 
+addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always"))
 ```
 
 ```
@@ -74,8 +88,6 @@ addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always"))
 ```
 
 ```r
-## no missing data // publication: 139 bari vs 136 placebo. In this dataset, slightly more (142 bari vs 138 placebo), due to additional randomized participants during extension of trial
-
 # Co-medication at baseline
 df <- df %>% 
   mutate(comed_dexa = case_when(corticoid_yn == 1 | dexa_yn == 1 ~ 1,
@@ -85,13 +97,12 @@ df <- df %>%
          comed_toci = toci_yn,
          comed_ab = antibio_yn,
          comed_acoa = anticoag_yn)
-## no interferon used / but monoclonal Abs and plasma -> other
-df$comed_interferon <- NA ## double-check with trial team
+df$comed_interferon <- NA ## no interferon used / but monoclonal Abs and plasma -> other
 df <- df %>% ## double-check with trial team
   mutate(comed_other = case_when(monocloAb_yn == 1 | immunplasma_yn == 1 ~ 1,
                                 monocloAb_yn == 0 & immunplasma_yn == 0 ~ 0))
 
-# Co-morbidity at baseline
+# Comorbidity at baseline, including immunocompromised
 df <- df %>% ## 4 missing
   mutate(comorb_lung = case_when(D1_PULMO_YNK == 1 ~ 1,
                                  D1_PULMO_YNK == 0 ~ 0))
@@ -104,26 +115,78 @@ df <- df %>% ## no missing. D1_CARDIO_YNK includes all CVDs but also 2 HTA that 
 df <- df %>% ## 1 missing. The 2 HTA from above were already counted in.
   mutate(comorb_aht = case_when(D1_HBP_YNK == 1 | D1_CARDIO_SP == "HTA" | D1_CARDIO_SP == "HIGH BLOOD PRESSURE" ~ 1,
                                 D1_HBP_YNK == 0 ~ 0))
-df <- df %>% ## 4 missing. D1_DIABETE not needed.
+df <- df %>% ## 4 missing. D1_DIABETE not needed, correct.
   mutate(comorb_dm = case_when(d1_diabete_ynk == 1 ~ 1,
                                 d1_diabete_ynk == 0 ~ 0))
 df <- df %>% ## 0 missing. BMI not needed, correct.
   mutate(comorb_obese = case_when(obesity == 1 ~ 1,
                                 obesity == 0 ~ 0))
-df <- df %>% ## 0 missing. D1_SMOKING not needed, correct
+df <- df %>% ## 0 missing. D1_SMOKING not needed, correct.
   mutate(comorb_smoker = case_when(smoker == 1 ~ 1,
                                 smoker == 0 ~ 0))
-
-df <- df %>% ## 99 have no co-morbidity of the list above. Re-discuss the list! Compare to comorbid_yn
+df <- df %>% ## 0 missing.
+  mutate(immunosupp = case_when(immunodef_yn == 1 ~ 1,
+                                immunodef_yn == 0 ~ 0))
+df <- df %>% 
   mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
                                   comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
+                                | immunosupp == 1
                                   ~ 1,
                                 comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
+                                & immunosupp == 0
                                 ~ 0))
+# df %>% ## 99 have no co-morbidity of the list above. Compare to comorbid_yn
+#    select(id_pat, comorbid_yn, any_comorb, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, D1_CANCER_YNK, D1_CANCER_SP, D1_AUTOIMMUN_YNK, D1_AUTOIMMUN_SP, D1_KIDNEY_YNK, D1_NEURO_YNK,immunodef_yn) %>%
+#   View()
 
-df %>%
-    select(id_pat, D1_CANCER_YNK, D1_CANCER_SP, D1_AUTOIMMUN_YNK, D1_AUTOIMMUN_SP, D1_KIDNEY_YNK, D1_NEURO_YNK,immunodef_yn, comorbid_yn, any_comorb, ) %>% 
-  View()
+# CRP
+df$crp <- as.numeric(df$lab_v_conv_crp_D1) ## 7 missing
+ggplot(df, aes(x = crp)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of CRP",
+       x = "CRP",
+       y = "Density")
 ```
 
+```
+## Warning: Removed 7 rows containing non-finite values (`stat_density()`).
+```
+
+![](barisolidact_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
+
+```r
+skewness_value <- skewness(df$crp, na.rm = TRUE)
+cat("Skewness:", skewness_value, "\n")
+```
+
+```
+## Skewness: 9.087698
+```
+
+```r
+# vaccination
+df <- df %>% ## 4 missing
+  mutate(vacc = case_when(D1_VACCIN_YNK == 1 ~ 1,
+                          D1_VACCIN_YNK == 0 ~ 0))
+# Viremia // Viral load value <LOQ and/or undectectable
+df$vl_baseline <- df$vloqundet_yn_D1
+
+# Variant
+df <- df %>% 
+  mutate(variant = case_when(SCR_COVARIANT == 1 ~ "Delta",
+                             SCR_COVARIANT == 2 ~ "Omicron",
+                             SCR_COVARIANT == 50 ~ "PRESENCE OF MUTATIONS E484Q AND L452R"))
+
+# Serology
+df$sero <- df$Serostatus
+# df %>%
+#    select(id_pat, Serostatus, Anti_Spike_wt, Anti_Nucl_wt, anti_RBDwt, Anti_RBD_Omicron) %>%
+#   View()
+```
+Discussion points:
+1) Ethnicity: Only country of birth available => missing for Bari-Solidact
+2) Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91). steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> Discuss for sens-analysis
+3) Re-discuss the comorbidity list (e.g. autoimmune diseases, cancer, chronic kidney disease // smokers separate?)
+4) No-one received any monoclonal Abs? No-one received any plasma? Any interferons reported?
+5) Serology (Serostatus): anti-spike, anti-RBD, anti-N, anti-RBD-Omicron
