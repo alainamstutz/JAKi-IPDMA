@@ -14,15 +14,23 @@ output:
 
 # Load packages
 
+```r
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(tableone)
+library(haven) # Read sas files
+library(e1071) # For skewness calculation
+```
 
 # Load Data
 
 
 # Define ITT set
-9 participants (3 in int. / 6 in cont.) did not receive a single dose of baricitinib, or placebo, respectively.
-Take them out, as done in results publication (mITT set)
 
 ```r
+# 9 participants (3 in int. / 6 in cont.) did not receive a single dose of baricitinib, or placebo, respectively.
+# Take them out, as done in results publication (mITT set)
 df <- df %>% 
   filter(imp_adm_yn == 1)
 ```
@@ -53,15 +61,9 @@ ggplot(df, aes(x = sympdur)) +
 ![](barisolidact_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 
 ```r
-skewness_value <- skewness(df$sympdur, na.rm = TRUE)
-cat("Skewness:", skewness_value, "\n")
-```
+# skewness(df$sympdur, na.rm = TRUE)
+# cat("Skewness:", skewness_value, "\n")
 
-```
-## Skewness: 3.4207
-```
-
-```r
 # Severity of COVID-19 with respect to respiratory support at randomisation / Bari-Solidact used WHO score, transform
 df <- df %>% ## no missing data // publication: 139 bari vs 136 placebo. In this dataset, slightly more (142 bari vs 138 placebo), due to additional randomized participants during extension of the trial
   mutate(clinstatus_baseline = case_when(whoscore_D1 == 0 | whoscore_D1 == 1 | whoscore_D1 == 3 ~ 1,
@@ -142,29 +144,21 @@ df <- df %>%
 
 # CRP
 df$crp <- as.numeric(df$lab_v_conv_crp_D1) ## 7 missing
-ggplot(df, aes(x = crp)) +
+
+df %>% 
+  drop_na(crp) %>% 
+  ggplot(aes(x = crp)) +
   geom_density(fill = "blue", color = "black") +
   labs(title = "Density Plot of CRP",
        x = "CRP",
        y = "Density")
 ```
 
-```
-## Warning: Removed 7 rows containing non-finite values (`stat_density()`).
-```
-
 ![](barisolidact_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
 
 ```r
-skewness_value <- skewness(df$crp, na.rm = TRUE)
-cat("Skewness:", skewness_value, "\n")
-```
+# skewness(df$crp, na.rm = TRUE)
 
-```
-## Skewness: 9.087698
-```
-
-```r
 # vaccination
 df <- df %>% ## 4 missing
   mutate(vacc = case_when(D1_VACCIN_YNK == 1 ~ 1,
@@ -184,9 +178,76 @@ df$sero <- df$Serostatus
 #    select(id_pat, Serostatus, Anti_Spike_wt, Anti_Nucl_wt, anti_RBDwt, Anti_RBD_Omicron) %>%
 #   View()
 ```
-Discussion points:
+Discussion points BASELINE data:
 1) Ethnicity: Only country of birth available => missing for Bari-Solidact
 2) Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91). steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> Discuss for sens-analysis
 3) Re-discuss the comorbidity list (e.g. autoimmune diseases, cancer, chronic kidney disease // smokers separate?)
 4) No-one received any monoclonal Abs? No-one received any plasma? Any interferons reported?
 5) Serology (Serostatus): anti-spike, anti-RBD, anti-N, anti-RBD-Omicron
+
+# Endpoints
+
+```r
+# time to event data
+df$death_d <- as.numeric(df$deathdated1_DROP - df$randdate) 
+df$discharge_d <- as.numeric(df$visitdated1_DISCH - df$randdate)
+df$withdraw_d <- as.numeric(df$withdrawdated1_DROP - df$randdate)
+df$withdrawi_d <- as.numeric(df$invdecisdated1_DROP - df$randdate)
+# df$ltfu_d <- as.numeric(df$ltfudated1_DROP - df$randdate) ## there were no LTFU
+df$readmission_d <- as.numeric(df$readmdate - df$randdate)
+
+# transform all daily clinical scores
+whoscore_transform <- function(df, clinstatus_var, whoscore_var) {
+  df <- df %>%
+    mutate({{ clinstatus_var }} :=
+             case_when({{ whoscore_var }} %in% c(0, 1, 3) ~ 1,
+                       {{ whoscore_var }} == 4 ~ 2,
+                       {{ whoscore_var }} == 5 ~ 3,
+                       {{ whoscore_var }} == 6 ~ 4,
+                       {{ whoscore_var }} %in% c(7, 8, 9) ~ 5,
+                       {{ whoscore_var }} == 10 ~ 6)) %>%
+    mutate({{ clinstatus_var }} := factor({{ clinstatus_var }}, levels = 1:6))
+}
+df <- whoscore_transform(df, clinstatus_2, whoscore_D3) ## D1 was baseline => D3 is +2 days after baseline.
+df <- whoscore_transform(df, clinstatus_4, whoscore_D5)
+df <- whoscore_transform(df, clinstatus_7, whoscore_D8)
+df <- whoscore_transform(df, clinstatus_14, whoscore_D15)
+df <- whoscore_transform(df, clinstatus_21, whoscore_D22)
+df <- whoscore_transform(df, clinstatus_28, whoscore_D29) 
+df <- whoscore_transform(df, clinstatus_35, whoscore_D36)
+df <- whoscore_transform(df, clinstatus_discharge, whoscore_DISCH)
+df <- whoscore_transform(df, clinstatus_dropout, whoscore_DROP)
+
+# Primary outcome: mortality at day 28
+df <- df %>% 
+  mutate(mort_28 = case_when(death_d <29 ~ 1,
+                                   TRUE ~ 0))
+# (i) mortality at day 60 and mortality within max. follow-up time
+df <- df %>% 
+  mutate(mort_60 = case_when(death_d <61 ~ 1,
+                                   TRUE ~ 0))
+df$death_reached <- df$death_yn
+
+# (ii) new mechanical ventilation among survivors within 28 days
+
+# df %>% 
+#   select(clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28, clinstatus_35, mort_28, mort_60, death_reached, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d) %>%
+#   View()
+
+# (iii) clinical status at day 28
+table(df$clinstatus_28, df$trt, useNA = "always") ## Currently excluding those discharged or died or dropped
+```
+
+```
+##       
+##          0   1 <NA>
+##   1      1   0    0
+##   2      4   4    0
+##   3      7   6    0
+##   4      3   1    0
+##   5      8  15    0
+##   6      0   0    0
+##   <NA> 115 116    0
+```
+
+
