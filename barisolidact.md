@@ -61,8 +61,8 @@ ggplot(df, aes(x = sympdur)) +
 ![](barisolidact_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 
 ```r
-# skewness(df$sympdur, na.rm = TRUE)
-# cat("Skewness:", skewness_value, "\n")
+## skewness(df$sympdur, na.rm = TRUE)
+## cat("Skewness:", skewness_value, "\n")
 
 # Severity of COVID-19 with respect to respiratory support at randomisation / Bari-Solidact used WHO score, transform
 df <- df %>% ## no missing data // publication: 139 bari vs 136 placebo. In this dataset, slightly more (142 bari vs 138 placebo), due to additional randomized participants during extension of the trial
@@ -100,9 +100,16 @@ df <- df %>%
          comed_ab = antibio_yn,
          comed_acoa = anticoag_yn)
 df$comed_interferon <- NA ## no interferon used / but monoclonal Abs and plasma -> other
-df <- df %>% ## double-check with trial team
+df <- df %>%
   mutate(comed_other = case_when(monocloAb_yn == 1 | immunplasma_yn == 1 ~ 1,
                                 monocloAb_yn == 0 & immunplasma_yn == 0 ~ 0))
+
+## group them for the subgroup analysis, according to protocol // tocilizumab as rescue medication - incorporate?
+df <- df %>% 
+  mutate(comed_cat = case_when(comed_dexa == 0 & comed_toci == 0 ~ 1, # patients without Dexamethasone nor Tocilizumab
+                               comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexamethasone and Tocilizumab
+                               comed_dexa == 1 & comed_toci == 0 ~ 3, # patients with Dexamethasone but no Tocilizumab
+                               comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Tocilizumab but no Dexamethasone (if exist)
 
 # Comorbidity at baseline, including immunocompromised
 df <- df %>% ## 4 missing
@@ -138,9 +145,38 @@ df <- df %>%
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
                                 & immunosupp == 0
                                 ~ 0))
-# df %>% ## 99 have no co-morbidity of the list above. Compare to comorbid_yn
-#    select(id_pat, comorbid_yn, any_comorb, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, D1_CANCER_YNK, D1_CANCER_SP, D1_AUTOIMMUN_YNK, D1_AUTOIMMUN_SP, D1_KIDNEY_YNK, D1_NEURO_YNK,immunodef_yn) %>%
-#   View()
+
+## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
+comorb <- df %>% 
+  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp)
+comorb$comorb_count <- NA
+for (i in 1:dim(comorb)[[1]]) {
+  comorb$comorb_count[i] <- ifelse(
+    sum(comorb[i, ] %in% c(1)) > 0,
+    sum(comorb[i, ] %in% c(1)),
+    NA
+  )
+}
+class(comorb$comorb_count)
+```
+
+```
+## [1] "integer"
+```
+
+```r
+comorb <- comorb %>% 
+  mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
+                                  comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
+                                & immunosupp == 0 ~ 0,
+                                TRUE ~ comorb_count))
+df <- left_join(df, comorb[, c("comorb_count", "id_pat")], by = join_by(id_pat == id_pat)) ## merge imputed variable back
+df <- df %>% 
+  mutate(comorb_cat = case_when(immunosupp == 1 ~ 4, # immunocompromised
+                                comorb_count == 0 ~ 1, # no comorbidity
+                                comorb_count == 1 ~ 2, # one comorbidity
+                                comorb_count >1 & immunosupp == 0 ~ 3)) # multiple comorbidities
+# table(df$comorb_cat, useNA = "always") # 10 missing, have just 1 of the comorb categories missing...re-classify or multiple imputation?
 
 # CRP
 df$crp <- as.numeric(df$lab_v_conv_crp_D1) ## 7 missing
@@ -159,7 +195,7 @@ df %>%
 ```r
   # skewness(df$crp, na.rm = TRUE)
 
-# vaccination
+# Vaccination
 df <- df %>% ## 4 missing
   mutate(vacc = case_when(D1_VACCIN_YNK == 1 ~ 1,
                           D1_VACCIN_YNK == 0 ~ 0))
@@ -182,8 +218,9 @@ Discussion points BASELINE data:
 1) Ethnicity: Only country of birth available => missing for Bari-Solidact
 2) Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91). steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> Discuss for sens-analysis
 3) Re-discuss the comorbidity list (e.g. autoimmune diseases, cancer, chronic kidney disease // smokers separate?)
-4) No-one received any monoclonal Abs? No-one received any plasma? Any interferons reported?
-5) Serology (Serostatus): anti-spike, anti-RBD, anti-N, anti-RBD-Omicron
+4) Missing data for comorbidity subgroup analyses: MICE?
+5) No-one received any monoclonal Abs? No-one received any plasma? Any interferons reported?
+6) Serology (Serostatus): anti-spike, anti-RBD, anti-N, anti-RBD-Omicron
 
 # Endpoints
 
@@ -219,21 +256,21 @@ df <- whoscore_transform(df, clinstatus_35, whoscore_D36)
 df <- whoscore_transform(df, clinstatus_discharge, whoscore_DISCH)
 df <- whoscore_transform(df, clinstatus_dropout, whoscore_DROP)
 
-# Primary outcome: Mortality at day 28
+# (i) Primary outcome: Mortality at day 28
 df <- df %>% # 5 have no outcome data and withdrew or were withdrawn -> multiple imputation
   mutate(mort_28 = case_when(death_d <29 ~ 1,
                              discharge_d <29 ~ 0, # all discharged were discharged alive and not to hospiz
                              clinstatus_28 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >28 ~ 0)) # discharged later, proof of still alive
         
-# (i) Mortality at day 60
+# (ii) Mortality at day 60
 df <- df %>% # same 5 that have no outcome data and withdrew or were withdrawn -> multiple imputation
   mutate(mort_60 = case_when(death_d <61 ~ 1,
                              discharge_d <61 ~ 0, # all discharged were discharged alive and not to hospiz
                              clinstatus_35 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >60 ~ 0)) # discharged later, proof of still alive
         
-# (i) Time to death within max. follow-up time
+# (iii) Time to death within max. follow-up time
 df$death_reached <- df$death_yn
 df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
   mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
@@ -243,7 +280,7 @@ df <- df %>% # 2 are left without any time to event data => impute max. follow-u
                                 readmission_d >=0 ~ c(readmission_d), # time to readmission, then...
                                 maxfup_d >=0 ~ c(maxfup_d))) # time to max fup
 
-# (ii) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.
+# (iv) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.
 df <- df %>% # 4 NA are due to missing mortality data -> multiple imputation. The other NA are not eligible (died or clinstatus_baseline == 5) and thus are excluded from denominator -> no multiple imputation
   mutate(new_mv_28 = case_when(clinstatus_baseline == 4 & (mort_28 == 0 | is.na(mort_28)) 
                                & (clinstatus_2 == 5 | clinstatus_4 == 5 | clinstatus_7 == 5 | clinstatus_14 == 5 
@@ -252,12 +289,12 @@ df <- df %>% # 4 NA are due to missing mortality data -> multiple imputation. Th
                                clinstatus_baseline == 4 & mort_28 == 0
                                ~ 0))
 
-# (ii) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator.
+# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator.
 df <- df %>% # 4 NA are due to missing mortality data -> multiple imputation.
   mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
                                 new_mv_28 == 0 | mort_28 == 0 ~ 0))
 
-# (iii) Clinical status at day 28
+# (v) Clinical status at day 28
 df <- df %>% # Adapt clinstatus_28, since currently excluding those discharged or died or missing data.
   mutate(clinstatus_28 = case_when(clinstatus_28 == 5 ~ 5,
                                    clinstatus_28 == 4 ~ 4,
@@ -266,7 +303,7 @@ df <- df %>% # Adapt clinstatus_28, since currently excluding those discharged o
                                    mort_28 == 1 ~ 6, # died within 28d
                                    mort_28 == 0 ~ 1)) # discharged alive / reached discharge criteria within 28d
 df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) ## no missing data
-# Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days). -> no window data in Bari-Solidact => LVCF
+## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days). -> no window data in Bari-Solidact => LVCF
 dfcs <- df %>% 
     select(id_pat, clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28)
 impute_last_forw = function(df){
@@ -284,19 +321,60 @@ impute_last_forw = function(df){
 dfcs <- impute_last_forw(dfcs)
 dfcs <- dfcs %>% # To control, don't overwrite
   rename(clinstatus_28_imp = clinstatus_28)
-# Merge imputed variable back
-df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat))
+df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat)) # # Merge imputed variable back // re-admissions already correctly incorporated
 
-# (iv) Days until discharge or reaching discharge criteria up to day 28
+# (vi) Time to discharge or reaching discharge criteria up to day 28 // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days. 
+df <- df %>% 
+  mutate(discharge_reached = case_when(discharge_d <29 ~ 1,
+                                       TRUE ~ 0))
+df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
+  mutate(discharge_time = case_when(discharge_d >=0 ~ c(discharge_d), # time to discharge, if no time to discharge, then...
+                                    death_d >=0 ~ c(death_d), # time to death, then...
+                                    withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal, then...
+                                    withdrawi_d >=0 ~ c(withdrawi_d), # time to i_withdrawal, then...
+                                    # readmission_d >=0 ~ c(readmission_d), # time to readmission, then...
+                                    maxfup_d >=0 ~ c(maxfup_d))) # time to max fup
+df <- df %>% # add 28d for those that died
+  mutate(discharge_time = case_when(mort_28 == 1 ~ 28,
+                                    TRUE ~ discharge_time))
+df <- df %>% # restrict to max fup time 28d
+  mutate(discharge_time = case_when(discharge_time >28 ~ 28,
+                                    TRUE ~ discharge_time))
 
+# (vi) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
+df <- df %>% # there are 5 re-admissions. the one readmitted at day 16 was re-discharged at day ?28?. The ones at d21 & d27 not. And then there are 2 that were readmitted later than d28. => Reclassify d21 and d27, add d28 to the one re-admitted at d16.
+  mutate(discharge_reached_sus = case_when(readmission_d == 21 | readmission_d == 27 ~ 0,
+                                           TRUE ~ discharge_reached))
+df <- df %>%
+  mutate(discharge_time_sus = case_when(readmission_d == 16 ~ 16,
+                                        readmission_d == 21 | readmission_d == 27 ~ 28,
+                                        TRUE ~ discharge_time))
 
-# (iv) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
+# (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
+df$vir_clear_5 <- df$vloqundet_yn_D3
+df$vir_clear_10 <- df$vloqundet_yn_D8 # point prevalence, not cumulative
+df$vir_clear_15 <- df$vloqundet_yn_D15 # point prevalence, not cumulative
+df <- df %>% 
+  mutate(vir_clear_15_cum = case_when(vir_clear_15 == 1 | vir_clear_10 == 1 | vir_clear_5 == 1 ~ 1,
+                                      vir_clear_15 == 0 ~ 0,
+                                      vir_clear_10 == 0 ~ 0,
+                                      vir_clear_5 == 0 ~ 0))
 
+# (viii) Quality of life at day 28 // detailed measures available - wait for other trials first
 
-# df %>%
-#   select(clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28,clinstatus_28_imp, clinstatus_35, new_mv_28, new_mvd_28, mort_28, mort_60, death_reached, death_time, maxfup_d, lastdate, person_day, person_month, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d) %>%
-#   # filter(is.na(new_mvd_28) & clinstatus_baseline == 4) %>% 
-#   View()
+# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
+
+# (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+
+# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
 ```
-
+Discussion points OUTCOME data:
+1) VL: Add a cumulative outcome definition (as sens-analysis)?
+2) Rediscuss and double-check the 5 re-admissions.
+3) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
+4) Get the (S)AE data
 
