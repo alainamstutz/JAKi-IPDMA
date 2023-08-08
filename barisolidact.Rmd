@@ -19,7 +19,6 @@ library(readxl)
 library(writexl)
 library(tableone)
 library(haven) # Read sas files
-library(e1071) # For skewness calculation
 
 ```
 
@@ -58,8 +57,6 @@ ggplot(df, aes(x = sympdur)) +
   labs(title = "Density Plot of Symptom Duration",
        x = "Symptom Duration",
        y = "Density")
-## skewness(df$sympdur, na.rm = TRUE)
-## cat("Skewness:", skewness_value, "\n")
 
 # Severity of COVID-19 with respect to respiratory support at randomisation / Bari-Solidact used WHO score, transform
 df <- df %>% ## no missing data // publication: 139 bari vs 136 placebo. In this dataset, slightly more (142 bari vs 138 placebo), due to additional randomized participants during extension of the trial
@@ -162,7 +159,6 @@ df %>%
   labs(title = "Density Plot of CRP",
        x = "CRP",
        y = "Density")
-  # skewness(df$crp, na.rm = TRUE)
 
 # Vaccination
 df <- df %>% ## 4 missing

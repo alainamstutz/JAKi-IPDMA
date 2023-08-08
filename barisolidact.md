@@ -20,7 +20,6 @@ library(readxl)
 library(writexl)
 library(tableone)
 library(haven) # Read sas files
-library(e1071) # For skewness calculation
 ```
 
 # Load Data
@@ -61,9 +60,6 @@ ggplot(df, aes(x = sympdur)) +
 ![](barisolidact_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 
 ```r
-## skewness(df$sympdur, na.rm = TRUE)
-## cat("Skewness:", skewness_value, "\n")
-
 # Severity of COVID-19 with respect to respiratory support at randomisation / Bari-Solidact used WHO score, transform
 df <- df %>% ## no missing data // publication: 139 bari vs 136 placebo. In this dataset, slightly more (142 bari vs 138 placebo), due to additional randomized participants during extension of the trial
   mutate(clinstatus_baseline = case_when(whoscore_D1 == 0 | whoscore_D1 == 1 | whoscore_D1 == 3 ~ 1,
@@ -157,14 +153,6 @@ for (i in 1:dim(comorb)[[1]]) {
     NA
   )
 }
-class(comorb$comorb_count)
-```
-
-```
-## [1] "integer"
-```
-
-```r
 comorb <- comorb %>% 
   mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
@@ -193,8 +181,6 @@ df %>%
 ![](barisolidact_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
 
 ```r
-  # skewness(df$crp, na.rm = TRUE)
-
 # Vaccination
 df <- df %>% ## 4 missing
   mutate(vacc = case_when(D1_VACCIN_YNK == 1 ~ 1,
