@@ -38,7 +38,7 @@ df <- df %>%
 ```
 
 # Baseline Characteristics
-```{r echo=TRUE, paged.print=TRUE}
+```{r echo=TRUE, message=TRUE}
 
 df <- df %>% ## no missing data
   rename(id_pat = PARTICIPANT_ID,
@@ -346,7 +346,7 @@ Discussion points OUTCOME data:
 3) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
 4) Get the (S)AE data
 
-# Multiple imputation
+# Multiple imputation using chained equation
 ```{r}
 
 ```
