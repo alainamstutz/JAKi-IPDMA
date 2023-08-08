@@ -364,3 +364,6 @@ Discussion points OUTCOME data:
 3) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
 4) Get the (S)AE data
 
+# Multiple imputation
+
+
