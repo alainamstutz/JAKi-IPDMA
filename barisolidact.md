@@ -157,7 +157,7 @@ df %>%
 ![](barisolidact_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
 
 ```r
-# skewness(df$crp, na.rm = TRUE)
+  # skewness(df$crp, na.rm = TRUE)
 
 # vaccination
 df <- df %>% ## 4 missing
@@ -195,6 +195,7 @@ df$withdraw_d <- as.numeric(df$withdrawdated1_DROP - df$randdate)
 df$withdrawi_d <- as.numeric(df$invdecisdated1_DROP - df$randdate)
 # df$ltfu_d <- as.numeric(df$ltfudated1_DROP - df$randdate) ## there were no LTFU
 df$readmission_d <- as.numeric(df$readmdate - df$randdate)
+df$maxfup_d <- as.numeric(df$lastdate - df$randdate)
 
 # transform all daily clinical scores
 whoscore_transform <- function(df, clinstatus_var, whoscore_var) {
@@ -218,36 +219,84 @@ df <- whoscore_transform(df, clinstatus_35, whoscore_D36)
 df <- whoscore_transform(df, clinstatus_discharge, whoscore_DISCH)
 df <- whoscore_transform(df, clinstatus_dropout, whoscore_DROP)
 
-# Primary outcome: mortality at day 28
-df <- df %>% 
+# Primary outcome: Mortality at day 28
+df <- df %>% # 5 have no outcome data and withdrew or were withdrawn -> multiple imputation
   mutate(mort_28 = case_when(death_d <29 ~ 1,
-                                   TRUE ~ 0))
-# (i) mortality at day 60 and mortality within max. follow-up time
-df <- df %>% 
+                             discharge_d <29 ~ 0, # all discharged were discharged alive and not to hospiz
+                             clinstatus_28 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
+                             discharge_d >28 ~ 0)) # discharged later, proof of still alive
+        
+# (i) Mortality at day 60
+df <- df %>% # same 5 that have no outcome data and withdrew or were withdrawn -> multiple imputation
   mutate(mort_60 = case_when(death_d <61 ~ 1,
-                                   TRUE ~ 0))
+                             discharge_d <61 ~ 0, # all discharged were discharged alive and not to hospiz
+                             clinstatus_35 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
+                             discharge_d >60 ~ 0)) # discharged later, proof of still alive
+        
+# (i) Time to death within max. follow-up time
 df$death_reached <- df$death_yn
+df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
+  mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
+                                discharge_d >=0 ~ c(discharge_d), # time to discharge, then...
+                                withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal, then...
+                                withdrawi_d >=0 ~ c(withdrawi_d), # time to i_withdrawal, then...
+                                readmission_d >=0 ~ c(readmission_d), # time to readmission, then...
+                                maxfup_d >=0 ~ c(maxfup_d))) # time to max fup
 
-# (ii) new mechanical ventilation among survivors within 28 days
+# (ii) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.
+df <- df %>% # 4 NA are due to missing mortality data -> multiple imputation. The other NA are not eligible (died or clinstatus_baseline == 5) and thus are excluded from denominator -> no multiple imputation
+  mutate(new_mv_28 = case_when(clinstatus_baseline == 4 & (mort_28 == 0 | is.na(mort_28)) 
+                               & (clinstatus_2 == 5 | clinstatus_4 == 5 | clinstatus_7 == 5 | clinstatus_14 == 5 
+                                  | clinstatus_21 == 5 | clinstatus_28 == 5)
+                               ~ 1,
+                               clinstatus_baseline == 4 & mort_28 == 0
+                               ~ 0))
 
-# df %>% 
-#   select(clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28, clinstatus_35, mort_28, mort_60, death_reached, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d) %>%
+# (ii) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator.
+df <- df %>% # 4 NA are due to missing mortality data -> multiple imputation.
+  mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
+                                new_mv_28 == 0 | mort_28 == 0 ~ 0))
+
+# (iii) Clinical status at day 28
+df <- df %>% # Adapt clinstatus_28, since currently excluding those discharged or died or missing data.
+  mutate(clinstatus_28 = case_when(clinstatus_28 == 5 ~ 5,
+                                   clinstatus_28 == 4 ~ 4,
+                                   clinstatus_28 == 3 ~ 3,
+                                   clinstatus_28 == 2 ~ 2,
+                                   mort_28 == 1 ~ 6, # died within 28d
+                                   mort_28 == 0 ~ 1)) # discharged alive / reached discharge criteria within 28d
+df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) ## no missing data
+# Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days). -> no window data in Bari-Solidact => LVCF
+dfcs <- df %>% 
+    select(id_pat, clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28)
+impute_last_forw = function(df){
+  first = which(names(df)%in%c("clinstatus_baseline"))
+  last = which(names(df)%in%c("clinstatus_28"))
+  for (i in 1:dim(df)[[1]]){
+    for (j in first[1]:last[1]){
+      p = df[i, j]
+      df[i,j] <- 
+        ifelse(!is.na(df[i, j]), p, df[i, j-1])
+    }
+  }
+  df
+}
+dfcs <- impute_last_forw(dfcs)
+dfcs <- dfcs %>% # To control, don't overwrite
+  rename(clinstatus_28_imp = clinstatus_28)
+# Merge imputed variable back
+df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat))
+
+# (iv) Days until discharge or reaching discharge criteria up to day 28
+
+
+# (iv) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
+
+
+# df %>%
+#   select(clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28,clinstatus_28_imp, clinstatus_35, new_mv_28, new_mvd_28, mort_28, mort_60, death_reached, death_time, maxfup_d, lastdate, person_day, person_month, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d) %>%
+#   # filter(is.na(new_mvd_28) & clinstatus_baseline == 4) %>% 
 #   View()
-
-# (iii) clinical status at day 28
-table(df$clinstatus_28, df$trt, useNA = "always") ## Currently excluding those discharged or died or dropped
-```
-
-```
-##       
-##          0   1 <NA>
-##   1      1   0    0
-##   2      4   4    0
-##   3      7   6    0
-##   4      3   1    0
-##   5      8  15    0
-##   6      0   0    0
-##   <NA> 115 116    0
 ```
 
 
