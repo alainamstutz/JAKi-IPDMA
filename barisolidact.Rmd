@@ -38,7 +38,7 @@ df <- df %>%
 ```
 
 # Baseline Characteristics
-```{r echo=TRUE, message=TRUE}
+```{r echo=TRUE}
 
 df <- df %>% ## no missing data
   rename(id_pat = PARTICIPANT_ID,
