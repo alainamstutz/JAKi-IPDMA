@@ -13,21 +13,148 @@ output:
 ---
 
 # Load packages
-```{r load packages, include=FALSE}
+```{r load packages, echo=TRUE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(readxl)
-library(tableone)
-library(data.table)
 library(writexl)
-library(lme4)
-library(sjPlot) # for tab_model
-library(jtools) # for summ()
+library(tableone)
+library(haven) # Read sas files
 
 ```
 
 # Load Data
 ```{r, include=FALSE}
-
+df <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/ACTT2/ACTT_2_expanded/actt2_long_addvars_19oct2021.sas7bdat")
+# df_aug <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/ACTT2/ACTT_2_expanded_August2021/actt2_longitudinal_addvars.sas7bdat")
+df_original <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/ACTT2/ACTT_2_original/ACTT2.sas7bdat")
 
 ```
 
+# Reshape dataset and define ITT population
+```{r echo=TRUE}
+#reshape
+df <- df %>% ## corresponds to N in publication
+  pivot_wider(id_cols = c("USUBJID","ARM","ACTARM","BCSOSN","d29dthe0","d29dthe1","ttrecov0","ttrecov1","or15scor","agec","SEX","BDURSYMP","COMORB2","REGION1","REGION2","BMI","RACE","ETHNIC","STRATAR","STRATAV","HYPTFL","CADFL","CHFFL","CRDFL","CORQFL","CLDFL","CKDFL","DIAB1FL","DIAB2FL","OBESIFL","CANCFL","IMMDFL","ASTHMAFL","CVDFL","COAGFL","NICFL","RFDVTFL","SURGFL","IMMOFL","CPDVTFL","COMORB1"),
+              names_from = "adyc",
+              values_from = "ordscor")
+#reorder
+df <- df %>%
+  select("USUBJID","ARM","ACTARM","BCSOSN","Baseline","1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33","34","36","37","45", everything())
+
+#define ITT
+# addmargins(table(df$ARM, df$ACTARM))
+
+```
+Questions: 
+1) Re-discuss ITT set - see Bari-Solidact
+
+# Baseline Characteristics
+```{r echo=TRUE}
+
+df <- df %>% ## no missing data // no randdate
+  rename(id_pat = USUBJID,
+         trt = ARM,
+         sex = SEX,
+         age = agec,
+         country = REGION2)
+
+# fix ages ">89" using the original dataset
+df_original <- df_original %>%
+  rename(id_pat = USUBJID)
+elderly <- unique(df[which(df$age == ">89"), "id_pat"])
+for (i in 1:dim(elderly)[[1]]){
+  df[which(df$id_pat == paste(elderly[i,])), "age"] <- paste(df_original[which(df_original$id_pat == paste(elderly[i,])), "AGE"])
+}
+df$age <- as.numeric(df$age)
+
+# Days with symptoms prior to randomization
+df$sympdur <- df$BDURSYMP ## 16 missing data
+df %>% 
+  drop_na(sympdur) %>% 
+  ggplot(aes(x = sympdur)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Symptom Duration",
+       x = "Symptom Duration",
+       y = "Density")
+
+# Severity of COVID-19 with respect to respiratory support at randomisation / from publication: "Scores on the ordinal scale are as follows: 1, not hospitalized, no limitations of activities; 2, not hospitalized, limitation of activities, home oxygen requirement, or both; 3, hospitalized, not requiring supplemental oxygen and no longer requiring ongoing medical care (used if hospitalization was extended for infection-control reasons); 4, hospitalized, not requiring supplemental oxygen but requiring ongoing medical care (Covid-19–related or other medical conditions); 5, hospitalized, requiring any supplemental oxygen; 6, hospitalized, receiving noninvasive ventilation or use of high-flow oxygen devices; 7, hospitalized, receiving invasive mechanical ventilation or ECMO; and 8, death. Five deaths (three in patients receiving baricitinib plus RDV and two in patients receiving placebo plus RDV) occurred within the day 15 visit window but after 14 days — these deaths are included in the outcome of the ordinal score at day 15 but not in the outcome of mortality over the first 14 days."
+
+# transform all clinical scores
+score_transform <- function(df, clinstatus_var, score_var) {
+  df <- df %>%
+    mutate({{ clinstatus_var }} :=
+             case_when({{ score_var }} %in% c(1, 2, 3) ~ 1,
+                       {{ score_var }} == 4 ~ 2,
+                       {{ score_var }} == 5 ~ 3,
+                       {{ score_var }} == 6 ~ 4,
+                       {{ score_var }} == 7 ~ 5,
+                       {{ score_var }} == 8 ~ 6)) %>%
+    mutate({{ clinstatus_var }} := factor({{ clinstatus_var }}, levels = 1:6))
+}
+
+df <- score_transform(df, clinstatus_baseline, Baseline) 
+addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always")) # no missing / # corresponds to publication
+df <- score_transform(df, clinstatus_1, df$"1")
+df <- score_transform(df, clinstatus_2, df$"2")
+df <- score_transform(df, clinstatus_3, df$"3")
+df <- score_transform(df, clinstatus_4, df$"4")
+df <- score_transform(df, clinstatus_5, df$"5")
+df <- score_transform(df, clinstatus_6, df$"6")
+df <- score_transform(df, clinstatus_7, df$"7")
+df <- score_transform(df, clinstatus_8, df$"8")
+df <- score_transform(df, clinstatus_9, df$"9")
+df <- score_transform(df, clinstatus_10, df$"10")
+df <- score_transform(df, clinstatus_11, df$"11")
+df <- score_transform(df, clinstatus_12, df$"12")
+df <- score_transform(df, clinstatus_13, df$"13")
+df <- score_transform(df, clinstatus_14, df$"14")
+df <- score_transform(df, clinstatus_15, df$"15")
+df <- score_transform(df, clinstatus_16, df$"16")
+df <- score_transform(df, clinstatus_17, df$"17")
+df <- score_transform(df, clinstatus_18, df$"18")
+df <- score_transform(df, clinstatus_19, df$"19")
+df <- score_transform(df, clinstatus_20, df$"20")
+df <- score_transform(df, clinstatus_21, df$"21")
+df <- score_transform(df, clinstatus_22, df$"22")
+df <- score_transform(df, clinstatus_23, df$"23")
+df <- score_transform(df, clinstatus_24, df$"24")
+df <- score_transform(df, clinstatus_25, df$"25")
+df <- score_transform(df, clinstatus_26, df$"26")
+df <- score_transform(df, clinstatus_27, df$"27")
+df <- score_transform(df, clinstatus_28, df$"28")
+df <- score_transform(df, clinstatus_29, df$"29")
+df <- score_transform(df, clinstatus_30, df$"30")
+df <- score_transform(df, clinstatus_31, df$"31")
+df <- score_transform(df, clinstatus_32, df$"32")
+df <- score_transform(df, clinstatus_33, df$"33")
+df <- score_transform(df, clinstatus_34, df$"34")
+df <- score_transform(df, clinstatus_36, df$"36")
+df <- score_transform(df, clinstatus_37, df$"37")
+df <- score_transform(df, clinstatus_45, df$"45")
+
+# Co-medication at baseline
+
+## group them for the subgroup analysis, according to protocol
+
+# Comorbidity at baseline, including immunocompromised
+
+## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
+
+# CRP
+# Vaccination
+# Viremia
+# Variant
+# Serology
+
+```
+Clarifications and discussion points BASELINE data:
+1) Missing baseline characteristics: 
+- Country: Only region available. "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
+- ICU at enrolment
+- CRP
+- Viremia
+- Variant
+- Serology
+- Vaccination ???
+2) Re-consider Country (here: Region). 
+3) In the absence of a written policy, other experimental treatment and off-label use of marketed medications intended as specific treatment for Covid-19 were prohibited. This included glucocorticoids, which were permitted only for standard indications such as adrenal insufficiency, asthma exacerbation, laryngeal edema, septic shock, and acute respiratory distress syndrome.
