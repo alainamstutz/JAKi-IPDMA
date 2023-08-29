@@ -19,7 +19,6 @@ library(readxl)
 library(writexl)
 library(tableone)
 library(haven) # Read sas files
-
 ```
 
 # Load Data
@@ -36,6 +35,8 @@ df <- df %>%
   filter(imp_adm_yn == 1)
 
 ```
+Questions: 
+1) Re-discuss ITT set - see ACTT-2
 
 # Baseline Characteristics
 ```{r echo=TRUE}
@@ -147,7 +148,7 @@ df <- df %>%
   mutate(comorb_cat = case_when(immunosupp == 1 ~ 4, # immunocompromised
                                 comorb_count == 0 ~ 1, # no comorbidity
                                 comorb_count == 1 ~ 2, # one comorbidity
-                                comorb_count >1 & immunosupp == 0 ~ 3)) # multiple comorbidities
+                                comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
 # table(df$comorb_cat, useNA = "always") # 10 missing, have just 1 of the comorb categories missing...re-classify or multiple imputation?
 
 # CRP
@@ -181,8 +182,10 @@ df$sero <- df$Serostatus
 #   View()
 
 ```
-Discussion points BASELINE data:
-1) Ethnicity: Only country of birth available => missing for Bari-Solidact
+Clarifications and discussion points BASELINE data:
+1) Missing baseline characteristics: 
+- Ethnicity: Only country of birth available
+- comed_interferon
 2) Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91). steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> Discuss for sens-analysis
 3) Re-discuss the comorbidity list (e.g. autoimmune diseases, cancer, chronic kidney disease // smokers separate?)
 4) Missing data for comorbidity subgroup analyses: MICE?
@@ -236,15 +239,23 @@ df <- df %>% # same 5 that have no outcome data and withdrew or were withdrawn -
                              clinstatus_35 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >60 ~ 0)) # discharged later, proof of still alive
         
-# (iii) Time to death within max. follow-up time
-df$death_reached <- df$death_yn
+# (iii) Time to death within max. follow-up time 
+df$death_reached <- df$death_yn # do not bother about missings in mort_28
 df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
   mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
-                                discharge_d >=0 ~ c(discharge_d), # time to discharge, then...
-                                withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal, then...
-                                withdrawi_d >=0 ~ c(withdrawi_d), # time to i_withdrawal, then...
-                                readmission_d >=0 ~ c(readmission_d), # time to readmission, then...
-                                maxfup_d >=0 ~ c(maxfup_d))) # time to max fup
+                                discharge_d >=0 & (is.na(withdraw_d) | withdraw_d >28) & (is.na(withdrawi_d) | withdrawi_d >28) ~ 28, # 28d for all those who were discharged alive and not withdrawn before, then...
+                                discharge_d >= withdraw_d ~ c(discharge_d), # time to discharge if this was greater than time to withdrawal
+                                discharge_d >= withdrawi_d ~ c(discharge_d), # see above
+                                maxfup_d >=0 & is.na(withdraw_d) & is.na(withdrawi_d) ~ c(maxfup_d), # max fup for the remaining ones not withdrawn
+                                withdraw_d >=0 ~ c(withdraw_d),
+                                withdrawi_d >=0 ~ c(withdrawi_d)))
+
+# df %>% 
+#   select(death_reached, death_time, mort_28, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d, maxfup_d, clinstatus_baseline,
+#          clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28) %>% 
+#   filter(is.na(death_time)) %>% 
+#   View()
+
 
 # (iv) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.
 df <- df %>% # 4 NA are due to missing mortality data -> multiple imputation. The other NA are not eligible (died or clinstatus_baseline == 5) and thus are excluded from denominator -> no multiple imputation
@@ -294,12 +305,13 @@ df <- df %>%
   mutate(discharge_reached = case_when(discharge_d <29 ~ 1,
                                        TRUE ~ 0))
 df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
-  mutate(discharge_time = case_when(discharge_d >=0 ~ c(discharge_d), # time to discharge, if no time to discharge, then...
+  mutate(discharge_time = case_when(discharge_d >=0 & (is.na(withdraw_d) | withdraw_d >28) & (is.na(withdrawi_d) | withdrawi_d >28) ~ c(discharge_d), # time to discharge in case no withdrawal or withdrawal after 28d. If no time to discharge, then...
                                     death_d >=0 ~ c(death_d), # time to death, then...
-                                    withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal, then...
-                                    withdrawi_d >=0 ~ c(withdrawi_d), # time to i_withdrawal, then...
-                                    # readmission_d >=0 ~ c(readmission_d), # time to readmission, then...
-                                    maxfup_d >=0 ~ c(maxfup_d))) # time to max fup
+                                    discharge_d >= withdraw_d ~ c(discharge_d), # add time to discharge where time to discharge is after time to withdrawal 
+                                    discharge_d >= withdrawi_d ~ c(discharge_d), # see above
+                                    maxfup_d >=0 & is.na(withdraw_d) & is.na(withdrawi_d) ~ c(maxfup_d), # max fup for the remaining ones not withdrawn
+                                withdraw_d >=0 ~ c(withdraw_d),
+                                withdrawi_d >=0 ~ c(withdrawi_d)))
 df <- df %>% # add 28d for those that died
   mutate(discharge_time = case_when(mort_28 == 1 ~ 28,
                                     TRUE ~ discharge_time))
@@ -307,12 +319,18 @@ df <- df %>% # restrict to max fup time 28d
   mutate(discharge_time = case_when(discharge_time >28 ~ 28,
                                     TRUE ~ discharge_time))
 
+# df %>%
+#   select(discharge_reached, discharge_time, death_reached, death_time, mort_28, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d, maxfup_d, clinstatus_baseline,
+#          clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28) %>%
+#   # filter(is.na(discharge_time)) %>%
+#   View()
+
 # (vi) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
-df <- df %>% # there are 5 re-admissions. the one readmitted at day 16 was re-discharged at day ?28?. The ones at d21 & d27 not. And then there are 2 that were readmitted later than d28. => Reclassify d21 and d27, add d28 to the one re-admitted at d16.
+df <- df %>% # there are 5 re-admissions: the one readmitted at day 16 was re-discharged before day ?28?. The ones at d21 & d27 not. And then there are 2 that were readmitted later than d28 => Reclassify d21 and d27 and add 28d, add d20 to the one re-admitted at d16.
   mutate(discharge_reached_sus = case_when(readmission_d == 21 | readmission_d == 27 ~ 0,
                                            TRUE ~ discharge_reached))
 df <- df %>%
-  mutate(discharge_time_sus = case_when(readmission_d == 16 ~ 16,
+  mutate(discharge_time_sus = case_when(readmission_d == 16 ~ 20,
                                         readmission_d == 21 | readmission_d == 27 ~ 28,
                                         TRUE ~ discharge_time))
 
@@ -342,9 +360,8 @@ df <- df %>%
 ```
 Discussion points OUTCOME data:
 1) VL: Add a cumulative outcome definition (as sens-analysis)?
-2) Rediscuss and double-check the 5 re-admissions.
-3) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
-4) Get the (S)AE data
+2) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
+3) Get the (S)AE data
 
 # Multiple imputation using chained equation
 ```{r}
