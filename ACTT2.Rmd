@@ -51,7 +51,7 @@ Questions:
 # Baseline Characteristics
 ```{r echo=TRUE}
 
-df <- df %>% ## no missing data // no randdate
+df <- df %>% ## no missing data // no randdate // trt == 1 includes remdesivir!
   rename(id_pat = USUBJID,
          trt = ARM,
          sex = SEX,
@@ -94,6 +94,7 @@ score_transform <- function(df, clinstatus_var, score_var) {
 
 df <- score_transform(df, clinstatus_baseline, Baseline) 
 addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always")) # no missing / # corresponds to publication
+addmargins(table(df$ACTARM, df$trt, useNA = "always")) # those who actually received any study medication
 df <- score_transform(df, clinstatus_1, df$"1")
 df <- score_transform(df, clinstatus_2, df$"2")
 df <- score_transform(df, clinstatus_3, df$"3")
@@ -133,12 +134,64 @@ df <- score_transform(df, clinstatus_37, df$"37")
 df <- score_transform(df, clinstatus_45, df$"45")
 
 # Co-medication at baseline
-
 ## group them for the subgroup analysis, according to protocol
 
 # Comorbidity at baseline, including immunocompromised
-
+df <- df %>% ## 27 missing
+  mutate(comorb_lung = case_when(CRDFL == "Y" | CORQFL == "Y" | ASTHMAFL == "Y" ~ 1,
+                                  CRDFL == "N" & CORQFL == "N" & ASTHMAFL == "N" ~ 0))
+df <- df %>% # 27 missing
+  mutate(comorb_liver = case_when(CLDFL == "Y" ~ 1,
+                                   CLDFL == "N" ~ 0))
+df <- df %>% # 57 missing
+  mutate(comorb_cvd = case_when(CVDFL == "Y" | CPDVTFL == "Y" | CHFFL == "Y" | CADFL == "Y" ~ 1,
+                              CVDFL == "N" & CPDVTFL == "N" & CHFFL == "N" & CADFL == "N" ~ 0))
+df <- df %>% # 27 missing
+  mutate(comorb_aht = case_when(HYPTFL == "Y" ~ 1,
+                                   HYPTFL == "N" ~ 0))
+df <- df %>% # 24 missing
+  mutate(comorb_dm = case_when(DIAB1FL == "Y" | DIAB2FL == "Y" ~ 1,
+                              DIAB1FL == "N" & DIAB2FL == "N" ~ 0))
+df <- df %>% # 17 missing
+  mutate(comorb_obese = case_when(OBESIFL == "Y" ~ 1,
+                                   OBESIFL == "N" ~ 0))
+df <- df %>% # 23 missing
+  mutate(comorb_smoker = case_when(NICFL == "Y" ~ 1,
+                                   NICFL == "N" ~ 0))
+df <- df %>% # 25 missing // All cancer patients!
+  mutate(immunosupp = case_when(CANCFL == "Y" ~ 1,
+                                   CANCFL == "N" ~ 0))
+df <- df %>% # 18 missing, compare against COMORB1 (same 18 unknown; but categorization slightly different) and COMORB2 (why do they have more Unknown in COMORB2 than in COMORB1?)
+  mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
+                                  comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
+                                | immunosupp == 1
+                                  ~ 1,
+                                comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
+                                  comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
+                                & immunosupp == 0
+                                ~ 0))
 ## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
+comorb <- df %>% 
+  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp)
+comorb$comorb_count <- NA
+for (i in 1:dim(comorb)[[1]]) {
+  comorb$comorb_count[i] <- ifelse(
+    sum(comorb[i, ] %in% c(1)) > 0,
+    sum(comorb[i, ] %in% c(1)),
+    NA
+  )
+}
+comorb <- comorb %>% # same 18 missing
+  mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
+                                  comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
+                                & immunosupp == 0 ~ 0,
+                                TRUE ~ comorb_count))
+df <- left_join(df, comorb[, c("comorb_count", "id_pat")], by = join_by(id_pat == id_pat)) ## merge imputed variable back
+df <- df %>% # same 18 missing
+  mutate(comorb_cat = case_when(immunosupp == 1 ~ 4, # immunocompromised
+                                comorb_count == 0 ~ 1, # no comorbidity
+                                comorb_count == 1 ~ 2, # one comorbidity
+                                comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
 
 # CRP
 # Vaccination
@@ -155,6 +208,166 @@ Clarifications and discussion points BASELINE data:
 - Viremia
 - Variant
 - Serology
+- Co-medication at baseline
 - Vaccination ???
 2) Re-consider Country (here: Region). 
 3) In the absence of a written policy, other experimental treatment and off-label use of marketed medications intended as specific treatment for Covid-19 were prohibited. This included glucocorticoids, which were permitted only for standard indications such as adrenal insufficiency, asthma exacerbation, laryngeal edema, septic shock, and acute respiratory distress syndrome.
+4) Comorbidity data: See missingness pattern (screenshot). And inconsistency with comorb_cat (where NA of immunosuppressed is ignored, see screenshot). Unused: CKDFL, COAGFL. "immunosupp" are all cancer patients.
+
+# Endpoints
+```{r echo=TRUE}
+# time to event data
+df$death_d <- as.numeric(df$d29dthe0) # everyone with a value here, died
+df$discharge_d <- as.numeric(df$ttrecov0) # everyone with a value here, was discharged/reached discharge criteria // CAVE: 2 were discharged at day 9 but died later at home (within 28 days)
+
+
+# (i) Primary outcome: Mortality at day 28
+df <- df %>% # 47 have no outcome data, reason for censoring unclear (see below) -> multiple imputation; a few have info in daily score
+  mutate(mort_28 = case_when(death_d <29 ~ 1, # includes deaths after discharge
+                             discharge_d <29 ~ 0, # discharge to hospiz before day 15 were coded as 7 and were very few
+                             clinstatus_28 %in% c(2,3,4,5) ~ 0, # still at hospital but alive, clinstatus variables after 28d are all empty (see View below)
+                             discharge_d >28 ~ 0)) # discharged later, proof of still alive, but empty
+# table(df$mort_28, df$trt, useNA = "always") # deaths correspond to publication (but they have -1 based on different counting of day 0) // However, the 21 missing in int and the 26 missing in cont do not really correspond to publication
+
+# table(df$ACTARM, df$mort_28, useNA = "always") # the 16 not treated were censored at day 0 or 1 => NA for death_d/discharge_d/clinstatus_28 // The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 Were withdrawn by investigator, 1 Became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
+
+# df %>% # check daily scores and outcomes of the NA -> Add death_time, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_15_imp
+#   select(mort_28, ACTARM, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, clinstatus_15_imp, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
+#   filter(is.na(mort_28)) %>%
+#   View()
+
+
+# (ii) Mortality at day 60
+df$mort_60 <- df$mort_28 # max fup time in ACTT-2 was 28 days; thus mort_60 imputed from mort_28
+
+
+# (iii) Time to death within max. follow-up time
+df <- df %>% # don't bother about the NA in mort_28 since they are not dead, i.e. just censor (==0) everyone else
+  mutate(death_reached = case_when(death_d <29 ~ 1,
+                                       TRUE ~ 0))
+df <- df %>% # no missing and those that were discharged and afterwards have correct time to event data
+  mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
+                                d29dthe1 >=0 ~ c(d29dthe1))) # time to death censoring data
+# df %>% # those died have correct time to event data. Those discharged before d28 (and not withdrawn/ltfu/hospiz/SAE) should receive max fup time? But some do not, they are censored but reason for censoring unclear.
+
+#   select(death_reached, ACTARM, death_time, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, or15scor, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
+#   filter(death_reached != 1) %>% 
+#   filter(discharge_d < 29 & death_time < 28) %>% 
+#   View()
+
+
+# (iv) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.
+df <- df %>% # 26 are missing; all other NAs are either dead or started with clinstatus_baseline == 5 (see View below) -> multiple imputation? Or carry over imputed day 15 (see clinstatus_28_imp below)?
+  mutate(new_mv_28 = case_when((clinstatus_baseline == 2 | clinstatus_baseline == 3 | clinstatus_baseline == 4) 
+                               & (mort_28 == 0 | is.na(mort_28)) 
+                               & (clinstatus_1 == 5 | clinstatus_2 == 5 | clinstatus_3 == 5 | clinstatus_4 == 5 |
+                                   clinstatus_5 == 5 | clinstatus_6 == 5 | clinstatus_7 == 5 | clinstatus_8 == 5 |
+                                    clinstatus_9 == 5 | clinstatus_10 == 5 | clinstatus_11 == 5 | clinstatus_12 == 5 |
+                                    clinstatus_13 == 5 | clinstatus_14 == 5 | clinstatus_15 == 5 | clinstatus_16 == 5 |
+                                    clinstatus_17 == 5 | clinstatus_18 == 5 | clinstatus_19 == 5 | clinstatus_20 == 5 |
+                                    clinstatus_21 == 5 | clinstatus_22 == 5 | clinstatus_23 == 5 | clinstatus_24 == 5 |
+                                    clinstatus_25 == 5 | clinstatus_26 == 5 | clinstatus_27 == 5 | clinstatus_28 == 5)
+                               ~ 1,
+                               (clinstatus_baseline == 2 | clinstatus_baseline == 3 | clinstatus_baseline == 4) & mort_28 == 0
+                               ~ 0))
+# df %>%
+
+#   select(new_mv_28, death_reached, death_time, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, or15scor, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
+#   filter(is.na(new_mv_28)) %>%
+#   filter(clinstatus_baseline != 5) %>%
+#   filter(death_reached == 0 | is.na(death_reached)) %>%
+#   View()
+
+# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+df <- df %>% # 34 missing (same as above, plus 8 more that started with clinstatus_baseline == 5 but were censored/LTFU) -> multiple imputation. Or carry over imputed day 15 (see clinstatus_28_imp below)?
+  mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
+                                new_mv_28 == 0 | mort_28 == 0 ~ 0))
+# df %>% 
+#   select(new_mvd_28, new_mv_28, death_reached, death_time, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, or15scor, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
+#   filter(is.na(new_mvd_28)) %>%
+#   View()
+
+
+# (v) Clinical status at day 28
+df <- df %>% # Adapt clinstatus_28, since currently NA for those discharged or died. Then, check if nothing in 28d window (there was nothing), then LVCF including use or15scor
+  mutate(clinstatus_28 = case_when(clinstatus_28 == 5 ~ 5,
+                                   clinstatus_28 == 4 ~ 4,
+                                   clinstatus_28 == 3 ~ 3,
+                                   clinstatus_28 == 2 ~ 2,
+                                   mort_28 == 1 ~ 6, # died within 28d
+                                   mort_28 == 0 ~ 1)) # discharged alive / reached discharge criteria within 28d
+df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) ## no missing data
+
+## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days) but there was nothing in that window => LVCF
+df <- score_transform(df, clinstatus_15_imp, df$or15scor)
+dfcs <- df %>% 
+    select(id_pat, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15_imp, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28)
+impute_last_forw = function(df){
+  first = which(names(df)%in%c("clinstatus_baseline"))
+  last = which(names(df)%in%c("clinstatus_28"))
+  for (i in 1:dim(df)[[1]]){
+    for (j in first[1]:last[1]){
+      p = df[i, j]
+      df[i,j] <- 
+        ifelse(!is.na(df[i, j]), p, df[i, j-1])
+    }
+  }
+  df
+}
+dfcs <- impute_last_forw(dfcs)
+dfcs <- dfcs %>% # To control, don't overwrite
+  rename(clinstatus_28_imp = clinstatus_28)
+df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat)) # Merge imputed variable back
+
+# table(df$clinstatus_28, useNA = "always")
+# table(df$clinstatus_28_imp, useNA = "always") # interesting: All imputed (meaning mostly carried forward from imputed day 15) are still hospitalized but not dead
+
+
+# (vi) Time to discharge or reaching discharge criteria up to day 28 // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days (as someone who has been censored on day 28). 
+df <- df %>% 
+  mutate(discharge_reached = case_when(discharge_d <29 ~ 1,
+                                       TRUE ~ 0))
+df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
+  mutate(discharge_time = case_when(discharge_d >=0 ~ c(discharge_d), # time to discharge, if no time to discharge, then...
+                                    ttrecov1 >=0 ~ c(ttrecov1)+1)) # time to discharge censoring time (see ACTT-2 documentation regarding time zero -> now matching d29dthe1)
+df <- df %>% # add 28d for those that died
+  mutate(discharge_time = case_when(mort_28 == 1 ~ 28,
+                                    TRUE ~ discharge_time))
+df <- df %>% # restrict to max fup time 28d
+  mutate(discharge_time = case_when(discharge_time >28 ~ 28,
+                                    TRUE ~ discharge_time))
+# table(df$discharge_time, df$discharge_reached, useNA = "always")
+
+
+# (vi) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days. There are no re-admissions documented in ACTT-2
+df$discharge_reached_sus <- df$discharge_reached
+df$discharge_time_sus <- df$discharge_time
+
+
+# (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable): Not available in ACTT-2
+# (viii) Quality of life at day 28: Not available in ACTT-2
+
+
+# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
+
+# (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+
+# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
+
+
+
+```
+Discussion points OUTCOME data:
+1) mort_28: The 16 not treated were censored at day 0 or 1 (=> NA). The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 Were withdrawn by investigator, 1 Became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
+2) Max follow-up time in ACTT-2 was 28 days; thus, mort_60 imputed from mort_28 (see study protocol)
+3) Rethink time to death variable (death_time - also in other trials)
+4) CAVE: or15scor: not transformed yet!
+5) Those two that were discharged at day 9 but died later (within 28d) are currently marked as discharge reached but with 28d - change to NOT reached event?
+6) Get the (S)AE data
+7) Missing outcomes: 
+- Viral load
+- Quality of Life
