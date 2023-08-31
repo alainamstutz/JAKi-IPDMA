@@ -20,6 +20,13 @@ library(writexl)
 library(tableone)
 library(haven) # Read sas files
 
+library(jtools) # for summ() and plot_summs
+library(sjPlot) # for tab_model
+library(ggsurvfit) # survival/TTE analyses
+library(survival) # survival/TTE analyses
+library(ggplot2) # survival/TTE analyses and other graphs
+library(ggfortify) # autoplot
+
 ```
 
 # Load Data
@@ -50,13 +57,14 @@ Questions:
 
 # Baseline Characteristics
 ```{r echo=TRUE}
-
-df <- df %>% ## no missing data // no randdate // trt == 1 includes remdesivir!
+df <- df %>% ## no missing data // no randdate // ARM == 1 includes remdesivir!
   rename(id_pat = USUBJID,
-         trt = ARM,
          sex = SEX,
          age = agec,
          country = REGION2)
+df <- df %>%
+  mutate(trt = case_when(ARM == "Baricitinib + Remdesivir" ~ 1,
+                         TRUE ~ 0))
 
 # fix ages ">89" using the original dataset
 df_original <- df_original %>%
@@ -66,6 +74,11 @@ for (i in 1:dim(elderly)[[1]]){
   df[which(df$id_pat == paste(elderly[i,])), "age"] <- paste(df_original[which(df_original$id_pat == paste(elderly[i,])), "AGE"])
 }
 df$age <- as.numeric(df$age)
+
+# Ethnicity
+df <- df %>% 
+  mutate(ethn = case_when(RACE == "UNKNOWN" & ETHNIC == "HISPANIC OR LATINO" ~ "HISPANIC OR LATINO",
+                          TRUE ~ c(RACE)))
 
 # Days with symptoms prior to randomization
 df$sympdur <- df$BDURSYMP ## 16 missing data
@@ -133,8 +146,11 @@ df <- score_transform(df, clinstatus_36, df$"36")
 df <- score_transform(df, clinstatus_37, df$"37")
 df <- score_transform(df, clinstatus_45, df$"45")
 
-# Co-medication at baseline
-## group them for the subgroup analysis, according to protocol
+# Co-medication at baseline -> missing ! Except comed_rdv, because they received both!
+df <- df %>% 
+  mutate(comed_rdv = case_when(trt == 1 ~ 1,
+                               TRUE ~ 0))
+## group them for the subgroup analysis, according to protocol -> missing !
 
 # Comorbidity at baseline, including immunocompromised
 df <- df %>% ## 27 missing
@@ -201,18 +217,10 @@ df <- df %>% # same 18 missing
 
 ```
 Clarifications and discussion points BASELINE data:
-1) Missing baseline characteristics: 
+1) Re-consider Country (here: Region!): 
 - Country: Only region available. "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
-- ICU at enrolment
-- CRP
-- Viremia
-- Variant
-- Serology
-- Co-medication at baseline
-- Vaccination ???
-2) Re-consider Country (here: Region). 
-3) In the absence of a written policy, other experimental treatment and off-label use of marketed medications intended as specific treatment for Covid-19 were prohibited. This included glucocorticoids, which were permitted only for standard indications such as adrenal insufficiency, asthma exacerbation, laryngeal edema, septic shock, and acute respiratory distress syndrome.
-4) Comorbidity data: See missingness pattern (screenshot). And inconsistency with comorb_cat (where NA of immunosuppressed is ignored, see screenshot). Unused: CKDFL, COAGFL. "immunosupp" are all cancer patients.
+2) In the absence of a written policy, other experimental treatment and off-label use of marketed medications intended as specific treatment for Covid-19 were prohibited. This included glucocorticoids, which were permitted only for standard indications such as adrenal insufficiency, asthma exacerbation, laryngeal edema, septic shock, and acute respiratory distress syndrome.
+3) Comorbidity data: See missingness pattern (screenshot). And inconsistency with comorb_cat (where NA of immunosuppressed is ignored, see screenshot). Unused: CKDFL, COAGFL. "immunosupp" are all cancer patients.
 
 # Endpoints
 ```{r echo=TRUE}
@@ -296,7 +304,7 @@ df <- df %>% # Adapt clinstatus_28, since currently NA for those discharged or d
                                    clinstatus_28 == 2 ~ 2,
                                    mort_28 == 1 ~ 6, # died within 28d
                                    mort_28 == 0 ~ 1)) # discharged alive / reached discharge criteria within 28d
-df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) ## no missing data
+df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6)
 
 ## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days) but there was nothing in that window => LVCF
 df <- score_transform(df, clinstatus_15_imp, df$or15scor)
@@ -368,6 +376,173 @@ Discussion points OUTCOME data:
 4) CAVE: or15scor: not transformed yet!
 5) Those two that were discharged at day 9 but died later (within 28d) are currently marked as discharge reached but with 28d - change to NOT reached event?
 6) Get the (S)AE data
-7) Missing outcomes: 
-- Viral load
-- Quality of Life
+
+
+# Define final dataset, set references, summarize missing data and variables
+```{r echo=TRUE}
+# keep the overall set
+df_all <- df
+# reduce the df set to our standardized set across all trials
+df <- df %>% 
+  select(id_pat, trt, sex, age, 
+         ethn, 
+         country, 
+         # icu, 
+         sympdur, 
+         # vacc, 
+         clinstatus_baseline,
+         # comed_dexa, 
+         comed_rdv, 
+         # comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         # comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         any_comorb, comorb_cat,
+         # crp, 
+         # sero, vl_baseline, variant,
+         mort_28, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_reached_sus, discharge_time_sus,
+         # ae_28_sev, aesi_28, ae_28_list,
+         # ae_reached, ae_time,
+         # vir_clear_5, vir_clear_10, vir_clear_15,
+         # qol_28
+         )
+## set references, re-level
+str(df)
+# df <- df %>% 
+#   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
+
+# Create a bar plot to visualize missing values in each column
+original_order <- colnames(df)
+missing_plot <- df %>%
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data Visualization") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+Discussion points
+1) Missing variables:
+  Baseline:
+  - ICU at enrolment
+  - CRP
+  - Viremia
+  - Variant
+  - Serology
+  - Co-medication at baseline, except remdesivir (part of intervention)
+  - Vaccination (still coming ?!?)
+  Outcomes:
+  - viral load
+  - adverse events (still coming ?!?)
+  - qol_28
+2) Missing data:
+- symdur and comorbities
+- crp & vl_baseline & variant
+- mort_28 (& mort_60): 47 missing
+- new_mv_28 & new_mvd_28: 26 and 34 missing
+
+
+# (i) Primary outcome: Mortality at day 28
+```{r}
+# adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
+table(df$mort_28, df$trt, useNA = "always")
+mort.28 <- df %>% 
+  glm(mort_28 ~ trt 
+      + age + clinstatus_baseline 
+      # + comed_dexa 
+      + comed_rdv 
+      # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+```
+Discussion points
+1) respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
+
+
+# (ii) Mortality at day 60
+```{r}
+table(df$mort_60, df$trt, useNA = "always")
+mort.60 <- df %>% 
+  glm(mort_60 ~ trt 
+      + age + clinstatus_baseline 
+      # + comed_dexa 
+      + comed_rdv 
+      # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.60, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+```
+Discussion points
+1) 
+
+
+# (iii) Time to death within max. follow-up time
+```{r}
+table(df$death_reached, df$death_time, useNA = "always")
+table(df$death_reached, df$mort_60, useNA = "always")
+
+df %>%
+  drop_na(death_time) %>%
+  filter(death_reached == 1) %>%
+  group_by(trt) %>%
+  summarise(median = median(death_time),
+            IQR = IQR(death_time),
+            Q1 = quantile(death_time, probs = 0.25),
+            Q3 = quantile(death_time, probs = 0.75)) 
+
+# time to death
+km.ttdeath.check <- with(df, Surv(death_time, death_reached))
+head(km.ttdeath.check, 100)
+km.ttdeath <- survfit(Surv(death_time, death_reached) ~ 1, data=df)
+summary(km.ttdeath, times = c(5,10,20,28,30,40,60))
+plot(km.ttdeath, xlab="Days", main = 'Kaplan Meyer Plot') #base graphics
+autoplot(km.ttdeath)
+km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
+autoplot(km.ttdeath_trt)
+
+ttdeath <- df %>% 
+  coxph(Surv(death_time, death_reached) ~ trt 
+        + age + clinstatus_baseline 
+        # + comed_dexa 
+        + comed_rdv 
+        # + comed_toci
+        , data =.)
+tab_model(ttdeath)
+# summ(ttdeath, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+```
+Discussion points
+1) 
+
+
+# (iv) New mechanical ventilation among survivors within 28 days
+```{r}
+table(df$new_mv_28, df$trt, useNA = "always")
+new.mv.28 <- df %>% 
+  glm(new_mv_28 ~ trt 
+      + age 
+      + clinstatus_baseline 
+      # + comed_dexa 
+      + comed_rdv 
+      # + comed_toci
+      , family = "binomial", data=.)
+summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+
+# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+table(df$new_mvd_28, df$trt, useNA = "always")
+new.mvd.28 <- df %>% 
+  glm(new_mvd_28 ~ trt 
+      + age + clinstatus_baseline 
+      # + comed_dexa 
+      + comed_rdv 
+      # + comed_toci
+      , family = "binomial", data=.)
+summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+
+```
+Discussion points
+1) 
+
