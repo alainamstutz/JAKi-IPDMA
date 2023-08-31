@@ -58,8 +58,8 @@ addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always"))
 ##       
 ##          0   1 <NA> Sum
 ##   1      0   0    0   0
-##   2     15   9    0  24
-##   3     43  49    0  92
+##   2     16   9    0  25
+##   3     42  49    0  91
 ##   4      0   0    0   0
 ##   5      0   0    0   0
 ##   6      0   0    0   0
@@ -80,16 +80,6 @@ df <- df %>%
                                comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Tocilizumab but no Dexamethasone (if exist)
 
 # Comorbidity at baseline, including immunocompromised // no immunosupp in tofacov
-table(df$comorb_obese, useNA = "always") ## missing -> but BMI available -> get it
-```
-
-```
-## 
-##    0 <NA> 
-##  116    0
-```
-
-```r
 df <- df %>% # no missing
   mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
                                   comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
@@ -141,17 +131,14 @@ df %>%
 
 # Viremia
 # Variant
-
 # Serology
-# table(df$sero, useNA = "always") # all had antibodies at baseline? Which ones?
 ```
 Clarifications and discussion points BASELINE data:
 1) Missing baseline characteristics: 
 - comed_interferon
 - variant
 - viremia
-2) Get BMI data
-3) sero: All had antibodies at baseline? Which ones?
+- sero
 
 # Endpoints
 
@@ -198,10 +185,10 @@ df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) ## 1 missing, see que
 
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28 // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days (as someone who has been censored on day 28). 
-df <- df %>% # remember the query below about BAB13 !!!
+df <- df %>%
   mutate(discharge_reached = case_when(discharge_d <29 ~ 1,
                                        TRUE ~ 0))
-df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
+df <- df %>% 
   mutate(discharge_time = case_when(discharge_d >=0 ~ c(discharge_d), # time to discharge, if no time to discharge, then...
                                     death_d >=0 ~ death_d)) # time to discharge censoring time
 df <- df %>% # add 28d for those that died
@@ -210,6 +197,7 @@ df <- df %>% # add 28d for those that died
 df <- df %>% # restrict to max fup time 28d
   mutate(discharge_time = case_when(discharge_time >28 ~ 28,
                                     TRUE ~ discharge_time))
+
 
 # (vi) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days. There were no re-admissions within 28d
 df$discharge_reached_sus <- df$discharge_reached
@@ -228,17 +216,21 @@ df$discharge_time_sus <- df$discharge_time
 df$ae_28_sev <- df$ae_28 # there were only 1 AE grade 3/4 per person
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
-
+# time to first ae not available
 
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
-
+df <- df %>% 
+  mutate(aesi_28 = case_when(ae_28_spec == "Pulmonary embolism" ~ "thromboembolic events",
+                             ae_28_spec == "ALT increase" ~ "liver dysfunction/hepatotoxicity (grade 3 and 4)")) # these were >5 ULN
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
+df <- df %>% 
+  mutate(ae_28_list = case_when(ae_28_spec == "Pulmonary embolism" ~ "thromboembolic events",
+                             ae_28_spec == "ALT increase" ~ "liver dysfunction/hepatotoxicity (grade 3 and 4)",
+                             ae_28_spec == "Pneumomediastinum" ~ "pneumomediastinum"))
 ```
 Discussion points OUTCOME data:
-1) Adverse Events: Would it be possible to know which patient had which severe adverse event.
-2) BAB13: This patient was not discharged, but did not die. Is it correct that this patient was still hospitalised at day 28? Do we know that happened with this patient afterwards? -> adapt discharge_d & discharge_reached & clinstatus_28
-3) Get time to first adverse event
-4) Missing outcomes: 
+1) Get time to first adverse event?
+2) Missing outcomes: 
 - Viral load
 - Quality of Life
