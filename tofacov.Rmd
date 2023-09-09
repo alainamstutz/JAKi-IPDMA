@@ -36,11 +36,21 @@ df <- read_xlsx("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente
 
 # Baseline Characteristics
 ```{r echo=TRUE}
+df$trial <- c("TOFACOV")
 df <- df %>%
   rename(id_pat = ID)
-df <- df %>% # no missing in 
+df <- df %>% # no missing in sex
   mutate(sex = case_when(sex == 1 ~ "female",
                          sex == 2 ~ "male"))
+
+df %>% 
+  drop_na(age) %>% 
+  ggplot(aes(x = age)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Age",
+       x = "Age",
+       y = "Density")
+
 # no missing in sex and age and ethnicity, no duplicates in ID, trt according to publication, add country
 df$country <- c("Italy")
 df$icu <- 0 # no icu patients at enrolment
@@ -248,7 +258,6 @@ df <- df %>%
          # qol_28
          )
 ## set references, re-level
-str(df)
 # df <- df %>% 
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
 
@@ -278,7 +287,7 @@ Discussion points
   - qol_28
 2) Missing data:
 - 1 NA in crp 
-- NAs in new_mv_death, aesi_28, ae_28_list: Not part of denominator
+- NAs in new_mv_28, aesi_28, ae_28_list: Not part of denominator
 
 
 # (i) Primary outcome: Mortality at day 28
