@@ -57,6 +57,7 @@ Questions:
 
 # Baseline Characteristics
 ```{r echo=TRUE}
+df$trial <- c("ACTT2")
 df <- df %>% ## no missing data // no randdate // ARM == 1 includes remdesivir!
   rename(id_pat = USUBJID,
          sex = SEX,
@@ -74,6 +75,14 @@ for (i in 1:dim(elderly)[[1]]){
   df[which(df$id_pat == paste(elderly[i,])), "age"] <- paste(df_original[which(df_original$id_pat == paste(elderly[i,])), "AGE"])
 }
 df$age <- as.numeric(df$age)
+
+df %>% 
+  drop_na(age) %>% 
+  ggplot(aes(x = age)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Age",
+       x = "Age",
+       y = "Density")
 
 # Ethnicity
 df <- df %>% 
@@ -377,7 +386,6 @@ Discussion points OUTCOME data:
 5) Those two that were discharged at day 9 but died later (within 28d) are currently marked as discharge reached but with 28d - change to NOT reached event?
 6) Get the (S)AE data
 
-
 # Define final dataset, set references, summarize missing data and variables
 ```{r echo=TRUE}
 # keep the overall set
@@ -409,7 +417,6 @@ df <- df %>%
          # qol_28
          )
 ## set references, re-level
-str(df)
 # df <- df %>% 
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
 
