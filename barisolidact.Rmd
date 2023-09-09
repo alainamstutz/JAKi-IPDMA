@@ -47,7 +47,7 @@ Questions:
 
 # Baseline Characteristics
 ```{r echo=TRUE}
-
+df$trial <- c("Bari-Solidact")
 df <- df %>% ## no missing data
   rename(id_pat = PARTICIPANT_ID,
          trt = arm,
@@ -56,6 +56,14 @@ df <- df %>% ## no missing data
          sex = GENDER,
          country = COUNTRY,
          icu = ICU_YN)
+
+df %>% 
+  drop_na(age) %>% 
+  ggplot(aes(x = age)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Age",
+       x = "Age",
+       y = "Density")
 
 # Days with symptoms prior to randomization
 df <- df %>% ## table(df$sympdur, useNA = "always") / ## no missing data / equals delay_symprando
@@ -402,7 +410,6 @@ df <- df %>%
          # qol_28
          )
 ## set references, re-level
-str(df)
 # df <- df %>% 
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
 
@@ -432,7 +439,6 @@ Discussion points
 - crp & vl_baseline & variant
 - mort_28 & mort_60: 5 missing
 - new_mv_28 & new_mvd_28: 4 missing
-- clinstatus_28: 5 missing
 - vir_clear
 
 
