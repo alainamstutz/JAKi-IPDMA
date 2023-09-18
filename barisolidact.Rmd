@@ -19,13 +19,16 @@ library(readxl)
 library(writexl)
 library(tableone)
 library(haven) # Read sas files
+library(here)
 
 library(jtools) # for summ() and plot_summs
 library(sjPlot) # for tab_model
+library(ggplot2) # survival/TTE analyses and other graphs
 library(ggsurvfit) # survival/TTE analyses
 library(survival) # survival/TTE analyses
-library(ggplot2) # survival/TTE analyses and other graphs
+library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
+library(tidycmprsk) # competing risk analysis
 ```
 
 # Load Data
@@ -242,14 +245,14 @@ df <- whoscore_transform(df, clinstatus_dropout, whoscore_DROP)
 # (i) Primary outcome: Mortality at day 28
 df <- df %>% # 5 have no outcome data and withdrew or were withdrawn -> multiple imputation
   mutate(mort_28 = case_when(death_d <29 ~ 1,
-                             discharge_d <29 ~ 0, # all discharged were discharged alive and not to hospiz
+                             discharge_d <29 ~ 0, # all discharged were discharged alive and not to hospice
                              clinstatus_28 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >28 ~ 0)) # discharged later, proof of still alive
         
 # (ii) Mortality at day 60
 df <- df %>% # same 5 that have no outcome data and withdrew or were withdrawn -> multiple imputation
   mutate(mort_60 = case_when(death_d <61 ~ 1,
-                             discharge_d <61 ~ 0, # all discharged were discharged alive and not to hospiz
+                             discharge_d <61 ~ 0, # all discharged were discharged alive and not to hospice
                              clinstatus_35 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >60 ~ 0)) # discharged later, proof of still alive
         
@@ -326,15 +329,15 @@ df <- df %>% # 2 are left without any time to event data => impute max. follow-u
                                     maxfup_d >=0 & is.na(withdraw_d) & is.na(withdrawi_d) ~ c(maxfup_d), # max fup for the remaining ones not withdrawn
                                 withdraw_d >=0 ~ c(withdraw_d),
                                 withdrawi_d >=0 ~ c(withdrawi_d)))
-df <- df %>% # add 28d for those that died
-  mutate(discharge_time = case_when(mort_28 == 1 ~ 28,
-                                    TRUE ~ discharge_time))
 df <- df %>% # restrict to max fup time 28d
   mutate(discharge_time = case_when(discharge_time >28 ~ 28,
                                     TRUE ~ discharge_time))
+df <- df %>% # add 28d for those that died - as a sens-variable
+  mutate(discharge_time_sens = case_when(mort_28 == 1 ~ 28,
+                                    TRUE ~ discharge_time))
 
 # df %>%
-#   select(discharge_reached, discharge_time, death_reached, death_time, mort_28, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d, maxfup_d, clinstatus_baseline,
+#   select(discharge_reached, discharge_time, discharge_time_sens, death_reached, death_time, mort_28, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d, maxfup_d, clinstatus_baseline,
 #          clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28) %>%
 #   # filter(is.na(discharge_time)) %>%
 #   View()
@@ -403,7 +406,7 @@ df <- df %>%
          mort_28, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
-         discharge_reached, discharge_time, discharge_reached_sus, discharge_time_sus,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          # ae_28_sev, aesi_28, ae_28_list,
          # ae_reached, ae_time,
          vir_clear_5, vir_clear_10, vir_clear_15,
@@ -435,70 +438,85 @@ Discussion points
   - qol_28 (still working on it)
 2) Missing data:
 - vacc: 4 missing
-- comorb_cat: 10 missing
+- comorb_cat: 10 missing -> re-discuss
 - crp & vl_baseline & variant
 - mort_28 & mort_60: 5 missing
 - new_mv_28 & new_mvd_28: 4 missing
-- vir_clear
+- viral load (baseline and outcome) and variant data: substantial missing
 
 
 # (i) Primary outcome: Mortality at day 28
-```{r}
+```{r warning=FALSE}
 # adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
 table(df$mort_28, df$trt, useNA = "always")
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
       + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
-summ(mort.28, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
+1) adjustment respiratory support (as binary ordinal scale 1-3 vs 4-5 OR leave it as it is)? Bari-Solidact only included clinstatus 4 and 5.
 
 
 # (ii) Mortality at day 60
-```{r}
+```{r warning=FALSE}
 table(df$mort_60, df$trt, useNA = "always")
 mort.60 <- df %>% 
   glm(mort_60 ~ trt 
       + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
-summ(mort.60, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
 1) 
 
 
 # (iii) Time to death within max. follow-up time
-```{r}
-table(df$death_reached, df$death_time, useNA = "always")
-table(df$death_reached, df$mort_60, useNA = "always")
+```{r warning=FALSE}
+# table(df$death_reached, df$death_time, useNA = "always")
+# table(df$death_reached, df$mort_60, useNA = "always")
 
-df %>%
-  drop_na(death_time) %>%
-  filter(death_reached == 1) %>%
-  group_by(trt) %>%
-  summarise(median = median(death_time),
-            IQR = IQR(death_time),
-            Q1 = quantile(death_time, probs = 0.25),
-            Q3 = quantile(death_time, probs = 0.75)) 
+# df %>%
+#   drop_na(death_time) %>%
+#   filter(death_reached == 1) %>%
+#   group_by(trt) %>%
+#   summarise(median = median(death_time),
+#             IQR = IQR(death_time),
+#             Q1 = quantile(death_time, probs = 0.25),
+#             Q3 = quantile(death_time, probs = 0.75)) 
 
-# time to death
+# time to death, by group. Kaplan-Meier estimate of conditional survival probability.
 km.ttdeath.check <- with(df, Surv(death_time, death_reached))
 head(km.ttdeath.check, 100)
-km.ttdeath <- survfit(Surv(death_time, death_reached) ~ 1, data=df)
-summary(km.ttdeath, times = c(5,10,20,28,30,40,60))
-plot(km.ttdeath, xlab="Days", main = 'Kaplan Meyer Plot') #base graphics
-autoplot(km.ttdeath)
-km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
-autoplot(km.ttdeath_trt)
 
+km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
+# summary(km.ttdeath_trt, times = 28)
+km.ttdeath_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d survival (95% CI)**"
+  )
+# autoplot(km.ttdeath_trt)
+survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall survival probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+
+# testing: simple log-rank
+# survdiff(Surv(death_time, death_reached) ~ trt, data = df)
+# testing: cox ph
 ttdeath <- df %>% 
   coxph(Surv(death_time, death_reached) ~ trt 
         + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
         , data =.)
-tab_model(ttdeath)
-# summ(ttdeath, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+# tab_model(ttdeath)
+tbl_regression(ttdeath, exp = TRUE)
+
 ```
 Discussion points
 1) 
@@ -513,7 +531,7 @@ new.mv.28 <- df %>%
       # + clinstatus_baseline 
       + comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
-summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 table(df$new_mvd_28, df$trt, useNA = "always")
@@ -521,9 +539,118 @@ new.mvd.28 <- df %>%
   glm(new_mvd_28 ~ trt 
       + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
-summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 ```
 Discussion points
 1) 
+
+# (vi) Time to discharge or reaching discharge criteria up to day 28
+```{r warning=FALSE}
+# Kaplan-Meier estimate of conditional discharge probability
+# Just censoring => Cause-specific hazards, i.e., represents the rate per unit of time of the event among those not having failed from other events. Instantaneous rate of occurrence of the given type of event in subjects who are currently event‐free
+km.ttdischarge.check <- with(df, Surv(discharge_time, discharge_reached))
+head(km.ttdischarge.check, 100)
+km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, data=df)
+# summary(km.ttdischarge_trt, times = 28)
+km.ttdischarge_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d discharge (95% CI)**"
+  )
+# autoplot(km.ttdischarge_trt)
+survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall discharge probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+# testing: simple log-rank
+# survdiff(Surv(discharge_time, discharge_reached) ~ trt, data = df)
+# testing: cox ph
+ttdischarge <- df %>% 
+  coxph(Surv(discharge_time, discharge_reached) ~ trt 
+        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        , data =.)
+# tab_model(ttdischarge)
+tbl_regression(ttdischarge, exp = TRUE)
+
+# Sub-distribution hazards, i.e., represents the rate per unit of time of the event as well as the influence of competing events. Instantaneous rate of occurrence of the given type of event in subjects who have not yet experienced an event of that type.
+df <- df %>% # cuminc needs a factor variable with censored patients coded as 0, the event as 1 and the competing event as 2.
+  mutate(discharge_reached_comp = case_when (discharge_reached == 0 & (mort_28 == 0 | is.na(mort_28)) ~ 0,
+                                             discharge_reached == 1 & (mort_28 == 0 | is.na(mort_28)) ~ 1,
+                                             mort_28 == 1 ~ 2))
+df$discharge_reached_comp <- as.factor(df$discharge_reached_comp) 
+# Cumulative incidence for competing risks
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ 1, data = df)
+plot_comp <- cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
+  ggcuminc(outcome = c("1", "2")) +
+  ylim(c(0, 1)) + 
+  labs(
+    x = "Days"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+ggsave(file.path(here("barisolidact_files/figure-html"), "plot_comp.png"), plot_comp, width = 8, height = 6)
+# testing: Gray's test (similar to Chi-squared test to compare 2 or more groups)
+# cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
+#   tbl_cuminc(
+#     times = 28, 
+#     label_header = "**28d cuminc**") %>% 
+#   add_p()
+# testing: Fine-Gray regression
+ttdischarge_comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt 
+    + age 
+    # + clinstatus_baseline
+    + comed_dexa + comed_rdv + comed_toci,
+    data = df)
+tbl_regression(ttdischarge_comp, exp = TRUE)
+
+# Censoring and assigned worst outcome (28d) to competing event (death) // hypothetical estimand
+km.ttdischarge_sens.check <- with(df, Surv(discharge_time_sens, discharge_reached))
+# head(km.ttdischarge_sens.check, 100)
+km.ttdischarge_sens_trt <- survfit(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df)
+# summary(km.ttdischarge_sens_trt, times = 28)
+# km.ttdischarge_sens_trt %>% 
+#   tbl_survfit(
+#     times = 28,
+#     label_header = "**28-d discharge (95% CI) - hypothetical**"
+#   )
+# autoplot(km.ttdischarge_sens_trt)
+survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall discharge probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+# testing: simple log-rank
+# survdiff(Surv(discharge_time_sens, discharge_reached) ~ trt, data = df)
+# testing: cox ph
+ttdischarge_sens <- df %>% 
+  coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
+        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        , data =.)
+# tab_model(ttdischarge_sens)
+tbl_regression(ttdischarge_sens, exp = TRUE)
+
+# Assessing proportional hazards
+mv_fit <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
+                + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+                , data = df)
+cz <- cox.zph(mv_fit)
+print(cz)
+plot(cz)
+
+# Compare results across regressions
+tbl_regression(ttdischarge, exp = TRUE) # cause-specific / coxph
+tbl_regression(ttdischarge_comp, exp = TRUE) # subdistribution / Fine & Gray
+tbl_regression(ttdischarge_sens, exp = TRUE) # hypothetical / coxph
+
+```
+Discussion points
+1) Check PH assumption and competing risk assumption
 
