@@ -20,6 +20,7 @@ library(writexl)
 library(tableone)
 library(haven) # Read sas files
 library(here)
+library(kableExtra)
 
 library(jtools) # for summ() and plot_summs
 library(sjPlot) # for tab_model
@@ -492,11 +493,16 @@ head(km.ttdeath.check, 100)
 
 km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
 # summary(km.ttdeath_trt, times = 28)
-km.ttdeath_trt %>% 
+
+ttdeath_28d_tbl <- km.ttdeath_trt %>% 
   tbl_survfit(
     times = 28,
     label_header = "**28-d survival (95% CI)**"
   )
+# Nicely formatted table
+kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
 # autoplot(km.ttdeath_trt)
 survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>% 
   ggsurvfit() +
@@ -514,8 +520,10 @@ ttdeath <- df %>%
   coxph(Surv(death_time, death_reached) ~ trt 
         + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
         , data =.)
-# tab_model(ttdeath)
-tbl_regression(ttdeath, exp = TRUE)
+ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
+# Nicely formatted table
+kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 Discussion points
@@ -553,11 +561,16 @@ km.ttdischarge.check <- with(df, Surv(discharge_time, discharge_reached))
 head(km.ttdischarge.check, 100)
 km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, data=df)
 # summary(km.ttdischarge_trt, times = 28)
-km.ttdischarge_trt %>% 
+
+ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
   tbl_survfit(
     times = 28,
     label_header = "**28-d discharge (95% CI)**"
   )
+# Nicely formatted table
+kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
 # autoplot(km.ttdischarge_trt)
 survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>% 
   ggsurvfit() +
@@ -574,8 +587,10 @@ ttdischarge <- df %>%
   coxph(Surv(discharge_time, discharge_reached) ~ trt 
         + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
         , data =.)
-# tab_model(ttdischarge)
-tbl_regression(ttdischarge, exp = TRUE)
+ttdischarge_reg_tbl <- tbl_regression(ttdischarge, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Sub-distribution hazards, i.e., represents the rate per unit of time of the event as well as the influence of competing events. Instantaneous rate of occurrence of the given type of event in subjects who have not yet experienced an event of that type.
 df <- df %>% # cuminc needs a factor variable with censored patients coded as 0, the event as 1 and the competing event as 2.
@@ -585,7 +600,7 @@ df <- df %>% # cuminc needs a factor variable with censored patients coded as 0,
 df$discharge_reached_comp <- as.factor(df$discharge_reached_comp) 
 # Cumulative incidence for competing risks
 cuminc(Surv(discharge_time, discharge_reached_comp) ~ 1, data = df)
-plot_comp <- cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
   ggcuminc(outcome = c("1", "2")) +
   ylim(c(0, 1)) + 
   labs(
@@ -593,7 +608,7 @@ plot_comp <- cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = d
   ) + 
   add_confidence_interval() +
   add_risktable()
-ggsave(file.path(here("barisolidact_files/figure-html"), "plot_comp.png"), plot_comp, width = 8, height = 6)
+# ggsave(file.path(here("barisolidact_files/figure-html"), "plot_comp.png"), plot_comp, width = 8, height = 6)
 # testing: Gray's test (similar to Chi-squared test to compare 2 or more groups)
 # cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
 #   tbl_cuminc(
@@ -606,7 +621,10 @@ ttdischarge_comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt
     # + clinstatus_baseline
     + comed_dexa + comed_rdv + comed_toci,
     data = df)
-tbl_regression(ttdischarge_comp, exp = TRUE)
+ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge_comp, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Censoring and assigned worst outcome (28d) to competing event (death) // hypothetical estimand
 km.ttdischarge_sens.check <- with(df, Surv(discharge_time_sens, discharge_reached))
@@ -634,8 +652,10 @@ ttdischarge_sens <- df %>%
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
         + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
         , data =.)
-# tab_model(ttdischarge_sens)
-tbl_regression(ttdischarge_sens, exp = TRUE)
+ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge_sens, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Assessing proportional hazards
 mv_fit <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
@@ -646,9 +666,13 @@ print(cz)
 plot(cz)
 
 # Compare results across regressions
-tbl_regression(ttdischarge, exp = TRUE) # cause-specific / coxph
-tbl_regression(ttdischarge_comp, exp = TRUE) # subdistribution / Fine & Gray
-tbl_regression(ttdischarge_sens, exp = TRUE) # hypothetical / coxph
+kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE) # cause-specific / coxph
+kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE) # subdistribution / Fine & Gray
+kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE) # hypothetical / coxph
+
 
 ```
 Discussion points
