@@ -31,6 +31,7 @@ library(survival) # survival/TTE analyses
 library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
 library(tidycmprsk) # competing risk analysis
+library(ordinal) # clinstatus ordinal regression
 ```
 
 # Load Data
@@ -379,9 +380,151 @@ df <- df %>%
                                         TRUE ~ discharge_time))
 
 # (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
+names(df)
+```
+
+```
+##   [1] "NUMCENTER"               "id_pat"                 
+##   [3] "CENTER"                  "country"                
+##   [5] "randdate"                "trt"                    
+##   [7] "imp_adm_yn"              "imp_duration"           
+##   [9] "immunodef_yn"            "age"                    
+##  [11] "D1_BIRTHCOUNTRY"         "D1_BIRTHCOUNTRY_NK"     
+##  [13] "sex"                     "SCR_UNITADM"            
+##  [15] "icu"                     "SCR_COVARIANT"          
+##  [17] "SCR_COVARIANT_SP"        "SCR_SYMPSTDATED1"       
+##  [19] "delay_symprando"         "D1_VACCIN_YNK"          
+##  [21] "D1_VACCINNAME"           "D1_VACCINNAME_SP"       
+##  [23] "D1_VACCININJNUMB"        "dexa_yn"                
+##  [25] "corticoid_yn"            "comed_acoa"             
+##  [27] "comed_toci"              "comed_rdv"              
+##  [29] "monocloAb_yn"            "immunplasma_yn"         
+##  [31] "comed_ab"                "steroids_dosechang_yn"  
+##  [33] "steroids_dosechang_date" "rescue_yn"              
+##  [35] "rescuedate"              "comorbid_yn"            
+##  [37] "bmi"                     "obesity"                
+##  [39] "D1_SMOKING"              "smoker"                 
+##  [41] "D1_PULMO_YNK"            "D1_PULMOCO_YN"          
+##  [43] "D1_PULMOASTH_YN"         "D1_PULMOINT_YN"         
+##  [45] "D1_PULMO_OTH"            "D1_PULMO_SP"            
+##  [47] "D1_CARDIO_YNK"           "D1_HEARTFAIL_YN"        
+##  [49] "D1_CORARTDIS_YN"         "D1_CARDIO_OTH"          
+##  [51] "D1_CARDIO_SP"            "D1_DIABETE"             
+##  [53] "d1_diabete_ynk"          "D1_HBP_YNK"             
+##  [55] "D1_LIVER_YNK"            "D1_KIDNEY_YNK"          
+##  [57] "D1_NEURO_YNK"            "D1_CANCER_YNK"          
+##  [59] "D1_CANCER_SP"            "D1_AUTOIMMUN_YNK"       
+##  [61] "D1_AUTOIMMUN_SP"         "lab_v_ldh_D1"           
+##  [63] "ldh400_yn"               "lab_v_conv_ddim_D1"     
+##  [65] "lab_v_conv_crp_D1"       "crp75_yn"               
+##  [67] "lab_v_conv_procal_D1"    "lab_v_conv_ferrit_D1"   
+##  [69] "ferrit700_yn"            "hyperinflam_yn"         
+##  [71] "whoscore_D1"             "whostate_D1"            
+##  [73] "whoscore_D3"             "whostate_D3"            
+##  [75] "whoscore_D5"             "whostate_D5"            
+##  [77] "whoscore_D8"             "whostate_D8"            
+##  [79] "whoscore_D15"            "whostate_D15"           
+##  [81] "whoscore_D22"            "whostate_D22"           
+##  [83] "whoscore_D29"            "whostate_D29"           
+##  [85] "whoscore_D36"            "whostate_D36"           
+##  [87] "whoscore_DISCH"          "whostate_DISCH"         
+##  [89] "whoscore_DROP"           "whostate_DROP"          
+##  [91] "readm_yn"                "readmdate"              
+##  [93] "readmdated1_D15"         "readm_rs_D15"           
+##  [95] "readmdated1_D29"         "readm_rs_D29"           
+##  [97] "readmdated1_D61"         "readm_rs_D61"           
+##  [99] "readmdated1_D91"         "readm_rs_D91"           
+## [101] "death_yn"                "deathdated1_DROP"       
+## [103] "earlystop_rs_DROP"       "withdraw_yn"            
+## [105] "withdrawdated1_DROP"     "invstop_yn"             
+## [107] "invdecisdated1_DROP"     "invdecis_rs_DROP"       
+## [109] "ltfu_yn"                 "ltfudated1_DROP"        
+## [111] "discharge_yn"            "visitdated1_DISCH"      
+## [113] "lastdate"                "person_day"             
+## [115] "person_month"            "Serostatus"             
+## [117] "seroneg_yn"              "anti_RBDwt"             
+## [119] "Anti_Spike_wt"           "Anti_Nucl_wt"           
+## [121] "Anti_RBD_Omicron"        "RBD_Omicron_ACE2_inhib1"
+## [123] "RBDwt_ace2_inhib1"       "Spike_Beta_ACE2_inhib1" 
+## [125] "anti_RBDwt_BAU_ml1"      "RBDwt1"                 
+## [127] "SpikeWt1"                "Nucleocapsid1"          
+## [129] "RBD_Omicron1"            "anti_spike_nucl"        
+## [131] "RBDwt1_cl"               "SpikeWt1_cl"            
+## [133] "Nucleocapsid1_cl"        "RBD_Omicron1_cl"        
+## [135] "anti_RBDwt_BAU_ml1_cl"   "vloq_yn_D1"             
+## [137] "log_undetec_yn_D1"       "gene_n3_D1"             
+## [139] "cell_q3_D1"              "log_nq3_D1"             
+## [141] "vloqundet_yn_D1"         "vloq_yn_D3"             
+## [143] "log_undetec_yn_D3"       "gene_n3_D3"             
+## [145] "cell_q3_D3"              "log_nq3_D3"             
+## [147] "vloqundet_yn_D3"         "vloq_yn_D8"             
+## [149] "log_undetec_yn_D8"       "gene_n3_D8"             
+## [151] "cell_q3_D8"              "log_nq3_D8"             
+## [153] "vloqundet_yn_D8"         "vloq_yn_D15"            
+## [155] "log_undetec_yn_D15"      "gene_n3_D15"            
+## [157] "cell_q3_D15"             "log_nq3_D15"            
+## [159] "vloqundet_yn_D15"        "proms_d91"              
+## [161] "temp_scale_score"        "fatig_scale_score"      
+## [163] "malaiz_scale_score"      "resplw_scale_score"     
+## [165] "respup_scale_score"      "pain_scale_score"       
+## [167] "sensory_scale_score"     "neuro_scale_score"      
+## [169] "gastro_scale_score"      "emotion_scale_score"    
+## [171] "cognitiv_scale_score"    "physic_scale_score"     
+## [173] "social_scale_score"      "worries_scale_score"    
+## [175] "sleep_scale_score"       "cough_scale_score"      
+## [177] "palpit_scale_score"      "nose_scale_score"       
+## [179] "sneez_scale_score"       "redeyes_scale_score"    
+## [181] "soreyes_scale_score"     "vision_scale_score"     
+## [183] "hearing_scale_score"     "hands_scale_score"      
+## [185] "abdominal_scale_score"   "heartburn_scale_score"  
+## [187] "vomit_scale_score"       "constip_scale_score"    
+## [189] "dysuria_scale_score"     "skin_scale_score"       
+## [191] "hair_scale_score"        "mentally_scale_score"   
+## [193] "confusion_scale_score"   "heavyhwk_scale_score"   
+## [195] "lighthwk_scale_score"    "rolefunc_scale_score"   
+## [197] "famfriends_scale_score"  "healthcare_scale_score" 
+## [199] "allqol_scale_score"      "trial"                  
+## [201] "sympdur"                 "clinstatus_baseline"    
+## [203] "comed_dexa"              "comed_interferon"       
+## [205] "comed_other"             "comed_cat"              
+## [207] "comorb_lung"             "comorb_liver"           
+## [209] "comorb_cvd"              "comorb_aht"             
+## [211] "comorb_dm"               "comorb_obese"           
+## [213] "comorb_smoker"           "immunosupp"             
+## [215] "any_comorb"              "comorb_count"           
+## [217] "comorb_cat"              "crp"                    
+## [219] "vacc"                    "vl_baseline"            
+## [221] "variant"                 "sero"                   
+## [223] "death_d"                 "discharge_d"            
+## [225] "withdraw_d"              "withdrawi_d"            
+## [227] "readmission_d"           "maxfup_d"               
+## [229] "clinstatus_2"            "clinstatus_4"           
+## [231] "clinstatus_7"            "clinstatus_14"          
+## [233] "clinstatus_21"           "clinstatus_28"          
+## [235] "clinstatus_35"           "clinstatus_discharge"   
+## [237] "clinstatus_dropout"      "mort_28"                
+## [239] "mort_60"                 "death_reached"          
+## [241] "death_time"              "new_mv_28"              
+## [243] "new_mvd_28"              "clinstatus_28_imp"      
+## [245] "discharge_reached"       "discharge_time"         
+## [247] "discharge_time_sens"     "discharge_reached_sus"  
+## [249] "discharge_time_sus"
+```
+
+```r
 df$vir_clear_5 <- df$vloqundet_yn_D3
 df$vir_clear_10 <- df$vloqundet_yn_D8 # point prevalence, not cumulative
 df$vir_clear_15 <- df$vloqundet_yn_D15 # point prevalence, not cumulative
+table(df$vloqundet_yn_D8)
+```
+
+```
+## 
+##  0  1 
+## 42 42
+```
+
+```r
 df <- df %>% 
   mutate(vir_clear_15_cum = case_when(vir_clear_15 == 1 | vir_clear_10 == 1 | vir_clear_5 == 1 ~ 1,
                                       vir_clear_15 == 0 ~ 0,
@@ -404,6 +547,8 @@ Discussion points OUTCOME data:
 1) VL: Add a cumulative outcome definition (as sens-analysis)?
 2) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
 3) Get the (S)AE data
+4) Discuss changing the adding 28d for death to time to discharge as sensitivity analysis/variable -> discharge_time_sens 
+
 
 # Multiple imputation using chained equation
 
@@ -433,7 +578,7 @@ df <- df %>%
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          # ae_28_sev, aesi_28, ae_28_list,
          # ae_reached, ae_time,
-         vir_clear_5, vir_clear_10, vir_clear_15,
+         vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum
          # qol_28
          )
 ## set references, re-level
@@ -1044,6 +1189,64 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 Discussion points
 1) 
 
+
+# (v) Clinical status at day 28
+
+```r
+table(df$clinstatus_28_imp, df$trt, useNA = "always")
+```
+
+```
+##       
+##         0  1 <NA>
+##   1    97 96    0
+##   2     4  5    0
+##   3     7  7    0
+##   4     3  3    0
+##   5     8 16    0
+##   6    19 15    0
+##   <NA>  0  0    0
+```
+
+```r
+clin.28 <- df %>% 
+  clm(clinstatus_28_imp ~ trt 
+      + age 
+      + clinstatus_baseline 
+      + comed_dexa + comed_rdv + comed_toci
+      , link= c("logit"), data=.)
+# Capture the model summary as a data frame
+clin.28_tbl <- as.data.frame(summary(clin.28)$coefficients)
+# Nicely formatted table
+kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+```
+## Warning in kable_styling(., bootstrap_options = "striped", full_width = FALSE):
+## Please specify format in kable. kableExtra can customize either HTML or LaTeX
+## outputs. See https://haozhu233.github.io/kableExtra/ for details.
+```
+
+
+
+|                     |   Estimate| Std. Error|    z value| Pr(>&#124;z&#124;)|
+|:--------------------|----------:|----------:|----------:|------------------:|
+|1&#124;2             |  4.3304418|  0.9350765|  4.6311098|          0.0000036|
+|2&#124;3             |  4.5066937|  0.9367707|  4.8108823|          0.0000015|
+|3&#124;4             |  4.7998922|  0.9406097|  5.1029587|          0.0000003|
+|4&#124;5             |  4.9377269|  0.9431126|  5.2355643|          0.0000002|
+|5&#124;6             |  5.6393225|  0.9615991|  5.8645256|          0.0000000|
+|trt                  |  0.1945163|  0.2696364|  0.7214022|          0.4706621|
+|age                  |  0.0604205|  0.0120114|  5.0302836|          0.0000005|
+|clinstatus_baseline5 |  0.9697804|  0.3399872|  2.8524024|          0.0043390|
+|comed_dexa           | -0.3848418|  0.4850323| -0.7934354|          0.4275242|
+|comed_rdv            | -1.4162724|  1.0957281| -1.2925400|          0.1961702|
+|comed_toci           |  2.5919200|  1.4628963|  1.7717729|          0.0764323|
+Discussion points
+1) keep clinstatus_baseline as adjustment? Highly correlated to outcome?
+
+
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 
 ```r
@@ -1096,7 +1299,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](barisolidact_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](barisolidact_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
 ```r
 # testing: simple log-rank
@@ -1185,7 +1388,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
   add_risktable()
 ```
 
-![](barisolidact_files/figure-html/unnamed-chunk-11-2.png)<!-- -->
+![](barisolidact_files/figure-html/unnamed-chunk-12-2.png)<!-- -->
 
 ```r
 # ggsave(file.path(here("barisolidact_files/figure-html"), "plot_comp.png"), plot_comp, width = 8, height = 6)
@@ -1196,12 +1399,12 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
 #     label_header = "**28d cuminc**") %>% 
 #   add_p()
 # testing: Fine-Gray regression
-ttdischarge_comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt 
+ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt 
     + age 
     # + clinstatus_baseline
     + comed_dexa + comed_rdv + comed_toci,
     data = df)
-ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge_comp, exp = TRUE)
+ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge.comp, exp = TRUE)
 # Nicely formatted table
 kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
@@ -1239,17 +1442,17 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](barisolidact_files/figure-html/unnamed-chunk-11-3.png)<!-- -->
+![](barisolidact_files/figure-html/unnamed-chunk-12-3.png)<!-- -->
 
 ```r
 # testing: simple log-rank
 # survdiff(Surv(discharge_time_sens, discharge_reached) ~ trt, data = df)
 # testing: cox ph
-ttdischarge_sens <- df %>% 
+ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
         + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
         , data =.)
-ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge_sens, exp = TRUE)
+ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
 # Nicely formatted table
 kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
@@ -1273,11 +1476,11 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 |Tocilizumab at d1     |0.00   |0.00, Inf  |>0.9        |
 
 ```r
-# Assessing proportional hazards
-mv_fit <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
+# Assessing proportional hazards using default discharge_time and discharge_reached
+ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
                 + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
                 , data = df)
-cz <- cox.zph(mv_fit)
+cz <- cox.zph(ph.check)
 print(cz)
 ```
 
@@ -1296,10 +1499,75 @@ print(cz)
 plot(cz)
 ```
 
-![](barisolidact_files/figure-html/unnamed-chunk-11-4.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-11-5.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-11-6.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-11-7.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-11-8.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-11-9.png)<!-- -->
+![](barisolidact_files/figure-html/unnamed-chunk-12-4.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-5.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-6.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-7.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-8.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-9.png)<!-- -->
 
 ```r
-# Compare results across regressions
+# Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
+# Use cause-specific hazards
+km.ttdischarge_sus_trt <- survfit(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df)
+ttdischarge_sus_28d_tbl <- km.ttdischarge_sus_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d sustained discharge (95% CI)**"
+  )
+# Nicely formatted table
+kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|**Characteristic**    |**28-d sustained discharge (95% CI)** |
+|:---------------------|:-------------------------------------|
+|Trial treatment group |NA                                    |
+|0                     |27% (20%, 36%)                        |
+|1                     |25% (19%, 34%)                        |
+
+```r
+# autoplot(km.ttdischarge_sus_trt)
+survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall sustained discharge probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+```
+
+![](barisolidact_files/figure-html/unnamed-chunk-12-10.png)<!-- -->
+
+```r
+# testing: cox ph
+ttdischarge.sus <- df %>% 
+  coxph(Surv(discharge_time_sus, discharge_reached_sus) ~ trt 
+        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        , data =.)
+ttdischarge_sus_reg_tbl <- tbl_regression(ttdischarge.sus, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|**Characteristic**    |**HR** |**95% CI** |**p-value** |
+|:---------------------|:------|:----------|:-----------|
+|Trial treatment group |1.00   |0.75, 1.33 |>0.9        |
+|Age (years)           |0.97   |0.96, 0.99 |<0.001      |
+|clinstatus_baseline   |NA     |NA         |NA          |
+|1                     |NA     |NA         |NA          |
+|2                     |NA     |NA         |NA          |
+|3                     |NA     |NA         |NA          |
+|4                     |3.19   |1.87, 5.42 |<0.001      |
+|5                     |NA     |NA         |NA          |
+|6                     |NA     |NA         |NA          |
+|comed_dexa            |1.84   |0.81, 4.19 |0.15        |
+|Remdesivir at d1      |1.96   |0.90, 4.25 |0.089       |
+|Tocilizumab at d1     |0.00   |0.00, Inf  |>0.9        |
+
+```r
+# Compare results across regressions (without sens-analysis sustained discharge)
 kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE) # cause-specific / coxph
 ```
@@ -1359,4 +1627,470 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 |Tocilizumab at d1     |0.00   |0.00, Inf  |>0.9        |
 Discussion points
 1) Check PH assumption and competing risk assumption
+
+
+# (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
+
+```r
+table(df$vir_clear_5, df$trt, useNA = "always")
+```
+
+```
+##       
+##         0  1 <NA>
+##   0    47 44    0
+##   1    12 18    0
+##   <NA> 79 80    0
+```
+
+```r
+# up to 5 days
+vir.clear.5 <- df %>% 
+  glm(vir_clear_5 ~ trt 
+      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(vir.clear.5, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 121 (159 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> vir_clear_5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 3.10 </td>
+   <td style="text-align:right;"> 0.20 </td>
+   <td style="text-align:right;"> 48.95 </td>
+   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 0.42 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.50 </td>
+   <td style="text-align:right;"> 0.63 </td>
+   <td style="text-align:right;"> 3.56 </td>
+   <td style="text-align:right;"> 0.92 </td>
+   <td style="text-align:right;"> 0.36 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 0.97 </td>
+   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> -1.50 </td>
+   <td style="text-align:right;"> 0.13 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 0.36 </td>
+   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> 1.32 </td>
+   <td style="text-align:right;"> -1.55 </td>
+   <td style="text-align:right;"> 0.12 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
+   <td style="text-align:right;"> 0.47 </td>
+   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> 2.19 </td>
+   <td style="text-align:right;"> -0.97 </td>
+   <td style="text-align:right;"> 0.33 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# 5 to 10 days
+vir.clear.10 <- df %>% 
+  glm(vir_clear_10 ~ trt 
+      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(vir.clear.10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 84 (196 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> vir_clear_10 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 1.36 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 23.79 </td>
+   <td style="text-align:right;"> 0.21 </td>
+   <td style="text-align:right;"> 0.83 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.65 </td>
+   <td style="text-align:right;"> 0.27 </td>
+   <td style="text-align:right;"> 1.58 </td>
+   <td style="text-align:right;"> -0.95 </td>
+   <td style="text-align:right;"> 0.34 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 0.97 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 0.40 </td>
+   <td style="text-align:right;"> 0.69 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 0.61 </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 1.72 </td>
+   <td style="text-align:right;"> -0.94 </td>
+   <td style="text-align:right;"> 0.35 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
+   <td style="text-align:right;"> 0.62 </td>
+   <td style="text-align:right;"> 0.13 </td>
+   <td style="text-align:right;"> 2.83 </td>
+   <td style="text-align:right;"> -0.62 </td>
+   <td style="text-align:right;"> 0.53 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
+   <td style="text-align:right;"> 6372908.62 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# 10 to 15 days
+vir.clear.15 <- df %>% 
+  glm(vir_clear_15 ~ trt 
+      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 46 (234 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> vir_clear_15 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 3.01 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 199.00 </td>
+   <td style="text-align:right;"> 0.51 </td>
+   <td style="text-align:right;"> 0.61 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.84 </td>
+   <td style="text-align:right;"> 0.23 </td>
+   <td style="text-align:right;"> 3.11 </td>
+   <td style="text-align:right;"> -0.26 </td>
+   <td style="text-align:right;"> 0.79 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> 1.06 </td>
+   <td style="text-align:right;"> 0.27 </td>
+   <td style="text-align:right;"> 0.79 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 2.12 </td>
+   <td style="text-align:right;"> 0.47 </td>
+   <td style="text-align:right;"> 9.52 </td>
+   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> 0.33 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
+   <td style="text-align:right;"> 0.40 </td>
+   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> 3.92 </td>
+   <td style="text-align:right;"> -0.79 </td>
+   <td style="text-align:right;"> 0.43 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# cumulative up until 15 days
+vir.clear.15.cum <- df %>% 
+  glm(vir_clear_15_cum ~ trt 
+      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(vir.clear.15.cum, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 128 (152 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> vir_clear_15_cum </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 6.44 </td>
+   <td style="text-align:right;"> 0.39 </td>
+   <td style="text-align:right;"> 106.58 </td>
+   <td style="text-align:right;"> 1.30 </td>
+   <td style="text-align:right;"> 0.19 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.28 </td>
+   <td style="text-align:right;"> 0.62 </td>
+   <td style="text-align:right;"> 2.62 </td>
+   <td style="text-align:right;"> 0.66 </td>
+   <td style="text-align:right;"> 0.51 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 0.97 </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> -0.05 </td>
+   <td style="text-align:right;"> 0.96 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 1.14 </td>
+   <td style="text-align:right;"> 0.46 </td>
+   <td style="text-align:right;"> 2.81 </td>
+   <td style="text-align:right;"> 0.28 </td>
+   <td style="text-align:right;"> 0.78 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
+   <td style="text-align:right;"> 0.18 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 1.55 </td>
+   <td style="text-align:right;"> -1.56 </td>
+   <td style="text-align:right;"> 0.12 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
+   <td style="text-align:right;"> 0.79 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 13.17 </td>
+   <td style="text-align:right;"> -0.16 </td>
+   <td style="text-align:right;"> 0.87 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+Discussion points
+1) 
+
+
+# (viii) Quality of life at day 28 
+
+Discussion points
+1) detailed measures available - wait for other trials first
+
+
+# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+
+```r
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
+```
+Discussion points
+1) 
+
+
+# (x) Adverse events of special interest within 28 days
+
+Discussion points
+1) a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+
+
+# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
+
+Discussion points
+1) 
 

@@ -30,6 +30,7 @@ library(survival) # survival/TTE analyses
 library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
 library(tidycmprsk) # competing risk analysis
+library(ordinal) # clinstatus ordinal regression
 ```
 
 # Load Data
@@ -353,9 +354,11 @@ df <- df %>%
                                         TRUE ~ discharge_time))
 
 # (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
+names(df)
 df$vir_clear_5 <- df$vloqundet_yn_D3
 df$vir_clear_10 <- df$vloqundet_yn_D8 # point prevalence, not cumulative
 df$vir_clear_15 <- df$vloqundet_yn_D15 # point prevalence, not cumulative
+table(df$vloqundet_yn_D8)
 df <- df %>% 
   mutate(vir_clear_15_cum = case_when(vir_clear_15 == 1 | vir_clear_10 == 1 | vir_clear_5 == 1 ~ 1,
                                       vir_clear_15 == 0 ~ 0,
@@ -380,6 +383,8 @@ Discussion points OUTCOME data:
 1) VL: Add a cumulative outcome definition (as sens-analysis)?
 2) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
 3) Get the (S)AE data
+4) Discuss changing the adding 28d for death to time to discharge as sensitivity analysis/variable -> discharge_time_sens 
+
 
 # Multiple imputation using chained equation
 ```{r}
@@ -410,7 +415,7 @@ df <- df %>%
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          # ae_28_sev, aesi_28, ae_28_list,
          # ae_reached, ae_time,
-         vir_clear_5, vir_clear_10, vir_clear_15,
+         vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum
          # qol_28
          )
 ## set references, re-level
@@ -553,6 +558,27 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 Discussion points
 1) 
 
+
+# (v) Clinical status at day 28
+```{r}
+table(df$clinstatus_28_imp, df$trt, useNA = "always")
+clin.28 <- df %>% 
+  clm(clinstatus_28_imp ~ trt 
+      + age 
+      + clinstatus_baseline 
+      + comed_dexa + comed_rdv + comed_toci
+      , link= c("logit"), data=.)
+# Capture the model summary as a data frame
+clin.28_tbl <- as.data.frame(summary(clin.28)$coefficients)
+# Nicely formatted table
+kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+Discussion points
+1) keep clinstatus_baseline as adjustment? Highly correlated to outcome?
+
+
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 ```{r warning=FALSE}
 # Kaplan-Meier estimate of conditional discharge probability
@@ -616,12 +642,12 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
 #     label_header = "**28d cuminc**") %>% 
 #   add_p()
 # testing: Fine-Gray regression
-ttdischarge_comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt 
+ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt 
     + age 
     # + clinstatus_baseline
     + comed_dexa + comed_rdv + comed_toci,
     data = df)
-ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge_comp, exp = TRUE)
+ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge.comp, exp = TRUE)
 # Nicely formatted table
 kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
@@ -648,24 +674,55 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
 # testing: simple log-rank
 # survdiff(Surv(discharge_time_sens, discharge_reached) ~ trt, data = df)
 # testing: cox ph
-ttdischarge_sens <- df %>% 
+ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
         + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
         , data =.)
-ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge_sens, exp = TRUE)
+ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
 # Nicely formatted table
 kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
-# Assessing proportional hazards
-mv_fit <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
+# Assessing proportional hazards using default discharge_time and discharge_reached
+ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
                 + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
                 , data = df)
-cz <- cox.zph(mv_fit)
+cz <- cox.zph(ph.check)
 print(cz)
 plot(cz)
 
-# Compare results across regressions
+# Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
+# Use cause-specific hazards
+km.ttdischarge_sus_trt <- survfit(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df)
+ttdischarge_sus_28d_tbl <- km.ttdischarge_sus_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d sustained discharge (95% CI)**"
+  )
+# Nicely formatted table
+kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# autoplot(km.ttdischarge_sus_trt)
+survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall sustained discharge probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+# testing: cox ph
+ttdischarge.sus <- df %>% 
+  coxph(Surv(discharge_time_sus, discharge_reached_sus) ~ trt 
+        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        , data =.)
+ttdischarge_sus_reg_tbl <- tbl_regression(ttdischarge.sus, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Compare results across regressions (without sens-analysis sustained discharge)
 kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE) # cause-specific / coxph
 kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
@@ -673,8 +730,84 @@ kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"
 kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE) # hypothetical / coxph
 
-
 ```
 Discussion points
 1) Check PH assumption and competing risk assumption
+
+
+# (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
+```{r warning=FALSE}
+table(df$vir_clear_5, df$trt, useNA = "always")
+# up to 5 days
+vir.clear.5 <- df %>% 
+  glm(vir_clear_5 ~ trt 
+      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(vir.clear.5, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# 5 to 10 days
+vir.clear.10 <- df %>% 
+  glm(vir_clear_10 ~ trt 
+      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(vir.clear.10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# 10 to 15 days
+vir.clear.15 <- df %>% 
+  glm(vir_clear_15 ~ trt 
+      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# cumulative up until 15 days
+vir.clear.15.cum <- df %>% 
+  glm(vir_clear_15_cum ~ trt 
+      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(vir.clear.15.cum, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+```
+Discussion points
+1) 
+
+
+# (viii) Quality of life at day 28 
+```{r warning=FALSE}
+
+
+```
+Discussion points
+1) detailed measures available - wait for other trials first
+
+
+# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+```{r warning=FALSE}
+
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
+
+
+```
+Discussion points
+1) 
+
+
+# (x) Adverse events of special interest within 28 days
+```{r warning=FALSE}
+
+
+```
+Discussion points
+1) a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+
+
+# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
+```{r warning=FALSE}
+
+
+```
+Discussion points
+1) 
 
