@@ -1215,34 +1215,39 @@ clin.28 <- df %>%
       + clinstatus_baseline 
       + comed_dexa + comed_rdv + comed_toci
       , link= c("logit"), data=.)
-# Capture the model summary as a data frame
-clin.28_tbl <- as.data.frame(summary(clin.28)$coefficients)
+# Summary and extract coefficients
+coefficients_table <- summary(clin.28)$coefficients
+# Calculate Odds Ratios and Confidence Intervals
+odds_ratios <- exp(coefficients_table[, "Estimate"])
+ci_lower <- exp(coefficients_table[, "Estimate"] - 1.96 * coefficients_table[, "Std. Error"])
+ci_upper <- exp(coefficients_table[, "Estimate"] + 1.96 * coefficients_table[, "Std. Error"])
+# Create a data frame to store Odds Ratios and CIs
+clin.28_tbl <- data.frame(
+  "Variable" = rownames(coefficients_table),
+  "Odds Ratio" = odds_ratios,
+  "CI Lower" = ci_lower,
+  "CI Upper" = ci_upper
+)
 # Nicely formatted table
 kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 
-```
-## Warning in kable_styling(., bootstrap_options = "striped", full_width = FALSE):
-## Please specify format in kable. kableExtra can customize either HTML or LaTeX
-## outputs. See https://haozhu233.github.io/kableExtra/ for details.
-```
 
 
-
-|                     |   Estimate| Std. Error|    z value| Pr(>&#124;z&#124;)|
-|:--------------------|----------:|----------:|----------:|------------------:|
-|1&#124;2             |  4.3304418|  0.9350765|  4.6311098|          0.0000036|
-|2&#124;3             |  4.5066937|  0.9367707|  4.8108823|          0.0000015|
-|3&#124;4             |  4.7998922|  0.9406097|  5.1029587|          0.0000003|
-|4&#124;5             |  4.9377269|  0.9431126|  5.2355643|          0.0000002|
-|5&#124;6             |  5.6393225|  0.9615991|  5.8645256|          0.0000000|
-|trt                  |  0.1945163|  0.2696364|  0.7214022|          0.4706621|
-|age                  |  0.0604205|  0.0120114|  5.0302836|          0.0000005|
-|clinstatus_baseline5 |  0.9697804|  0.3399872|  2.8524024|          0.0043390|
-|comed_dexa           | -0.3848418|  0.4850323| -0.7934354|          0.4275242|
-|comed_rdv            | -1.4162724|  1.0957281| -1.2925400|          0.1961702|
-|comed_toci           |  2.5919200|  1.4628963|  1.7717729|          0.0764323|
+|                     |Variable             |  Odds.Ratio|   CI.Lower|    CI.Upper|
+|:--------------------|:--------------------|-----------:|----------:|-----------:|
+|1&#124;2             |1&#124;2             |  75.9778495| 12.1544087|  474.941540|
+|2&#124;3             |2&#124;3             |  90.6216974| 14.4489692|  568.365253|
+|3&#124;4             |3&#124;4             | 121.4973147| 19.2266482|  767.767597|
+|4&#124;5             |4&#124;5             | 139.4529009| 21.9600773|  885.566628|
+|5&#124;6             |5&#124;6             | 281.2720864| 42.7166287| 1852.065319|
+|trt                  |trt                  |   1.2147233|  0.7160745|    2.060613|
+|age                  |age                  |   1.0622832|  1.0375667|    1.087588|
+|clinstatus_baseline5 |clinstatus_baseline5 |   2.6373653|  1.3544635|    5.135388|
+|comed_dexa           |comed_dexa           |   0.6805583|  0.2630253|    1.760894|
+|comed_rdv            |comed_rdv            |   0.2426167|  0.0283281|    2.077894|
+|comed_toci           |comed_toci           |  13.3553890|  0.7593012|  234.908629|
 Discussion points
 1) keep clinstatus_baseline as adjustment? Highly correlated to outcome?
 
@@ -1629,10 +1634,10 @@ Discussion points
 1) Check PH assumption and competing risk assumption
 
 
-# (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
+# (vii) Viral clearance up to day 5, day 10, and day 15
 
 ```r
-table(df$vir_clear_5, df$trt, useNA = "always")
+table(df$vir_clear_5, df$trt, useNA = "always") #  (Viral load value <LOQ and/or undectectable)
 ```
 
 ```

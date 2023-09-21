@@ -536,7 +536,7 @@ Discussion points
 
 
 # (iv) New mechanical ventilation among survivors within 28 days
-```{r}
+```{r warning=FALSE}
 table(df$new_mv_28, df$trt, useNA = "always")
 new.mv.28 <- df %>% 
   glm(new_mv_28 ~ trt 
@@ -560,7 +560,7 @@ Discussion points
 
 
 # (v) Clinical status at day 28
-```{r}
+```{r warning=FALSE}
 table(df$clinstatus_28_imp, df$trt, useNA = "always")
 clin.28 <- df %>% 
   clm(clinstatus_28_imp ~ trt 
@@ -568,8 +568,19 @@ clin.28 <- df %>%
       + clinstatus_baseline 
       + comed_dexa + comed_rdv + comed_toci
       , link= c("logit"), data=.)
-# Capture the model summary as a data frame
-clin.28_tbl <- as.data.frame(summary(clin.28)$coefficients)
+# Summary and extract coefficients
+coefficients_table <- summary(clin.28)$coefficients
+# Calculate Odds Ratios and Confidence Intervals
+odds_ratios <- exp(coefficients_table[, "Estimate"])
+ci_lower <- exp(coefficients_table[, "Estimate"] - 1.96 * coefficients_table[, "Std. Error"])
+ci_upper <- exp(coefficients_table[, "Estimate"] + 1.96 * coefficients_table[, "Std. Error"])
+# Create a data frame to store Odds Ratios and CIs
+clin.28_tbl <- data.frame(
+  "Variable" = rownames(coefficients_table),
+  "Odds Ratio" = odds_ratios,
+  "CI Lower" = ci_lower,
+  "CI Upper" = ci_upper
+)
 # Nicely formatted table
 kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
@@ -735,9 +746,9 @@ Discussion points
 1) Check PH assumption and competing risk assumption
 
 
-# (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
+# (vii) Viral clearance up to day 5, day 10, and day 15
 ```{r warning=FALSE}
-table(df$vir_clear_5, df$trt, useNA = "always")
+table(df$vir_clear_5, df$trt, useNA = "always") #  (Viral load value <LOQ and/or undectectable)
 # up to 5 days
 vir.clear.5 <- df %>% 
   glm(vir_clear_5 ~ trt 
