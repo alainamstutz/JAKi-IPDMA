@@ -406,7 +406,7 @@ df <- df %>%
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
-         any_comorb, comorb_cat,
+         any_comorb, comorb_cat, comorb_count,
          crp, 
          sero, vl_baseline, variant,
          mort_28, mort_60, death_reached, death_time,
@@ -451,7 +451,7 @@ Discussion points
 - viral load (baseline and outcome) and variant data: substantial missing
 
 
-# (i) Primary outcome: Mortality at day 28
+# (i) Primary endpoint: Mortality at day 28
 ```{r warning=FALSE}
 # adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
 table(df$mort_28, df$trt, useNA = "always")
@@ -744,6 +744,7 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 ```
 Discussion points
 1) Check PH assumption and competing risk assumption
+2) Standardize length of max follow-up across trials?
 
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
@@ -822,3 +823,301 @@ Discussion points
 Discussion points
 1) 
 
+
+# Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
+```{r warning=FALSE}
+table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 4 and 5 included
+mort.28.vent <- df %>% 
+  glm(mort_28 ~ trt*clinstatus_baseline
+      + age 
+     # + clinstatus_baseline 
+      + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) numeric or factor?
+
+
+# Subgroup analysis: Age on primary endpoint
+```{r warning=FALSE}
+mort.28.age <- df %>% 
+  glm(mort_28 ~ trt*age
+      # + age 
+      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) 
+
+
+# Subgroup analysis: Comorbidities on primary endpoint
+```{r warning=FALSE}
+# 4 comorbidity categories as numeric/continuous, i.e., linear interaction
+# table(df$comorb_cat, df$mort_28, useNA = "always") 
+mort.28.comorb <- df %>%
+  glm(mort_28 ~ trt*comorb_cat 
+      + age 
+      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# 4 comorbidity categories as factor
+df$comorb_cat_f <- as.factor(df$comorb_cat)
+# table(df$comorb_cat_f, df$mort_28, useNA = "always") 
+mort.28.comorb.f <- df %>% 
+  glm(mort_28 ~ trt*comorb_cat_f 
+      + age 
+      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# full comorbidity count
+# table(df$comorb_count, df$mort_28, useNA = "always") 
+mort.28.comorb.count <- df %>%
+  glm(mort_28 ~ trt*comorb_count 
+      + age 
+      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) Numeric or factor or count?
+
+
+# Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
+```{r warning=FALSE}
+# 4 comorbidity categories as numeric/continuous, i.e., linear interaction
+# table(df$comed_cat, df$trt, useNA = "always")
+# 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
+# 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
+# 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
+mort.28.comed <- df %>%
+  glm(mort_28 ~ trt*comed_cat 
+      + age 
+      + clinstatus_baseline 
+      # + comed_dexa 
+      + comed_rdv 
+      # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# comedication as ordinal factor
+df$comed_cat_f <- factor(df$comed_cat, levels = 1:4)
+table(df$comed_cat_f, df$mort_28, useNA = "always") 
+mort.28.comed.f <- df %>%
+  glm(mort_28 ~ trt*comed_cat_f 
+      + age 
+      + clinstatus_baseline 
+      # + comed_dexa 
+      + comed_rdv 
+      # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) Numeric or factor?
+
+
+# Subgroup analysis: Vaccination on adverse events
+```{r warning=FALSE}
+# X <- df %>% 
+#   glm(X ~ trt*X
+#       + age 
+#       + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+#       , family = "binomial", data=.)
+# summ(X, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) 
+
+
+# SENS Subgroup analysis: Duration since symptom onset on primary endpoint
+```{r warning=FALSE}
+# table(df$sympdur, df$mort_28, useNA = "always")
+mort.28.symp <- df %>% 
+  glm(mort_28 ~ trt*sympdur
+      + age 
+      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) 
+
+
+# SENS Subgroup analysis: CRP on primary endpoint
+```{r warning=FALSE}
+# table(df$crp, df$mort_28, useNA = "always")
+mort.28.crp <- df %>% 
+  glm(mort_28 ~ trt*crp
+      + age 
+      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# truncate outliers > 500
+df <- df %>% 
+  mutate(crp_trunc = case_when(crp > 500 ~ 500,
+                               TRUE ~ crp))
+mort.28.crp.trunc <- df %>% 
+  glm(mort_28 ~ trt*crp_trunc
+      + age 
+      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) Truncated or not?
+
+
+# SENS Subgroup analysis: variant on primary endpoint
+```{r warning=FALSE}
+# table(df$variant, df$mort_28, useNA = "always")
+mort.28.var <- df %>% 
+  glm(mort_28 ~ trt*variant
+      + age 
+      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.var, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) 
+
+
+# Collect all treatment effect estimates across endpoints (stage one)
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+result_df <- data.frame(
+  variable = character(),
+  hazard_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric()
+)
+# Extract and format results for the treatment variable
+extract_trt_results <- function(model, variable_name) {
+  # Check if the model is glm/clm or coxph due to different summary output of the SE
+  if (inherits(model, "glm") || inherits(model, "clm")) {
+      trt_coef <- coef(model)["trt"]
+      hazard_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)["trt", ])
+      se <- summary(model)$coefficients["trt", "Std. Error"]
+      p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+      # capture the results
+      result <- data.frame(
+        variable = variable_name,
+        hazard_odds_ratio = hazard_odds_ratio,
+        ci_lower = ci[1],
+        ci_upper = ci[2],
+        standard_error = se,
+        p_value = p_value
+      )
+    return(result)
+  } else {
+      trt_coef <- coef(model)["trt"]
+      hazard_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)["trt", ])
+      se <- summary(model)$coefficients["trt", "se(coef)"]
+      p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+      # capture the results
+      result <- data.frame(
+        variable = variable_name,
+        hazard_odds_ratio = hazard_odds_ratio,
+        ci_lower = ci[1],
+        ci_upper = ci[2],
+        standard_error = se,
+        p_value = p_value
+      )
+    return(result)
+  }
+}
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_trt_results(mort.28, "death at day 28")
+result_list[[2]] <- extract_trt_results(mort.60, "death at day 60")
+result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
+result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d")
+result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
+result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28")
+result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
+# result_list[[14]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # if this effect estimate is chosen, then adapt function for crr element! -> and integrate in list in correct order
+result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
+result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
+result_list[[10]] <- extract_trt_results(vir.clear.5, "viral clearance day 5")
+result_list[[11]] <- extract_trt_results(vir.clear.10, "viral clearance day 5-10")
+result_list[[12]] <- extract_trt_results(vir.clear.15, "viral clearance day 10-15")
+result_list[[13]] <- extract_trt_results(vir.clear.15.cum, "viral clearance until day 15")
+
+# Filter out NULL results and bind the results into a single data frame
+result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the trial name
+result_df$trial <- "Bari-SolidAct"
+
+# Nicely formatted table
+kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+save(result_df, file = "trt_effects_barisolidact.RData")
+```
+Discussion points
+1) 
+
+
+# Collect all interaction estimates (stage one)
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+interaction_df <- data.frame(
+  variable = character(),
+  log_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric()
+)
+# Extract and format results for the interaction term
+extract_interaction <- function(model, variable_name) {
+      trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
+      log_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
+      se <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Std. Error"]
+      p_value <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Pr(>|z|)"]
+      # capture the results
+      result <- data.frame(
+        variable = variable_name,
+        log_odds_ratio = log_odds_ratio,
+        ci_lower = ci[1],
+        ci_upper = ci[2],
+        standard_error = se,
+        p_value = p_value
+      )
+    return(result)
+}
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
+result_list[[2]] <- extract_interaction(mort.28.age, "age")
+result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity")
+result_list[[4]] <- extract_interaction(mort.28.comed, "comedication")
+result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration")
+result_list[[6]] <- extract_interaction(mort.28.crp, "crp")
+# result_list[[7]] <- extract_interaction(mort.28.var, "variant") adapt function to tell which p-int to extract
+
+# Filter out NULL results and bind the results into a single data frame
+interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the trial name
+interaction_df$trial <- "Bari-SolidAct"
+
+# Nicely formatted table
+kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+save(interaction_df, file = "int_effects_barisolidact.RData")
+```
+Discussion points
+1) 
