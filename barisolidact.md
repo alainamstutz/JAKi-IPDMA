@@ -3557,12 +3557,14 @@ Discussion points
 
 
 # Collect all treatment effect estimates across endpoints (stage one)
+<<<<<<< HEAD
 
 ```r
 # Empty data frame to store the results
 result_df <- data.frame(
   variable = character(),
   hazard_odds_ratio = numeric(),
+  odds_ratio = numeric(),
   ci_lower = numeric(),
   ci_upper = numeric(),
   standard_error = numeric(),
@@ -3651,11 +3653,17 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt10 |viral clearance day 5-10                   |         0.6498689| 0.2646803| 1.572184|      0.4524044| 0.3407657|Bari-SolidAct |
 |trt11 |viral clearance day 10-15                  |         0.8384615| 0.2199348| 3.131664|      0.6683680| 0.7920826|Bari-SolidAct |
 |trt12 |viral clearance until day 15               |         1.2758815| 0.6222775| 2.628973|      0.3664710| 0.5061655|Bari-SolidAct |
+
+```r
+# Save
+save(result_df, file = "trt_effects_barisolidact.RData")
+```
 Discussion points
 1) 
 
 
 # Collect all interaction estimates (stage one)
+<<<<<<< HEAD
 
 ```r
 # Empty data frame to store the results
@@ -3717,5 +3725,10 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:comed_cat            |comedication        |   1872.2713233| 0.0000000| 2.558678e+70|    521.7857765| 0.9884785|Bari-SolidAct |
 |trt:sympdur              |symptom duration    |      0.8034549| 0.6303111| 1.015029e+00|      0.1203805| 0.0690864|Bari-SolidAct |
 |trt:crp                  |crp                 |      1.0002086| 0.9950237| 1.003189e+00|      0.0015324| 0.8917099|Bari-SolidAct |
+
+```r
+# Save
+save(interaction_df, file = "int_effects_barisolidact.RData")
+```
 Discussion points
 1) 
