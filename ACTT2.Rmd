@@ -19,13 +19,18 @@ library(readxl)
 library(writexl)
 library(tableone)
 library(haven) # Read sas files
+library(here)
+library(kableExtra)
 
 library(jtools) # for summ() and plot_summs
 library(sjPlot) # for tab_model
+library(ggplot2) # survival/TTE analyses and other graphs
 library(ggsurvfit) # survival/TTE analyses
 library(survival) # survival/TTE analyses
-library(ggplot2) # survival/TTE analyses and other graphs
+library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
+library(tidycmprsk) # competing risk analysis
+library(ordinal) # clinstatus ordinal regression
 
 ```
 
@@ -246,7 +251,7 @@ df <- df %>% # 47 have no outcome data, reason for censoring unclear (see below)
                              discharge_d >28 ~ 0)) # discharged later, proof of still alive, but empty
 # table(df$mort_28, df$trt, useNA = "always") # deaths correspond to publication (but they have -1 based on different counting of day 0) // However, the 21 missing in int and the 26 missing in cont do not really correspond to publication
 
-# table(df$ACTARM, df$mort_28, useNA = "always") # the 16 not treated were censored at day 0 or 1 => NA for death_d/discharge_d/clinstatus_28 // The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 Were withdrawn by investigator, 1 Became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
+# table(df$ACTARM, df$mort_28, useNA = "always") # the 16 not treated were censored at day 0 or 1 => NA for death_d/discharge_d/clinstatus_28 // The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 was withdrawn by investigator, 1 became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
 
 # df %>% # check daily scores and outcomes of the NA -> Add death_time, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_15_imp
 #   select(mort_28, ACTARM, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, clinstatus_15_imp, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
@@ -347,11 +352,11 @@ df <- df %>%
 df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
   mutate(discharge_time = case_when(discharge_d >=0 ~ c(discharge_d), # time to discharge, if no time to discharge, then...
                                     ttrecov1 >=0 ~ c(ttrecov1)+1)) # time to discharge censoring time (see ACTT-2 documentation regarding time zero -> now matching d29dthe1)
-df <- df %>% # add 28d for those that died
-  mutate(discharge_time = case_when(mort_28 == 1 ~ 28,
-                                    TRUE ~ discharge_time))
 df <- df %>% # restrict to max fup time 28d
   mutate(discharge_time = case_when(discharge_time >28 ~ 28,
+                                    TRUE ~ discharge_time))
+df <- df %>% # add 28d for those that died
+  mutate(discharge_time_sens = case_when(mort_28 == 1 ~ 28,
                                     TRUE ~ discharge_time))
 # table(df$discharge_time, df$discharge_reached, useNA = "always")
 
@@ -404,13 +409,13 @@ df <- df %>%
          # comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          # comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
-         any_comorb, comorb_cat,
+         any_comorb, comorb_cat, comorb_count,
          # crp, 
          # sero, vl_baseline, variant,
          mort_28, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
-         discharge_reached, discharge_time, discharge_reached_sus, discharge_time_sus,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          # ae_28_sev, aesi_28, ae_28_list,
          # ae_reached, ae_time,
          # vir_clear_5, vir_clear_10, vir_clear_15,
@@ -465,7 +470,7 @@ mort.28 <- df %>%
       + comed_rdv 
       # + comed_toci
       , family = "binomial", data=.)
-summ(mort.28, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
 1) respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
@@ -481,7 +486,7 @@ mort.60 <- df %>%
       + comed_rdv 
       # + comed_toci
       , family = "binomial", data=.)
-summ(mort.60, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
 1) 
@@ -489,28 +494,47 @@ Discussion points
 
 # (iii) Time to death within max. follow-up time
 ```{r}
-table(df$death_reached, df$death_time, useNA = "always")
-table(df$death_reached, df$mort_60, useNA = "always")
+# table(df$death_reached, df$death_time, useNA = "always")
+# table(df$death_reached, df$mort_60, useNA = "always")
+# 
+# df %>%
+#   drop_na(death_time) %>%
+#   filter(death_reached == 1) %>%
+#   group_by(trt) %>%
+#   summarise(median = median(death_time),
+#             IQR = IQR(death_time),
+#             Q1 = quantile(death_time, probs = 0.25),
+#             Q3 = quantile(death_time, probs = 0.75)) 
 
-df %>%
-  drop_na(death_time) %>%
-  filter(death_reached == 1) %>%
-  group_by(trt) %>%
-  summarise(median = median(death_time),
-            IQR = IQR(death_time),
-            Q1 = quantile(death_time, probs = 0.25),
-            Q3 = quantile(death_time, probs = 0.75)) 
-
-# time to death
+# time to death, by group. Kaplan-Meier estimate of conditional survival probability.
 km.ttdeath.check <- with(df, Surv(death_time, death_reached))
 head(km.ttdeath.check, 100)
-km.ttdeath <- survfit(Surv(death_time, death_reached) ~ 1, data=df)
-summary(km.ttdeath, times = c(5,10,20,28,30,40,60))
-plot(km.ttdeath, xlab="Days", main = 'Kaplan Meyer Plot') #base graphics
-autoplot(km.ttdeath)
-km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
-autoplot(km.ttdeath_trt)
 
+km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
+# summary(km.ttdeath_trt, times = 28)
+
+ttdeath_28d_tbl <- km.ttdeath_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d survival (95% CI)**"
+  )
+# Nicely formatted table
+kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# autoplot(km.ttdeath_trt)
+survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall survival probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+
+# testing: simple log-rank
+# survdiff(Surv(death_time, death_reached) ~ trt, data = df)
+# testing: cox ph
 ttdeath <- df %>% 
   coxph(Surv(death_time, death_reached) ~ trt 
         + age + clinstatus_baseline 
@@ -518,8 +542,10 @@ ttdeath <- df %>%
         + comed_rdv 
         # + comed_toci
         , data =.)
-tab_model(ttdeath)
-# summ(ttdeath, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
+# Nicely formatted table
+kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 Discussion points
 1) 
@@ -536,7 +562,7 @@ new.mv.28 <- df %>%
       + comed_rdv 
       # + comed_toci
       , family = "binomial", data=.)
-summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 table(df$new_mvd_28, df$trt, useNA = "always")
@@ -547,8 +573,528 @@ new.mvd.28 <- df %>%
       + comed_rdv 
       # + comed_toci
       , family = "binomial", data=.)
-summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = T, digits = 2)
+summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
+```
+Discussion points
+1) 
+
+
+# (v) Clinical status at day 28
+```{r warning=FALSE}
+table(df$clinstatus_28_imp, df$trt, useNA = "always")
+clin.28 <- df %>% 
+  clm(clinstatus_28_imp ~ trt 
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa 
+      #+ comed_rdv 
+      #+ comed_toci
+      , link= c("logit"), data=.)
+# Summary and extract coefficients
+coefficients_table <- summary(clin.28)$coefficients
+# Calculate Odds Ratios and Confidence Intervals
+odds_ratios <- exp(coefficients_table[, "Estimate"])
+ci_lower <- exp(coefficients_table[, "Estimate"] - 1.96 * coefficients_table[, "Std. Error"])
+ci_upper <- exp(coefficients_table[, "Estimate"] + 1.96 * coefficients_table[, "Std. Error"])
+# Create a data frame to store Odds Ratios and CIs
+clin.28_tbl <- data.frame(
+  "Variable" = rownames(coefficients_table),
+  "Odds Ratio" = odds_ratios,
+  "CI Lower" = ci_lower,
+  "CI Upper" = ci_upper
+)
+# Nicely formatted table
+kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+Discussion points
+1) keep clinstatus_baseline as adjustment? Highly correlated to outcome?
+
+
+# (vi) Time to discharge or reaching discharge criteria up to day 28
+```{r warning=FALSE}
+# Kaplan-Meier estimate of conditional discharge probability
+# Just censoring => Cause-specific hazards, i.e., represents the rate per unit of time of the event among those not having failed from other events. Instantaneous rate of occurrence of the given type of event in subjects who are currently event‐free
+km.ttdischarge.check <- with(df, Surv(discharge_time, discharge_reached))
+head(km.ttdischarge.check, 100)
+km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, data=df)
+# summary(km.ttdischarge_trt, times = 28)
+
+ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d discharge (95% CI)**"
+  )
+# Nicely formatted table
+kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# autoplot(km.ttdischarge_trt)
+survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall discharge probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+# testing: simple log-rank
+survdiff(Surv(discharge_time, discharge_reached) ~ trt, data = df)
+# testing: cox ph
+ttdischarge <- df %>% 
+  coxph(Surv(discharge_time, discharge_reached) ~ trt 
+        + age + clinstatus_baseline 
+        #+ comed_dexa 
+        + comed_rdv 
+        #+ comed_toci
+        , data =.)
+ttdischarge_reg_tbl <- tbl_regression(ttdischarge, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Sub-distribution hazards, i.e., represents the rate per unit of time of the event as well as the influence of competing events. Instantaneous rate of occurrence of the given type of event in subjects who have not yet experienced an event of that type.
+df <- df %>% # cuminc needs a factor variable with censored patients coded as 0, the event as 1 and the competing event as 2.
+  mutate(discharge_reached_comp = case_when (discharge_reached == 0 & (mort_28 == 0 | is.na(mort_28)) ~ 0,
+                                             discharge_reached == 1 & (mort_28 == 0 | is.na(mort_28)) ~ 1,
+                                             mort_28 == 1 ~ 2))
+df$discharge_reached_comp <- as.factor(df$discharge_reached_comp) 
+# Cumulative incidence for competing risks
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ 1, data = df)
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
+  ggcuminc(outcome = c("1", "2")) +
+  ylim(c(0, 1)) + 
+  labs(
+    x = "Days"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+# testing: Gray's test (similar to Chi-squared test to compare 2 or more groups)
+# cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
+#   tbl_cuminc(
+#     times = 28, 
+#     label_header = "**28d cuminc**") %>% 
+#   add_p()
+# testing: Fine-Gray regression
+ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt 
+    + age 
+    #+ clinstatus_baseline
+    #+ comed_dexa 
+    #+ comed_rdv 
+    #+ comed_toci
+    , data = df)
+ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge.comp, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Censoring and assigned worst outcome (28d) to competing event (death) // hypothetical estimand
+km.ttdischarge_sens.check <- with(df, Surv(discharge_time_sens, discharge_reached))
+# head(km.ttdischarge_sens.check, 100)
+km.ttdischarge_sens_trt <- survfit(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df)
+# summary(km.ttdischarge_sens_trt, times = 28)
+# km.ttdischarge_sens_trt %>% 
+#   tbl_survfit(
+#     times = 28,
+#     label_header = "**28-d discharge (95% CI) - hypothetical**"
+#   )
+# autoplot(km.ttdischarge_sens_trt)
+survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall discharge probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+# testing: simple log-rank
+# survdiff(Surv(discharge_time_sens, discharge_reached) ~ trt, data = df)
+# testing: cox ph
+ttdischarge.sens <- df %>% 
+  coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
+        + age + clinstatus_baseline 
+        #+ comed_dexa 
+        + comed_rdv 
+        #+ comed_toci
+        , data =.)
+ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Assessing proportional hazards using default discharge_time and discharge_reached
+ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
+                + age + clinstatus_baseline 
+                #+ comed_dexa 
+                + comed_rdv 
+                #+ comed_toci
+                , data = df)
+cz <- cox.zph(ph.check)
+print(cz)
+plot(cz)
+
+# Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
+# Use cause-specific hazards
+km.ttdischarge_sus_trt <- survfit(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df)
+ttdischarge_sus_28d_tbl <- km.ttdischarge_sus_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d sustained discharge (95% CI)**"
+  )
+# Nicely formatted table
+kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# autoplot(km.ttdischarge_sus_trt)
+survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall sustained discharge probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+# testing: cox ph
+ttdischarge.sus <- df %>% 
+  coxph(Surv(discharge_time_sus, discharge_reached_sus) ~ trt 
+        + age + clinstatus_baseline 
+        #+ comed_dexa 
+        + comed_rdv 
+        #+ comed_toci
+        , data =.)
+ttdischarge_sus_reg_tbl <- tbl_regression(ttdischarge.sus, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Compare results across regressions (without sens-analysis sustained discharge)
+kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE) # cause-specific / coxph
+kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE) # subdistribution / Fine & Gray
+kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE) # hypothetical / coxph
+
+```
+Discussion points
+1) Check PH assumption and competing risk assumption
+2) Standardize length of max follow-up across trials?
+
+
+# (vii) Viral clearance up to day 5, day 10, and day 15
+```{r warning=FALSE}
+
+```
+Discussion points
+1) Not available
+
+
+# (viii) Quality of life at day 28 
+```{r warning=FALSE}
+
+```
+Discussion points
+1) Not available
+
+
+# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+```{r warning=FALSE}
+
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
+
+
+```
+Discussion points
+1) 
+
+
+# (x) Adverse events of special interest within 28 days
+```{r warning=FALSE}
+
+
+```
+Discussion points
+1) a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+
+
+# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
+```{r warning=FALSE}
+
+
+```
+Discussion points
+1) 
+
+
+# Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
+```{r warning=FALSE}
+table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 5 included
+# class(df$clinstatus_baseline)
+df$clinstatus_baseline_f <- df$clinstatus_baseline
+df$clinstatus_baseline <- as.numeric(df$clinstatus_baseline)
+
+mort.28.vent <- df %>% 
+  glm(mort_28 ~ trt*clinstatus_baseline
+      + age 
+     # + clinstatus_baseline 
+     # + comed_dexa 
+     #+ comed_rdv 
+     # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) numeric or factor?
+
+
+# Subgroup analysis: Age on primary endpoint
+```{r warning=FALSE}
+mort.28.age <- df %>% 
+  glm(mort_28 ~ trt*age
+      # + age 
+      + clinstatus_baseline 
+      #+ comed_dexa 
+      #+ comed_rdv 
+      #+ comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) 
+
+
+# Subgroup analysis: Comorbidities on primary endpoint
+```{r warning=FALSE}
+# 4 comorbidity categories as numeric/continuous, i.e., linear interaction
+table(df$comorb_cat, df$mort_28, useNA = "always") 
+class(df$comorb_cat)
+mort.28.comorb <- df %>%
+  glm(mort_28 ~ trt*comorb_cat 
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa 
+      #+ comed_rdv 
+      #+ comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# 4 comorbidity categories as factor
+df$comorb_cat_f <- as.factor(df$comorb_cat)
+# table(df$comorb_cat_f, df$mort_28, useNA = "always") 
+mort.28.comorb.f <- df %>% 
+  glm(mort_28 ~ trt*comorb_cat_f 
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa 
+      + comed_rdv 
+      #+ comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# full comorbidity count
+table(df$comorb_count, df$mort_28, useNA = "always") 
+mort.28.comorb.count <- df %>%
+  glm(mort_28 ~ trt*comorb_count 
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa 
+      + comed_rdv 
+      #+ comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) Numeric or factor or count?
+
+
+# Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
+```{r warning=FALSE}
+
+```
+Discussion points
+1) Comedication data not available
+
+
+# Subgroup analysis: Vaccination on adverse events
+```{r warning=FALSE}
+
+```
+Discussion points
+1) Vaccination data not available
+
+
+# SENS Subgroup analysis: Duration since symptom onset on primary endpoint
+```{r warning=FALSE}
+table(df$sympdur, df$mort_28, useNA = "always")
+mort.28.symp <- df %>% 
+  glm(mort_28 ~ trt*sympdur
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa 
+      #+ comed_rdv 
+      #+ comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+Discussion points
+1) 
+
+
+# SENS Subgroup analysis: CRP on primary endpoint
+```{r warning=FALSE}
+
+```
+Discussion points
+1) CRP not available
+
+
+# SENS Subgroup analysis: variant on primary endpoint
+```{r warning=FALSE}
+
+```
+Discussion points
+1) Variant data not available
+
+
+# Collect all treatment effect estimates across endpoints (stage one)
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+result_df <- data.frame(
+  variable = character(),
+  hazard_odds_ratio = numeric(),
+  odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric()
+)
+# Extract and format results for the treatment variable
+extract_trt_results <- function(model, variable_name) {
+  # Check if the model is glm/clm or coxph due to different summary output of the SE
+  if (inherits(model, "glm") || inherits(model, "clm")) {
+      trt_coef <- coef(model)["trt"]
+      hazard_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)["trt", ])
+      se <- summary(model)$coefficients["trt", "Std. Error"]
+      p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+      # capture the results
+      result <- data.frame(
+        variable = variable_name,
+        hazard_odds_ratio = hazard_odds_ratio,
+        ci_lower = ci[1],
+        ci_upper = ci[2],
+        standard_error = se,
+        p_value = p_value
+      )
+    return(result)
+  } else {
+      trt_coef <- coef(model)["trt"]
+      hazard_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)["trt", ])
+      se <- summary(model)$coefficients["trt", "se(coef)"]
+      p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+      # capture the results
+      result <- data.frame(
+        variable = variable_name,
+        hazard_odds_ratio = hazard_odds_ratio,
+        ci_lower = ci[1],
+        ci_upper = ci[2],
+        standard_error = se,
+        p_value = p_value
+      )
+    return(result)
+  }
+}
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_trt_results(mort.28, "death at day 28")
+result_list[[2]] <- extract_trt_results(mort.60, "death at day 60")
+result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
+result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d")
+result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
+result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28")
+result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
+# result_list[[14]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # if this effect estimate is chosen, then adapt function for crr element! -> and integrate in list in correct order
+result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
+result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
+# result_list[[10]] <- extract_trt_results(vir.clear.5, "viral clearance day 5")
+# result_list[[11]] <- extract_trt_results(vir.clear.10, "viral clearance day 5-10")
+# result_list[[12]] <- extract_trt_results(vir.clear.15, "viral clearance day 10-15")
+# result_list[[13]] <- extract_trt_results(vir.clear.15.cum, "viral clearance until day 15")
+
+# Filter out NULL results and bind the results into a single data frame
+result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the trial name
+result_df$trial <- "ACTT-2"
+
+# Nicely formatted table
+kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+save(result_df, file = "trt_effects_ACTT2.RData")
+```
+Discussion points
+1) 
+
+
+# Collect all interaction estimates (stage one)
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+interaction_df <- data.frame(
+  variable = character(),
+  log_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric()
+)
+# Extract and format results for the interaction term
+extract_interaction <- function(model, variable_name) {
+      trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
+      log_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
+      se <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Std. Error"]
+      p_value <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Pr(>|z|)"]
+      # capture the results
+      result <- data.frame(
+        variable = variable_name,
+        log_odds_ratio = log_odds_ratio,
+        ci_lower = ci[1],
+        ci_upper = ci[2],
+        standard_error = se,
+        p_value = p_value
+      )
+    return(result)
+}
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
+result_list[[2]] <- extract_interaction(mort.28.age, "age")
+result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity")
+# result_list[[4]] <- extract_interaction(mort.28.comed, "comedication")
+result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration")
+# result_list[[6]] <- extract_interaction(mort.28.crp, "crp")
+# result_list[[7]] <- extract_interaction(mort.28.var, "variant") adapt function to tell which p-int to extract
+
+# Filter out NULL results and bind the results into a single data frame
+interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the trial name
+interaction_df$trial <- "ACTT-2"
+
+# Nicely formatted table
+kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+save(interaction_df, file = "int_effects_ACTT2.RData")
 ```
 Discussion points
 1) 
