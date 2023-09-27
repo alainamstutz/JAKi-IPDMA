@@ -3557,7 +3557,6 @@ Discussion points
 
 
 # Collect all treatment effect estimates across endpoints (stage one)
-<<<<<<< HEAD
 
 ```r
 # Empty data frame to store the results
@@ -3663,7 +3662,6 @@ Discussion points
 
 
 # Collect all interaction estimates (stage one)
-<<<<<<< HEAD
 
 ```r
 # Empty data frame to store the results
