@@ -576,11 +576,25 @@ df <- df %>%
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         # ae_28_sev, aesi_28, ae_28_list,
+         # ae_28, ae_28_sev, aesi_28, ae_28_list,
          # ae_reached, ae_time,
          vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum
          # qol_28
          )
+
+# export for one-stage model, i.e., add missing variables 
+df_os <- df
+df_os$ethn <- NA
+df_os$ae_28 <- NA
+df_os$ae_28_sev <- NA
+df_os$aesi_28 <- NA
+df_os$ae_28_list <- NA
+df_os$ae_reached <- NA
+df_os$ae_time <- NA
+df_os$qol_28 <- NA
+# Save
+save(df_os, file = "df_os_barisolidact.RData")
+
 ## set references, re-level
 # df <- df %>% 
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
@@ -3730,3 +3744,4 @@ save(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
 1) 
+
