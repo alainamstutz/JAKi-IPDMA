@@ -319,29 +319,8 @@ df <- df %>%
          # vir_clear_5, vir_clear_10, vir_clear_15, 
          # qol_28
          )
-
 # export for one-stage model, i.e., add missing variables 
-df_os <- df %>% 
-  select(id_pat, trt, sex, age, 
-         #ethn, 
-         country, icu, sympdur, 
-         #vacc, 
-         clinstatus_baseline,
-         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
-         comed_cat,
-         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
-         any_comorb, comorb_cat, comorb_count,
-         crp, 
-         # sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
-         new_mv_28, new_mvd_28,
-         clinstatus_28_imp,
-         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         ae_28, ae_28_sev, aesi_28, ae_28_list,
-         # ae_reached, ae_time, 
-         # vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum
-         # qol_28
-         )
+df_os <- df
 df_os$ethn <- NA
 df_os$vacc <- NA
 df_os$sero <- NA
