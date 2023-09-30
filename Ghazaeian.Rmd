@@ -293,7 +293,7 @@ Discussion points OUTCOME data:
 1) Get time to first adverse event?
 
 
-# Define final dataset, set references, summarize missing data and variables
+# Define final datasets, set references, summarize missing data and variables
 ```{r echo=TRUE}
 # keep the overall set
 df_all <- df
@@ -314,11 +314,49 @@ df <- df %>%
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         ae_28_sev, aesi_28, ae_28_list,
+         ae_28, ae_28_sev, aesi_28, ae_28_list,
          # ae_reached, ae_time, 
          # vir_clear_5, vir_clear_10, vir_clear_15, 
          # qol_28
          )
+
+# export for one-stage model, i.e., add missing variables 
+df_os <- df %>% 
+  select(id_pat, trt, sex, age, 
+         #ethn, 
+         country, icu, sympdur, 
+         #vacc, 
+         clinstatus_baseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         any_comorb, comorb_cat, comorb_count,
+         crp, 
+         # sero, vl_baseline, variant,
+         mort_28, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev, aesi_28, ae_28_list,
+         # ae_reached, ae_time, 
+         # vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum
+         # qol_28
+         )
+df_os$ethn <- NA
+df_os$vacc <- NA
+df_os$sero <- NA
+df_os$vl_baseline <- NA
+df_os$variant <- NA
+df_os$ae_reached <- NA
+df_os$ae_time <- NA
+df_os$vir_clear_5 <- NA
+df_os$vir_clear_10 <- NA
+df_os$vir_clear_15 <- NA
+df_os$vir_clear_15_cum <- NA
+df_os$qol_28 <- NA
+# Save
+save(df_os, file = "df_os_ghazaeian.RData")
+
 ## set references, re-level
 # df <- df %>% 
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
@@ -443,8 +481,8 @@ Discussion points
 table(df$new_mv_28, df$trt, useNA = "always")
 new.mv.28 <- df %>% 
   glm(new_mv_28 ~ trt 
-       + age + clinstatus_baseline 
-       + comed_dexa + comed_rdv + comed_toci
+       #+ age + clinstatus_baseline 
+       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
@@ -458,7 +496,8 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 
 ```
 Discussion points
-1) CAVE new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death!
+1) CAVE new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death! => no single event!
+=> make new_mv_28 the sens-endpoint and new_mvd_28 the primary endpoint definition
 
 
 # (v) Clinical status at day 28
@@ -670,7 +709,7 @@ Discussion points
 
 # (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
 ```{r warning=FALSE}
-table(df$ae_28_sev, df$trt, useNA = "always") # only 1 event, in int
+table(df$ae_28, df$trt, useNA = "always") # only 1 event, in int
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 
@@ -709,15 +748,26 @@ df$clinstatus_baseline <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
   glm(mort_28 ~ trt*clinstatus_baseline
-      + age 
+      #+ age 
       #+ clinstatus_baseline 
-      + comed_dexa + comed_rdv + comed_toci
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# use penalized maximum likelihood logistic regression (Firth method)
+library(logistf)
+mort.28.vent.firth <- df %>% 
+  logistf(mort_28 ~ trt*clinstatus_baseline
+      + age 
+      #+ clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+# Summary and extract coefficients
+summary(mort.28.vent.firth)$coefficients
+
 ```
 Discussion points
 1) numeric or factor?
-2) Add 0.5 to 0 cell?
+2) Penalized ML estimation or Laplace smoothing (add 0.5 to each cell)?
 
 
 # Subgroup analysis: Age on primary endpoint
@@ -740,10 +790,20 @@ table(df$comorb_cat, df$mort_28, useNA = "always")
 # class(df$comorb_cat)
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
-      + age 
+      #+ age 
       #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# use penalized maximum likelihood logistic regression (Firth method)
+library(logistf)
+mort.28.comorb.firth <- df %>% 
+  logistf(mort_28 ~ trt*comorb_cat
+      #+ age 
+      #+ clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+# Summary and extract coefficients
+summary(mort.28.comorb.firth)$coefficients
 # table(df$comorb_cat, df$mort_28, df$trt, useNA = "always") ### too few events!
 # 4 comorbidity categories as factor
 df$comorb_cat_f <- as.factor(df$comorb_cat)
@@ -765,7 +825,7 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 ```
 Discussion points
 1) Numeric or factor or count?
-2) Too few events in some cells! Add 0.5?
+2) Too few events in some cells! Add 0.5? Or penalized ML?
 
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
@@ -911,7 +971,7 @@ result_list <- list()
 result_list[[1]] <- extract_trt_results(mort.28, "death at day 28")
 result_list[[2]] <- extract_trt_results(mort.60, "death at day 60")
 result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
-# result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d") // add 0.5?
+# result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d") // not possible
 result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
 result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28")
 result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
@@ -969,16 +1029,19 @@ extract_interaction <- function(model, variable_name) {
       )
     return(result)
 }
+
 # Loop through
 result_list <- list()
 
-# result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") // add 0.5?
-result_list[[2]] <- extract_interaction(mort.28.age, "age")
-# result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") // add
-# result_list[[4]] <- extract_interaction(mort.28.comed, "comedication") // not possible
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration")
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp")
-# result_list[[7]] <- extract_interaction(mort.28.var, "variant") adapt function to tell which p-int to extract
+# result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
+# result_list[[2]] <- extract_interaction(mort.28.vent.firth, "respiratory support.firth") // if we take this, then adapt function for logistf object -> class(mort.28.vent.firth)
+result_list[[3]] <- extract_interaction(mort.28.age, "age")
+# result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity")
+# result_list[[5]] <- extract_interaction(mort.28.comorb.firth, "comorbidity.firth") // if we take this, then adapt function for logistf object 
+# result_list[[6]] <- extract_interaction(mort.28.comed, "comedication") // not possible!
+result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration")
+result_list[[8]] <- extract_interaction(mort.28.crp, "crp")
+# result_list[[9]] <- extract_interaction(mort.28.var, "variant") adapt function to tell which p-int to extract
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
