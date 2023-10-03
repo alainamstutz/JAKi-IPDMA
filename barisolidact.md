@@ -169,6 +169,12 @@ df <- df %>%
                                 & immunosupp == 0
                                 ~ 0))
 
+# df_all %>%
+#    select(immunosupp, D1_CANCER_YNK, D1_AUTOIMMUN_YNK, D1_KIDNEY_YNK, D1_NEURO_YNK, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker) %>%
+#   View()
+# 
+# Immunosuppression as defined as the presence of at least one of the following medical conditions: active malignant neoplasm; lymphoid or myeloid neoplasms; hematopoietic stem cell or solid organ transplantation; HIV-positive with CD4-cell count below 350 cells or not on antiretroviral therapy; a primary immunodeficiency; rheumatoid arthritis; lupus; vasculitis; inflammatory bowel disease or other autoimmune disorder for which a patient is being treated with systemic immunosuppressive medication. Alternative: Provide each of these conditions as individual variables (binary; yes/no)
+
 ## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
 comorb <- df %>% 
   select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp)
@@ -191,7 +197,7 @@ df <- df %>%
                                 comorb_count == 0 ~ 1, # no comorbidity
                                 comorb_count == 1 ~ 2, # one comorbidity
                                 comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
-# table(df$comorb_cat, useNA = "always") # 10 missing, have just 1 of the comorb categories missing...re-classify or multiple imputation?
+# table(df$comorb_cat, useNA = "always") # 10 missing, have just 1 of the comorb categories missing, see comorb df...re-classify or multiple imputation?
 
 # CRP
 df$crp <- as.numeric(df$lab_v_conv_crp_D1) ## 7 missing
@@ -223,18 +229,15 @@ df <- df %>%
 
 # Serology
 df$sero <- df$Serostatus
-# df %>%
+# df_all %>%
 #    select(id_pat, Serostatus, Anti_Spike_wt, Anti_Nucl_wt, anti_RBDwt, Anti_RBD_Omicron) %>%
 #   View()
 ```
 Clarifications and discussion points BASELINE data:
-1) Missing baseline characteristics: 
-- Ethnicity: Only country of birth available
-2) Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91). steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> Discuss for sens-analysis
-3) Re-discuss the comorbidity list (e.g. autoimmune diseases, cancer, chronic kidney disease // smokers separate?)
-4) Missing data for comorbidity subgroup analyses: MICE?
-5) No-one received any monoclonal Abs? No-one received any plasma? Any interferons reported?
-6) Serology (Serostatus): anti-spike, anti-RBD, anti-N, anti-RBD-Omicron
+1) Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91): steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate
+2) Re-discuss the comorbidity list (autoimmune diseases, cancer, chronic kidney disease, neurological disease // smokers separate?)
+3) Missing data for comorbidity subgroup analyses: MICE?
+4) Serology (Serostatus): anti-spike, anti-RBD, anti-N, anti-RBD-Omicron
 
 # Endpoints
 
@@ -295,10 +298,10 @@ df <- df %>% # 2 are left without any time to event data => impute max. follow-u
                                 withdraw_d >=0 ~ c(withdraw_d),
                                 withdrawi_d >=0 ~ c(withdrawi_d)))
 
-# df %>% 
+# df_all %>%
 #   select(death_reached, death_time, mort_28, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d, maxfup_d, clinstatus_baseline,
-#          clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28) %>% 
-#   filter(is.na(death_time)) %>% 
+#          clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28) %>%
+#   filter(is.na(mort_28)) %>%
 #   View()
 
 
@@ -364,10 +367,10 @@ df <- df %>% # add 28d for those that died - as a sens-variable
   mutate(discharge_time_sens = case_when(mort_28 == 1 ~ 28,
                                     TRUE ~ discharge_time))
 
-# df %>%
+# df_all %>%
 #   select(discharge_reached, discharge_time, discharge_time_sens, death_reached, death_time, mort_28, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d, maxfup_d, clinstatus_baseline,
 #          clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28) %>%
-#   # filter(is.na(discharge_time)) %>%
+#   #filter(is.na(discharge_time)) %>%
 #   View()
 
 # (vi) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
@@ -515,21 +518,15 @@ names(df)
 df$vir_clear_5 <- df$vloqundet_yn_D3
 df$vir_clear_10 <- df$vloqundet_yn_D8 # point prevalence, not cumulative
 df$vir_clear_15 <- df$vloqundet_yn_D15 # point prevalence, not cumulative
-table(df$vloqundet_yn_D8)
-```
-
-```
-## 
-##  0  1 
-## 42 42
-```
-
-```r
 df <- df %>% 
   mutate(vir_clear_15_cum = case_when(vir_clear_15 == 1 | vir_clear_10 == 1 | vir_clear_5 == 1 ~ 1,
                                       vir_clear_15 == 0 ~ 0,
                                       vir_clear_10 == 0 ~ 0,
                                       vir_clear_5 == 0 ~ 0))
+# df %>% 
+#   select(vl_baseline, vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum) %>% 
+#   View()
+
 
 # (viii) Quality of life at day 28 // detailed measures available - wait for other trials first
 
@@ -545,9 +542,10 @@ df <- df %>%
 ```
 Discussion points OUTCOME data:
 1) VL: Add a cumulative outcome definition (as sens-analysis)?
-2) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
-3) Get the (S)AE data
-4) Discuss changing the adding 28d for death to time to discharge as sensitivity analysis/variable -> discharge_time_sens 
+2) Discuss changing the adding 28d for death to time to discharge as sensitivity analysis/variable -> discharge_time_sens
+3) Discuss making new_mvd_28 the primary endpoint definition and not new_mv_28
+4) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
+5) Get the safety data
 
 
 # Multiple imputation using chained equation
@@ -622,12 +620,12 @@ Discussion points
   - adverse events (still coming)
   - qol_28 (still working on it)
 2) Missing data:
-- vacc: 4 missing
-- comorb_cat: 10 missing -> re-discuss
-- crp & vl_baseline & variant
-- mort_28 & mort_60: 5 missing
-- new_mv_28 & new_mvd_28: 4 missing
-- viral load (baseline and outcome) and variant data: substantial missing
+- vacc: 4 missing -> MICE for subgroup analysis?
+- comorb_cat: 10 missing -> re-discuss, and MICE for subgroup analysis?
+- crp & vl_baseline & variant -> ignore
+- mort_28 & mort_60: 5 missing -> ignore or alive or MICE?
+- new_mv_28 & new_mvd_28: 4 missing -> ignore or alive or MICE?
+- viral load (baseline and outcome) and variant data: substantial missing -> ignore
 
 
 # (i) Primary endpoint: Mortality at day 28
@@ -749,7 +747,7 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) adjustment respiratory support (as binary ordinal scale 1-3 vs 4-5 OR leave it as it is)? Bari-Solidact only included clinstatus 4 and 5.
+1) adjustment respiratory support (as binary ordinal scale 1-3 vs 4-5 OR leave it as it is)? Bari-Solidact only included clinstatus 4 and 5. Numeric or factor?
 
 
 # (ii) Mortality at day 60
@@ -925,7 +923,12 @@ kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |1                     |89% (84%, 94%)             |
 
 ```r
-# autoplot(km.ttdeath_trt)
+autoplot(km.ttdeath_trt)
+```
+
+![](barisolidact_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+
+```r
 survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>% 
   ggsurvfit() +
   labs(
@@ -936,7 +939,7 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](barisolidact_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](barisolidact_files/figure-html/unnamed-chunk-9-2.png)<!-- -->
 
 ```r
 # testing: simple log-rank
@@ -1291,7 +1294,7 @@ km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, dat
 ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
   tbl_survfit(
     times = 28,
-    label_header = "**28-d discharge (95% CI)**"
+    label_header = "**28-d still hospitalized (95% CI)**"
   )
 # Nicely formatted table
 kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
@@ -1300,11 +1303,11 @@ kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>
 
 
 
-|**Characteristic**    |**28-d discharge (95% CI)** |
-|:---------------------|:---------------------------|
-|Trial treatment group |NA                          |
-|0                     |27% (20%, 36%)              |
-|1                     |24% (17%, 33%)              |
+|**Characteristic**    |**28-d still hospitalized (95% CI)** |
+|:---------------------|:------------------------------------|
+|Trial treatment group |NA                                   |
+|0                     |27% (20%, 36%)                       |
+|1                     |24% (17%, 33%)                       |
 
 ```r
 # autoplot(km.ttdischarge_trt)
@@ -1312,7 +1315,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
@@ -1358,7 +1361,7 @@ df <- df %>% # cuminc needs a factor variable with censored patients coded as 0,
                                              discharge_reached == 1 & (mort_28 == 0 | is.na(mort_28)) ~ 1,
                                              mort_28 == 1 ~ 2))
 df$discharge_reached_comp <- as.factor(df$discharge_reached_comp) 
-# Cumulative incidence for competing risks
+# Cumulative incidence for the event=discharge (1) and the competing event=death (2)
 cuminc(Surv(discharge_time, discharge_reached_comp) ~ 1, data = df)
 ```
 
@@ -1410,13 +1413,38 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
 ![](barisolidact_files/figure-html/unnamed-chunk-12-2.png)<!-- -->
 
 ```r
-# ggsave(file.path(here("barisolidact_files/figure-html"), "plot_comp.png"), plot_comp, width = 8, height = 6)
-# testing: Gray's test (similar to Chi-squared test to compare 2 or more groups)
-# cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
-#   tbl_cuminc(
-#     times = 28, 
-#     label_header = "**28d cuminc**") %>% 
-#   add_p()
+# in int only
+df_int <- df %>% 
+  filter(trt == 1)
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_int) %>% 
+  ggcuminc(outcome = c("1", "2")) +
+  #ylim(c(0, 1)) + 
+  labs(
+    x = "Days"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+```
+
+![](barisolidact_files/figure-html/unnamed-chunk-12-3.png)<!-- -->
+
+```r
+# in cont only
+df_cont <- df %>% 
+  filter(trt == 0)
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_cont) %>% 
+  ggcuminc(outcome = c("1", "2")) +
+  #ylim(c(0, 1)) + 
+  labs(
+    x = "Days"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+```
+
+![](barisolidact_files/figure-html/unnamed-chunk-12-4.png)<!-- -->
+
+```r
 # testing: Fine-Gray regression
 ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt 
     + age 
@@ -1455,13 +1483,13 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
 ```
 
-![](barisolidact_files/figure-html/unnamed-chunk-12-3.png)<!-- -->
+![](barisolidact_files/figure-html/unnamed-chunk-12-5.png)<!-- -->
 
 ```r
 # testing: simple log-rank
@@ -1518,7 +1546,7 @@ print(cz)
 plot(cz)
 ```
 
-![](barisolidact_files/figure-html/unnamed-chunk-12-4.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-5.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-6.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-7.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-8.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-9.png)<!-- -->
+![](barisolidact_files/figure-html/unnamed-chunk-12-6.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-7.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-8.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-9.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-10.png)<!-- -->![](barisolidact_files/figure-html/unnamed-chunk-12-11.png)<!-- -->
 
 ```r
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
@@ -1527,7 +1555,7 @@ km.ttdischarge_sus_trt <- survfit(Surv(discharge_time_sus, discharge_reached_sus
 ttdischarge_sus_28d_tbl <- km.ttdischarge_sus_trt %>% 
   tbl_survfit(
     times = 28,
-    label_header = "**28-d sustained discharge (95% CI)**"
+    label_header = "**28-d sustained hospitalization (95% CI)**"
   )
 # Nicely formatted table
 kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
@@ -1536,11 +1564,11 @@ kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"'
 
 
 
-|**Characteristic**    |**28-d sustained discharge (95% CI)** |
-|:---------------------|:-------------------------------------|
-|Trial treatment group |NA                                    |
-|0                     |27% (20%, 36%)                        |
-|1                     |25% (19%, 34%)                        |
+|**Characteristic**    |**28-d sustained hospitalization (95% CI)** |
+|:---------------------|:-------------------------------------------|
+|Trial treatment group |NA                                          |
+|0                     |27% (20%, 36%)                              |
+|1                     |25% (19%, 34%)                              |
 
 ```r
 # autoplot(km.ttdischarge_sus_trt)
@@ -1548,13 +1576,13 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall sustained discharge probability"
+    y = "Overall sustained hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
 ```
 
-![](barisolidact_files/figure-html/unnamed-chunk-12-10.png)<!-- -->
+![](barisolidact_files/figure-html/unnamed-chunk-12-12.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -1645,7 +1673,7 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 |Remdesivir at d1      |1.51   |0.70, 3.27 |0.3         |
 |Tocilizumab at d1     |0.00   |0.00, Inf  |>0.9        |
 Discussion points
-1) Check PH assumption and competing risk assumption
+1) Check PH assumption and competing risk assumption and sens-analyses
 2) Standardize length of max follow-up across trials?
 
 
