@@ -65,7 +65,8 @@ df <- df %>% ## no missing data // no randdate // ARM == 1 includes remdesivir!
   rename(id_pat = USUBJID,
          sex = SEX,
          age = agec,
-         country = REGION2)
+         #country = REGION2
+         )
 df <- df %>%
   mutate(trt = case_when(ARM == "Baricitinib + Remdesivir" ~ 1,
                          TRUE ~ 0))
@@ -242,7 +243,7 @@ df <- df %>% # same 18 missing
 
 ```
 Clarifications and discussion points BASELINE data:
-1) No Country, only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
+1) For Country only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
 2) In the absence of a written policy, other experimental treatment and off-label use of marketed medications intended as specific treatment for Covid-19 were prohibited. This included glucocorticoids, which were permitted only for standard indications such as adrenal insufficiency, asthma exacerbation, laryngeal edema, septic shock, and acute respiratory distress syndrome.
 
 
@@ -401,6 +402,7 @@ Discussion points OUTCOME data:
 5) Those two that were discharged at day 9 but died later (within 28d) are currently marked as discharge reached but with 28d - change to NOT reached event?
 6) Get the (S)AE data
 
+
 # Define final dataset, set references, summarize missing data and variables
 ```{r echo=TRUE}
 # keep the overall set
@@ -409,7 +411,7 @@ df_all <- df
 df <- df %>% 
   select(id_pat, trt, sex, age, 
          ethn, 
-         country, 
+         # country, 
          # icu, 
          sympdur, 
          # vacc, 
@@ -420,20 +422,21 @@ df <- df %>%
          # comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          any_comorb, comorb_cat, comorb_count,
-         # crp, 
-         # sero, vl_baseline, variant,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
+         # crp, # sero, vl_baseline, variant,
          mort_28, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          # ae_28, ae_28_sev, aesi_28, ae_28_list,
          # ae_reached, ae_time,
-         # vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum
+         # vir_clear_5, vir_clear_10, vir_clear_15,
          # qol_28
          )
 
 # export for one-stage model, i.e., add missing variables 
 df_os <- df
+df_os$country <- NA
 df_os$icu <- NA
 df_os$vacc <- NA
 df_os$comed_dexa <- NA
@@ -456,7 +459,6 @@ df_os$ae_time <- NA
 df_os$vir_clear_5 <- NA
 df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
-df_os$vir_clear_15_cum <- NA
 df_os$qol_28 <- NA
 # Save
 save(df_os, file = "df_os_actt2.RData")
