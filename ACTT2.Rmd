@@ -53,12 +53,10 @@ df <- df %>% ## corresponds to N in publication
 df <- df %>%
   select("USUBJID","ARM","ACTARM","BCSOSN","Baseline","1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33","34","36","37","45", everything())
 
-#define ITT
+#define ITT -> keep all as randomized
 # addmargins(table(df$ARM, df$ACTARM))
 
 ```
-Questions: 
-1) Re-discuss ITT set - see Bari-Solidact
 
 # Baseline Characteristics
 ```{r echo=TRUE}
@@ -164,8 +162,7 @@ df <- score_transform(df, clinstatus_45, df$"45")
 df <- df %>% 
   mutate(comed_rdv = case_when(trt == 1 ~ 1,
                                TRUE ~ 0))
-## group them for the subgroup analysis, according to protocol -> missing !
-
+## group them for the subgroup analysis, according to protocol
 # Comorbidity at baseline, including immunocompromised
 df <- df %>% ## 27 missing
   mutate(comorb_lung = case_when(CRDFL == "Y" | CORQFL == "Y" | ASTHMAFL == "Y" ~ 1,
@@ -188,21 +185,34 @@ df <- df %>% # 17 missing
 df <- df %>% # 23 missing
   mutate(comorb_smoker = case_when(NICFL == "Y" ~ 1,
                                    NICFL == "N" ~ 0))
-df <- df %>% # 25 missing // All cancer patients!
-  mutate(immunosupp = case_when(CANCFL == "Y" ~ 1,
+df <- df %>% # 25 missing
+  mutate(immunosupp = case_when(IMMDFL == "Y" ~ 1,
+                                   IMMDFL == "N" ~ 0))
+df <- df %>% # 25 missing
+  mutate(comorb_cancer = case_when(CANCFL == "Y" ~ 1,
                                    CANCFL == "N" ~ 0))
-df <- df %>% # 18 missing, compare against COMORB1 (same 18 unknown; but categorization slightly different) and COMORB2 (why do they have more Unknown in COMORB2 than in COMORB1?)
+df <- df %>% # 26 missing
+  mutate(comorb_kidney = case_when(CKDFL == "Y" ~ 1,
+                                   CKDFL == "N" ~ 0))
+df$comorb_autoimm <- 0
+
+df <- df %>% # 18 missing - as in publication
   mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
                                   comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
-                                | immunosupp == 1
+                                | immunosupp == 1 | comorb_cancer == 1 | comorb_autoimm == 1 | comorb_kidney == 1 
                                   ~ 1,
                                 comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0
                                 ~ 0))
+# df %>%
+#   select(id_pat, any_comorb, COMORB1, COMORB2, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp, comorb_kidney, comorb_autoimm, comorb_cancer) %>%
+#   #filter(is.na(any_comorb)) %>%
+#   View()
+
 ## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
 comorb <- df %>% 
-  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp)
+  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp, comorb_kidney, comorb_autoimm, comorb_cancer)
 comorb$comorb_count <- NA
 for (i in 1:dim(comorb)[[1]]) {
   comorb$comorb_count[i] <- ifelse(
@@ -211,10 +221,10 @@ for (i in 1:dim(comorb)[[1]]) {
     NA
   )
 }
-comorb <- comorb %>% # same 18 missing
+comorb <- comorb %>% # 18 missing
   mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0 ~ 0,
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0 ~ 0,
                                 TRUE ~ comorb_count))
 df <- left_join(df, comorb[, c("comorb_count", "id_pat")], by = join_by(id_pat == id_pat)) ## merge imputed variable back
 df <- df %>% # same 18 missing
@@ -222,6 +232,7 @@ df <- df %>% # same 18 missing
                                 comorb_count == 0 ~ 1, # no comorbidity
                                 comorb_count == 1 ~ 2, # one comorbidity
                                 comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
+# table(df$comorb_cat, useNA = "always")
 
 # CRP
 # Vaccination
@@ -231,10 +242,9 @@ df <- df %>% # same 18 missing
 
 ```
 Clarifications and discussion points BASELINE data:
-1) Re-consider Country (here: Region!): 
-- Country: Only region available. "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
+1) No Country, only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
 2) In the absence of a written policy, other experimental treatment and off-label use of marketed medications intended as specific treatment for Covid-19 were prohibited. This included glucocorticoids, which were permitted only for standard indications such as adrenal insufficiency, asthma exacerbation, laryngeal edema, septic shock, and acute respiratory distress syndrome.
-3) Comorbidity data: See missingness pattern (screenshot). And inconsistency with comorb_cat (where NA of immunosuppressed is ignored, see screenshot). Unused: CKDFL, COAGFL. "immunosupp" are all cancer patients.
+
 
 # Endpoints
 ```{r echo=TRUE}
