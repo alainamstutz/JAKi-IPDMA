@@ -42,13 +42,13 @@ df <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente 
 # Define ITT set
 ```{r}
 # 9 participants (3 in int. / 6 in cont.) did not receive a single dose of baricitinib, or placebo, respectively.
-# Take them out, as done in results publication (mITT set)
-df <- df %>% 
-  filter(imp_adm_yn == 1)
+# results publication used mITT set
+# df <- df %>% 
+#   filter(imp_adm_yn == 1)
 
 ```
 Questions: 
-1) Re-discuss ITT set - see ACTT-2
+1) CAVE: use ITT set - see ACTT-2
 
 # Baseline Characteristics
 ```{r echo=TRUE}
@@ -137,25 +137,34 @@ df <- df %>% ## 0 missing. D1_SMOKING not needed, correct.
 df <- df %>% ## 0 missing.
   mutate(immunosupp = case_when(immunodef_yn == 1 ~ 1,
                                 immunodef_yn == 0 ~ 0))
+df <- df %>% ## 2 missing.
+  mutate(comorb_cancer = case_when(D1_CANCER_YNK == 1 ~ 1,
+                                D1_CANCER_YNK == 0 ~ 0))
+df <- df %>% ## 1 missing.
+  mutate(comorb_autoimm = case_when(D1_AUTOIMMUN_YNK == 1 ~ 1,
+                                D1_AUTOIMMUN_YNK == 0 ~ 0))
+df <- df %>% ## 0 missing.
+  mutate(comorb_kidney = case_when(D1_KIDNEY_YNK == 1 ~ 1,
+                                D1_KIDNEY_YNK == 0 ~ 0))
 df <- df %>% 
   mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
                                   comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
-                                | immunosupp == 1
+                                | immunosupp == 1 | comorb_cancer == 1 | comorb_autoimm == 1 | comorb_kidney == 1 
                                   ~ 1,
                                 comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0
                                 ~ 0))
-
-# df_all %>%
-#    select(immunosupp, D1_CANCER_YNK, D1_AUTOIMMUN_YNK, D1_KIDNEY_YNK, D1_NEURO_YNK, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker) %>%
-#   View()
-# 
-# Immunosuppression as defined as the presence of at least one of the following medical conditions: active malignant neoplasm; lymphoid or myeloid neoplasms; hematopoietic stem cell or solid organ transplantation; HIV-positive with CD4-cell count below 350 cells or not on antiretroviral therapy; a primary immunodeficiency; rheumatoid arthritis; lupus; vasculitis; inflammatory bowel disease or other autoimmune disorder for which a patient is being treated with systemic immunosuppressive medication. Alternative: Provide each of these conditions as individual variables (binary; yes/no)
+table(df$any_comorb, useNA = "always")
+# the remaining 10 missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
+df <- df %>% 
+  mutate(any_comorb = case_when(is.na(any_comorb) ~ 0,
+                                TRUE ~ any_comorb))
 
 ## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
 comorb <- df %>% 
-  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp)
+  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_cancer, comorb_autoimm, comorb_kidney)
 comorb$comorb_count <- NA
 for (i in 1:dim(comorb)[[1]]) {
   comorb$comorb_count[i] <- ifelse(
@@ -167,18 +176,23 @@ for (i in 1:dim(comorb)[[1]]) {
 comorb <- comorb %>% 
   mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0 ~ 0,
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0 ~ 0,
                                 TRUE ~ comorb_count))
+# the remaining 10 missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
+comorb <- comorb %>% 
+  mutate(comorb_count = case_when(is.na(comorb_count) ~ 0,
+                                TRUE ~ comorb_count))
+
 df <- left_join(df, comorb[, c("comorb_count", "id_pat")], by = join_by(id_pat == id_pat)) ## merge imputed variable back
 df <- df %>% 
   mutate(comorb_cat = case_when(immunosupp == 1 ~ 4, # immunocompromised
                                 comorb_count == 0 ~ 1, # no comorbidity
                                 comorb_count == 1 ~ 2, # one comorbidity
                                 comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
-# table(df$comorb_cat, useNA = "always") # 10 missing, have just 1 of the comorb categories missing, see comorb df...re-classify or multiple imputation?
+table(df$comorb_cat, useNA = "always") # no missing
 
 # CRP
-df$crp <- as.numeric(df$lab_v_conv_crp_D1) ## 7 missing
+df$crp <- as.numeric(df$lab_v_conv_crp_D1) ## 8 missing
 
 df %>% 
   drop_na(crp) %>% 
@@ -202,17 +216,14 @@ df <- df %>%
                              SCR_COVARIANT == 50 ~ "PRESENCE OF MUTATIONS E484Q AND L452R"))
 
 # Serology
-df$sero <- df$Serostatus
-# df_all %>%
-#    select(id_pat, Serostatus, Anti_Spike_wt, Anti_Nucl_wt, anti_RBDwt, Anti_RBD_Omicron) %>%
-#   View()
+df <- df %>% 
+  mutate(sero = case_when(Anti_Spike_wt == "Positive" | Anti_Nucl_wt == "Positive" | anti_RBDwt == "Positive" ~ 1,
+                             (Anti_Spike_wt == "Negative" | is.na(Anti_Spike_wt)) & (Anti_Nucl_wt == "Negative" | is.na(Anti_Nucl_wt)) & (anti_RBDwt == "Negative" | is.na(anti_RBDwt)) ~ 0))
 
 ```
 Clarifications and discussion points BASELINE data:
-1) Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91): steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate
-2) Re-discuss the comorbidity list (autoimmune diseases, cancer, chronic kidney disease, neurological disease // smokers separate?)
-3) Missing data for comorbidity subgroup analyses: MICE?
-4) Serology (Serostatus): anti-spike, anti-RBD, anti-N, anti-RBD-Omicron
+1) Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91): steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> when was rescue therapie given, in relation to clinstatus (vs those not receiving rescue) -> investigate later
+
 
 # Endpoints
 ```{r echo=TRUE}
@@ -357,19 +368,17 @@ df <- df %>%
                                         TRUE ~ discharge_time))
 
 # (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
-names(df)
 df$vir_clear_5 <- df$vloqundet_yn_D3
-df$vir_clear_10 <- df$vloqundet_yn_D8 # point prevalence, not cumulative
-df$vir_clear_15 <- df$vloqundet_yn_D15 # point prevalence, not cumulative
 df <- df %>% 
-  mutate(vir_clear_15_cum = case_when(vir_clear_15 == 1 | vir_clear_10 == 1 | vir_clear_5 == 1 ~ 1,
-                                      vir_clear_15 == 0 ~ 0,
-                                      vir_clear_10 == 0 ~ 0,
-                                      vir_clear_5 == 0 ~ 0))
-# df %>% 
-#   select(vl_baseline, vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum) %>% 
-#   View()
-
+  mutate(vir_clear_10 = case_when(vloqundet_yn_D8 == 1 ~ 1,
+                                  vir_clear_5 == 1 & is.na(vloqundet_yn_D8) ~ 1,
+                                  vloqundet_yn_D8 == 0 ~ 0,
+                                  vir_clear_5 == 0 & is.na(vloqundet_yn_D8) ~ 0))
+df <- df %>% 
+  mutate(vir_clear_15 = case_when(vloqundet_yn_D15 == 1 ~ 1,
+                                  vir_clear_10 == 1 & is.na(vloqundet_yn_D15) ~ 1,
+                                  vloqundet_yn_D15 == 0 ~ 0,
+                                  vir_clear_10 == 0 & is.na(vloqundet_yn_D15) ~ 0))
 
 # (viii) Quality of life at day 28 // detailed measures available - wait for other trials first
 
@@ -386,11 +395,9 @@ df <- df %>%
 
 ```
 Discussion points OUTCOME data:
-1) VL: Add a cumulative outcome definition (as sens-analysis)?
-2) Discuss changing the adding 28d for death to time to discharge as sensitivity analysis/variable -> discharge_time_sens
-3) Discuss making new_mvd_28 the primary endpoint definition and not new_mv_28
-4) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
-5) Get the safety data
+1) Discuss making new_mvd_28 the primary endpoint definition and not new_mv_28
+2) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
+3) Get the safety data
 
 
 # Multiple imputation using chained equation
@@ -413,6 +420,7 @@ df <- df %>%
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
          any_comorb, comorb_cat, comorb_count,
          crp, 
          sero, vl_baseline, variant,
@@ -422,7 +430,7 @@ df <- df %>%
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          # ae_28, ae_28_sev, aesi_28, ae_28_list,
          # ae_reached, ae_time,
-         vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum
+         vir_clear_5, vir_clear_10, vir_clear_15
          # qol_28
          )
 
@@ -465,10 +473,9 @@ Discussion points
   - qol_28 (still working on it)
 2) Missing data:
 - vacc: 4 missing -> MICE for subgroup analysis?
-- comorb_cat: 10 missing -> re-discuss, and MICE for subgroup analysis?
 - crp & vl_baseline & variant -> ignore
-- mort_28 & mort_60: 5 missing -> ignore or alive or MICE?
-- new_mv_28 & new_mvd_28: 4 missing -> ignore or alive or MICE?
+- mort_28 & mort_60 outcomes: 5 missing -> MICE as SENS
+- new_mv_28 & new_mvd_28: 4 missing -> MICE as SENS
 - viral load (baseline and outcome) and variant data: substantial missing -> ignore
 
 
@@ -731,13 +738,14 @@ ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
 kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
-# Assessing proportional hazards using default discharge_time and discharge_reached
-ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
-                + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
-                , data = df)
-cz <- cox.zph(ph.check)
-print(cz)
-plot(cz)
+# Assessing proportional hazards (using default discharge_time and discharge_reached) -> see KM plots, after the point when the curves really stqrt diverging, it does not cross over again
+
+# ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
+#                 + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+#                 , data = df)
+# cz <- cox.zph(ph.check)
+# print(cz)
+# plot(cz)
 
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
 # Use cause-specific hazards
@@ -780,8 +788,7 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 
 ```
 Discussion points
-1) Check PH assumption and competing risk assumption and sens-analyses
-2) Standardize length of max follow-up across trials?
+1) Standardize length of max follow-up across trials?
 
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
@@ -1078,14 +1085,13 @@ result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
 result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d")
 result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
 result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28")
-result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
+# result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
 # result_list[[14]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # if this effect estimate is chosen, then adapt function for crr element! -> and integrate in list in correct order
-result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
-result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
-result_list[[10]] <- extract_trt_results(vir.clear.5, "viral clearance day 5")
-result_list[[11]] <- extract_trt_results(vir.clear.10, "viral clearance day 5-10")
-result_list[[12]] <- extract_trt_results(vir.clear.15, "viral clearance day 10-15")
-result_list[[13]] <- extract_trt_results(vir.clear.15.cum, "viral clearance until day 15")
+# result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
+# result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
+result_list[[10]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5")
+result_list[[11]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10")
+result_list[[12]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15")
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -1101,7 +1107,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 save(result_df, file = "trt_effects_barisolidact.RData")
 ```
 Discussion points
-1) 
+1) Make Fine-Gray for time to discharge the primary effect estimate!
 
 
 # Collect all interaction estimates (stage one)
