@@ -41,6 +41,7 @@ library(ordinal) # clinstatus ordinal regression
 ```r
 df$trial <- c("Ghazaeian")
 df$country <- c("Iran")
+df$ethn <- c("Persian/Mazani")
 df <- df %>% # no missing in id_pat, trt, age, sex
   rename(id_pat = "patient ID",
          trt = "Treatment group",
@@ -172,20 +173,35 @@ df <- df %>%
 df <- df %>% 
   mutate(immunosupp = case_when(Malignancy == "yes" ~ 1,
                                     Malignancy == "no" ~ 0))
+df <- df %>% 
+  mutate(comorb_cancer = case_when(Malignancy == "yes" ~ 1,
+                                    Malignancy == "no" ~ 0))
+df <- df %>% 
+  mutate(comorb_autoimm = case_when(`IBD (irritable bowel disease)` == "yes" | `Thyroid dis` == "yes" ~ 1,
+                                    `IBD (irritable bowel disease)` == "no" & `Thyroid dis` == "no" ~ 0))
+df$comorb_kidney <- NA
 
-df <- df %>% # no 0, because of NA in chronic_liver
+df <- df %>% # 18 missing - as in publication
   mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
                                   comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
-                                | immunosupp == 1
+                                | immunosupp == 1 | comorb_cancer == 1 | comorb_autoimm == 1 | comorb_kidney == 1 
                                   ~ 1,
                                 comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0
                                 ~ 0))
+# the remaining 41 missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
+df <- df %>% 
+  mutate(any_comorb = case_when(is.na(any_comorb) ~ 0,
+                                TRUE ~ any_comorb))
+# df %>%
+#   select(any_comorb, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp, comorb_kidney, comorb_autoimm, comorb_cancer) %>%
+#   filter(is.na(any_comorb)) %>%
+#   View()
 
 ## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
 comorb <- df %>% 
-  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp)
+  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp, comorb_kidney, comorb_autoimm, comorb_cancer)
 comorb$comorb_count <- NA
 for (i in 1:dim(comorb)[[1]]) {
   comorb$comorb_count[i] <- ifelse(
@@ -197,7 +213,11 @@ for (i in 1:dim(comorb)[[1]]) {
 comorb <- comorb %>% 
   mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0 ~ 0,
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0 ~ 0,
+                                TRUE ~ comorb_count))
+# the remaining 11 missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
+comorb <- comorb %>% 
+  mutate(comorb_count = case_when(is.na(comorb_count) ~ 0,
                                 TRUE ~ comorb_count))
 df <- left_join(df, comorb[, c("comorb_count", "id_pat")], by = join_by(id_pat == id_pat)) ## merge imputed variable back
 df <- df %>% # 
@@ -229,10 +249,7 @@ df %>%
 ```
 Clarifications and discussion points BASELINE data:
 1) 4 received Actemra (Tocilizumab) 2-4 days after randomization
-2) Comorbidity
-- all immunosupp are "Malignancy"
-- 1 missing data for obesity -> ask
-- no data for comorb_liver -> NA -> ask? -> re-discuss effect on any_comorb and comorb_cat
+
 
 # Endpoints
 
@@ -252,7 +269,7 @@ df <- df %>%
                              TRUE ~ 0)) 
 
 # (ii) Mortality at day 60
-df$mort_60 <- df$mort_28 # max fup time in TOFACOV was 28 days; thus mort_60 imputed from mort_28
+df$mort_60 <- df$mort_28 # max fup time was 28 days; thus mort_60 imputed from mort_28
 
 
 # (iii) Time to death within max. follow-up time
@@ -260,7 +277,7 @@ df$death_reached <- df$mort_28
 df <- df %>% # no missing and those that were discharged were discharged alive
   mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
                                 withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal, then...
-                                TRUE ~ 28)) # time to death censoring data
+                                TRUE ~ 28)) # time to death censoring data // All happened within 14 days. And without change until 28d follow-up (those discharged were still alive and not hospitalized)
 
 
 # (iv) New mechanical ventilation among survivors within 28 days.
@@ -268,7 +285,7 @@ df <- df %>% # all those intubated also then died
   mutate(new_mv_28 = case_when(mort_28 == 0 & (clinstatus_7 == 5 | clinstatus_14 == 5 | clinstatus_28 == 5) ~ 1,
                                mort_28 == 0 ~ 0))
 
-# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 df <- df %>% # no missing anymore => correct
   mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
                                 new_mv_28 == 0 | mort_28 == 0 ~ 0))
@@ -282,7 +299,7 @@ df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) # no missing
 df$clinstatus_28_imp <- df$clinstatus_28 # equal to clinstatus_28_imp
 
 
-# (vi) Time to discharge or reaching discharge criteria up to day 28 // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days (as someone who has been censored on day 28). 
+# (vi) Time to discharge or reaching discharge criteria up to day 28
 df <- df %>%
   mutate(discharge_reached = case_when(discharge_d <29 & mort_28 == 0 ~ 1,
                                        TRUE ~ 0))
@@ -291,7 +308,7 @@ df <- df %>%
 df <- df %>% # restrict to max fup time 28d
   mutate(discharge_time = case_when(discharge_time >28 ~ 28,
                                     TRUE ~ discharge_time))
-df <- df %>% # add 28d for those that died
+df <- df %>% # add 28d for those that died for sens-analysis
   mutate(discharge_time_sens = case_when(mort_28 == 1 ~ 28,
                                     TRUE ~ discharge_time))
 
@@ -333,14 +350,14 @@ Discussion points OUTCOME data:
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, 
-         #ethn, 
+  select(id_pat, trt, sex, age, ethn, 
          country, icu, sympdur, 
          #vacc, 
          clinstatus_baseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
          any_comorb, comorb_cat, comorb_count,
          crp, 
          # sero, vl_baseline, variant,
@@ -355,7 +372,6 @@ df <- df %>%
          )
 # export for one-stage model, i.e., add missing variables 
 df_os <- df
-df_os$ethn <- NA
 df_os$vacc <- NA
 df_os$sero <- NA
 df_os$vl_baseline <- NA
@@ -365,7 +381,6 @@ df_os$ae_time <- NA
 df_os$vir_clear_5 <- NA
 df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
-df_os$vir_clear_15_cum <- NA
 df_os$qol_28 <- NA
 # Save
 save(df_os, file = "df_os_ghazaeian.RData")
@@ -392,7 +407,6 @@ print(missing_plot)
 Discussion points
 1) Missing variables:
   Baseline:
-  - Ethn
   - Vaccination
   - Viremia
   - Variant
@@ -402,8 +416,6 @@ Discussion points
   - date to first adverse event: ae_reached, ae_time
   - qol_28
 2) Missing data:
-- 1 missing data for obesity -> ask
-- no data for comorb_liver -> NA -> ask? -> effect on any_comorb and comorb_cat
 - crp: 2 NAs
 - NAs in new_mv_28, aesi_28, ae_28_list: Not part of denominator
 
@@ -648,7 +660,7 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) 
+1) max fup time was 28 days; thus mort_60 imputed from mort_28
 
 
 # (iii) Time to death within max. follow-up time
@@ -683,7 +695,6 @@ head(km.ttdeath.check, 100)
 ```r
 km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
 # summary(km.ttdeath_trt, times = 28)
-
 ttdeath_28d_tbl <- km.ttdeath_trt %>% 
   tbl_survfit(
     times = 28,
@@ -709,7 +720,7 @@ kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |1                  |93% (86%, 100%)            |
 
 ```r
-# autoplot(km.ttdeath_trt)
+# KM curves
 survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>% 
   ggsurvfit() +
   labs(
@@ -723,8 +734,6 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 ![](Ghazaeian_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 ```r
-# testing: simple log-rank
-# survdiff(Surv(death_time, death_reached) ~ trt, data = df)
 # testing: cox ph
 ttdeath <- df %>% 
   coxph(Surv(death_time, death_reached) ~ trt 
@@ -766,6 +775,26 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |comed_dexa          |NA     |NA         |NA          |
 |comed_rdv           |NA     |NA         |NA          |
 |comed_toci          |NA     |NA         |NA          |
+
+```r
+# Assessing proportional hazards // also just check KM curve
+ph.check <- coxph(Surv(death_time, death_reached) ~ trt
+                , data = df)
+cz <- cox.zph(ph.check)
+print(cz)
+```
+
+```
+##        chisq df    p
+## trt    0.135  1 0.71
+## GLOBAL 0.135  1 0.71
+```
+
+```r
+plot(cz)
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
 Discussion points
 1) 
 
@@ -965,8 +994,7 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) CAVE new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death! => no single event!
-=> make new_mv_28 the sens-endpoint and new_mvd_28 the primary endpoint definition
+1) CAVE new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => no single event!
 
 
 # (v) Clinical status at day 28
@@ -1020,14 +1048,14 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |trt      |trt      |  0.8256311| 0.1729268|    3.941938|
 |age      |age      |  1.0275873| 0.9786306|    1.078993|
 Discussion points
-1) keep comedication as adjustment?
+1)
 
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 
 ```r
 # Kaplan-Meier estimate of conditional discharge probability
-# Just censoring => Cause-specific hazards, i.e., represents the rate per unit of time of the event among those not having failed from other events. Instantaneous rate of occurrence of the given type of event in subjects who are currently event‐free
+# Just censoring => Cause-specific hazards
 km.ttdischarge.check <- with(df, Surv(discharge_time, discharge_reached))
 head(km.ttdischarge.check, 100)
 ```
@@ -1043,18 +1071,7 @@ head(km.ttdischarge.check, 100)
 
 ```r
 km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, data=df)
-# summary(km.ttdischarge_trt, times = 28)
-
-# ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
-#   tbl_survfit(
-#     times = 28,
-#     label_header = "**28-d discharge (95% CI)**"
-#   )
-# # Nicely formatted table
-# kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
-#   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-
-# autoplot(km.ttdischarge_trt)
+# KM curve
 survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>% 
   ggsurvfit() +
   labs(
@@ -1068,8 +1085,11 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
 ![](Ghazaeian_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 ```r
-# testing: simple log-rank
-# survdiff(Surv(discharge_time, discharge_reached) ~ trt, data = df)
+# table(df$discharge_reached, df$discharge_time)
+# df %>% 
+#   select(trt, discharge_reached, discharge_time, death_time, mort_28, clinstatus_28_imp) %>% 
+#   View()
+
 # testing: cox ph
 ttdischarge <- df %>% 
   coxph(Surv(discharge_time, discharge_reached) ~ trt 
@@ -1099,35 +1119,26 @@ kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>
 |comed_toci          |NA     |NA         |NA          |
 
 ```r
-# Sub-distribution hazards, i.e., represents the rate per unit of time of the event as well as the influence of competing events. Instantaneous rate of occurrence of the given type of event in subjects who have not yet experienced an event of that type.
-
-### in Ghazaeian, we only either have discharged or died in hospital, no-one was still hospitalized at day 28
-# df <- df %>% # cuminc needs a factor variable with censored patients coded as 0, the event as 1 and the competing event as 2.
+# Sub-distribution hazards
+# df <- df %>% # cuminc needs a factor variable with censored patients coded as 0, the event as 1 (discharge) and the competing event as 2 (death).
 #   mutate(discharge_reached_comp = case_when (discharge_reached == 0 & (mort_28 == 0 | is.na(mort_28)) ~ 0,
 #                                              discharge_reached == 1 & (mort_28 == 0 | is.na(mort_28)) ~ 1,
 #                                              mort_28 == 1 ~ 2))
-# df$discharge_reached_comp <- as.factor(df$discharge_reached_comp) 
-# table(df$discharge_reached_comp)
+# table(df$discharge_reached_comp) # but in Ghazaeian, we only either have discharged (1) or died (2) in hospital, no-one was still hospitalized at day 28 and thus noone is coded as 0 => Fine-Gray not possible => stick to cause-specific hazards, just censoring
+# df$discharge_reached_comp <- as.factor(df$discharge_reached_comp)
 # # Cumulative incidence for competing risks
 # cuminc(Surv(discharge_time, discharge_reached_comp) ~ 1, data = df)
-# cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
+# cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
 #   ggcuminc(outcome = c("1", "2")) +
-#   ylim(c(0, 1)) + 
+#   ylim(c(0, 1)) +
 #   labs(
 #     x = "Days"
-#   ) + 
+#   ) +
 #   add_confidence_interval() +
 #   add_risktable()
-# # ggsave(file.path(here("barisolidact_files/figure-html"), "plot_comp.png"), plot_comp, width = 8, height = 6)
-# # testing: Gray's test (similar to Chi-squared test to compare 2 or more groups)
-# # cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>% 
-# #   tbl_cuminc(
-# #     times = 28, 
-# #     label_header = "**28d cuminc**") %>% 
-# #   add_p()
 # # testing: Fine-Gray regression
-# ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt 
-#     + age 
+# ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt
+#     + age
 #     # + clinstatus_baseline
 #     + comed_dexa + comed_rdv + comed_toci,
 #     data = df)
@@ -1135,18 +1146,9 @@ kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>
 # # Nicely formatted table
 # kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 #   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-
+ttdischarge_comp_reg_tbl <- ttdischarge_reg_tbl
+ttdischarge.comp <- ttdischarge
 # Censoring and assigned worst outcome (28d) to competing event (death) // hypothetical estimand
-km.ttdischarge_sens.check <- with(df, Surv(discharge_time_sens, discharge_reached))
-# head(km.ttdischarge_sens.check, 100)
-km.ttdischarge_sens_trt <- survfit(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df)
-# summary(km.ttdischarge_sens_trt, times = 28)
-# km.ttdischarge_sens_trt %>% 
-#   tbl_survfit(
-#     times = 28,
-#     label_header = "**28-d discharge (95% CI) - hypothetical**"
-#   )
-# autoplot(km.ttdischarge_sens_trt)
 survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>% 
   ggsurvfit() +
   labs(
@@ -1160,8 +1162,6 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
 ![](Ghazaeian_files/figure-html/unnamed-chunk-10-2.png)<!-- -->
 
 ```r
-# testing: simple log-rank
-# survdiff(Surv(discharge_time_sens, discharge_reached) ~ trt, data = df)
 # testing: cox ph
 ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
@@ -1193,50 +1193,26 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 ```r
 # Assessing proportional hazards using default discharge_time and discharge_reached
 ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
-                + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
                 , data = df)
 cz <- cox.zph(ph.check)
 print(cz)
 ```
 
 ```
-##                      chisq df    p
-## trt                 0.0663  1 0.80
-## age                 0.2383  1 0.63
-## clinstatus_baseline 2.0138  1 0.16
-## GLOBAL              2.2764  3 0.52
+##         chisq df    p
+## trt    0.0252  1 0.87
+## GLOBAL 0.0252  1 0.87
 ```
 
 ```r
 plot(cz)
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-10-3.png)<!-- -->![](Ghazaeian_files/figure-html/unnamed-chunk-10-4.png)<!-- -->![](Ghazaeian_files/figure-html/unnamed-chunk-10-5.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-10-3.png)<!-- -->
 
 ```r
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
 # Use cause-specific hazards
-km.ttdischarge_sus_trt <- survfit(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df)
-ttdischarge_sus_28d_tbl <- km.ttdischarge_sus_trt %>% 
-  tbl_survfit(
-    times = 28,
-    label_header = "**28-d sustained discharge (95% CI)**"
-  )
-# Nicely formatted table
-kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE)
-```
-
-
-
-|**Characteristic** |**28-d sustained discharge (95% CI)** |
-|:------------------|:-------------------------------------|
-|trt                |NA                                    |
-|0                  |— (—, —)                              |
-|1                  |— (—, —)                              |
-
-```r
-# autoplot(km.ttdischarge_sus_trt)
 survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>% 
   ggsurvfit() +
   labs(
@@ -1247,7 +1223,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-10-6.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-10-4.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -1277,56 +1253,10 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 |comed_dexa          |NA     |NA         |NA          |
 |comed_rdv           |NA     |NA         |NA          |
 |comed_toci          |NA     |NA         |NA          |
-
-```r
-# Compare results across regressions (without sens-analysis sustained discharge)
-kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE) # cause-specific / coxph
-```
-
-
-
-|**Characteristic**  |**HR** |**95% CI** |**p-value** |
-|:-------------------|:------|:----------|:-----------|
-|trt                 |0.74   |0.48, 1.14 |0.2         |
-|age                 |0.99   |0.98, 1.00 |0.092       |
-|clinstatus_baseline |NA     |NA         |NA          |
-|1                   |NA     |NA         |NA          |
-|2                   |0.80   |0.19, 3.32 |0.8         |
-|3                   |NA     |NA         |NA          |
-|4                   |NA     |NA         |NA          |
-|5                   |NA     |NA         |NA          |
-|6                   |NA     |NA         |NA          |
-|comed_dexa          |NA     |NA         |NA          |
-|comed_rdv           |NA     |NA         |NA          |
-|comed_toci          |NA     |NA         |NA          |
-
-```r
-# kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
-#   kable_styling(bootstrap_options = "striped", full_width = FALSE) # subdistribution / Fine & Gray
-kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE) # hypothetical / coxph
-```
-
-
-
-|**Characteristic**  |**HR** |**95% CI** |**p-value** |
-|:-------------------|:------|:----------|:-----------|
-|trt                 |0.82   |0.54, 1.25 |0.4         |
-|age                 |0.99   |0.98, 1.00 |0.2         |
-|clinstatus_baseline |NA     |NA         |NA          |
-|1                   |NA     |NA         |NA          |
-|2                   |0.90   |0.22, 3.72 |0.9         |
-|3                   |NA     |NA         |NA          |
-|4                   |NA     |NA         |NA          |
-|5                   |NA     |NA         |NA          |
-|6                   |NA     |NA         |NA          |
-|comed_dexa          |NA     |NA         |NA          |
-|comed_rdv           |NA     |NA         |NA          |
-|comed_toci          |NA     |NA         |NA          |
 Discussion points
-1) Check PH assumption and competing risk assumption
-2) How to standardize length of max follow-up across trials?
+1) Use F&G for sens-analysis (sustained discharge)?
+2) "subdistribution / Fine & Gray" -> but here, the same as cause-specific, since noone was still hospitalized at day 28, all either dead (2) or discharged (1).
+3) Those in cont were faster discharged (because the sicker ones were all kept longer at hospital and died?) -> point estimate inconsistent with rest of outcomes.
 
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
@@ -1361,7 +1291,7 @@ table(df$ae_28, df$trt, useNA = "always") # only 1 event, in int
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
 ```
 Discussion points
-1) 
+1) only 1 event, in int
 
 
 # (x) Adverse events of special interest within 28 days
@@ -1377,7 +1307,8 @@ table(df$aesi_28, df$trt, useNA = "always") # only 1 event, in int
 ##   <NA>                  51 45    0
 ```
 Discussion points
-1) a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+1) only 1 event, in int
+2) a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
 
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
@@ -1393,7 +1324,7 @@ table(df$ae_28_list, df$trt, useNA = "always") # only 1 event, in int
 ##   <NA>                  51 45    0
 ```
 Discussion points
-1) 
+1) only 1 event, in int
 
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
@@ -1687,10 +1618,11 @@ table(df$comorb_cat, df$mort_28, useNA = "always")
 ```
 ##       
 ##         0  1 <NA>
+##   1    38  3    0
 ##   2    22  0    0
-##   3    26  3    0
+##   3    29  3    0
 ##   4     1  1    0
-##   <NA> 41  3    0
+##   <NA>  0  0    0
 ```
 
 ```r
@@ -1707,7 +1639,7 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 53 (44 missing obs. deleted) </td>
+   <td style="text-align:right;"> 97 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1740,35 +1672,35 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 11.31 </td>
-   <td style="text-align:right;"> -1.41 </td>
-   <td style="text-align:right;"> 0.16 </td>
+   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.68 </td>
+   <td style="text-align:right;"> -2.27 </td>
+   <td style="text-align:right;"> 0.02 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.14 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 17.28 </td>
+   <td style="text-align:right;"> -0.80 </td>
+   <td style="text-align:right;"> 0.43 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat </td>
-   <td style="text-align:right;"> 3.68 </td>
-   <td style="text-align:right;"> 0.21 </td>
-   <td style="text-align:right;"> 63.78 </td>
-   <td style="text-align:right;"> 0.89 </td>
-   <td style="text-align:right;"> 0.37 </td>
+   <td style="text-align:right;"> 1.19 </td>
+   <td style="text-align:right;"> 0.40 </td>
+   <td style="text-align:right;"> 3.59 </td>
+   <td style="text-align:right;"> 0.31 </td>
+   <td style="text-align:right;"> 0.75 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat </td>
-   <td style="text-align:right;"> 67491124.94 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 2.04 </td>
+   <td style="text-align:right;"> 0.31 </td>
+   <td style="text-align:right;"> 13.29 </td>
+   <td style="text-align:right;"> 0.75 </td>
+   <td style="text-align:right;"> 0.45 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1793,11 +1725,11 @@ summary(mort.28.comorb.firth)$coefficients
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                      coef se(coef) lower 0.95 upper 0.95     Chisq         p
-## (Intercept)    -4.8283796 3.283192 -13.705805   1.363904 2.2481225 0.1337766
-## trt            -6.3741185 6.082260 -23.603626   6.119574 0.9677833 0.3252336
-## comorb_cat      0.9706703 1.109338  -1.348561   3.760856 0.6774569 0.4104638
-## trt:comorb_cat  2.0688883 1.954458  -1.900397   7.646730 1.0037657 0.3164010
+##                      coef  se(coef) lower 0.95 upper 0.95     Chisq           p
+## (Intercept)    -2.6285956 1.1121872  -5.228851 -0.6190975 6.8000442 0.009115561
+## trt            -1.3722865 2.0029843  -6.406169  2.4221504 0.4741832 0.491068947
+## comorb_cat      0.1894302 0.5033079  -0.888010  1.2215797 0.1350600 0.713242319
+## trt:comorb_cat  0.5103238 0.8045913  -1.058719  2.3549076 0.3917411 0.531385604
 ##                method
 ## (Intercept)         2
 ## trt                 2
@@ -1806,17 +1738,52 @@ summary(mort.28.comorb.firth)$coefficients
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=5.443706 on 3 df, p=0.1420446, n=53
-## Wald test = 19.81524 on 3 df, p = 0.0001853838
+## Likelihood ratio test=1.456546 on 3 df, p=0.6923353, n=97
+## Wald test = 42.09602 on 3 df, p = 3.828233e-09
 ```
 
 ```
 ##    (Intercept)            trt     comorb_cat trt:comorb_cat 
-##     -4.8283796     -6.3741185      0.9706703      2.0688883
+##     -2.6285956     -1.3722865      0.1894302      0.5103238
 ```
 
 ```r
-# table(df$comorb_cat, df$mort_28, df$trt, useNA = "always") ### too few events!
+table(df$comorb_cat, df$mort_28, df$trt, useNA = "always") ### too few events!
+```
+
+```
+## , ,  = 0
+## 
+##       
+##         0  1 <NA>
+##   1    22  2    0
+##   2    11  0    0
+##   3    13  2    0
+##   4     1  0    0
+##   <NA>  0  0    0
+## 
+## , ,  = 1
+## 
+##       
+##         0  1 <NA>
+##   1    16  1    0
+##   2    11  0    0
+##   3    16  1    0
+##   4     0  1    0
+##   <NA>  0  0    0
+## 
+## , ,  = NA
+## 
+##       
+##         0  1 <NA>
+##   1     0  0    0
+##   2     0  0    0
+##   3     0  0    0
+##   4     0  0    0
+##   <NA>  0  0    0
+```
+
+```r
 # 4 comorbidity categories as factor
 df$comorb_cat_f <- as.factor(df$comorb_cat)
 # table(df$comorb_cat_f, df$mort_28, useNA = "always") 
@@ -1832,7 +1799,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 53 (44 missing obs. deleted) </td>
+   <td style="text-align:right;"> 97 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1865,31 +1832,39 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.05 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 1.30 </td>
+   <td style="text-align:right;"> -1.80 </td>
+   <td style="text-align:right;"> 0.07 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.97 </td>
+   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 8.46 </td>
+   <td style="text-align:right;"> -0.28 </td>
+   <td style="text-align:right;"> 0.78 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comorb_cat_f2 </td>
+   <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> -0.01 </td>
    <td style="text-align:right;"> 1.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f3 </td>
-   <td style="text-align:right;"> 60934707.73 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 1.52 </td>
+   <td style="text-align:right;"> 0.18 </td>
+   <td style="text-align:right;"> 12.83 </td>
+   <td style="text-align:right;"> 0.39 </td>
+   <td style="text-align:right;"> 0.70 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f4 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> -0.00 </td>
@@ -1897,23 +1872,31 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.06 </td>
-   <td style="text-align:right;"> 0.94 </td>
-   <td style="text-align:right;"> 1.21 </td>
-   <td style="text-align:right;"> 0.94 </td>
-   <td style="text-align:right;"> 0.34 </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> 1.07 </td>
+   <td style="text-align:right;"> 0.38 </td>
+   <td style="text-align:right;"> 0.70 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f3 </td>
-   <td style="text-align:right;"> 0.37 </td>
+   <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f2 </td>
+   <td style="text-align:right;"> 1.42 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 1.00 </td>
   </tr>
   <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f3 </td>
+   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 20.44 </td>
+   <td style="text-align:right;"> -0.29 </td>
+   <td style="text-align:right;"> 0.77 </td>
+  </tr>
+  <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f4 </td>
-   <td style="text-align:right;"> 231835174843517568.00 </td>
+   <td style="text-align:right;"> 115429885971251392.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -1939,7 +1922,7 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 53 (44 missing obs. deleted) </td>
+   <td style="text-align:right;"> 97 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1975,40 +1958,40 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 0.29 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 5.32 </td>
+   <td style="text-align:right;"> -0.84 </td>
+   <td style="text-align:right;"> 0.40 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_count </td>
-   <td style="text-align:right;"> 2.18 </td>
-   <td style="text-align:right;"> 0.39 </td>
-   <td style="text-align:right;"> 12.00 </td>
-   <td style="text-align:right;"> 0.89 </td>
-   <td style="text-align:right;"> 0.37 </td>
+   <td style="text-align:right;"> 1.21 </td>
+   <td style="text-align:right;"> 0.50 </td>
+   <td style="text-align:right;"> 2.95 </td>
+   <td style="text-align:right;"> 0.43 </td>
+   <td style="text-align:right;"> 0.67 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.94 </td>
-   <td style="text-align:right;"> 1.14 </td>
-   <td style="text-align:right;"> 0.67 </td>
-   <td style="text-align:right;"> 0.50 </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> 1.07 </td>
+   <td style="text-align:right;"> 0.51 </td>
+   <td style="text-align:right;"> 0.61 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
-   <td style="text-align:right;"> 49458822.60 </td>
+   <td style="text-align:right;"> 1371744.16 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
@@ -2036,11 +2019,11 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_count </td>
-   <td style="text-align:right;"> 19156396.76 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 1.65 </td>
+   <td style="text-align:right;"> 0.44 </td>
+   <td style="text-align:right;"> 6.26 </td>
+   <td style="text-align:right;"> 0.74 </td>
+   <td style="text-align:right;"> 0.46 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2055,6 +2038,7 @@ Discussion points
 
 ```r
 # 4 comorbidity categories as numeric/continuous, i.e., linear interaction
+
 # table(df$comed_cat, df$trt, useNA = "always")
 # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
 # 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
@@ -2182,7 +2166,7 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 # summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Only Category 3 available => not possible
+1) Only Category 3 available => not possible / all (intervention + control) also had dexa and rdv. No-one had toci.
 
 
 # Subgroup analysis: Vaccination on adverse events
@@ -2413,60 +2397,57 @@ result_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
-# Extract and format results for the treatment variable
+# Function to extract treatment results from different model types (glm, clm, coxph and crr)
 extract_trt_results <- function(model, variable_name) {
-  # Check if the model is glm/clm or coxph due to different summary output of the SE
   if (inherits(model, "glm") || inherits(model, "clm")) {
-      trt_coef <- coef(model)["trt"]
-      hazard_odds_ratio <- exp(trt_coef)
-      ci <- exp(confint(model)["trt", ])
-      se <- summary(model)$coefficients["trt", "Std. Error"]
-      p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
-      # capture the results
-      result <- data.frame(
-        variable = variable_name,
-        hazard_odds_ratio = hazard_odds_ratio,
-        ci_lower = ci[1],
-        ci_upper = ci[2],
-        standard_error = se,
-        p_value = p_value
-      )
-    return(result)
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "coxph")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "se(coef)"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "tidycrr")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
+    se <- model$tidy$std.error[1]
+    p_value <- model$tidy$p.value[1]
   } else {
-      trt_coef <- coef(model)["trt"]
-      hazard_odds_ratio <- exp(trt_coef)
-      ci <- exp(confint(model)["trt", ])
-      se <- summary(model)$coefficients["trt", "se(coef)"]
-      p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
-      # capture the results
-      result <- data.frame(
-        variable = variable_name,
-        hazard_odds_ratio = hazard_odds_ratio,
-        ci_lower = ci[1],
-        ci_upper = ci[2],
-        standard_error = se,
-        p_value = p_value
-      )
-    return(result)
+    stop("Unsupported model class")
   }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci[1],
+    ci_upper = ci[2],
+    standard_error = se,
+    p_value = p_value
+  )
+  return(result)
 }
+
 # Loop through
 result_list <- list()
 
 result_list[[1]] <- extract_trt_results(mort.28, "death at day 28")
 result_list[[2]] <- extract_trt_results(mort.60, "death at day 60")
 result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
-# result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d") // not possible
-result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
-result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28")
-result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
-# result_list[[14]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # if this effect estimate is chosen, then adapt function for crr element! -> and integrate in list in correct order
-result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
-result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
-# result_list[[10]] <- extract_trt_results(vir.clear.5, "viral clearance day 5")
-# result_list[[11]] <- extract_trt_results(vir.clear.10, "viral clearance day 5-10")
-# result_list[[12]] <- extract_trt_results(vir.clear.15, "viral clearance day 10-15")
-# result_list[[13]] <- extract_trt_results(vir.clear.15.cum, "viral clearance until day 15")
+# result_list[[x]] <- extract_trt_results(new.mv.28, "new MV within 28d") // not possible
+result_list[[4]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
+result_list[[5]] <- extract_trt_results(clin.28, "clinical status at day 28")
+# result_list[[x]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
+result_list[[6]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event")
+# result_list[[7]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
+# result_list[[8]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
+# result_list[[9]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5")
+# result_list[[10]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10")
+# result_list[[11]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15")
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2488,9 +2469,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt2 |death within fup                           |         0.8379501| 0.1873973| 3.746907|      0.7641607| 0.8170346|Ghazaeian |
 |trt3 |new MV or death within 28d                 |         0.7908805| 0.1472786| 3.826383|      0.7982351| 0.7688275|Ghazaeian |
 |trt4 |clinical status at day 28                  |         0.8256311| 0.1539462| 3.988879|      0.7975917| 0.8101502|Ghazaeian |
-|trt5 |discharge within 28 days                   |         0.7381029| 0.4797810| 1.135510|      0.2197763| 0.1670538|Ghazaeian |
-|trt6 |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812| 1.254624|      0.2150223| 0.3654539|Ghazaeian |
-|trt7 |sustained discharge within 28 days         |         0.7381029| 0.4797810| 1.135510|      0.2197763| 0.1670538|Ghazaeian |
+|trt5 |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810| 1.135510|      0.2197763| 0.1670538|Ghazaeian |
 
 ```r
 # Save
@@ -2535,14 +2514,13 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 # result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
-# result_list[[2]] <- extract_interaction(mort.28.vent.firth, "respiratory support.firth") // if we take this, then adapt function for logistf object -> class(mort.28.vent.firth)
+#result_list[[2]] <- extract_interaction(mort.28.vent.firth, "respiratory support.firth") # ADAPT function!!
 result_list[[3]] <- extract_interaction(mort.28.age, "age")
-# result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity")
-# result_list[[5]] <- extract_interaction(mort.28.comorb.firth, "comorbidity.firth") // if we take this, then adapt function for logistf object 
-# result_list[[6]] <- extract_interaction(mort.28.comed, "comedication") // not possible!
-result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration")
-result_list[[8]] <- extract_interaction(mort.28.crp, "crp")
-# result_list[[9]] <- extract_interaction(mort.28.var, "variant") adapt function to tell which p-int to extract
+result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity")
+# result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") // not possible!
+result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration")
+result_list[[6]] <- extract_interaction(mort.28.crp, "crp")
+# result_list[[x]] <- extract_interaction(mort.28.var, "variant") // not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2557,16 +2535,17 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|            |variable         | log_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial     |
-|:-----------|:----------------|--------------:|---------:|--------:|--------------:|---------:|:---------|
-|trt:age     |age              |      1.0505208| 0.9502645| 1.180944|      0.0534520| 0.3564969|Ghazaeian |
-|trt:sympdur |symptom duration |      1.1881042| 0.6377082| 2.335976|      0.3217019| 0.5921160|Ghazaeian |
-|trt:crp     |crp              |      0.9954476| 0.9543089| 1.033017|      0.0194304| 0.8143425|Ghazaeian |
+|               |variable         | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial     |
+|:--------------|:----------------|--------------:|---------:|---------:|--------------:|---------:|:---------|
+|trt:age        |age              |      1.0505208| 0.9502645|  1.180944|      0.0534520| 0.3564969|Ghazaeian |
+|trt:comorb_cat |comorbidity      |      2.0433330| 0.3484291| 17.836807|      0.9554295| 0.4545100|Ghazaeian |
+|trt:sympdur    |symptom duration |      1.1881042| 0.6377082|  2.335976|      0.3217019| 0.5921160|Ghazaeian |
+|trt:crp        |crp              |      0.9954476| 0.9543089|  1.033017|      0.0194304| 0.8143425|Ghazaeian |
 
 ```r
 # Save
 save(interaction_df, file = "int_effects_ghazaeian.RData")
 ```
 Discussion points
-1) 
+1) decide on respiratory support.firth !
 

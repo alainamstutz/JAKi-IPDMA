@@ -771,15 +771,11 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 
 # Assessing proportional hazards (using default discharge_time and discharge_reached) -> see KM plots, after the point when the curves really stqrt diverging, it does not cross over again
 autoplot(km.ttdischarge_trt)
-# ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
-#                 + age + clinstatus_baseline 
-#                 #+ comed_dexa 
-#                 #+ comed_rdv 
-#                 #+ comed_toci
-#                 , data = df)
-# cz <- cox.zph(ph.check)
-# print(cz)
-# plot(cz)
+ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt
+                , data = df)
+cz <- cox.zph(ph.check)
+print(cz)
+plot(cz)
 
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
 # Use cause-specific hazards
@@ -806,7 +802,7 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 
 ```
 Discussion points
-1) 
+1) Use F&G for sens-analysis (sustained discharge)?
 
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
