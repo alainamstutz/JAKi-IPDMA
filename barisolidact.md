@@ -805,6 +805,26 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 ![](barisolidact_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 ```r
+# Assessing proportional hazards // also just check KM curve
+ph.check <- coxph(Surv(death_time, death_reached) ~ trt
+                , data = df)
+cz <- cox.zph(ph.check)
+print(cz)
+```
+
+```
+##        chisq df    p
+## trt    0.397  1 0.53
+## GLOBAL 0.397  1 0.53
+```
+
+```r
+plot(cz)
+```
+
+![](barisolidact_files/figure-html/unnamed-chunk-9-2.png)<!-- -->
+
+```r
 # testing: simple log-rank
 # survdiff(Surv(death_time, death_reached) ~ trt, data = df)
 # testing: cox ph
@@ -1373,14 +1393,25 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 
 ```r
 # Assessing proportional hazards (using default discharge_time and discharge_reached) -> see KM plots, after the point when the curves really stqrt diverging, it does not cross over again
+ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt
+                , data = df)
+cz <- cox.zph(ph.check)
+print(cz)
+```
 
-# ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
-#                 + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
-#                 , data = df)
-# cz <- cox.zph(ph.check)
-# print(cz)
-# plot(cz)
+```
+##          chisq df    p
+## trt    0.00182  1 0.97
+## GLOBAL 0.00182  1 0.97
+```
 
+```r
+plot(cz)
+```
+
+![](barisolidact_files/figure-html/unnamed-chunk-12-6.png)<!-- -->
+
+```r
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
 # Use cause-specific hazards
 survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>% 
@@ -1393,7 +1424,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](barisolidact_files/figure-html/unnamed-chunk-12-6.png)<!-- -->
+![](barisolidact_files/figure-html/unnamed-chunk-12-7.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -1424,7 +1455,7 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 |Remdesivir at d1      |1.95   |0.90, 4.25 |0.090       |
 |Tocilizumab at d1     |0.00   |0.00, Inf  |>0.9        |
 Discussion points
-1) 
+1) Use F&G for sens-analysis (sustained discharge)?
 
 
 # (vii) Viral clearance up to day 5, day 10, and day 15

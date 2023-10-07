@@ -567,7 +567,12 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   ) + 
   add_confidence_interval() +
   add_risktable()
-
+# Assessing proportional hazards // also just check KM curve
+ph.check <- coxph(Surv(death_time, death_reached) ~ trt
+                , data = df)
+cz <- cox.zph(ph.check)
+print(cz)
+plot(cz)
 # testing: simple log-rank
 # survdiff(Surv(death_time, death_reached) ~ trt, data = df)
 # testing: cox ph
@@ -914,7 +919,7 @@ mort.28.comorb.f <- df %>%
       , family = "binomial", data=.)
 summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # full comorbidity count
-table(df$comorb_count, df$mort_28, useNA = "always") 
+# table(df$comorb_count, df$mort_28, useNA = "always") 
 mort.28.comorb.count <- df %>%
   glm(mort_28 ~ trt*comorb_count 
       + age 
@@ -947,7 +952,7 @@ Discussion points
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 ```{r warning=FALSE}
-table(df$sympdur, df$mort_28, useNA = "always")
+# table(df$sympdur, df$mort_28, useNA = "always")
 mort.28.symp <- df %>% 
   glm(mort_28 ~ trt*sympdur
       + age 

@@ -534,6 +534,12 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   add_confidence_interval() +
   add_risktable()
 
+# Assessing proportional hazards // also just check KM curve
+ph.check <- coxph(Surv(death_time, death_reached) ~ trt
+                , data = df)
+cz <- cox.zph(ph.check)
+print(cz)
+plot(cz)
 # testing: simple log-rank
 # survdiff(Surv(death_time, death_reached) ~ trt, data = df)
 # testing: cox ph

@@ -835,6 +835,26 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 ![](ACTT2_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 ```r
+# Assessing proportional hazards // also just check KM curve
+ph.check <- coxph(Surv(death_time, death_reached) ~ trt
+                , data = df)
+cz <- cox.zph(ph.check)
+print(cz)
+```
+
+```
+##         chisq df    p
+## trt    0.0472  1 0.83
+## GLOBAL 0.0472  1 0.83
+```
+
+```r
+plot(cz)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-8-2.png)<!-- -->
+
+```r
 # testing: simple log-rank
 # survdiff(Surv(death_time, death_reached) ~ trt, data = df)
 # testing: cox ph
@@ -1419,16 +1439,25 @@ autoplot(km.ttdischarge_trt)
 ![](ACTT2_files/figure-html/unnamed-chunk-11-6.png)<!-- -->
 
 ```r
-# ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
-#                 + age + clinstatus_baseline 
-#                 #+ comed_dexa 
-#                 #+ comed_rdv 
-#                 #+ comed_toci
-#                 , data = df)
-# cz <- cox.zph(ph.check)
-# print(cz)
-# plot(cz)
+ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt
+                , data = df)
+cz <- cox.zph(ph.check)
+print(cz)
+```
 
+```
+##        chisq df    p
+## trt    0.769  1 0.38
+## GLOBAL 0.769  1 0.38
+```
+
+```r
+plot(cz)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-11-7.png)<!-- -->
+
+```r
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
 # Use cause-specific hazards
 survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>% 
@@ -1441,7 +1470,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-11-7.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-11-8.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -1472,7 +1501,7 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
 Discussion points
-1) 
+1) Use F&G for sens-analysis (sustained discharge)?
 
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
@@ -1978,24 +2007,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 
 ```r
 # full comorbidity count
-table(df$comorb_count, df$mort_28, useNA = "always") 
-```
-
-```
-##       
-##          0   1 <NA>
-##   0    143   3    5
-##   1    266  14    8
-##   2    215  21    6
-##   3    172  10    9
-##   4     81   7    5
-##   5     32   4    3
-##   6      8   2    0
-##   7      1   0    0
-##   <NA>   7   0   11
-```
-
-```r
+# table(df$comorb_count, df$mort_28, useNA = "always") 
 mort.28.comorb.count <- df %>%
   glm(mort_28 ~ trt*comorb_count 
       + age 
@@ -2113,46 +2125,7 @@ Discussion points
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 
 ```r
-table(df$sympdur, df$mort_28, useNA = "always")
-```
-
-```
-##       
-##          0   1 <NA>
-##   0      3   0    0
-##   1      7   3    2
-##   2     31   1    0
-##   3     48   2    0
-##   4     68   3    3
-##   5     81   6    6
-##   6     84   6    1
-##   7     90  12    4
-##   8    114   5    4
-##   9     92   3    2
-##   10    73   6    4
-##   11    64   0    1
-##   12    35   4    0
-##   13    21   4    0
-##   14    32   1    1
-##   15    25   2    0
-##   16    21   0    2
-##   17     7   1    0
-##   18     4   0    1
-##   19     2   0    0
-##   20     1   0    0
-##   21     4   0    0
-##   22     5   1    1
-##   23     2   0    0
-##   24     1   1    0
-##   25     2   0    0
-##   28     2   0    0
-##   31     1   0    0
-##   32     3   0    0
-##   35     1   0    0
-##   <NA>   1   0   15
-```
-
-```r
+# table(df$sympdur, df$mort_28, useNA = "always")
 mort.28.symp <- df %>% 
   glm(mort_28 ~ trt*sympdur
       + age 
