@@ -665,7 +665,7 @@ km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, dat
 ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
   tbl_survfit(
     times = 28,
-    label_header = "**28-d discharge (95% CI)**"
+    label_header = "**28-d hospitalization (95% CI)**"
   )
 # Nicely formatted table
 kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
@@ -676,7 +676,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
@@ -757,7 +757,7 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
@@ -788,7 +788,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall sustained discharge probability"
+    y = "Overall sustained hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()

@@ -95,7 +95,7 @@ addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always"))
 
 ```r
 # Co-medication at baseline
-df$comed_toci <- 0 # see publication: "It is noteworthy that no patients have received tocili- zumab. Concomitant use of tofacitinib and tocilizumab was prohibited by protocol"
+df$comed_toci <- 0 # see publication: "It is noteworthy that no patients have received tocilizumab. Concomitant use of tofacitinib and tocilizumab was prohibited by protocol"
 df$comed_interferon <- 0 # no interferon used
 
 ## group them for the subgroup analysis, according to protocol
@@ -105,19 +105,26 @@ df <- df %>%
                                comed_dexa == 1 & comed_toci == 0 ~ 3, # patients with Dexamethasone but no Tocilizumab
                                comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Tocilizumab but no Dexamethasone (if exist)
 
-# Comorbidity at baseline, including immunocompromised // no immunosupp in tofacov
-df <- df %>% # no missing
+# Comorbidity at baseline, including immunocompromised // no immunosupp in tofacov and few comorbidities
+df$comorb_cancer <- NA
+df$comorb_autoimm <- NA
+df$comorb_kidney <- NA
+df <- df %>% # 18 missing - as in publication
   mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
                                   comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
-                                | immunosupp == 1
+                                | immunosupp == 1 | comorb_cancer == 1 | comorb_autoimm == 1 | comorb_kidney == 1 
                                   ~ 1,
                                 comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0
                                 ~ 0))
+# the remaining missing have no evidence for comorbidity -> recode as 0
+df <- df %>% 
+  mutate(any_comorb = case_when(is.na(any_comorb) ~ 0,
+                                TRUE ~ any_comorb))
 ## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
 comorb <- df %>% 
-  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp)
+  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp, comorb_kidney, comorb_autoimm, comorb_cancer)
 comorb$comorb_count <- NA
 for (i in 1:dim(comorb)[[1]]) {
   comorb$comorb_count[i] <- ifelse(
@@ -129,7 +136,11 @@ for (i in 1:dim(comorb)[[1]]) {
 comorb <- comorb %>% 
   mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0 ~ 0,
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0 ~ 0,
+                                TRUE ~ comorb_count))
+# the remaining missing have no evidence for comorbidity -> recode as 0
+comorb <- comorb %>% 
+  mutate(comorb_count = case_when(is.na(comorb_count) ~ 0,
                                 TRUE ~ comorb_count))
 df <- left_join(df, comorb[, c("comorb_count", "id_pat")], by = join_by(id_pat == id_pat)) ## merge imputed variable back
 df <- df %>% # no missing
@@ -190,7 +201,7 @@ df <- df %>% # the 1 that died is NA => correct
   mutate(new_mv_28 = case_when(mort_28 == 0 & (clinstatus_2 == 5 | clinstatus_7 == 5 | clinstatus_14 == 5) ~ 1,
                                mort_28 == 0 ~ 0))
 
-# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 df <- df %>% # no missing anymore => correct
   mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
                                 new_mv_28 == 0 | mort_28 == 0 ~ 0))
@@ -206,7 +217,7 @@ df <- df %>% # They called and followed all patients at day 28 and recorded no n
 df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) # no missing
 df$clinstatus_28_imp <- df$clinstatus_28 # equal to clinstatus_28_imp
 
-# (vi) Time to discharge or reaching discharge criteria up to day 28 // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days (as someone who has been censored on day 28). 
+# (vi) Time to discharge or reaching discharge criteria up to day 28
 df <- df %>%
   mutate(discharge_reached = case_when(discharge_d <29 ~ 1,
                                        TRUE ~ 0))
@@ -234,7 +245,7 @@ df$discharge_time_sus <- df$discharge_time
 # table(df$ae_28, df$mort_28, useNA = "always") # corresponds to publication and excludes the death
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
-df$ae_28_sev <- df$ae_28 # there were only 1 AE grade 3/4 per person
+df$ae_28_sev <- df$ae_28 # there were only 1 AE grade 3/4 per person 
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
 # time to first ae not available
@@ -272,6 +283,7 @@ df <- df %>%
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
          any_comorb, comorb_cat, comorb_count,
          crp, 
          # sero, vl_baseline, variant,
@@ -281,7 +293,7 @@ df <- df %>%
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          ae_28, ae_28_sev, aesi_28, ae_28_list,
          # ae_reached, ae_time, 
-         # vir_clear_5, vir_clear_10, vir_clear_15, vir_clear_15_cum
+         # vir_clear_5, vir_clear_10, vir_clear_15,
          # qol_28
          )
 # export for one-stage model, i.e., add missing variables 
@@ -294,7 +306,6 @@ df_os$ae_time <- NA
 df_os$vir_clear_5 <- NA
 df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
-df_os$vir_clear_15_cum <- NA
 df_os$qol_28 <- NA
 # Save
 save(df_os, file = "df_os_tofacov.RData")
@@ -322,9 +333,9 @@ Discussion points
 1) Missing variables:
   Baseline:
   - variant
-  - viremia
   - sero
   - vl_baseline
+  - clarify comorbidity categories (autoimmun, CKD, cancer)
   Outcomes:
   - vir_clear_5, vir_clear_10, vir_clear_15
   - ae_reached, ae_time
@@ -481,7 +492,8 @@ table(df_smoothed$mort_28_smoothed, df_smoothed$trt, useNA = "always")
 # Perform logistic regression with Laplace-smoothed data
 mort.28.smooth <- df_smoothed %>% 
   glm(mort_28_smoothed ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      # + age + clinstatus_baseline
+      # + comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 ```
 
@@ -530,67 +542,78 @@ summ(mort.28.smooth, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 1227.21 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 69928353322.78 </td>
-   <td style="text-align:right;"> 0.78 </td>
-   <td style="text-align:right;"> 0.44 </td>
+   <td style="text-align:right;"> 231.00 </td>
+   <td style="text-align:right;"> 4.54 </td>
+   <td style="text-align:right;"> 11740.63 </td>
+   <td style="text-align:right;"> 2.72 </td>
+   <td style="text-align:right;"> 0.01 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.55 </td>
+   <td style="text-align:right;"> 0.50 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 76.38 </td>
-   <td style="text-align:right;"> -0.24 </td>
-   <td style="text-align:right;"> 0.81 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 0.98 </td>
-   <td style="text-align:right;"> 0.80 </td>
-   <td style="text-align:right;"> 1.21 </td>
-   <td style="text-align:right;"> -0.16 </td>
-   <td style="text-align:right;"> 0.87 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.80 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 654.72 </td>
-   <td style="text-align:right;"> -0.07 </td>
-   <td style="text-align:right;"> 0.95 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 0.79 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 105877.39 </td>
-   <td style="text-align:right;"> -0.04 </td>
-   <td style="text-align:right;"> 0.97 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.73 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 4635.07 </td>
-   <td style="text-align:right;"> -0.07 </td>
-   <td style="text-align:right;"> 0.94 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> 62.36 </td>
+   <td style="text-align:right;"> -0.28 </td>
+   <td style="text-align:right;"> 0.78 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# Instead, use penalized ML
+library(logistf)
+mort.28.firth <- df %>% 
+  logistf(mort_28 ~ trt
+      # + age 
+      # + clinstatus_baseline 
+      # + comed_dexa + comed_rdv + comed_toci
+      , data=.)
+# Summary and extract coefficients
+summary(mort.28.firth)$coeffcient
+```
+
+```
+## logistf(formula = mort_28 ~ trt, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                  coef se(coef) lower 0.95 upper 0.95     Chisq         p method
+## (Intercept) -4.762174 1.420244  -9.599902  -2.827832       Inf 0.0000000      2
+## trt          1.115854 1.643518  -1.836146   6.107457 0.5318689 0.4658222      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.5318689 on 1 df, p=0.4658222, n=116
+## Wald test = 30.67949 on 1 df, p = 3.043648e-08
+```
+
+```
+## NULL
+```
+
+```r
+trt_coef <- coef(mort.28.firth)["trt"]
+exp(trt_coef)
+```
+
+```
+##      trt 
+## 3.052174
+```
+
+```r
+c(exp(mort.28.firth$ci.lower["trt"]), exp(mort.28.firth$ci.upper["trt"]))
+```
+
+```
+##         trt         trt 
+##   0.1594306 449.1950192
+```
 Discussion points
 1) respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
-2) Laplace smoothing?
+2) Laplace smoothing or penalized ML?
 
 
 # (ii) Mortality at day 60
@@ -739,7 +762,7 @@ table(df_smoothed$mort_60_smoothed, df_smoothed$trt, useNA = "always")
 # Perform logistic regression with Laplace-smoothed data
 mort.60.smooth <- df_smoothed %>% 
   glm(mort_60_smoothed ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      # + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 ```
 
@@ -788,59 +811,19 @@ summ(mort.60.smooth, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 1227.21 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 69928353322.78 </td>
-   <td style="text-align:right;"> 0.78 </td>
-   <td style="text-align:right;"> 0.44 </td>
+   <td style="text-align:right;"> 231.00 </td>
+   <td style="text-align:right;"> 4.54 </td>
+   <td style="text-align:right;"> 11740.63 </td>
+   <td style="text-align:right;"> 2.72 </td>
+   <td style="text-align:right;"> 0.01 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.55 </td>
+   <td style="text-align:right;"> 0.50 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 76.38 </td>
-   <td style="text-align:right;"> -0.24 </td>
-   <td style="text-align:right;"> 0.81 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 0.98 </td>
-   <td style="text-align:right;"> 0.80 </td>
-   <td style="text-align:right;"> 1.21 </td>
-   <td style="text-align:right;"> -0.16 </td>
-   <td style="text-align:right;"> 0.87 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.80 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 654.72 </td>
-   <td style="text-align:right;"> -0.07 </td>
-   <td style="text-align:right;"> 0.95 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 0.79 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 105877.39 </td>
-   <td style="text-align:right;"> -0.04 </td>
-   <td style="text-align:right;"> 0.97 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.73 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 4635.07 </td>
-   <td style="text-align:right;"> -0.07 </td>
-   <td style="text-align:right;"> 0.94 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> 62.36 </td>
+   <td style="text-align:right;"> -0.28 </td>
+   <td style="text-align:right;"> 0.78 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -882,7 +865,6 @@ head(km.ttdeath.check, 100)
 ```r
 km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
 # summary(km.ttdeath_trt, times = 28)
-
 ttdeath_28d_tbl <- km.ttdeath_trt %>% 
   tbl_survfit(
     times = 28,
@@ -908,7 +890,7 @@ kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |1                  |98% (95%, 100%)            |
 
 ```r
-# autoplot(km.ttdeath_trt)
+# KM curve
 survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>% 
   ggsurvfit() +
   labs(
@@ -922,8 +904,6 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 ![](tofacov_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 ```r
-# testing: simple log-rank
-# survdiff(Surv(death_time, death_reached) ~ trt, data = df)
 # testing: cox ph
 ttdeath <- df %>% 
   coxph(Surv(death_time, death_reached) ~ trt 
@@ -965,8 +945,12 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |comed_dexa          |254,942,838 |0.00, Inf  |>0.9        |
 |comed_rdv           |288,196,502 |0.00, Inf  |>0.9        |
 |comed_toci          |NA          |NA         |NA          |
+
+```r
+# Assessing proportional hazards // just check KM curve
+```
 Discussion points
-1) Result illogical
+1) Result illogical. Time to event analysis not possible.
 
 
 # (iv) New mechanical ventilation among survivors within 28 days
@@ -1096,7 +1080,7 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 </table>
 
 ```r
-# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 table(df$new_mvd_28, df$trt, useNA = "always")
 ```
 
@@ -1219,7 +1203,7 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) Change new.mv.28 to SENS endpoint!
+1) new.mv.28: 2 events in control only.
 
 
 # (v) Clinical status at day 28
@@ -1283,7 +1267,7 @@ Discussion points
 
 ```r
 # Kaplan-Meier estimate of conditional discharge probability
-# Just censoring => Cause-specific hazards, i.e., represents the rate per unit of time of the event among those not having failed from other events. Instantaneous rate of occurrence of the given type of event in subjects who are currently event‐free
+# Just censoring => Cause-specific hazards
 km.ttdischarge.check <- with(df, Surv(discharge_time, discharge_reached))
 head(km.ttdischarge.check, 100)
 ```
@@ -1299,23 +1283,12 @@ head(km.ttdischarge.check, 100)
 
 ```r
 km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, data=df)
-# summary(km.ttdischarge_trt, times = 28)
-
-# ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
-#   tbl_survfit(
-#     times = 28,
-#     label_header = "**28-d discharge (95% CI)**"
-#   )
-# # Nicely formatted table
-# kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
-#   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-
-# autoplot(km.ttdischarge_trt)
+# KM curve
 survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>% 
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
@@ -1423,13 +1396,33 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
 ![](tofacov_files/figure-html/unnamed-chunk-11-2.png)<!-- -->
 
 ```r
-# ggsave(file.path(here("barisolidact_files/figure-html"), "plot_comp.png"), plot_comp, width = 8, height = 6)
-# testing: Gray's test (similar to Chi-squared test to compare 2 or more groups)
-# cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
-#   tbl_cuminc(
-#     times = 28,
-#     label_header = "**28d cuminc**") %>%
-#   add_p()
+# in int only
+df_int <- df %>% 
+  filter(trt == 1)
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_int) %>% 
+  ggcuminc(outcome = c("1", "2")) +
+  #ylim(c(0, 1)) + 
+  labs(
+    x = "Days"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+```
+
+![](tofacov_files/figure-html/unnamed-chunk-11-3.png)<!-- -->
+
+```r
+# in cont only
+# df_cont <- df %>% 
+#   filter(trt == 0)
+# cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_cont) %>% 
+#   ggcuminc(outcome = c("1", "2")) +
+#   #ylim(c(0, 1)) + 
+#   labs(
+#     x = "Days"
+#   ) + 
+#   add_confidence_interval() +
+#   add_risktable()
 # testing: Fine-Gray regression
 ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt
     + age
@@ -1453,31 +1446,19 @@ kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"
 
 ```r
 # Censoring and assigned worst outcome (28d) to competing event (death) // hypothetical estimand
-km.ttdischarge_sens.check <- with(df, Surv(discharge_time_sens, discharge_reached))
-# head(km.ttdischarge_sens.check, 100)
-km.ttdischarge_sens_trt <- survfit(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df)
-# summary(km.ttdischarge_sens_trt, times = 28)
-# km.ttdischarge_sens_trt %>% 
-#   tbl_survfit(
-#     times = 28,
-#     label_header = "**28-d discharge (95% CI) - hypothetical**"
-#   )
-# autoplot(km.ttdischarge_sens_trt)
 survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>% 
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
 ```
 
-![](tofacov_files/figure-html/unnamed-chunk-11-3.png)<!-- -->
+![](tofacov_files/figure-html/unnamed-chunk-11-4.png)<!-- -->
 
 ```r
-# testing: simple log-rank
-# survdiff(Surv(discharge_time_sens, discharge_reached) ~ trt, data = df)
 # testing: cox ph
 ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
@@ -1508,28 +1489,23 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 
 ```r
 # Assessing proportional hazards using default discharge_time and discharge_reached
-ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
-                + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt
                 , data = df)
 cz <- cox.zph(ph.check)
 print(cz)
 ```
 
 ```
-##                      chisq df    p
-## trt                 0.0456  1 0.83
-## age                 1.5950  1 0.21
-## clinstatus_baseline 1.7684  1 0.18
-## comed_dexa          0.7568  1 0.38
-## comed_rdv           0.2772  1 0.60
-## GLOBAL              4.0889  5 0.54
+##         chisq df    p
+## trt    0.0116  1 0.91
+## GLOBAL 0.0116  1 0.91
 ```
 
 ```r
 plot(cz)
 ```
 
-![](tofacov_files/figure-html/unnamed-chunk-11-4.png)<!-- -->![](tofacov_files/figure-html/unnamed-chunk-11-5.png)<!-- -->![](tofacov_files/figure-html/unnamed-chunk-11-6.png)<!-- -->![](tofacov_files/figure-html/unnamed-chunk-11-7.png)<!-- -->![](tofacov_files/figure-html/unnamed-chunk-11-8.png)<!-- -->
+![](tofacov_files/figure-html/unnamed-chunk-11-5.png)<!-- -->
 
 ```r
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
@@ -1538,7 +1514,7 @@ km.ttdischarge_sus_trt <- survfit(Surv(discharge_time_sus, discharge_reached_sus
 ttdischarge_sus_28d_tbl <- km.ttdischarge_sus_trt %>% 
   tbl_survfit(
     times = 28,
-    label_header = "**28-d sustained discharge (95% CI)**"
+    label_header = "**28-d sustained hospitalization (95% CI)**"
   )
 # Nicely formatted table
 kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
@@ -1547,25 +1523,25 @@ kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"'
 
 
 
-|**Characteristic** |**28-d sustained discharge (95% CI)** |
-|:------------------|:-------------------------------------|
-|trt                |NA                                    |
-|0                  |6.9% (2.7%, 18%)                      |
-|1                  |3.4% (0.9%, 13%)                      |
+|**Characteristic** |**28-d sustained hospitalization (95% CI)** |
+|:------------------|:-------------------------------------------|
+|trt                |NA                                          |
+|0                  |6.9% (2.7%, 18%)                            |
+|1                  |3.4% (0.9%, 13%)                            |
 
 ```r
-# autoplot(km.ttdischarge_sus_trt)
+#KM curve
 survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>% 
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall sustained discharge probability"
+    y = "Overall sustained hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
 ```
 
-![](tofacov_files/figure-html/unnamed-chunk-11-9.png)<!-- -->
+![](tofacov_files/figure-html/unnamed-chunk-11-6.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -1655,8 +1631,6 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 |comed_rdv           |0.82   |0.45, 1.50 |0.5         |
 |comed_toci          |NA     |NA         |NA          |
 Discussion points
-1) Check PH assumption and competing risk assumption
-2) How to standardize length of max follow-up across trials?
 
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
@@ -2198,8 +2172,7 @@ summ(mort.28.smooth.vent, exp = T, confint = T, model.info = T, model.fit = F, d
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) numeric or factor?
-2) Laplace smoothing ok?
+1) Does it make sense?
 
 
 # Subgroup analysis: Age on primary endpoint
@@ -2372,7 +2345,7 @@ summ(mort.28.smooth.age, exp = T, confint = T, model.info = T, model.fit = F, di
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) Compare smoothed vs not smoothed
+1) Compare smoothed vs not smoothed / Does it make sense?
 
 
 # Subgroup analysis: Comorbidities on primary endpoint
@@ -2790,13 +2763,14 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 </table>
 Discussion points
 1) Numeric or factor or count?
-2) Too few events in some cells. Does smoothing really make sense?
+2) Too few events in some cells. Does it make sense?
 
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 
 ```r
 # 4 comorbidity categories as numeric/continuous, i.e., linear interaction
+
 # table(df$comed_cat, df$trt, useNA = "always")
 # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
 # 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
@@ -3008,7 +2982,7 @@ summ(mort.28.smooth.comed, exp = T, confint = T, model.info = T, model.fit = F, 
 ```
 Discussion points
 1) Numerical or ordinal?
-2) Smoothing? Adjustments?
+2) Smoothing? Adjustments? Does it make sense?
 
 
 # Subgroup analysis: Vaccination on adverse events
@@ -3195,7 +3169,7 @@ summ(ae.28.smooth.vacc, exp = T, confint = T, model.info = T, model.fit = F, dig
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) Smoothing?
+1) Smoothing? Does it make sense?
 
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
@@ -3390,7 +3364,7 @@ summ(mort.28.smooth.symp, exp = T, confint = T, model.info = T, model.fit = F, d
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) 
+1) Does it make sense?
 
 
 # SENS Subgroup analysis: CRP on primary endpoint
@@ -3573,7 +3547,7 @@ summ(mort.28.smooth.crp, exp = T, confint = T, model.info = T, model.fit = F, di
 # summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Truncated or not? How to standardize across studies (see Barisolidact)
+1) Does it really make sense?
 
 
 # SENS Subgroup analysis: variant on primary endpoint
@@ -3595,43 +3569,41 @@ result_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
-# Extract and format results for the treatment variable
+# Function to extract treatment results from different model types (glm, clm, coxph and crr)
 extract_trt_results <- function(model, variable_name) {
-  # Check if the model is glm/clm or coxph due to different summary output of the SE
   if (inherits(model, "glm") || inherits(model, "clm")) {
-      trt_coef <- coef(model)["trt"]
-      hazard_odds_ratio <- exp(trt_coef)
-      ci <- exp(confint(model)["trt", ])
-      se <- summary(model)$coefficients["trt", "Std. Error"]
-      p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
-      # capture the results
-      result <- data.frame(
-        variable = variable_name,
-        hazard_odds_ratio = hazard_odds_ratio,
-        ci_lower = ci[1],
-        ci_upper = ci[2],
-        standard_error = se,
-        p_value = p_value
-      )
-    return(result)
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "coxph")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "se(coef)"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "tidycrr")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
+    se <- model$tidy$std.error[1]
+    p_value <- model$tidy$p.value[1]
   } else {
-      trt_coef <- coef(model)["trt"]
-      hazard_odds_ratio <- exp(trt_coef)
-      ci <- exp(confint(model)["trt", ])
-      se <- summary(model)$coefficients["trt", "se(coef)"]
-      p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
-      # capture the results
-      result <- data.frame(
-        variable = variable_name,
-        hazard_odds_ratio = hazard_odds_ratio,
-        ci_lower = ci[1],
-        ci_upper = ci[2],
-        standard_error = se,
-        p_value = p_value
-      )
-    return(result)
+    stop("Unsupported model class")
   }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci[1],
+    ci_upper = ci[2],
+    standard_error = se,
+    p_value = p_value
+  )
+  return(result)
 }
+
 # Loop through
 result_list <- list()
 
@@ -3643,14 +3615,11 @@ result_list[[5]] <- extract_trt_results(ttdeath, "death within fup")
 result_list[[6]] <- extract_trt_results(new.mv.28, "new MV within 28d")
 result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
 result_list[[8]] <- extract_trt_results(clin.28, "clinical status at day 28")
-result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
-# result_list[[9]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # if this effect estimate is chosen, then adapt function for crr element! -> and integrate in list in correct order
-result_list[[10]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
-result_list[[11]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
-# result_list[[12]] <- extract_trt_results(vir.clear.5, "viral clearance day 5")
-# result_list[[13]] <- extract_trt_results(vir.clear.10, "viral clearance day 5-10")
-# result_list[[14]] <- extract_trt_results(vir.clear.15, "viral clearance day 10-15")
-# result_list[[15]] <- extract_trt_results(vir.clear.15.cum, "viral clearance until day 15")
+# result_list[[x]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
+result_list[[9]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event")
+# result_list[[x]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
+# result_list[[x]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
+result_list[[10]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days")
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -3665,26 +3634,25 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value|trial   |
-|:-----|:------------------------------------------|-----------------:|---------:|-------------:|--------------:|---------:|:-------|
-|trt   |death at day 28                            |      6.074871e+07| 0.0000000|            NA|   5.772268e+03| 0.9975227|TOFACOV |
-|trt1  |death at day 28.smooth                     |      5.503040e-01| 0.0000718|  1.453698e+02|   2.516903e+00| 0.8124169|TOFACOV |
-|trt2  |death at day 60                            |      6.074871e+07| 0.0000000|            NA|   5.772268e+03| 0.9975227|TOFACOV |
-|trt3  |death at day 60.smooth                     |      5.503040e-01| 0.0000718|  1.453698e+02|   2.516903e+00| 0.8124169|TOFACOV |
-|trt4  |death within fup                           |      9.629213e+08| 0.0000000|           Inf|   3.839132e+04| 0.9995701|TOFACOV |
-|trt5  |new MV within 28d                          |      0.000000e+00|        NA| 4.486745e+260|   3.733828e+03| 0.9961312|TOFACOV |
-|trt6  |new MV or death within 28d                 |      4.681645e-01| 0.0202358|  5.583582e+00|   1.288209e+00| 0.5557673|TOFACOV |
-|trt7  |clinical status at day 28                  |      4.630169e-01| 0.0617885|  2.496867e+00|   8.923543e-01| 0.3882053|TOFACOV |
-|trt8  |discharge within 28 days                   |      1.271395e+00| 0.8582254|  1.883475e+00|   2.005156e-01| 0.2311167|TOFACOV |
-|trt9  |discharge within 28 days, death=hypo.event |      1.271395e+00| 0.8582254|  1.883475e+00|   2.005156e-01| 0.2311167|TOFACOV |
-|trt10 |sustained discharge within 28 days         |      1.271395e+00| 0.8582254|  1.883475e+00|   2.005156e-01| 0.2311167|TOFACOV |
+|     |variable                                   | hazard_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value|trial   |
+|:----|:------------------------------------------|-----------------:|---------:|-------------:|--------------:|---------:|:-------|
+|trt  |death at day 28                            |      6.074871e+07| 0.0000000|            NA|   5.772268e+03| 0.9975227|TOFACOV |
+|trt1 |death at day 28.smooth                     |      5.022021e-01| 0.0000681|  1.249193e+02|   2.460097e+00| 0.7795007|TOFACOV |
+|trt2 |death at day 60                            |      6.074871e+07| 0.0000000|            NA|   5.772268e+03| 0.9975227|TOFACOV |
+|trt3 |death at day 60.smooth                     |      5.022021e-01| 0.0000681|  1.249193e+02|   2.460097e+00| 0.7795007|TOFACOV |
+|trt4 |death within fup                           |      9.629213e+08| 0.0000000|           Inf|   3.839132e+04| 0.9995701|TOFACOV |
+|trt5 |new MV within 28d                          |      0.000000e+00|        NA| 4.486745e+260|   3.733828e+03| 0.9961312|TOFACOV |
+|trt6 |new MV or death within 28d                 |      4.681645e-01| 0.0202358|  5.583582e+00|   1.288209e+00| 0.5557673|TOFACOV |
+|trt7 |clinical status at day 28                  |      4.630169e-01| 0.0617885|  2.496867e+00|   8.923543e-01| 0.3882053|TOFACOV |
+|trt8 |discharge within 28 days, death=comp.event |      1.252276e+00| 0.8672011|  1.808339e+00|   1.874762e-01| 0.2300000|TOFACOV |
+|trt9 |any AE grade 3,4 within 28 days            |      6.683255e-01| 0.2294475|  1.908066e+00|   5.346138e-01| 0.4509827|TOFACOV |
 
 ```r
 # Save
 save(result_df, file = "trt_effects_tofacov.RData")
 ```
 Discussion points
-1) 
+1) Discuss all results, which ones make sense to take over to the second stage?
 
 
 # Collect all interaction estimates (stage one)
@@ -3734,7 +3702,6 @@ result_list[[10]] <- extract_interaction(ae.28.smooth.vacc, "vaccination on AEs.
 result_list[[12]] <- extract_interaction(mort.28.smooth.symp, "symptom duration.smooth")
 # result_list[[13]] <- extract_interaction(mort.28.crp, "crp")
 result_list[[14]] <- extract_interaction(mort.28.smooth.crp, "crp.smooth")
-# result_list[[7]] <- extract_interaction(mort.28.var, "variant") adapt function to tell which p-int to extract
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -3766,5 +3733,5 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 save(interaction_df, file = "int_effects_tofacov.RData")
 ```
 Discussion points
-1) 
+1) Can we really use any interaction estimates from TOFACOV?
 

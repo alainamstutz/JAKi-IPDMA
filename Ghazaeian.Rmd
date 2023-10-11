@@ -532,7 +532,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
@@ -585,7 +585,7 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
@@ -612,7 +612,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall sustained discharge probability"
+    y = "Overall sustained hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
