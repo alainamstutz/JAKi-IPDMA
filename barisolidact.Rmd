@@ -382,6 +382,12 @@ df <- df %>%
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
+
+# df_ae <- df %>% 
+#   select(id_pat, trt, x, ae_28_list, aesi_28)
+# # Save
+# save(df_ae, file = "df_ae_barisolidact.RData")
+
 ```
 Discussion points OUTCOME data:
 1) Discuss making new_mvd_28 the primary endpoint definition and not new_mv_28
@@ -403,7 +409,7 @@ Discussion points
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, 
+  select(id_pat, trt, sex, age, trial,
          # ethn, 
          country, icu, sympdur, vacc, clinstatus_baseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
@@ -417,10 +423,8 @@ df <- df %>%
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         # ae_28, ae_28_sev, aesi_28, ae_28_list,
-         # ae_reached, ae_time,
+         # ae_28, ae_28_sev,
          vir_clear_5, vir_clear_10, vir_clear_15
-         # qol_28
          )
 
 # export for one-stage model, i.e., add missing variables 
@@ -428,11 +432,6 @@ df_os <- df
 df_os$ethn <- NA
 df_os$ae_28 <- NA
 df_os$ae_28_sev <- NA
-df_os$aesi_28 <- NA
-df_os$ae_28_list <- NA
-df_os$ae_reached <- NA
-df_os$ae_time <- NA
-df_os$qol_28 <- NA
 # Save
 save(df_os, file = "df_os_barisolidact.RData")
 
@@ -441,8 +440,8 @@ save(df_os, file = "df_os_barisolidact.RData")
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
 
 # Create a bar plot to visualize missing values in each column
-original_order <- colnames(df)
-missing_plot <- df %>%
+original_order <- colnames(df_os)
+missing_plot <- df_os %>%
   summarise_all(~ mean(is.na(.))) %>%
   gather() %>%
   mutate(key = factor(key, levels = original_order)) %>%
@@ -567,7 +566,7 @@ new.mv.28 <- df %>%
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
-# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 table(df$new_mvd_28, df$trt, useNA = "always")
 new.mvd.28 <- df %>% 
   glm(new_mvd_28 ~ trt 

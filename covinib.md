@@ -31,6 +31,8 @@ library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
 library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
+
+library(mosaic) # OR for 2x2 table for the rare event contigency tables to apply correction
 ```
 
 # Load Data
@@ -355,15 +357,281 @@ df_ae_comb <- df_ae_comb %>%
                              TRUE ~ 0))
 df_ae <- df_ae_comb %>% 
   select(id_pat, trt, ae, note, grade, ae_28_list, aesi_28)
+# Save
+save(df_ae, file = "df_ae_covinib.RData")
 ```
 Discussion points
-1) Get time to first adverse event?
-2) newmv: 5 missing: The two deaths (no MICE) and the three LTFU (but AFTER discharge) -> MICE or 0 ?
-3) export df_ae per trial
+1) newmv: 5 missing: The two deaths (no MICE) and the three LTFU (but AFTER discharge) -> MICE or 0 ?
 
 
 # Multiple imputation using chained equation
 
 Discussion points
 1)
+
+
+# Define final dataset, set references, summarize missing data and variables
+
+```r
+# keep the overall set
+df_all <- df
+# reduce the df set to our standardized set across all trials
+df <- df %>% 
+  select(id_pat, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, trial,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
+         any_comorb, comorb_cat, comorb_count,
+         crp, 
+         # sero, vl_baseline, variant,
+         mort_28, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev
+         # vir_clear_5, vir_clear_10, vir_clear_15
+         )
+# export for one-stage model, i.e., add missing variables 
+df_os <- df
+df_os$sero <- NA
+df_os$vl_baseline <- NA
+df_os$variant <- NA
+df_os$vir_clear_5 <- NA
+df_os$vir_clear_10 <- NA
+df_os$vir_clear_15 <- NA
+# Save
+save(df_os, file = "df_os_covinib.RData")
+
+## set references, re-level
+# df <- df %>% 
+#   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
+
+# Create a bar plot to visualize missing values in each column
+original_order <- colnames(df_os)
+missing_plot <- df_os %>%
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data Visualization") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+
+![](covinib_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+Discussion points
+1) Missing variables:
+  Baseline:
+  - variant
+  - sero
+  - vl_baseline
+  Outcomes:
+  - vir_clear_5, vir_clear_10, vir_clear_15
+2) Missing data:
+- NAs in mort_28/mort_60/new_mv_28/new_mvd_28: MICE
+- NAs in new_mv_28 (some), ae_28, ae_28_sev: Not part of denominator
+
+
+# (i) Primary outcome: Mortality at day 28
+
+```r
+# adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
+table(df$mort_28, df$trt, useNA = "always")
+```
+
+```
+##       
+##         0  1 <NA>
+##   0    52 53    0
+##   1     2  0    0
+##   <NA>  1  2    0
+```
+
+```r
+mort.28 <- df %>% 
+  glm(mort_28 ~ trt 
+      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      , family = "binomial", data=.)
+```
+
+```
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+```
+
+```r
+summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.10 </td>
+   <td style="text-align:right;"> 0.93 </td>
+   <td style="text-align:right;"> 1.31 </td>
+   <td style="text-align:right;"> 1.09 </td>
+   <td style="text-align:right;"> 0.28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 58415165.95 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# Create a 2x2 contingency table
+# The oddsRatio function from the mosaic package calculates the odds ratio for a 2 x 2 contingency table and a confidence interval for the each estimate. x should be a matrix, data frame or table. "Successes" should be located in column 1 of x, and the treatment of interest should be located in row 2. The odds ratio is calculated as (Odds row 2) / (Odds row 1). The confidence interval is calculated from the log(OR) and back-transformed.
+tbl <- tibble(
+  Event = c(2.5, 0.5), # add the 0.5 correction
+  NoEvent = c(52.5, 53.5) # add the 0.5 correction
+)
+oddsRatio(tbl, conf.level = 0.95, digits = 3, verbose = TRUE)
+```
+
+```
+## 
+## Odds Ratio
+## 
+## Proportions
+## 	   Prop. 1:	 0.04545 
+## 	   Prop. 2:	 0.009259 
+## 	 Rel. Risk:	 0.2037 
+## 
+## Odds
+## 	    Odds 1:	 0.04762 
+## 	    Odds 2:	 0.009346 
+## 	Odds Ratio:	 0.1963 
+## 
+## 95 percent confidence interval:
+## 	 0.01001 < RR < 4.145 
+## 	 0.009201 < OR < 4.186 
+## NULL
+```
+
+```
+## [1] 0.1962617
+```
+
+```r
+mort.28.corr <- oddsRatio(tbl, conf.level = 0.95, digits = 3, verbose = TRUE)
+```
+
+```
+## 
+## Odds Ratio
+## 
+## Proportions
+## 	   Prop. 1:	 0.04545 
+## 	   Prop. 2:	 0.009259 
+## 	 Rel. Risk:	 0.2037 
+## 
+## Odds
+## 	    Odds 1:	 0.04762 
+## 	    Odds 2:	 0.009346 
+## 	Odds Ratio:	 0.1963 
+## 
+## 95 percent confidence interval:
+## 	 0.01001 < RR < 4.145 
+## 	 0.009201 < OR < 4.186 
+## NULL
+```
+
+```r
+odds_ratio <- mort.28.corr[["OR"]]
+lower_bound <- c(0.009201) # how to extract directly from the object?
+upper_bound <- c(4.186) # how to extract directly from the object?
+# Calculate the standard error
+standard_error <- (upper_bound - lower_bound) / (2 * 1.96)
+# Calculate the z-score
+z_score <- (log(odds_ratio) - log(1)) / standard_error
+# Calculate the p-value using the z-score
+p_value <- 2 * (1 - pnorm(abs(z_score)))
+```
+Discussion points
+1) respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
+2) Rare event correction -> OR -> inverse variance pooling in second stage? Or 2x2 directly into Mantel-Haenszel across several trials (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5297998/)?
+
 

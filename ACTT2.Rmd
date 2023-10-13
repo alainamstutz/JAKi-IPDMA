@@ -391,6 +391,11 @@ df$discharge_time_sus <- df$discharge_time
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
 
+# df_ae <- df %>% 
+#   select(id_pat, trt, x, ae_28_list, aesi_28)
+# # Save
+# save(df_ae, file = "df_ae_actt2.RData")
+
 ```
 Discussion points OUTCOME data:
 1) mort_28: The 16 not treated were censored at day 0 or 1 (=> NA). The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 Were withdrawn by investigator, 1 Became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
@@ -404,7 +409,7 @@ Discussion points OUTCOME data:
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, 
+  select(id_pat, trt, sex, age, trial,
          ethn, 
          # country, 
          # icu, 
@@ -423,10 +428,8 @@ df <- df %>%
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         # ae_28, ae_28_sev, aesi_28, ae_28_list,
-         # ae_reached, ae_time,
-         # vir_clear_5, vir_clear_10, vir_clear_15,
-         # qol_28
+         # ae_28, ae_28_sev,
+         # vir_clear_5, vir_clear_10, vir_clear_15
          )
 
 # export for one-stage model, i.e., add missing variables 
@@ -447,14 +450,9 @@ df_os$vl_baseline <- NA
 df_os$variant <- NA
 df_os$ae_28 <- NA
 df_os$ae_28_sev <- NA
-df_os$aesi_28 <- NA
-df_os$ae_28_list <- NA
-df_os$ae_reached <- NA
-df_os$ae_time <- NA
 df_os$vir_clear_5 <- NA
 df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
-df_os$qol_28 <- NA
 # Save
 save(df_os, file = "df_os_actt2.RData")
 
@@ -463,8 +461,8 @@ save(df_os, file = "df_os_actt2.RData")
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
 
 # Create a bar plot to visualize missing values in each column
-original_order <- colnames(df)
-missing_plot <- df %>%
+original_order <- colnames(df_os)
+missing_plot <- df_os %>%
   summarise_all(~ mean(is.na(.))) %>%
   gather() %>%
   mutate(key = factor(key, levels = original_order)) %>%
@@ -605,7 +603,7 @@ new.mv.28 <- df %>%
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
-# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 table(df$new_mvd_28, df$trt, useNA = "always")
 new.mvd.28 <- df %>% 
   glm(new_mvd_28 ~ trt 

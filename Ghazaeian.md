@@ -31,6 +31,7 @@ library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
 library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
+library(mosaic) # OR for 0.5-corrected 2x2 table in case of rare events
 ```
 
 # Load Data
@@ -338,6 +339,11 @@ df <- df %>%
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
 df$ae_28_list <- df$aesi_28 
+
+df_ae <- df %>% 
+  select(id_pat, trt, note, ae_28_list, aesi_28)
+# Save
+save(df_ae, file = "df_ae_ghazaeian.RData")
 ```
 Discussion points OUTCOME data:
 1) Get time to first adverse event?
@@ -350,7 +356,7 @@ Discussion points OUTCOME data:
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, ethn, 
+  select(id_pat, trt, sex, age, ethn, trial,
          country, icu, sympdur, 
          #vacc, 
          clinstatus_baseline,
@@ -365,10 +371,8 @@ df <- df %>%
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         ae_28, ae_28_sev, aesi_28, ae_28_list,
-         # ae_reached, ae_time, 
-         # vir_clear_5, vir_clear_10, vir_clear_15, 
-         # qol_28
+         ae_28, ae_28_sev
+         # vir_clear_5, vir_clear_10, vir_clear_15
          )
 # export for one-stage model, i.e., add missing variables 
 df_os <- df
@@ -376,12 +380,9 @@ df_os$vacc <- NA
 df_os$sero <- NA
 df_os$vl_baseline <- NA
 df_os$variant <- NA
-df_os$ae_reached <- NA
-df_os$ae_time <- NA
 df_os$vir_clear_5 <- NA
 df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
-df_os$qol_28 <- NA
 # Save
 save(df_os, file = "df_os_ghazaeian.RData")
 
@@ -390,8 +391,8 @@ save(df_os, file = "df_os_ghazaeian.RData")
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
 
 # Create a bar plot to visualize missing values in each column
-original_order <- colnames(df)
-missing_plot <- df %>%
+original_order <- colnames(df_os)
+missing_plot <- df_os %>%
   summarise_all(~ mean(is.na(.))) %>%
   gather() %>%
   mutate(key = factor(key, levels = original_order)) %>%
@@ -413,8 +414,6 @@ Discussion points
   - Serology
   Outcomes:
   - viral load
-  - date to first adverse event: ae_reached, ae_time
-  - qol_28
 2) Missing data:
 - crp: 2 NAs
 - NAs in new_mv_28, aesi_28, ae_28_list: Not part of denominator
@@ -878,7 +877,7 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 </table>
 
 ```r
-# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 table(df$new_mvd_28, df$trt, useNA = "always")
 ```
 
@@ -994,7 +993,7 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) CAVE new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => no single event!
+1) CAVE new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => not a single event in either arm!
 
 
 # (v) Clinical status at day 28
@@ -1076,7 +1075,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
@@ -1153,7 +1152,7 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall discharge probability"
+    y = "Overall hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
@@ -1217,7 +1216,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   ggsurvfit() +
   labs(
     x = "Days",
-    y = "Overall sustained discharge probability"
+    y = "Overall sustained hospitalization probability"
   ) + 
   add_confidence_interval() +
   add_risktable()
@@ -1286,6 +1285,64 @@ table(df$ae_28, df$trt, useNA = "always") # only 1 event, in int
 ```
 
 ```r
+# Create a 2x2 contingency table
+# The oddsRatio function from the mosaic package calculates the odds ratio for a 2 x 2 contingency table and a confidence interval for the each estimate. x should be a matrix, data frame or table. "Successes" should be located in column 1 of x, and the treatment of interest should be located in row 2. The odds ratio is calculated as (Odds row 2) / (Odds row 1). The confidence interval is calculated from the log(OR) and back-transformed.
+tbl <- tibble(
+  Event = c(0.5, 1.5), # add the 0.5 correction, intervention second
+  NoEvent = c(51.5, 45.5) # add the 0.5 correction, intervention second
+)
+oddsRatio(tbl, conf.level = 0.95, digits = 3, verbose = TRUE)
+```
+
+```
+## 
+## Odds Ratio
+## 
+## Proportions
+## 	   Prop. 1:	 0.009615 
+## 	   Prop. 2:	 0.03191 
+## 	 Rel. Risk:	 3.319 
+## 
+## Odds
+## 	    Odds 1:	 0.009709 
+## 	    Odds 2:	 0.03297 
+## 	Odds Ratio:	 3.396 
+## 
+## 95 percent confidence interval:
+## 	 0.1386 < RR < 79.51 
+## 	 0.1349 < OR < 85.44 
+## NULL
+```
+
+```
+## [1] 3.395604
+```
+
+```r
+ae.28.corr <- oddsRatio(tbl, conf.level = 0.95, digits = 3, verbose = TRUE)
+```
+
+```
+## 
+## Odds Ratio
+## 
+## Proportions
+## 	   Prop. 1:	 0.009615 
+## 	   Prop. 2:	 0.03191 
+## 	 Rel. Risk:	 3.319 
+## 
+## Odds
+## 	    Odds 1:	 0.009709 
+## 	    Odds 2:	 0.03297 
+## 	Odds Ratio:	 3.396 
+## 
+## 95 percent confidence interval:
+## 	 0.1386 < RR < 79.51 
+## 	 0.1349 < OR < 85.44 
+## NULL
+```
+
+```r
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
@@ -1297,55 +1354,23 @@ Discussion points
 # (x) Adverse events of special interest within 28 days
 
 ```r
-table(df$aesi_28, df$trt, useNA = "always") # only 1 event, in int
-```
-
-```
-##                        
-##                          0  1 <NA>
-##   thromboembolic events  0  1    0
-##   <NA>                  51 45    0
+# table(df$aesi_28, df$trt, useNA = "always") # only 1 event, in int
 ```
 Discussion points
-1) only 1 event, in int
-2) a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
 
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
 
 ```r
-table(df$ae_28_list, df$trt, useNA = "always") # only 1 event, in int
-```
-
-```
-##                        
-##                          0  1 <NA>
-##   thromboembolic events  0  1    0
-##   <NA>                  51 45    0
+# table(df$ae_28_list, df$trt, useNA = "always") # only 1 event, in int
 ```
 Discussion points
-1) only 1 event, in int
 
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
 ```r
-table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 3 included
-```
-
-```
-##       
-##         0  1 <NA>
-##   1     0  0    0
-##   2     2  0    0
-##   3    88  7    0
-##   4     0  0    0
-##   5     0  0    0
-##   6     0  0    0
-##   <NA>  0  0    0
-```
-
-```r
+# table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 3 included
 table(df$clinstatus_baseline, df$mort_28, df$trt, useNA = "always") # 0 in 2x2 table
 ```
 
@@ -1472,54 +1497,8 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-
-```r
-# use penalized maximum likelihood logistic regression (Firth method)
-library(logistf)
-mort.28.vent.firth <- df %>% 
-  logistf(mort_28 ~ trt*clinstatus_baseline
-      + age 
-      #+ clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
-      , data=.)
-# Summary and extract coefficients
-summary(mort.28.vent.firth)$coefficients
-```
-
-```
-## logistf(formula = mort_28 ~ trt * clinstatus_baseline + age, 
-##     data = .)
-## 
-## Model fitted by Penalized ML
-## Coefficients:
-##                                  coef   se(coef)   lower 0.95 upper 0.95
-## (Intercept)             -1.594494e+00 4.86180692 -16.51379031 6.58451097
-## trt                     -1.953276e-01 0.73443023  -8.54199877 2.45329861
-## clinstatus_baseline     -6.743902e-01 1.62421666  -3.40628862 4.31000843
-## age                      2.484561e-02 0.02230260  -0.02064775 0.07186912
-## trt:clinstatus_baseline  2.434075e-18 0.03278866  -6.42646040 6.42646040
-##                                Chisq         p method
-## (Intercept)             1.106933e-01 0.7393562      2
-## trt                     0.000000e+00 1.0000000      2
-## clinstatus_baseline     1.520923e-01 0.6965439      2
-## age                     1.122698e+00 0.2893383      2
-## trt:clinstatus_baseline 5.684342e-13 0.9999994      2
-## 
-## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
-## 
-## Likelihood ratio test=1.156863 on 4 df, p=0.8851485, n=97
-## Wald test = 42.28886 on 4 df, p = 1.453298e-08
-```
-
-```
-##             (Intercept)                     trt     clinstatus_baseline 
-##           -1.594494e+00           -1.953276e-01           -6.743902e-01 
-##                     age trt:clinstatus_baseline 
-##            2.484561e-02            2.434075e-18
-```
 Discussion points
-1) numeric or factor?
-2) Penalized ML estimation or Laplace smoothing (add 0.5 to each cell)?
+1) How to apply rare event correction to interaction estimation?
 
 
 # Subgroup analysis: Age on primary endpoint
@@ -1706,82 +1685,6 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-
-```r
-# use penalized maximum likelihood logistic regression (Firth method)
-library(logistf)
-mort.28.comorb.firth <- df %>% 
-  logistf(mort_28 ~ trt*comorb_cat
-      #+ age 
-      #+ clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
-      , data=.)
-# Summary and extract coefficients
-summary(mort.28.comorb.firth)$coefficients
-```
-
-```
-## logistf(formula = mort_28 ~ trt * comorb_cat, data = .)
-## 
-## Model fitted by Penalized ML
-## Coefficients:
-##                      coef  se(coef) lower 0.95 upper 0.95     Chisq           p
-## (Intercept)    -2.6285956 1.1121872  -5.228851 -0.6190975 6.8000442 0.009115561
-## trt            -1.3722865 2.0029843  -6.406169  2.4221504 0.4741832 0.491068947
-## comorb_cat      0.1894302 0.5033079  -0.888010  1.2215797 0.1350600 0.713242319
-## trt:comorb_cat  0.5103238 0.8045913  -1.058719  2.3549076 0.3917411 0.531385604
-##                method
-## (Intercept)         2
-## trt                 2
-## comorb_cat          2
-## trt:comorb_cat      2
-## 
-## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
-## 
-## Likelihood ratio test=1.456546 on 3 df, p=0.6923353, n=97
-## Wald test = 42.09602 on 3 df, p = 3.828233e-09
-```
-
-```
-##    (Intercept)            trt     comorb_cat trt:comorb_cat 
-##     -2.6285956     -1.3722865      0.1894302      0.5103238
-```
-
-```r
-table(df$comorb_cat, df$mort_28, df$trt, useNA = "always") ### too few events!
-```
-
-```
-## , ,  = 0
-## 
-##       
-##         0  1 <NA>
-##   1    22  2    0
-##   2    11  0    0
-##   3    13  2    0
-##   4     1  0    0
-##   <NA>  0  0    0
-## 
-## , ,  = 1
-## 
-##       
-##         0  1 <NA>
-##   1    16  1    0
-##   2    11  0    0
-##   3    16  1    0
-##   4     0  1    0
-##   <NA>  0  0    0
-## 
-## , ,  = NA
-## 
-##       
-##         0  1 <NA>
-##   1     0  0    0
-##   2     0  0    0
-##   3     0  0    0
-##   4     0  0    0
-##   <NA>  0  0    0
-```
 
 ```r
 # 4 comorbidity categories as factor
@@ -2031,7 +1934,6 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 </table>
 Discussion points
 1) Numeric or factor or count?
-2) Too few events in some cells! Add 0.5? Or penalized ML?
 
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
@@ -2361,19 +2263,6 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-
-```r
-# truncate outliers > 500
-# df <- df %>% 
-#   mutate(crp_trunc = case_when(crp > 500 ~ 500,
-#                                TRUE ~ crp))
-# mort.28.crp.trunc <- df %>% 
-#   glm(mort_28 ~ trt*crp_trunc
-#       + age 
-#       + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
-#       , family = "binomial", data=.)
-# summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-```
 Discussion points
 1) Truncated or not? How to standardize across studies (see Barisolidact)
 
@@ -2448,12 +2337,33 @@ result_list[[6]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 d
 # result_list[[9]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5")
 # result_list[[10]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10")
 # result_list[[11]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15")
+# result_list[[12]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days")
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
 # Add the trial name
 result_df$trial <- "Ghazaeian"
+
+
+### Add the corrected models
+# ae.28.corr
+# summary(ae.28.corr)
+hazard_odds_ratio <- ae.28.corr[["OR"]]
+ci_lower <- c(0.1349) # how to extract directly from the object?
+ci_upper <- c(85.44) # how to extract directly from the object?
+standard_error <- (ci_upper - ci_lower) / (2 * 1.96)
+z_score <- (log(hazard_odds_ratio) - log(1)) / standard_error
+p_value <- 2 * (1 - pnorm(abs(z_score)))
+new_row <- data.frame(
+    variable = "any AE grade 3,4 within 28 days",
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci_lower,
+    ci_upper = ci_upper,
+    standard_error = standard_error,
+    p_value = p_value,
+    trial = "Ghazaeian")
+result_df <- rbind(result_df, new_row)
 
 # Nicely formatted table
 kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -2462,14 +2372,15 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|     |variable                                   | hazard_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial     |
-|:----|:------------------------------------------|-----------------:|---------:|--------:|--------------:|---------:|:---------|
-|trt  |death at day 28                            |         0.7908805| 0.1472786| 3.826383|      0.7982351| 0.7688275|Ghazaeian |
-|trt1 |death at day 60                            |         0.7908805| 0.1472786| 3.826383|      0.7982351| 0.7688275|Ghazaeian |
-|trt2 |death within fup                           |         0.8379501| 0.1873973| 3.746907|      0.7641607| 0.8170346|Ghazaeian |
-|trt3 |new MV or death within 28d                 |         0.7908805| 0.1472786| 3.826383|      0.7982351| 0.7688275|Ghazaeian |
-|trt4 |clinical status at day 28                  |         0.8256311| 0.1539462| 3.988879|      0.7975917| 0.8101502|Ghazaeian |
-|trt5 |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810| 1.135510|      0.2197763| 0.1670538|Ghazaeian |
+|     |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial     |
+|:----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|:---------|
+|trt  |death at day 28                            |         0.7908805| 0.1472786|  3.826383|      0.7982351| 0.7688275|Ghazaeian |
+|trt1 |death at day 60                            |         0.7908805| 0.1472786|  3.826383|      0.7982351| 0.7688275|Ghazaeian |
+|trt2 |death within fup                           |         0.8379501| 0.1873973|  3.746907|      0.7641607| 0.8170346|Ghazaeian |
+|trt3 |new MV or death within 28d                 |         0.7908805| 0.1472786|  3.826383|      0.7982351| 0.7688275|Ghazaeian |
+|trt4 |clinical status at day 28                  |         0.8256311| 0.1539462|  3.988879|      0.7975917| 0.8101502|Ghazaeian |
+|trt5 |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|  1.135510|      0.2197763| 0.1670538|Ghazaeian |
+|1    |any AE grade 3,4 within 28 days            |         3.3956044| 0.1349000| 85.440000|     21.7615051| 0.9552013|Ghazaeian |
 
 ```r
 # Save
@@ -2514,10 +2425,9 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 # result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
-#result_list[[2]] <- extract_interaction(mort.28.vent.firth, "respiratory support.firth") # ADAPT function!!
 result_list[[3]] <- extract_interaction(mort.28.age, "age")
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity")
-# result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") // not possible!
+# result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") // not possible
 result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration")
 result_list[[6]] <- extract_interaction(mort.28.crp, "crp")
 # result_list[[x]] <- extract_interaction(mort.28.var, "variant") // not available
@@ -2547,5 +2457,5 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 save(interaction_df, file = "int_effects_ghazaeian.RData")
 ```
 Discussion points
-1) decide on respiratory support.firth !
+1) decide what to do with respiratory support!
 
