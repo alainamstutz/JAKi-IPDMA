@@ -662,27 +662,11 @@ ae.28.corr <- oddsRatio(tbl, conf.level = 0.95, digits = 3, verbose = TRUE)
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 
-# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
-
 ```
 Discussion points
 1) only 1 event, in int
+2) what to do with ae.28.sev
 
-
-# (x) Adverse events of special interest within 28 days
-```{r warning=FALSE}
-# table(df$aesi_28, df$trt, useNA = "always") # only 1 event, in int
-
-```
-Discussion points
-
-
-# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-```{r warning=FALSE}
-# table(df$ae_28_list, df$trt, useNA = "always") # only 1 event, in int
-
-```
-Discussion points
 
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint

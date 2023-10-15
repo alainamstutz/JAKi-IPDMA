@@ -829,25 +829,6 @@ Discussion points
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 
-# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
-
-```
-Discussion points
-1) 
-
-
-# (x) Adverse events of special interest within 28 days
-```{r warning=FALSE}
-
-
-```
-Discussion points
-1) a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
-
-
-# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-```{r warning=FALSE}
-
 
 ```
 Discussion points
@@ -1045,6 +1026,8 @@ result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 d
 # result_list[[11]] <- extract_trt_results(vir.clear.10, "viral clearance day 5-10")
 # result_list[[12]] <- extract_trt_results(vir.clear.15, "viral clearance day 10-15")
 # result_list[[13]] <- extract_trt_results(vir.clear.15.cum, "viral clearance until day 15")
+# result_list[[14]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days")
+# result_list[[15]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days")
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))

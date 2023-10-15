@@ -619,29 +619,9 @@ ae.28.sev <- df %>%
       , family = "binomial", data=.)
 summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
-# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
-
 ```
 Discussion points
 1) no time to first AE available
-
-
-# (x) Adverse events of special interest within 28 days
-```{r warning=FALSE}
-# table(df$aesi_28, df$trt, useNA = "always")
-
-```
-Discussion points
-1) a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
-
-
-# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-```{r warning=FALSE}
-# table(df$ae_28_list, df$trt, useNA = "always")
-
-```
-Discussion points
-1) 
 
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
@@ -661,7 +641,7 @@ mort.28.vent <- df %>%
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Does any estimation make sense?
+1) Does any interaction estimation make sense?
 
 
 # Subgroup analysis: Age on primary endpoint
@@ -674,7 +654,7 @@ mort.28.age <- df %>%
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Does any estimation make sense?
+1) Does any interaction estimation make sense?
 
 
 # Subgroup analysis: Comorbidities on primary endpoint
@@ -709,8 +689,7 @@ mort.28.comorb.count <- df %>%
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Numeric or factor or count?
-2) 1) Does any estimation make sense?
+1) Does any interaction estimation make sense?
 
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
@@ -734,7 +713,7 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 ```
 Discussion points
 1) Numerical or ordinal?
-2) Does any estimation make sense?
+2) Does any interaction estimation make sense?
 
 
 # Subgroup analysis: Vaccination on adverse events
@@ -849,6 +828,7 @@ result_list[[9]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 d
 # result_list[[x]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
 # result_list[[x]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
 result_list[[10]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days")
+result_list[[11]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days")
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -918,7 +898,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 save(result_df, file = "trt_effects_tofacov.RData")
 ```
 Discussion points
-1) What to do with ae.28.sev?
+1) 
 
 
 # Collect all interaction estimates (stage one)
