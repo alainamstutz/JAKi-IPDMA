@@ -394,7 +394,7 @@ df$discharge_time_sus <- df$discharge_time
 # df_ae <- df %>% 
 #   select(id_pat, trt, x, ae_28_list, aesi_28)
 # # Save
-# save(df_ae, file = "df_ae_actt2.RData")
+# saveRDS(df_ae, file = "df_ae_actt2.RData")
 
 ```
 Discussion points OUTCOME data:
@@ -454,7 +454,7 @@ df_os$vir_clear_5 <- NA
 df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
 # Save
-save(df_os, file = "df_os_actt2.RData")
+saveRDS(df_os, file = "df_os_actt2.RData")
 
 ## set references, re-level
 # df <- df %>% 
@@ -1036,7 +1036,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-save(result_df, file = "trt_effects_ACTT2.RData")
+saveRDS(result_df, file = "trt_effects_ACTT2.RData")
 ```
 Discussion points
 1) Adjustments across all models. In ACTT2: no comedication!
@@ -1094,7 +1094,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-save(interaction_df, file = "int_effects_ACTT2.RData")
+saveRDS(interaction_df, file = "int_effects_ACTT2.RData")
 ```
 Discussion points
 1) Adjustments across all models. In ACTT2: no comedication!

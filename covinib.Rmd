@@ -323,7 +323,7 @@ df_ae_comb <- df_ae_comb %>%
 df_ae <- df_ae_comb %>% 
   select(id_pat, trt, ae, note, grade, ae_28_list, aesi_28)
 # Save
-save(df_ae, file = "df_ae_covinib.RData")
+saveRDS(df_ae, file = "df_ae_covinib.RData")
 ```
 Discussion points
 1) newmv: 5 missing: The two deaths (no MICE) and the three LTFU (but AFTER discharge) -> MICE or 0 ?
@@ -367,7 +367,7 @@ df_os$vir_clear_5 <- NA
 df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
 # Save
-save(df_os, file = "df_os_covinib.RData")
+saveRDS(df_os, file = "df_os_covinib.RData")
 
 ## set references, re-level
 # df <- df %>% 
@@ -999,7 +999,8 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-save(result_df, file = "trt_effects_covinib.RData")
+saveRDS(result_df, file = "trt_effects_covinib.RData")
+
 ```
 Discussion points
 1) Adjustments across all models
@@ -1056,7 +1057,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-save(interaction_df, file = "int_effects_covinib.RData")
+saveRDS(interaction_df, file = "int_effects_covinib.RData")
 ```
 Discussion points
 1) Can we really use ANY interaction estimates from COVINIB?

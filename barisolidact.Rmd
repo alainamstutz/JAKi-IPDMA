@@ -386,7 +386,7 @@ df <- df %>%
 # df_ae <- df %>% 
 #   select(id_pat, trt, x, ae_28_list, aesi_28)
 # # Save
-# save(df_ae, file = "df_ae_barisolidact.RData")
+# saveRDS(df_ae, file = "df_ae_barisolidact.RData")
 
 ```
 Discussion points OUTCOME data:
@@ -433,7 +433,7 @@ df_os$ethn <- NA
 df_os$ae_28 <- NA
 df_os$ae_28_sev <- NA
 # Save
-save(df_os, file = "df_os_barisolidact.RData")
+saveRDS(df_os, file = "df_os_barisolidact.RData")
 
 ## set references, re-level
 # df <- df %>% 
@@ -1031,7 +1031,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-save(result_df, file = "trt_effects_barisolidact.RData")
+saveRDS(result_df, file = "trt_effects_barisolidact.RData")
 ```
 Discussion points
 1) Adjustments across all models
@@ -1089,7 +1089,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-save(interaction_df, file = "int_effects_barisolidact.RData")
+saveRDS(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
 1) Adjustments across all models
