@@ -32,6 +32,7 @@ library(ggfortify) # autoplot
 library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
 library(mosaic) # OR for 0.5-corrected 2x2 table in case of rare events
+library(logistf) # Firth regression in case of rare events
 ```
 
 # Load Data
@@ -814,7 +815,8 @@ table(df$new_mv_28, df$trt, useNA = "always")
 ```r
 new.mv.28 <- df %>% 
   glm(new_mv_28 ~ trt 
-       #+ age + clinstatus_baseline 
+       #+ age 
+       #+ clinstatus_baseline 
        #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -1270,7 +1272,7 @@ Discussion points
 1) Not available
 
 
-# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+# (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 
 ```r
 table(df$ae_28, df$trt, useNA = "always") # only 1 event, in int
@@ -1343,28 +1345,45 @@ ae.28.corr <- oddsRatio(tbl, conf.level = 0.95, digits = 3, verbose = TRUE)
 ```
 
 ```r
-# (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
+# Firth regression
+ae.28.firth <- df %>% 
+  logistf(ae_28 ~ trt 
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(ae.28.firth)
+```
 
-# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
+```
+## logistf(formula = ae_28 ~ trt + age + clinstatus_baseline, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef) lower 0.95 upper 0.95      Chisq
+## (Intercept)          -1.06140524 2.63004899 -7.7654617  6.1360635 0.11499303
+## trt                   1.17085175 1.47599890 -1.7708855  6.1579338 0.59310771
+## age                  -0.01012418 0.03994425 -0.1397434  0.0913426 0.04101561
+## clinstatus_baseline3 -2.80164413 2.00701665 -8.1119601  2.4973900 1.46892492
+##                              p method
+## (Intercept)          0.7345297      2
+## trt                  0.4412199      2
+## age                  0.8395078      2
+## clinstatus_baseline3 0.2255154      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.673393 on 3 df, p=0.6428653, n=97
+## Wald test = 31.11608 on 3 df, p = 8.035271e-07
+```
+
+```r
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 ```
 Discussion points
 1) only 1 event, in int
+2) what to do with ae.28.sev
 
-
-# (x) Adverse events of special interest within 28 days
-
-```r
-# table(df$aesi_28, df$trt, useNA = "always") # only 1 event, in int
-```
-Discussion points
-
-
-# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-
-```r
-# table(df$ae_28_list, df$trt, useNA = "always") # only 1 event, in int
-```
-Discussion points
 
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
@@ -1497,8 +1516,45 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# Firth regression
+mort.28.vent.firth <- df %>% 
+  logistf(mort_28 ~ trt*clinstatus_baseline
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.vent.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * clinstatus_baseline + age + 
+##     clinstatus_baseline, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                                  coef   se(coef)   lower 0.95 upper 0.95
+## (Intercept)             -1.594494e+00 4.86180692 -16.51379031 6.58451097
+## trt                     -1.953276e-01 0.73443023  -8.54199877 2.45329861
+## clinstatus_baseline     -6.743902e-01 1.62421666  -3.40628862 4.31000843
+## age                      2.484561e-02 0.02230260  -0.02064775 0.07186912
+## trt:clinstatus_baseline  2.434075e-18 0.03278866  -6.42646040 6.42646040
+##                                Chisq         p method
+## (Intercept)             1.106933e-01 0.7393562      2
+## trt                     0.000000e+00 1.0000000      2
+## clinstatus_baseline     1.520923e-01 0.6965439      2
+## age                     1.122698e+00 0.2893383      2
+## trt:clinstatus_baseline 5.684342e-13 0.9999994      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.156863 on 4 df, p=0.8851485, n=97
+## Wald test = 42.28886 on 4 df, p = 1.453298e-08
+```
 Discussion points
 1) How to apply rare event correction to interaction estimation?
+2) Firth regression?
 
 
 # Subgroup analysis: Age on primary endpoint
@@ -1506,8 +1562,9 @@ Discussion points
 ```r
 mort.28.age <- df %>% 
   glm(mort_28 ~ trt*age
-      # + age 
-      #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      #+ age 
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1549,35 +1606,43 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.06 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 2.14 </td>
-   <td style="text-align:right;"> -1.54 </td>
-   <td style="text-align:right;"> 0.12 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.04 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 29.40 </td>
-   <td style="text-align:right;"> -0.93 </td>
-   <td style="text-align:right;"> 0.35 </td>
+   <td style="text-align:right;"> 27.37 </td>
+   <td style="text-align:right;"> -0.95 </td>
+   <td style="text-align:right;"> 0.34 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> 0.95 </td>
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 0.21 </td>
    <td style="text-align:right;"> 0.83 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:right;"> 1400323.35 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:age </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 0.95 </td>
    <td style="text-align:right;"> 1.17 </td>
-   <td style="text-align:right;"> 0.92 </td>
-   <td style="text-align:right;"> 0.36 </td>
+   <td style="text-align:right;"> 0.93 </td>
+   <td style="text-align:right;"> 0.35 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1608,8 +1673,9 @@ table(df$comorb_cat, df$mort_28, useNA = "always")
 # class(df$comorb_cat)
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
-      #+ age 
-      #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1651,35 +1717,51 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.06 </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> 0.68 </td>
-   <td style="text-align:right;"> -2.27 </td>
-   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.14 </td>
+   <td style="text-align:right;"> 0.16 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 17.28 </td>
-   <td style="text-align:right;"> -0.80 </td>
-   <td style="text-align:right;"> 0.43 </td>
+   <td style="text-align:right;"> 18.85 </td>
+   <td style="text-align:right;"> -0.75 </td>
+   <td style="text-align:right;"> 0.45 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat </td>
-   <td style="text-align:right;"> 1.19 </td>
-   <td style="text-align:right;"> 0.40 </td>
-   <td style="text-align:right;"> 3.59 </td>
-   <td style="text-align:right;"> 0.31 </td>
-   <td style="text-align:right;"> 0.75 </td>
+   <td style="text-align:right;"> 1.11 </td>
+   <td style="text-align:right;"> 0.37 </td>
+   <td style="text-align:right;"> 3.38 </td>
+   <td style="text-align:right;"> 0.19 </td>
+   <td style="text-align:right;"> 0.85 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 0.97 </td>
+   <td style="text-align:right;"> 1.07 </td>
+   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 0.42 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:right;"> 1382411.90 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat </td>
-   <td style="text-align:right;"> 2.04 </td>
-   <td style="text-align:right;"> 0.31 </td>
-   <td style="text-align:right;"> 13.29 </td>
-   <td style="text-align:right;"> 0.75 </td>
-   <td style="text-align:right;"> 0.45 </td>
+   <td style="text-align:right;"> 1.91 </td>
+   <td style="text-align:right;"> 0.30 </td>
+   <td style="text-align:right;"> 12.32 </td>
+   <td style="text-align:right;"> 0.68 </td>
+   <td style="text-align:right;"> 0.49 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1693,7 +1775,8 @@ df$comorb_cat_f <- as.factor(df$comorb_cat)
 mort.28.comorb.f <- df %>% 
   glm(mort_28 ~ trt*comorb_cat_f 
       + age 
-      #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1735,19 +1818,19 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.05 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 1.30 </td>
-   <td style="text-align:right;"> -1.80 </td>
-   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> 0.66 </td>
    <td style="text-align:right;"> 0.06 </td>
-   <td style="text-align:right;"> 8.46 </td>
-   <td style="text-align:right;"> -0.28 </td>
-   <td style="text-align:right;"> 0.78 </td>
+   <td style="text-align:right;"> 8.03 </td>
+   <td style="text-align:right;"> -0.32 </td>
+   <td style="text-align:right;"> 0.75 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f2 </td>
@@ -1759,11 +1842,11 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f3 </td>
-   <td style="text-align:right;"> 1.52 </td>
+   <td style="text-align:right;"> 1.57 </td>
    <td style="text-align:right;"> 0.18 </td>
-   <td style="text-align:right;"> 12.83 </td>
-   <td style="text-align:right;"> 0.39 </td>
-   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> 13.51 </td>
+   <td style="text-align:right;"> 0.41 </td>
+   <td style="text-align:right;"> 0.68 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f4 </td>
@@ -1778,12 +1861,20 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:right;"> 1.01 </td>
    <td style="text-align:right;"> 0.96 </td>
    <td style="text-align:right;"> 1.07 </td>
-   <td style="text-align:right;"> 0.38 </td>
-   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> 0.36 </td>
+   <td style="text-align:right;"> 0.72 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:right;"> 39049369.28 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f2 </td>
-   <td style="text-align:right;"> 1.42 </td>
+   <td style="text-align:right;"> 1.50 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -1791,15 +1882,15 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f3 </td>
-   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 0.58 </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 20.44 </td>
-   <td style="text-align:right;"> -0.29 </td>
+   <td style="text-align:right;"> 20.08 </td>
+   <td style="text-align:right;"> -0.30 </td>
    <td style="text-align:right;"> 0.77 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f4 </td>
-   <td style="text-align:right;"> 115429885971251392.00 </td>
+   <td style="text-align:right;"> 123350894351704320.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -1816,7 +1907,8 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 mort.28.comorb.count <- df %>%
   glm(mort_28 ~ trt*comorb_count 
       + age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1895,30 +1987,6 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_count </td>
@@ -2084,7 +2152,8 @@ Discussion points
 mort.28.symp <- df %>% 
   glm(mort_28 ~ trt*sympdur
       + age 
-      #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2126,43 +2195,51 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.04 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 3.13 </td>
-   <td style="text-align:right;"> -1.46 </td>
-   <td style="text-align:right;"> 0.14 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 0.20 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 34.17 </td>
-   <td style="text-align:right;"> -0.58 </td>
-   <td style="text-align:right;"> 0.56 </td>
+   <td style="text-align:right;"> 31.81 </td>
+   <td style="text-align:right;"> -0.62 </td>
+   <td style="text-align:right;"> 0.54 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> sympdur </td>
    <td style="text-align:right;"> 0.91 </td>
    <td style="text-align:right;"> 0.59 </td>
-   <td style="text-align:right;"> 1.41 </td>
-   <td style="text-align:right;"> -0.41 </td>
-   <td style="text-align:right;"> 0.68 </td>
+   <td style="text-align:right;"> 1.40 </td>
+   <td style="text-align:right;"> -0.44 </td>
+   <td style="text-align:right;"> 0.66 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 0.98 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 1.10 </td>
+   <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 0.27 </td>
   </tr>
   <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:right;"> 1441590.64 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
    <td style="text-align:left;font-weight: bold;"> trt:sympdur </td>
-   <td style="text-align:right;"> 1.19 </td>
+   <td style="text-align:right;"> 1.20 </td>
    <td style="text-align:right;"> 0.63 </td>
-   <td style="text-align:right;"> 2.23 </td>
-   <td style="text-align:right;"> 0.54 </td>
-   <td style="text-align:right;"> 0.59 </td>
+   <td style="text-align:right;"> 2.25 </td>
+   <td style="text-align:right;"> 0.55 </td>
+   <td style="text-align:right;"> 0.58 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2179,7 +2256,8 @@ Discussion points
 mort.28.crp <- df %>% 
   glm(mort_28 ~ trt*crp
       + age 
-      #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2221,43 +2299,51 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.02 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.48 </td>
-   <td style="text-align:right;"> -2.42 </td>
-   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 0.06 </td>
-   <td style="text-align:right;"> 18.78 </td>
-   <td style="text-align:right;"> 0.06 </td>
    <td style="text-align:right;"> 0.95 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 16.91 </td>
+   <td style="text-align:right;"> -0.03 </td>
+   <td style="text-align:right;"> 0.97 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> crp </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 0.97 </td>
    <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> -0.20 </td>
-   <td style="text-align:right;"> 0.84 </td>
+   <td style="text-align:right;"> -0.29 </td>
+   <td style="text-align:right;"> 0.78 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 0.98 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 1.12 </td>
+   <td style="text-align:right;"> 1.14 </td>
    <td style="text-align:right;"> 0.26 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:right;"> 1606727.31 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:crp </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 0.96 </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> -0.23 </td>
-   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> -0.17 </td>
+   <td style="text-align:right;"> 0.86 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2267,7 +2353,7 @@ Discussion points
 1) Truncated or not? How to standardize across studies (see Barisolidact)
 
 
-# SENS Subgroup analysis: variant on primary endpoint
+# SENS Subgroup analysis: Variant on primary endpoint
 
 Discussion points
 1) No data on variant available
@@ -2324,20 +2410,17 @@ extract_trt_results <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_trt_results(mort.28, "death at day 28")
-result_list[[2]] <- extract_trt_results(mort.60, "death at day 60")
-result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
+result_list[[1]] <- extract_trt_results(mort.28, "death at day 28") # adj: age, clinstatus, comed
+result_list[[2]] <- extract_trt_results(mort.60, "death at day 60") # adj: age, clinstatus, comed
+result_list[[3]] <- extract_trt_results(ttdeath, "death within fup") # adj: age, clinstatus, comed
 # result_list[[x]] <- extract_trt_results(new.mv.28, "new MV within 28d") // not possible
-result_list[[4]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
-result_list[[5]] <- extract_trt_results(clin.28, "clinical status at day 28")
-# result_list[[x]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
-result_list[[6]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event")
-# result_list[[7]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
-# result_list[[8]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
-# result_list[[9]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5")
-# result_list[[10]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10")
-# result_list[[11]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15")
-# result_list[[12]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days")
+result_list[[4]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d") # adj: age, clinstatus, comed
+result_list[[5]] <- extract_trt_results(clin.28, "clinical status at day 28") # adj: age
+result_list[[6]] <- extract_trt_results(ttdischarge, "discharge within 28 days") # adj: age, clinstatus, comed
+result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # adj: age, clinstatus, comed
+result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event") # adj: age, clinstatus, comed
+result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days") # adj: age, clinstatus, comed
+# result_list[[10]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days")
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2346,7 +2429,26 @@ result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 result_df$trial <- "Ghazaeian"
 
 
-### Add the corrected models
+### Add the rare event results
+## Add the results from the firth regressions
+# ae.28.firth
+# summary(ae.28.firth)
+hazard_odds_ratio <- exp(coef(ae.28.firth)["trt"])
+ci_lower <- exp(ae.28.firth$ci.lower["trt"])
+ci_upper <- exp(ae.28.firth$ci.upper["trt"])
+standard_error <- c(1.47599890) # how to extract directly from the object?
+p_value <- c(0.4412199) # how to extract directly from the object?
+new_row <- data.frame(
+    variable = "any AE grade 3,4 within 28 days_firth",
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci_lower,
+    ci_upper = ci_upper,
+    standard_error = standard_error,
+    p_value = p_value,
+    trial = "Ghazaeian")
+result_df <- rbind(result_df, new_row) # adj: age, clinstatus
+
+## Add the results from the 0.5-corrected models
 # ae.28.corr
 # summary(ae.28.corr)
 hazard_odds_ratio <- ae.28.corr[["OR"]]
@@ -2356,14 +2458,14 @@ standard_error <- (ci_upper - ci_lower) / (2 * 1.96)
 z_score <- (log(hazard_odds_ratio) - log(1)) / standard_error
 p_value <- 2 * (1 - pnorm(abs(z_score)))
 new_row <- data.frame(
-    variable = "any AE grade 3,4 within 28 days",
+    variable = "any AE grade 3,4 within 28 days_0.5-corr",
     hazard_odds_ratio = hazard_odds_ratio,
     ci_lower = ci_lower,
     ci_upper = ci_upper,
     standard_error = standard_error,
     p_value = p_value,
     trial = "Ghazaeian")
-result_df <- rbind(result_df, new_row)
+result_df <- rbind(result_df, new_row) # no adj
 
 # Nicely formatted table
 kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -2372,22 +2474,26 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|     |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial     |
-|:----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|:---------|
-|trt  |death at day 28                            |         0.7908805| 0.1472786|  3.826383|      0.7982351| 0.7688275|Ghazaeian |
-|trt1 |death at day 60                            |         0.7908805| 0.1472786|  3.826383|      0.7982351| 0.7688275|Ghazaeian |
-|trt2 |death within fup                           |         0.8379501| 0.1873973|  3.746907|      0.7641607| 0.8170346|Ghazaeian |
-|trt3 |new MV or death within 28d                 |         0.7908805| 0.1472786|  3.826383|      0.7982351| 0.7688275|Ghazaeian |
-|trt4 |clinical status at day 28                  |         0.8256311| 0.1539462|  3.988879|      0.7975917| 0.8101502|Ghazaeian |
-|trt5 |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|  1.135510|      0.2197763| 0.1670538|Ghazaeian |
-|1    |any AE grade 3,4 within 28 days            |         3.3956044| 0.1349000| 85.440000|     21.7615051| 0.9552013|Ghazaeian |
+|     |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial     |
+|:----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|:---------|
+|trt  |death at day 28                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|Ghazaeian |
+|trt1 |death at day 60                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|Ghazaeian |
+|trt2 |death within fup                           |         0.8379501| 0.1873973|   3.746907|      0.7641607| 0.8170346|Ghazaeian |
+|trt3 |new MV or death within 28d                 |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|Ghazaeian |
+|trt4 |clinical status at day 28                  |         0.8256311| 0.1539462|   3.988879|      0.7975917| 0.8101502|Ghazaeian |
+|trt5 |discharge within 28 days                   |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|Ghazaeian |
+|trt6 |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|Ghazaeian |
+|trt7 |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812|   1.254624|      0.2150223| 0.3654539|Ghazaeian |
+|trt8 |sustained discharge within 28 days         |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|Ghazaeian |
+|trt9 |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|Ghazaeian |
+|1    |any AE grade 3,4 within 28 days_0.5-corr   |         3.3956044| 0.1349000|  85.440000|     21.7615051| 0.9552013|Ghazaeian |
 
 ```r
 # Save
 save(result_df, file = "trt_effects_ghazaeian.RData")
 ```
 Discussion points
-1) 
+1) Adjustments across all models.
 
 
 # Collect all interaction estimates (stage one)
@@ -2425,18 +2531,37 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 # result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
-result_list[[3]] <- extract_interaction(mort.28.age, "age")
-result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity")
-# result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") // not possible
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration")
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp")
-# result_list[[x]] <- extract_interaction(mort.28.var, "variant") // not available
+result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
+result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
+# result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") # not possible
+# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
+result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus, comed
+# result_list[[x]] <- extract_interaction(mort.28.var, "variant") # not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
-
 # Add the trial name
 interaction_df$trial <- "Ghazaeian"
+
+### Add the rare event results
+## Add the results from the firth regressions
+# mort.28.vent.firth
+# summary(mort.28.vent.firth)
+log_odds_ratio <- exp(coef(mort.28.vent.firth)["trt"])
+ci_lower <- exp(confint(mort.28.vent.firth)[grep("^trt:", names(coef(mort.28.vent.firth))), ])[1]
+ci_upper <- exp(confint(mort.28.vent.firth)[grep("^trt:", names(coef(mort.28.vent.firth))), ])[2]
+standard_error <- c(0.03278866) # how to extract directly from the object?
+p_value <- c(0.9999994) # how to extract directly from the object?
+new_row <- data.frame(
+    variable = "respiratory support_firth",
+    log_odds_ratio = log_odds_ratio,
+    ci_lower = ci_lower,
+    ci_upper = ci_upper,
+    standard_error = standard_error,
+    p_value = p_value,
+    trial = "Ghazaeian")
+interaction_df <- rbind(interaction_df, new_row) # adj: age, clinstatus
 
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -2445,17 +2570,18 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|               |variable         | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial     |
-|:--------------|:----------------|--------------:|---------:|---------:|--------------:|---------:|:---------|
-|trt:age        |age              |      1.0505208| 0.9502645|  1.180944|      0.0534520| 0.3564969|Ghazaeian |
-|trt:comorb_cat |comorbidity      |      2.0433330| 0.3484291| 17.836807|      0.9554295| 0.4545100|Ghazaeian |
-|trt:sympdur    |symptom duration |      1.1881042| 0.6377082|  2.335976|      0.3217019| 0.5921160|Ghazaeian |
-|trt:crp        |crp              |      0.9954476| 0.9543089|  1.033017|      0.0194304| 0.8143425|Ghazaeian |
+|               |variable                  | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial     |
+|:--------------|:-------------------------|--------------:|---------:|----------:|--------------:|---------:|:---------|
+|trt:age        |age                       |      1.0504721| 0.9508741|   1.180266|      0.0531186| 0.3539392|Ghazaeian |
+|trt:comorb_cat |comorbidity               |      1.9139158| 0.3278192|  16.486883|      0.9500040| 0.4944083|Ghazaeian |
+|trt:sympdur    |symptom duration          |      1.1956574| 0.6406956|   2.362071|      0.3232509| 0.5803940|Ghazaeian |
+|trt:crp        |crp                       |      0.9966468| 0.9552354|   1.034729|      0.0196176| 0.8640553|Ghazaeian |
+|trt            |respiratory support_firth |      0.8225652| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian |
 
 ```r
 # Save
 save(interaction_df, file = "int_effects_ghazaeian.RData")
 ```
 Discussion points
-1) decide what to do with respiratory support!
+1) Adjustments across all models. Firth?
 

@@ -561,7 +561,7 @@ table(df$new_mv_28, df$trt, useNA = "always")
 new.mv.28 <- df %>% 
   glm(new_mv_28 ~ trt 
       + age 
-      # + clinstatus_baseline 
+      #+ clinstatus_baseline 
       + comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -783,7 +783,7 @@ Discussion points
 1) detailed measures available - wait for other trials first
 
 
-# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+# (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 ```{r warning=FALSE}
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
@@ -940,7 +940,7 @@ Discussion points
 1) Truncated or not?
 
 
-# SENS Subgroup analysis: variant on primary endpoint
+# SENS Subgroup analysis: Variant on primary endpoint
 ```{r warning=FALSE}
 # table(df$variant, df$mort_28, useNA = "always")
 mort.28.var <- df %>% 
@@ -1004,19 +1004,19 @@ extract_trt_results <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_trt_results(mort.28, "death at day 28")
-result_list[[2]] <- extract_trt_results(mort.60, "death at day 60")
-result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
-result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d")
-result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
-result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28")
-# result_list[[x]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
-result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event")
-# result_list[[x]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
-# result_list[[x]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
-result_list[[8]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5")
-result_list[[9]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10")
-result_list[[10]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15")
+result_list[[1]] <- extract_trt_results(mort.28, "death at day 28") # adj: age, clinstatus, comed
+result_list[[2]] <- extract_trt_results(mort.60, "death at day 60") # adj: age, clinstatus, comed
+result_list[[3]] <- extract_trt_results(ttdeath, "death within fup") # adj: age, clinstatus, comed
+result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d") # adj: age, comed
+result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d") # adj: age, clinstatus, comed
+result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28") # adj: age, clinstatus, comed
+result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days") # adj: age, clinstatus, comed
+result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # adj: age, comed
+result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event") # adj: age, clinstatus, comed
+result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days") # adj: age, clinstatus, comed
+result_list[[11]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5") # adj: age, clinstatus, comed
+result_list[[12]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10") # adj: age, clinstatus, comed
+result_list[[13]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15") # adj: age, clinstatus, comed
 # result_list[[14]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days")
 # result_list[[15]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days")
 
@@ -1034,7 +1034,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 save(result_df, file = "trt_effects_barisolidact.RData")
 ```
 Discussion points
-1) 
+1) Adjustments across all models
 
 
 # Collect all interaction estimates (stage one)
@@ -1069,13 +1069,14 @@ extract_interaction <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
-result_list[[2]] <- extract_interaction(mort.28.age, "age")
-result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity")
-result_list[[4]] <- extract_interaction(mort.28.comed, "comedication")
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration")
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp")
-# result_list[[7]] <- extract_interaction(mort.28.var, "variant") adapt function to tell which p-int to extract
+result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # adj: age, clinstatus, comed
+result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus, comed
+result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus, comed
+result_list[[4]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus, comed
+# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # still to come
+result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus, comed
+result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus, comed
+# result_list[[7]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -1091,5 +1092,5 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 save(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
-1) 
+1) Adjustments across all models
 

@@ -32,7 +32,7 @@ library(ggfortify) # autoplot
 library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
 library(mosaic) # Odds Ratio for 0.5-corrected 2x2 table in case of rare events
-library(logistf) # Firth regression in case or rare events
+library(logistf) # Firth regression in case of rare events
 ```
 
 # Load Data
@@ -685,7 +685,7 @@ Discussion points
 2) Rare event correction
 -- Add 0.5 correction to crosstab, calculate ORs and then inverse variance pooling in second stage?
 -- 2x2 directly into Mantel-Haenszel across several trials (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5297998/)?
--- Firth regression according to R.Riley IPDMA Handbook (page 99): Traditionally 0.5 is the value added, but Sweeting et al. suggest that a ‘treatment arm’ continuity correction is more appropriate, which adds 1/(sample size of the opposite treatment group) to the number of event and non-events. In the IPD context, a similar approach is to add two extra participants to each group in a trial if it has zero events in either of the groups; one of the added participants has the event and the other does not have the event in each group. Then, a weighted regression analysis can be performed to analyse the extended IPD, with all participants weighted equally except the four added participants, who are given a weight according to Sweeting correction (i.e. 1/(sample size of the opposite treat- ment group)). However, this approach becomes problematic when adjusting for prognostic factors or extending to non-binary variables. For this reason, a more general approach is to adopt Firth regression, which is a penalisation method that reduces small sample bias for non-linear models such as logistic regression, and resolves problems related to separation. Alternatively, researchers may revert to a one-stage IPD meta-analysis approach and placing random effects on parameters (rather than stratifying parameters by trial) so that estimation of trial-specific terms are avoided.
+-- Firth regression according to R.Riley IPDMA Handbook (page 99): "Traditionally 0.5 is the value added, but Sweeting et al. suggest that a ‘treatment arm’ continuity correction is more appropriate, which adds 1/(sample size of the opposite treatment group) to the number of event and non-events. In the IPD context, a similar approach is to add two extra participants to each group in a trial if it has zero events in either of the groups; one of the added participants has the event and the other does not have the event in each group. Then, a weighted regression analysis can be performed to analyse the extended IPD, with all participants weighted equally except the four added participants, who are given a weight according to Sweeting correction (i.e. 1/(sample size of the opposite treat- ment group)). However, this approach becomes problematic when adjusting for prognostic factors or extending to non-binary variables. For this reason, a more general approach is to adopt Firth regression, which is a penalisation method that reduces small sample bias for non-linear models such as logistic regression, and resolves problems related to separation. Alternatively, researchers may revert to a one-stage IPD meta-analysis approach and placing random effects on parameters (rather than stratifying parameters by trial) so that estimation of trial-specific terms are avoided."
 
 
 # (ii) Mortality at day 60
@@ -1236,7 +1236,7 @@ table(df$clinstatus_28_imp, df$trt, useNA = "always")
 clin.28 <- df %>% 
   clm(clinstatus_28_imp ~ trt 
       + age 
-      #+ clinstatus_baseline 
+      + clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
       , link= c("logit"), data=.)
 # Summary and extract coefficients
@@ -1259,13 +1259,14 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|         |Variable |   Odds.Ratio|   CI.Lower|     CI.Upper|
-|:--------|:--------|------------:|----------:|------------:|
-|1&#124;3 |1&#124;3 |  8864.068374| 21.7813720| 3.607289e+06|
-|3&#124;5 |3&#124;5 | 17208.286193| 38.0095478| 7.790809e+06|
-|5&#124;6 |5&#124;6 | 37243.476681| 72.0174349| 1.926029e+07|
-|trt      |trt      |     0.318861|  0.0561787| 1.809801e+00|
-|age      |age      |     1.123243|  1.0214359| 1.235198e+00|
+|                     |Variable             |   Odds.Ratio|   CI.Lower|     CI.Upper|
+|:--------------------|:--------------------|------------:|----------:|------------:|
+|1&#124;3             |1&#124;3             | 8.835460e+03| 21.0733183| 3.704464e+06|
+|3&#124;5             |3&#124;5             | 1.716052e+04| 36.7898354| 8.004476e+06|
+|5&#124;6             |5&#124;6             | 3.715527e+04| 69.7581693| 1.979000e+07|
+|trt                  |trt                  | 3.212049e-01|  0.0564811| 1.826675e+00|
+|age                  |age                  | 1.120213e+00|  1.0134383| 1.238236e+00|
+|clinstatus_baseline3 |clinstatus_baseline3 | 1.217019e+00|  0.1180339| 1.254838e+01|
 Discussion points
 1) adjustment?
 
@@ -1395,7 +1396,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
 # testing: Fine-Gray regression
 ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt
     + age
-    # + clinstatus_baseline
+    #+ clinstatus_baseline
     + comed_dexa + comed_rdv + comed_toci,
     data = df)
 ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge.comp, exp = TRUE)
@@ -1534,7 +1535,7 @@ Discussion points
 1) Not available
 
 
-# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+# (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 
 ```r
 table(df$ae_28, df$trt, useNA = "always")
@@ -1788,7 +1789,7 @@ df$clinstatus_baseline <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
   glm(mort_28 ~ trt*clinstatus_baseline
-      #+ age 
+      + age 
       #+ clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
@@ -1840,7 +1841,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 19818976524847432.00 </td>
+   <td style="text-align:right;"> 3405757158023513.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -1848,11 +1849,19 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
-   <td style="text-align:right;"> 140779886.79 </td>
+   <td style="text-align:right;"> 43146385.28 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 1.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.11 </td>
+   <td style="text-align:right;"> 0.93 </td>
+   <td style="text-align:right;"> 1.32 </td>
+   <td style="text-align:right;"> 1.16 </td>
+   <td style="text-align:right;"> 0.25 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:clinstatus_baseline </td>
@@ -1866,8 +1875,45 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# Firth regression
+mort.28.vent.firth <- df %>% 
+  logistf(mort_28 ~ trt*clinstatus_baseline
+      + age 
+      #+ clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.vent.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * clinstatus_baseline + age, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                                coef   se(coef)   lower 0.95 upper 0.95
+## (Intercept)             -7.80601920 4.68250455 -23.50757012  0.3221093
+## trt                      2.42629255 6.52050898 -14.05937455 19.2057921
+## clinstatus_baseline      0.15879460 1.55921253  -2.77886977  5.2173433
+## age                      0.07976083 0.05718833  -0.06949531  0.2446570
+## trt:clinstatus_baseline -1.37668386 2.44180577  -7.60216873  4.3858466
+##                              Chisq          p method
+## (Intercept)             3.47734165 0.06221461      2
+## trt                     0.12419823 0.72452503      2
+## clinstatus_baseline     0.00894597 0.92464594      2
+## age                     1.07724778 0.29931406      2
+## trt:clinstatus_baseline 0.29039989 0.58996438      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=2.769707 on 4 df, p=0.5970731, n=107
+## Wald test = 34.86843 on 4 df, p = 4.943587e-07
+```
 Discussion points
 1) Does any interaction estimation make sense?
+2) Firth regression?
 
 
 
@@ -2753,22 +2799,23 @@ result_list <- list()
 # result_list[[1]] <- extract_trt_results(mort.28.firth, "death at day 28")
 # result_list[[2]] <- extract_trt_results(mort.60.firth, "death at day 60")
 # result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
-result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d")
-result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
-result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28")
-result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
-result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event")
-result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
-result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
-result_list[[11]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days")
-result_list[[12]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days")
+result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d") # adj: age, clinstatus, comed
+result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d") # adj: age, clinstatus, comed
+result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28") # adj: age, clinstatus
+result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days") # adj: age, clinstatus, comed
+result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # adj: age, comed
+result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event") # adj: age, clinstatus, comed
+result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days") # adj: age, clinstatus, comed
+result_list[[11]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days") # adj: age, clinstatus, comed
+result_list[[12]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days") # adj: age, clinstatus, comed
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 # Add the trial name
 result_df$trial <- "COVINIB"
 
-### Add the firth-models
+### Add the rare event results
+## Add the results from the firth regressions
 # mort.28.firth
 # summary(mort.28.firth)
 hazard_odds_ratio <- exp(coef(mort.28.firth)["trt"])
@@ -2784,7 +2831,7 @@ new_row <- data.frame(
     standard_error = standard_error,
     p_value = p_value,
     trial = "COVINIB")
-result_df <- rbind(result_df, new_row)
+result_df <- rbind(result_df, new_row) # adj: age, clinstatus
 
 # mort.60.firth
 # summary(mort.60.firth)
@@ -2801,10 +2848,9 @@ new_row <- data.frame(
     standard_error = standard_error,
     p_value = p_value,
     trial = "COVINIB")
-result_df <- rbind(result_df, new_row)
+result_df <- rbind(result_df, new_row) # adj: age, clinstatus
 
-
-### Add the 0.5-corrected models
+## Add the results from the 0.5-corrected models
 # mort.28.corr
 # summary(mort.28.corr)
 hazard_odds_ratio <- mort.28.corr[["OR"]]
@@ -2821,7 +2867,7 @@ new_row <- data.frame(
     standard_error = standard_error,
     p_value = p_value,
     trial = "COVINIB")
-result_df <- rbind(result_df, new_row)
+result_df <- rbind(result_df, new_row) # no adj
 
 # mort.60.corr
 # summary(mort.60.corr)
@@ -2839,7 +2885,7 @@ new_row <- data.frame(
     standard_error = standard_error,
     p_value = p_value,
     trial = "COVINIB")
-result_df <- rbind(result_df, new_row)
+result_df <- rbind(result_df, new_row) # no adj
 
 # Nicely formatted table
 kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -2852,7 +2898,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |:-----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|:-------|
 |trt   |new MV within 28d                          |         0.2640381| 0.0363127| 1.2549071|      0.8602118| 0.1216071|COVINIB |
 |trt1  |new MV or death within 28d                 |         0.1975321| 0.0278862| 0.8744004|      0.8378952| 0.0529131|COVINIB |
-|trt2  |clinical status at day 28                  |         0.3188610| 0.0425553| 1.6394437|      0.8858250| 0.1969387|COVINIB |
+|trt2  |clinical status at day 28                  |         0.3212049| 0.0428055| 1.6548681|      0.8868231| 0.2003301|COVINIB |
 |trt3  |discharge within 28 days                   |         1.5350721| 1.0265954| 2.2953991|      0.2052739| 0.0368130|COVINIB |
 |trt4  |discharge within 28 days, death=comp.event |         1.5059446| 1.0177281| 2.2283645|      0.1999259| 0.0410000|COVINIB |
 |trt5  |discharge within 28 days, death=hypo.event |         1.5378194| 1.0283421| 2.2997099|      0.2053189| 0.0360748|COVINIB |
@@ -2869,7 +2915,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 save(result_df, file = "trt_effects_covinib.RData")
 ```
 Discussion points
-1) 
+1) Adjustments across all models
 
 
 # Collect all interaction estimates (stage one)
@@ -2928,7 +2974,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |                        |variable            | log_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value|trial   |
 |:-----------------------|:-------------------|--------------:|---------:|-------------:|--------------:|---------:|:-------|
-|trt:clinstatus_baseline |respiratory support |   0.000000e+00| 0.0000000|           Inf|    11021.77691| 0.9986417|COVINIB |
+|trt:clinstatus_baseline |respiratory support |   0.000000e+00| 0.0000000|           Inf|    10486.22741| 0.9986192|COVINIB |
 |trt:age                 |age                 |   8.865057e-01| 0.0000000|  1.304701e+13|      412.50725| 0.9997670|COVINIB |
 |trt:comorb_cat          |comorbidity         |   9.017444e-01| 0.0000000| 1.835189e+189|     5018.89528| 0.9999836|COVINIB |
 |trt:comed_cat           |comedication        |   1.103354e+04| 0.0000000|           Inf|    12833.50557| 0.9994213|COVINIB |

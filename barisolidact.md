@@ -410,6 +410,11 @@ df <- df %>%
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
+
+# df_ae <- df %>% 
+#   select(id_pat, trt, x, ae_28_list, aesi_28)
+# # Save
+# save(df_ae, file = "df_ae_barisolidact.RData")
 ```
 Discussion points OUTCOME data:
 1) Discuss making new_mvd_28 the primary endpoint definition and not new_mv_28
@@ -430,7 +435,7 @@ Discussion points
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, 
+  select(id_pat, trt, sex, age, trial,
          # ethn, 
          country, icu, sympdur, vacc, clinstatus_baseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
@@ -444,10 +449,8 @@ df <- df %>%
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         # ae_28, ae_28_sev, aesi_28, ae_28_list,
-         # ae_reached, ae_time,
+         # ae_28, ae_28_sev,
          vir_clear_5, vir_clear_10, vir_clear_15
-         # qol_28
          )
 
 # export for one-stage model, i.e., add missing variables 
@@ -455,11 +458,6 @@ df_os <- df
 df_os$ethn <- NA
 df_os$ae_28 <- NA
 df_os$ae_28_sev <- NA
-df_os$aesi_28 <- NA
-df_os$ae_28_list <- NA
-df_os$ae_reached <- NA
-df_os$ae_time <- NA
-df_os$qol_28 <- NA
 # Save
 save(df_os, file = "df_os_barisolidact.RData")
 
@@ -468,8 +466,8 @@ save(df_os, file = "df_os_barisolidact.RData")
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
 
 # Create a bar plot to visualize missing values in each column
-original_order <- colnames(df)
-missing_plot <- df %>%
+original_order <- colnames(df_os)
+missing_plot <- df_os %>%
   summarise_all(~ mean(is.na(.))) %>%
   gather() %>%
   mutate(key = factor(key, levels = original_order)) %>%
@@ -876,7 +874,7 @@ table(df$new_mv_28, df$trt, useNA = "always")
 new.mv.28 <- df %>% 
   glm(new_mv_28 ~ trt 
       + age 
-      # + clinstatus_baseline 
+      #+ clinstatus_baseline 
       + comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -971,7 +969,7 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 </table>
 
 ```r
-# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 table(df$new_mvd_28, df$trt, useNA = "always")
 ```
 
@@ -1178,7 +1176,7 @@ km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, dat
 ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
   tbl_survfit(
     times = 28,
-    label_header = "**28-d still hospitalized (95% CI)**"
+    label_header = "**28-d hospitalization (95% CI)**"
   )
 # Nicely formatted table
 kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
@@ -1187,11 +1185,11 @@ kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>
 
 
 
-|**Characteristic**    |**28-d still hospitalized (95% CI)** |
-|:---------------------|:------------------------------------|
-|Trial treatment group |NA                                   |
-|0                     |27% (20%, 36%)                       |
-|1                     |24% (17%, 33%)                       |
+|**Characteristic**    |**28-d hospitalization (95% CI)** |
+|:---------------------|:---------------------------------|
+|Trial treatment group |NA                                |
+|0                     |27% (20%, 36%)                    |
+|1                     |24% (17%, 33%)                    |
 
 ```r
 survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>% 
@@ -1796,25 +1794,11 @@ Discussion points
 1) detailed measures available - wait for other trials first
 
 
-# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+# (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 
 ```r
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
-
-# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
 ```
-Discussion points
-1) 
-
-
-# (x) Adverse events of special interest within 28 days
-
-Discussion points
-1) a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
-
-
-# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-
 Discussion points
 1) 
 
@@ -3132,7 +3116,7 @@ Discussion points
 1) Truncated or not?
 
 
-# SENS Subgroup analysis: variant on primary endpoint
+# SENS Subgroup analysis: Variant on primary endpoint
 
 ```r
 # table(df$variant, df$mort_28, useNA = "always")
@@ -3326,19 +3310,22 @@ extract_trt_results <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_trt_results(mort.28, "death at day 28")
-result_list[[2]] <- extract_trt_results(mort.60, "death at day 60")
-result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
-result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d")
-result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d")
-result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28")
-# result_list[[x]] <- extract_trt_results(ttdischarge, "discharge within 28 days")
-result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event")
-# result_list[[x]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event")
-# result_list[[x]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days")
-result_list[[8]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5")
-result_list[[9]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10")
-result_list[[10]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15")
+result_list[[1]] <- extract_trt_results(mort.28, "death at day 28") # adj: age, clinstatus, comed
+result_list[[2]] <- extract_trt_results(mort.60, "death at day 60") # adj: age, clinstatus, comed
+result_list[[3]] <- extract_trt_results(ttdeath, "death within fup") # adj: age, clinstatus, comed
+result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d") # adj: age, comed
+result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d") # adj: age, clinstatus, comed
+result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28") # adj: age, clinstatus, comed
+result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days") # adj: age, clinstatus, comed
+result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # adj: age, comed
+result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event") # adj: age, clinstatus, comed
+result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days") # adj: age, clinstatus, comed
+result_list[[11]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5") # adj: age, clinstatus, comed
+result_list[[12]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10") # adj: age, clinstatus, comed
+result_list[[13]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15") # adj: age, clinstatus, comed
+# result_list[[14]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days")
+# result_list[[15]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days")
+
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
@@ -3352,25 +3339,28 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|     |variable                                   | hazard_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial         |
-|:----|:------------------------------------------|-----------------:|---------:|--------:|--------------:|---------:|:-------------|
-|trt  |death at day 28                            |         0.6564886| 0.3001757| 1.402742|      0.3907344| 0.2814470|Bari-SolidAct |
-|trt1 |death at day 60                            |         0.9246251| 0.4640303| 1.835210|      0.3490735| 0.8223685|Bari-SolidAct |
-|trt2 |death within fup                           |         0.6218396| 0.3331061| 1.160845|      0.3184860| 0.1357880|Bari-SolidAct |
-|trt3 |new MV within 28d                          |         1.7053904| 0.8243377| 3.629051|      0.3755483| 0.1552084|Bari-SolidAct |
-|trt4 |new MV or death within 28d                 |         1.1121200| 0.6404560| 1.934779|      0.2812995| 0.7055973|Bari-SolidAct |
-|trt5 |clinical status at day 28                  |         1.1021607| 0.6649398| 1.831448|      0.2579487| 0.7060991|Bari-SolidAct |
-|trt6 |discharge within 28 days, death=comp.event |         1.0495660| 0.7938911| 1.387582|      0.1424443| 0.7300000|Bari-SolidAct |
-|trt7 |viral clearance until day 5                |         1.5017463| 0.6380064| 3.622869|      0.4399578| 0.3553589|Bari-SolidAct |
-|trt8 |viral clearance until day 10               |         1.0910678| 0.5360772| 2.224284|      0.3619381| 0.8097055|Bari-SolidAct |
-|trt9 |viral clearance until day 15               |         1.0071540| 0.4957260| 2.047029|      0.3607270| 0.9842335|Bari-SolidAct |
+|      |variable                                   | hazard_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial         |
+|:-----|:------------------------------------------|-----------------:|---------:|--------:|--------------:|---------:|:-------------|
+|trt   |death at day 28                            |         0.6564886| 0.3001757| 1.402742|      0.3907344| 0.2814470|Bari-SolidAct |
+|trt1  |death at day 60                            |         0.9246251| 0.4640303| 1.835210|      0.3490735| 0.8223685|Bari-SolidAct |
+|trt2  |death within fup                           |         0.6218396| 0.3331061| 1.160845|      0.3184860| 0.1357880|Bari-SolidAct |
+|trt3  |new MV within 28d                          |         1.7053904| 0.8243377| 3.629051|      0.3755483| 0.1552084|Bari-SolidAct |
+|trt4  |new MV or death within 28d                 |         1.1121200| 0.6404560| 1.934779|      0.2812995| 0.7055973|Bari-SolidAct |
+|trt5  |clinical status at day 28                  |         1.1021607| 0.6649398| 1.831448|      0.2579487| 0.7060991|Bari-SolidAct |
+|trt6  |discharge within 28 days                   |         1.0085423| 0.7578700| 1.342127|      0.1457932| 0.9534756|Bari-SolidAct |
+|trt7  |discharge within 28 days, death=comp.event |         1.0495660| 0.7938911| 1.387582|      0.1424443| 0.7300000|Bari-SolidAct |
+|trt8  |discharge within 28 days, death=hypo.event |         1.0304317| 0.7738744| 1.372044|      0.1460861| 0.8374108|Bari-SolidAct |
+|trt9  |sustained discharge within 28 days         |         0.9920797| 0.7444529| 1.322074|      0.1465098| 0.9567159|Bari-SolidAct |
+|trt10 |viral clearance until day 5                |         1.5017463| 0.6380064| 3.622869|      0.4399578| 0.3553589|Bari-SolidAct |
+|trt11 |viral clearance until day 10               |         1.0910678| 0.5360772| 2.224284|      0.3619381| 0.8097055|Bari-SolidAct |
+|trt12 |viral clearance until day 15               |         1.0071540| 0.4957260| 2.047029|      0.3607270| 0.9842335|Bari-SolidAct |
 
 ```r
 # Save
 save(result_df, file = "trt_effects_barisolidact.RData")
 ```
 Discussion points
-1) 
+1) Adjustments across all models
 
 
 # Collect all interaction estimates (stage one)
@@ -3406,13 +3396,13 @@ extract_interaction <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
-result_list[[2]] <- extract_interaction(mort.28.age, "age")
-result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity")
-result_list[[4]] <- extract_interaction(mort.28.comed, "comedication")
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration")
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp")
-# result_list[[7]] <- extract_interaction(mort.28.var, "variant") adapt function to tell which p-int to extract
+result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # adj: age, clinstatus, comed
+result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus, comed
+result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus, comed
+result_list[[4]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus, comed
+result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus, comed
+result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus, comed
+# result_list[[7]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -3441,5 +3431,5 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 save(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
-1) 
+1) Adjustments across all models
 
