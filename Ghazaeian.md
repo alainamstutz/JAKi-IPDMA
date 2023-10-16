@@ -1366,6 +1366,37 @@ summary(ae.28.firth)
 
 ```r
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
+# Firth regression
+ae.28.sev.firth <- df %>% 
+  logistf(ae_28_sev ~ trt 
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(ae.28.sev.firth)
+```
+
+```
+## logistf(formula = ae_28_sev ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef) lower 0.95 upper 0.95      Chisq
+## (Intercept)          -1.06140524 2.63004899 -7.7654617  6.1360635 0.11499303
+## trt                   1.17085175 1.47599890 -1.7708855  6.1579338 0.59310771
+## age                  -0.01012418 0.03994425 -0.1397434  0.0913426 0.04101561
+## clinstatus_baseline3 -2.80164413 2.00701665 -8.1119601  2.4973900 1.46892492
+##                              p method
+## (Intercept)          0.7345297      2
+## trt                  0.4412199      2
+## age                  0.8395078      2
+## clinstatus_baseline3 0.2255154      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.673393 on 3 df, p=0.6428653, n=97
+## Wald test = 31.11608 on 3 df, p = 8.035271e-07
 ```
 Discussion points
 1. only 1 event, in int
@@ -2305,8 +2336,8 @@ result_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
-# Function to extract treatment results from different model types (glm, clm, coxph and crr)
-extract_trt_results <- function(model, variable_name) {
+# Function to extract treatment results from different model types (glm, clm, coxph, crr, logistf)
+extract_trt_results <- function(model, variable_name, n_int, n_cont) {
   if (inherits(model, "glm") || inherits(model, "clm")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -2325,6 +2356,12 @@ extract_trt_results <- function(model, variable_name) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
+  } else if (inherits(model, "logistf")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
+    se <- sqrt(diag(vcov(model)))["trt"]
+    p_value <- NA # how to extract directly from the object?
   } else {
     stop("Unsupported model class")
   }
@@ -2335,7 +2372,9 @@ extract_trt_results <- function(model, variable_name) {
     ci_lower = ci[1],
     ci_upper = ci[2],
     standard_error = se,
-    p_value = p_value
+    p_value = p_value,
+    n_intervention = n_int,
+    n_control = n_cont
   )
   return(result)
 }
@@ -2343,17 +2382,30 @@ extract_trt_results <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_trt_results(mort.28, "death at day 28") # adj: age, clinstatus, comed
-result_list[[2]] <- extract_trt_results(mort.60, "death at day 60") # adj: age, clinstatus, comed
-result_list[[3]] <- extract_trt_results(ttdeath, "death within fup") # adj: age, clinstatus, comed
-# result_list[[x]] <- extract_trt_results(new.mv.28, "new MV within 28d") // not possible
-result_list[[4]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d") # adj: age, clinstatus, comed
-result_list[[5]] <- extract_trt_results(clin.28, "clinical status at day 28") # adj: age
-result_list[[6]] <- extract_trt_results(ttdischarge, "discharge within 28 days") # adj: age, clinstatus, comed
-result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # adj: age, clinstatus, comed
-result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event") # adj: age, clinstatus, comed
-result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days") # adj: age, clinstatus, comed
-# result_list[[10]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days")
+result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[2]] <- extract_trt_results(mort.60, "death at day 60",
+                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
+                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+# result_list[[x]] <- extract_trt_results(new.mv.28, "new MV within 28d",
+#                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # not possible
+result_list[[4]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[5]] <- extract_trt_results(clin.28, "clinical status at day 28",
+                                        addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age
+result_list[[6]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+                                        addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[10]] <- extract_trt_results(ae.28.firth, "any AE grade 3,4 within 28 days_firth",
+                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[11]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days_firth",
+                                         addmargins(table(df$ae_28_sev, df$trt))[3,2], addmargins(table(df$ae_28_sev, df$trt))[3,1]) # adj: age, clinstatus, comed
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2361,26 +2413,7 @@ result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 # Add the trial name
 result_df$trial <- "Ghazaeian"
 
-
 ### Add the rare event results
-## Add the results from the firth regressions
-# ae.28.firth
-# summary(ae.28.firth)
-hazard_odds_ratio <- exp(coef(ae.28.firth)["trt"])
-ci_lower <- exp(ae.28.firth$ci.lower["trt"])
-ci_upper <- exp(ae.28.firth$ci.upper["trt"])
-standard_error <- c(1.47599890) # how to extract directly from the object?
-p_value <- c(0.4412199) # how to extract directly from the object?
-new_row <- data.frame(
-    variable = "any AE grade 3,4 within 28 days_firth",
-    hazard_odds_ratio = hazard_odds_ratio,
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    standard_error = standard_error,
-    p_value = p_value,
-    trial = "Ghazaeian")
-result_df <- rbind(result_df, new_row) # adj: age, clinstatus
-
 ## Add the results from the 0.5-corrected models
 # ae.28.corr
 # summary(ae.28.corr)
@@ -2397,6 +2430,8 @@ new_row <- data.frame(
     ci_upper = ci_upper,
     standard_error = standard_error,
     p_value = p_value,
+    n_intervention = addmargins(table(df$ae_28, df$trt))[3,2], 
+    n_control = addmargins(table(df$ae_28, df$trt))[3,1],
     trial = "Ghazaeian")
 result_df <- rbind(result_df, new_row) # no adj
 
@@ -2407,19 +2442,20 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|     |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial     |
-|:----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|:---------|
-|trt  |death at day 28                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|Ghazaeian |
-|trt1 |death at day 60                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|Ghazaeian |
-|trt2 |death within fup                           |         0.8379501| 0.1873973|   3.746907|      0.7641607| 0.8170346|Ghazaeian |
-|trt3 |new MV or death within 28d                 |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|Ghazaeian |
-|trt4 |clinical status at day 28                  |         0.8256311| 0.1539462|   3.988879|      0.7975917| 0.8101502|Ghazaeian |
-|trt5 |discharge within 28 days                   |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|Ghazaeian |
-|trt6 |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|Ghazaeian |
-|trt7 |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812|   1.254624|      0.2150223| 0.3654539|Ghazaeian |
-|trt8 |sustained discharge within 28 days         |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|Ghazaeian |
-|trt9 |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|Ghazaeian |
-|1    |any AE grade 3,4 within 28 days_0.5-corr   |         3.3956044| 0.1349000|  85.440000|     21.7615051| 0.9552013|Ghazaeian |
+|      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial     |
+|:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:---------|
+|trt   |death at day 28                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |
+|trt1  |death at day 60                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |
+|trt2  |death within fup                           |         0.8379501| 0.1873973|   3.746907|      0.7641607| 0.8170346|             46|        51|Ghazaeian |
+|trt3  |new MV or death within 28d                 |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |
+|trt4  |clinical status at day 28                  |         0.8256311| 0.1539462|   3.988879|      0.7975917| 0.8101502|             46|        51|Ghazaeian |
+|trt5  |discharge within 28 days                   |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |
+|trt6  |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |
+|trt7  |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812|   1.254624|      0.2150223| 0.3654539|             46|        51|Ghazaeian |
+|trt8  |sustained discharge within 28 days         |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |
+|trt9  |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989|        NA|             46|        51|Ghazaeian |
+|trt10 |AEs grade 3,4 within 28 days_firth         |         3.2247381| 0.1701822| 472.450898|      1.4759989|        NA|             46|        51|Ghazaeian |
+|1     |any AE grade 3,4 within 28 days_0.5-corr   |         3.3956044| 0.1349000|  85.440000|     21.7615051| 0.9552013|             46|        51|Ghazaeian |
 
 ```r
 # Save

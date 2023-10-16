@@ -1,0 +1,119 @@
+---
+title: "two_stage"
+author: "A.Amstutz"
+date: "2023-10-15"
+output:
+  html_document:
+    keep_md: yes
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+  pdf_document:
+    toc: yes
+---
+
+# Load packages
+```{r load packages, echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(tableone)
+library(here)
+library(kableExtra)
+
+library(jtools) # for summ() and plot_summs
+library(sjPlot) # for tab_model
+library(ggplot2) # survival/TTE analyses and other graphs
+library(ggfortify) # autoplot
+library(meta)
+
+```
+
+# Load treatment effect estimates from all trials
+```{r, include=FALSE}
+df_barisolidact <- readRDS("trt_effects_barisolidact.RData")
+df_actt2 <- readRDS("trt_effects_actt2.RData")
+df_ghazaeian <- readRDS("trt_effects_ghazaeian.RData")
+df_tofacov <- readRDS("trt_effects_tofacov.RData")
+df_covinib <- readRDS("trt_effects_covinib.RData")
+
+```
+
+# Reshape dataframes for each outcome
+```{r warning=FALSE}
+### Create a list of all data frames / trials
+list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib) # add all trials
+
+
+## Mortality at day 28
+outcome <- "death at day 28"
+outcome2 <- "death at day 28_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcome | variable == outcome2)
+  df_mort28 <- rbind(df_mort28, selected_rows)
+}
+# Reset row names
+rownames(df_mort28) <- NULL
+
+## Mortality at day 60
+outcome <- "death at day 60"
+outcome2 <- "death at day 60_firth"
+df_mort60 <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcome | variable == outcome2)
+  df_mort60 <- rbind(df_mort60, selected_rows)
+}
+rownames(df_mort60) <- NULL
+
+```
+
+# (i) Primary outcome: Mortality at day 28
+```{r warning=FALSE}
+str(df_mort28)
+mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      method.tau = "REML", # no difference with Paule-Mandel
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - mortality 28 days",
+                      # subset = trial == "x" | trial == "y" # exclude entirely
+                      # exclude = trial %in% c("MRC-1", "MRC-2")) # include in forestplot but exclude from analysis
+                      )
+summary(mort28)
+forest.meta(mort28,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - mortality 28 days", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+# Open a pdf file
+# pdf("./fp_aggregated.pdf", width=9, height=4)
+# forest.meta(i.mort28_adhoc_se,
+#             xlim = c(0.1,5),
+#             xlab = "                  Favours Remdesivir <-> Favours No Remdesivir",
+#             fs.xlab = 9)
+# dev.off()
+
+```
+
+# (ii) Mortality at day 60
+```{r warning=FALSE}
+
+```
+

@@ -328,7 +328,7 @@ df <- df %>% # Adapt clinstatus_28, since currently excluding those discharged o
                                    mort_28 == 1 ~ 6, # died within 28d
                                    mort_28 == 0 ~ 1)) # discharged alive / reached discharge criteria within 28d
 df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) # same 12 missing -> imputation, LVCF
-## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days). -> no window data in Bari-Solidact => LVCF
+## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days) -> no window data in Bari-Solidact => LVCF
 dfcs <- df %>% 
     select(id_pat, clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28)
 impute_last_forw = function(df){
@@ -346,7 +346,7 @@ impute_last_forw = function(df){
 dfcs <- impute_last_forw(dfcs)
 dfcs <- dfcs %>% # To control, don't overwrite
   rename(clinstatus_28_imp = clinstatus_28)
-df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat)) # # Merge imputed variable back // re-admissions already correctly incorporated
+df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat)) ## Merge imputed variable back // re-admissions already correctly incorporated
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28 // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days. 
 df <- df %>% 
@@ -3239,7 +3239,7 @@ result_df <- data.frame(
 )
 
 # Function to extract treatment results from different model types (glm, clm, coxph and crr)
-extract_trt_results <- function(model, variable_name) {
+extract_trt_results <- function(model, variable_name, n_int, n_cont) {
   if (inherits(model, "glm") || inherits(model, "clm")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -3268,7 +3268,9 @@ extract_trt_results <- function(model, variable_name) {
     ci_lower = ci[1],
     ci_upper = ci[2],
     standard_error = se,
-    p_value = p_value
+    p_value = p_value,
+    n_intervention = n_int,
+    n_control = n_cont
   )
   return(result)
 }
@@ -3276,21 +3278,36 @@ extract_trt_results <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_trt_results(mort.28, "death at day 28") # adj: age, clinstatus, comed
-result_list[[2]] <- extract_trt_results(mort.60, "death at day 60") # adj: age, clinstatus, comed
-result_list[[3]] <- extract_trt_results(ttdeath, "death within fup") # adj: age, clinstatus, comed
-result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d") # adj: age, comed
-result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d") # adj: age, clinstatus, comed
-result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28") # adj: age, clinstatus, comed
-result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days") # adj: age, clinstatus, comed
-result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # adj: age, comed
-result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event") # adj: age, clinstatus, comed
-result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days") # adj: age, clinstatus, comed
-result_list[[11]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5") # adj: age, clinstatus, comed
-result_list[[12]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10") # adj: age, clinstatus, comed
-result_list[[13]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15") # adj: age, clinstatus, comed
-# result_list[[14]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days")
-# result_list[[15]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days")
+result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[2]] <- extract_trt_results(mort.60, "death at day 60",
+                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
+                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d",
+                                        addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, comed
+result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28",
+                                        addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus, comed
+result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, comed
+result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+                                        addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[11]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5",
+                                        addmargins(table(df$vir_clear_5, df$trt))[3,2], addmargins(table(df$vir_clear_5, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[12]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10",
+                                        addmargins(table(df$vir_clear_10, df$trt))[3,2], addmargins(table(df$vir_clear_10, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[13]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15",
+                                        addmargins(table(df$vir_clear_15, df$trt))[3,2], addmargins(table(df$vir_clear_15, df$trt))[3,1]) # adj: age, clinstatus, comed
+# result_list[[14]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
+#                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1])
+# result_list[[15]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
+#                                         addmargins(table(df$ae_28_sev, df$trt))[3,2], addmargins(table(df$ae_28_sev, df$trt))[3,1])
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -3305,21 +3322,21 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial         |
-|:-----|:------------------------------------------|-----------------:|---------:|--------:|--------------:|---------:|:-------------|
-|trt   |death at day 28                            |         0.6564886| 0.3001757| 1.402742|      0.3907344| 0.2814470|Bari-SolidAct |
-|trt1  |death at day 60                            |         0.9246251| 0.4640303| 1.835210|      0.3490735| 0.8223685|Bari-SolidAct |
-|trt2  |death within fup                           |         0.6218396| 0.3331061| 1.160845|      0.3184860| 0.1357880|Bari-SolidAct |
-|trt3  |new MV within 28d                          |         1.7053904| 0.8243377| 3.629051|      0.3755483| 0.1552084|Bari-SolidAct |
-|trt4  |new MV or death within 28d                 |         1.1121200| 0.6404560| 1.934779|      0.2812995| 0.7055973|Bari-SolidAct |
-|trt5  |clinical status at day 28                  |         1.1021607| 0.6649398| 1.831448|      0.2579487| 0.7060991|Bari-SolidAct |
-|trt6  |discharge within 28 days                   |         1.0085423| 0.7578700| 1.342127|      0.1457932| 0.9534756|Bari-SolidAct |
-|trt7  |discharge within 28 days, death=comp.event |         1.0495660| 0.7938911| 1.387582|      0.1424443| 0.7300000|Bari-SolidAct |
-|trt8  |discharge within 28 days, death=hypo.event |         1.0304317| 0.7738744| 1.372044|      0.1460861| 0.8374108|Bari-SolidAct |
-|trt9  |sustained discharge within 28 days         |         0.9920797| 0.7444529| 1.322074|      0.1465098| 0.9567159|Bari-SolidAct |
-|trt10 |viral clearance until day 5                |         1.5017463| 0.6380064| 3.622869|      0.4399578| 0.3553589|Bari-SolidAct |
-|trt11 |viral clearance until day 10               |         1.0910678| 0.5360772| 2.224284|      0.3619381| 0.8097055|Bari-SolidAct |
-|trt12 |viral clearance until day 15               |         1.0071540| 0.4957260| 2.047029|      0.3607270| 0.9842335|Bari-SolidAct |
+|      |variable                                   | hazard_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value| n_intervention| n_control|trial         |
+|:-----|:------------------------------------------|-----------------:|---------:|--------:|--------------:|---------:|--------------:|---------:|:-------------|
+|trt   |death at day 28                            |         0.6564886| 0.3001757| 1.402742|      0.3907344| 0.2814470|            137|       140|Bari-SolidAct |
+|trt1  |death at day 60                            |         0.9246251| 0.4640303| 1.835210|      0.3490735| 0.8223685|            137|       140|Bari-SolidAct |
+|trt2  |death within fup                           |         0.6218396| 0.3331061| 1.160845|      0.3184860| 0.1357880|            145|       144|Bari-SolidAct |
+|trt3  |new MV within 28d                          |         1.7053904| 0.8243377| 3.629051|      0.3755483| 0.1552084|            107|       104|Bari-SolidAct |
+|trt4  |new MV or death within 28d                 |         1.1121200| 0.6404560| 1.934779|      0.2812995| 0.7055973|            138|       140|Bari-SolidAct |
+|trt5  |clinical status at day 28                  |         1.1021607| 0.6649398| 1.831448|      0.2579487| 0.7060991|            145|       144|Bari-SolidAct |
+|trt6  |discharge within 28 days                   |         1.0085423| 0.7578700| 1.342127|      0.1457932| 0.9534756|            145|       144|Bari-SolidAct |
+|trt7  |discharge within 28 days, death=comp.event |         1.0495660| 0.7938911| 1.387582|      0.1424443| 0.7300000|            145|       144|Bari-SolidAct |
+|trt8  |discharge within 28 days, death=hypo.event |         1.0304317| 0.7738744| 1.372044|      0.1460861| 0.8374108|            145|       144|Bari-SolidAct |
+|trt9  |sustained discharge within 28 days         |         0.9920797| 0.7444529| 1.322074|      0.1465098| 0.9567159|            145|       144|Bari-SolidAct |
+|trt10 |viral clearance until day 5                |         1.5017463| 0.6380064| 3.622869|      0.4399578| 0.3553589|             62|        59|Bari-SolidAct |
+|trt11 |viral clearance until day 10               |         1.0910678| 0.5360772| 2.224284|      0.3619381| 0.8097055|             66|        61|Bari-SolidAct |
+|trt12 |viral clearance until day 15               |         1.0071540| 0.4957260| 2.047029|      0.3607270| 0.9842335|             67|        61|Bari-SolidAct |
 
 ```r
 # Save

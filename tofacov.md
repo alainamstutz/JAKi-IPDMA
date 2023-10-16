@@ -2787,8 +2787,8 @@ result_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
-# Function to extract treatment results from different model types (glm, clm, coxph and crr)
-extract_trt_results <- function(model, variable_name) {
+# Function to extract treatment results from different model types (glm, clm, coxph, crr, logistf)
+extract_trt_results <- function(model, variable_name, n_int, n_cont) {
   if (inherits(model, "glm") || inherits(model, "clm")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -2807,6 +2807,12 @@ extract_trt_results <- function(model, variable_name) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
+  } else if (inherits(model, "logistf")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
+    se <- sqrt(diag(vcov(model)))["trt"]
+    p_value <- NA # how to extract directly from the object?
   } else {
     stop("Unsupported model class")
   }
@@ -2817,7 +2823,9 @@ extract_trt_results <- function(model, variable_name) {
     ci_lower = ci[1],
     ci_upper = ci[2],
     standard_error = se,
-    p_value = p_value
+    p_value = p_value,
+    n_intervention = n_int,
+    n_control = n_cont
   )
   return(result)
 }
@@ -2825,18 +2833,30 @@ extract_trt_results <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-# result_list[[1]] <- extract_trt_results(mort.28, "death at day 28")
-# result_list[[3]] <- extract_trt_results(mort.60, "death at day 60")
-# # result_list[[5]] <- extract_trt_results(ttdeath, "death within fup")
-# result_list[[6]] <- extract_trt_results(new.mv.28, "new MV within 28d")
-result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d") # adj: age, clinstatus, comed
-result_list[[8]] <- extract_trt_results(clin.28, "clinical status at day 28") # adj: age, clinstatus
-result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days") # adj: age, clinstatus, comed
-result_list[[10]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # adj: age,  comed
-result_list[[11]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event") # adj: age, clinstatus, comed
-result_list[[12]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days") # adj: age, clinstatus, comed
-result_list[[13]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days") # adj: age, clinstatus, comed
-result_list[[14]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days") # adj: age, clinstatus, comed
+result_list[[1]] <- extract_trt_results(mort.28.firth, "death at day 28_firth",
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[2]] <- extract_trt_results(mort.60.firth, "death at day 60_firth",
+                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
+# result_list[[5]] <- extract_trt_results(ttdeath, "death within fup", 
+#                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1])
+result_list[[6]] <- extract_trt_results(new.mv.28.firth, "new MV within 28d_firth",
+                                        addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[8]] <- extract_trt_results(clin.28, "clinical status at day 28",
+                                        addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
+result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[10]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age,  comed
+result_list[[11]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
+                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[12]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[13]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days",
+                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[14]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
+                                         addmargins(table(df$ae_28_sev, df$trt))[3,2], addmargins(table(df$ae_28_sev, df$trt))[3,1]) # adj: age, clinstatus, comed
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2844,58 +2864,6 @@ result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 result_df$trial <- "TOFACOV"
 
 ### Add the rare event results
-## Add the results from the firth regressions
-# mort.28.firth
-# summary(mort.28.firth)
-hazard_odds_ratio <- exp(coef(mort.28.firth)["trt"])
-ci_lower <- exp(mort.28.firth$ci.lower["trt"])
-ci_upper <- exp(mort.28.firth$ci.upper["trt"])
-standard_error <- c(1.31481383) # how to extract directly from the object?
-p_value <- c(0.5524355) # how to extract directly from the object?
-new_row <- data.frame(
-    variable = "death at day 28_firth",
-    hazard_odds_ratio = hazard_odds_ratio,
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    standard_error = standard_error,
-    p_value = p_value,
-    trial = "TOFACOV")
-result_df <- rbind(result_df, new_row) # adj: age, clinstatus
-
-# mort.60.firth
-# summary(mort.60.firth)
-hazard_odds_ratio <- exp(coef(mort.60.firth)["trt"])
-ci_lower <- exp(mort.60.firth$ci.lower["trt"])
-ci_upper <- exp(mort.60.firth$ci.upper["trt"])
-standard_error <- c(1.31481383) # how to extract directly from the object?
-p_value <- c(0.5524355) # how to extract directly from the object?
-new_row <- data.frame(
-    variable = "death at day 60_firth",
-    hazard_odds_ratio = hazard_odds_ratio,
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    standard_error = standard_error,
-    p_value = p_value,
-    trial = "TOFACOV")
-result_df <- rbind(result_df, new_row) # adj: age, clinstatus
-
-# new.mv.28.firth
-# summary(new.mv.28.firth)
-hazard_odds_ratio <- exp(coef(new.mv.28.firth)["trt"])
-ci_lower <- exp(new.mv.28.firth$ci.lower["trt"])
-ci_upper <- exp(new.mv.28.firth$ci.upper["trt"])
-standard_error <- c(1.38538287) # how to extract directly from the object?
-p_value <- c(0.2687398) # how to extract directly from the object?
-new_row <- data.frame(
-    variable = "new MV within 28d_firth",
-    hazard_odds_ratio = hazard_odds_ratio,
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    standard_error = standard_error,
-    p_value = p_value,
-    trial = "TOFACOV")
-result_df <- rbind(result_df, new_row) # adj: age, clinstatus
-
 ## Add the results from the 0.5-corrected models
 # mort.28.corr
 # summary(mort.28.corr)
@@ -2912,6 +2880,8 @@ new_row <- data.frame(
     ci_upper = ci_upper,
     standard_error = standard_error,
     p_value = p_value,
+    n_intervention = addmargins(table(df$mort_28, df$trt))[3,2], 
+    n_control = addmargins(table(df$mort_28, df$trt))[3,1],
     trial = "TOFACOV")
 result_df <- rbind(result_df, new_row) # no adj
 
@@ -2930,6 +2900,8 @@ new_row <- data.frame(
     ci_upper = ci_upper,
     standard_error = standard_error,
     p_value = p_value,
+    n_intervention = addmargins(table(df$mort_60, df$trt))[3,2], 
+    n_control = addmargins(table(df$mort_60, df$trt))[3,1],
     trial = "TOFACOV")
 result_df <- rbind(result_df, new_row) # no adj
 
@@ -2948,6 +2920,8 @@ new_row <- data.frame(
     ci_upper = ci_upper,
     standard_error = standard_error,
     p_value = p_value,
+    n_intervention = addmargins(table(df$new_mv_28, df$trt))[3,2], 
+    n_control = addmargins(table(df$new_mv_28, df$trt))[3,1],
     trial = "TOFACOV")
 result_df <- rbind(result_df, new_row) # no adj
 
@@ -2958,22 +2932,22 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial   |
-|:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|:-------|
-|trt   |new MV or death within 28d                 |         0.4681645| 0.0202358|   5.583582|      1.2882088| 0.5557673|TOFACOV |
-|trt1  |clinical status at day 28                  |         0.5089991| 0.0666734|   2.843006|      0.9065891| 0.4563383|TOFACOV |
-|trt2  |discharge within 28 days                   |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|TOFACOV |
-|trt3  |discharge within 28 days, death=comp.event |         1.2522755| 0.8672011|   1.808339|      0.1874762| 0.2300000|TOFACOV |
-|trt4  |discharge within 28 days, death=hypo.event |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|TOFACOV |
-|trt5  |sustained discharge within 28 days         |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|TOFACOV |
-|trt6  |any AE grade 3,4 within 28 days            |         0.6683255| 0.2294475|   1.908066|      0.5346138| 0.4509827|TOFACOV |
-|trt7  |AEs grade 3,4 within 28 days               |         0.6683255| 0.2294475|   1.908066|      0.5346138| 0.4509827|TOFACOV |
-|trt8  |death at day 28_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138| 0.5524355|TOFACOV |
-|trt9  |death at day 60_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138| 0.5524355|TOFACOV |
-|trt10 |new MV within 28d_firth                    |         0.2174501| 0.0015447|   2.877308|      1.3853829| 0.2687398|TOFACOV |
-|1     |death at day 28_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|TOFACOV |
-|11    |death at day 60_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|TOFACOV |
-|12    |new MV within 28d_0.5-corr                 |         0.1965217| 0.0092280|   4.185000|      1.0652480| 0.1266797|TOFACOV |
+|      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |
+|:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:-------|
+|trt   |death at day 28_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138|        NA|             58|        58|TOFACOV |
+|trt1  |death at day 60_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138|        NA|             58|        58|TOFACOV |
+|trt2  |new MV within 28d_firth                    |         0.2174501| 0.0015447|   2.877308|      1.3853829|        NA|             57|        58|TOFACOV |
+|trt3  |new MV or death within 28d                 |         0.4681645| 0.0202358|   5.583582|      1.2882088| 0.5557673|             58|        58|TOFACOV |
+|trt4  |clinical status at day 28                  |         0.5089991| 0.0666734|   2.843006|      0.9065891| 0.4563383|             58|        58|TOFACOV |
+|trt5  |discharge within 28 days                   |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|             58|        58|TOFACOV |
+|trt6  |discharge within 28 days, death=comp.event |         1.2522755| 0.8672011|   1.808339|      0.1874762| 0.2300000|             58|        58|TOFACOV |
+|trt7  |discharge within 28 days, death=hypo.event |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|             58|        58|TOFACOV |
+|trt8  |sustained discharge within 28 days         |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|             58|        58|TOFACOV |
+|trt9  |any AE grade 3,4 within 28 days            |         0.6683255| 0.2294475|   1.908066|      0.5346138| 0.4509827|             58|        58|TOFACOV |
+|trt10 |AEs grade 3,4 within 28 days               |         0.6683255| 0.2294475|   1.908066|      0.5346138| 0.4509827|             58|        58|TOFACOV |
+|1     |death at day 28_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|             58|        58|TOFACOV |
+|11    |death at day 60_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|             58|        58|TOFACOV |
+|12    |new MV within 28d_0.5-corr                 |         0.1965217| 0.0092280|   4.185000|      1.0652480| 0.1266797|             57|        58|TOFACOV |
 
 ```r
 # Save

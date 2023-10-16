@@ -837,8 +837,8 @@ result_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
-# Function to extract treatment results from different model types (glm, clm, coxph, crr)
-extract_trt_results <- function(model, variable_name) {
+# Function to extract treatment results from different model types (glm, clm, coxph, crr, logistf)
+extract_trt_results <- function(model, variable_name, n_int, n_cont) {
   if (inherits(model, "glm") || inherits(model, "clm")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -857,6 +857,12 @@ extract_trt_results <- function(model, variable_name) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
+  } else if (inherits(model, "logistf")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
+    se <- sqrt(diag(vcov(model)))["trt"]
+    p_value <- NA # how to extract directly from the object?
   } else {
     stop("Unsupported model class")
   }
@@ -867,7 +873,9 @@ extract_trt_results <- function(model, variable_name) {
     ci_lower = ci[1],
     ci_upper = ci[2],
     standard_error = se,
-    p_value = p_value
+    p_value = p_value,
+    n_intervention = n_int,
+    n_control = n_cont
   )
   return(result)
 }
@@ -875,59 +883,35 @@ extract_trt_results <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-# result_list[[1]] <- extract_trt_results(mort.28.firth, "death at day 28")
-# result_list[[2]] <- extract_trt_results(mort.60.firth, "death at day 60")
-# result_list[[3]] <- extract_trt_results(ttdeath, "death within fup")
-result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d") # adj: age, clinstatus, comed
-result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d") # adj: age, clinstatus, comed
-result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28") # adj: age, clinstatus
-result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days") # adj: age, clinstatus, comed
-result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event") # adj: age, comed
-result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event") # adj: age, clinstatus, comed
-result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days") # adj: age, clinstatus, comed
-result_list[[11]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days") # adj: age, clinstatus, comed
-result_list[[12]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days") # adj: age, clinstatus, comed
+result_list[[1]] <- extract_trt_results(mort.28.firth, "death at day 28_firth", 
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[2]] <- extract_trt_results(mort.60.firth, "death at day 60_firth", 
+                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
+# result_list[[3]] <- extract_trt_results(ttdeath, "death within fup", 
+#                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d", 
+                                        addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d", 
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28", 
+                                        addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
+result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days", 
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event", 
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, comed
+result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event", 
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days", 
+                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[11]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days", 
+                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+result_list[[12]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days", 
+                                         addmargins(table(df$ae_28_sev, df$trt))[8,2], addmargins(table(df$ae_28_sev, df$trt))[8,1]) # adj: age, clinstatus, comed
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 # Add the trial name
 result_df$trial <- "COVINIB"
-
-### Add the rare event results
-## Add the results from the firth regressions
-# mort.28.firth
-# summary(mort.28.firth)
-hazard_odds_ratio <- exp(coef(mort.28.firth)["trt"])
-ci_lower <- exp(mort.28.firth$ci.lower["trt"])
-ci_upper <- exp(mort.28.firth$ci.upper["trt"])
-standard_error <- c(1.36066586) # how to extract directly from the object?
-p_value <- c(0.20273970) # how to extract directly from the object?
-new_row <- data.frame(
-    variable = "death at day 28_firth",
-    hazard_odds_ratio = hazard_odds_ratio,
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    standard_error = standard_error,
-    p_value = p_value,
-    trial = "COVINIB")
-result_df <- rbind(result_df, new_row) # adj: age, clinstatus
-
-# mort.60.firth
-# summary(mort.60.firth)
-hazard_odds_ratio <- exp(coef(mort.60.firth)["trt"])
-ci_lower <- exp(mort.60.firth$ci.lower["trt"])
-ci_upper <- exp(mort.60.firth$ci.upper["trt"])
-standard_error <- c(1.36066586) # how to extract directly from the object?
-p_value <- c(0.20273970) # how to extract directly from the object?
-new_row <- data.frame(
-    variable = "death at day 60_firth",
-    hazard_odds_ratio = hazard_odds_ratio,
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    standard_error = standard_error,
-    p_value = p_value,
-    trial = "COVINIB")
-result_df <- rbind(result_df, new_row) # adj: age, clinstatus
 
 ## Add the results from the 0.5-corrected models
 # mort.28.corr
@@ -945,6 +929,8 @@ new_row <- data.frame(
     ci_upper = ci_upper,
     standard_error = standard_error,
     p_value = p_value,
+    n_intervention = addmargins(table(df$mort_28, df$trt))[3,2], 
+    n_control = addmargins(table(df$mort_28, df$trt))[3,1],
     trial = "COVINIB")
 result_df <- rbind(result_df, new_row) # no adj
 
@@ -963,6 +949,8 @@ new_row <- data.frame(
     ci_upper = ci_upper,
     standard_error = standard_error,
     p_value = p_value,
+    n_intervention = addmargins(table(df$mort_60, df$trt))[3,2],
+    n_control = addmargins(table(df$mort_60, df$trt))[3,1],
     trial = "COVINIB")
 result_df <- rbind(result_df, new_row) # no adj
 
