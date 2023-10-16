@@ -1,0 +1,132 @@
+---
+title: "Notebook"
+author: "A.Amstutz"
+date: "2023-10-16"
+output: 
+  html_document:
+    keep_md: yes
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+  pdf_document:
+    toc: yes
+---
+
+# The Guidance
+Richard Riley et al. Individual Participant Data Meta-Analysis: A Handbook for Healthcare Research
+https://www.ipdma.co.uk/description 
+
+
+# General
+1. Have new_mvd_28 as the primary endpoint definition for this secondary endpoint and not new_mv_28
+2. Use F&G also for sens-analysis (sustained discharge)?
+
+
+# Individual trials
+1. BariSolidact: 
+* Re QoL: Wait for other trials first. Find out more about the QoL measure used.
+* Ethnicity: Only country of birth available
+2. ACTT2:
+* For Country only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
+* mort_28: The 16 not treated were censored at day 0 or 1 (=> NA). The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 Were withdrawn by investigator, 1 Became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
+3. Ghazaeian: 
+* CAVE new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => not a single event in either arm!
+4. Tofacov: 
+5. Covinib: 
+* get comorb_autoimm and comorb_kidney
+* newmv: 5 missing: The two deaths (no MICE) and the three LTFU (but AFTER discharge) -> MICE or 0 ?
+
+
+# Two-stage approach
+"As the chosen regression model is estimated in each trial separately, a separate estimate of each parameter (i.e. αi , θi , β1i , β2i , ... is obtained for each trial. This process is also known as *stratifying* the estimation by trial, and implies that no information is shared across trials" (p. 93)
+
+## Adjustments across all endpoints and across all trials
+1. "First-stage analyses were also repeated with adjustment for x, to provide treatment effects conditional of this pre-defined prognostic factor." (p. 98)
+2. "When including prognostic factors that are recorded on a continuous scale, they should be ana- lysed on their continuous scale, as dichotomisation or categorisation is arbitrary and loses power.57,63,64 Thus, adjustment for continuous prognostic factors should at least assume a linear trend." (p. 103)
+3. "Where conditional treatment effects are of interest for meta-analysis and the pre-defined prog- nostic (adjustment) factors are systematically missing in some trials, then it is sensible to use the subset of factors that are consistently recorded. In particular, for treatment effects defined by odds ratios or hazard ratios, adjusting for different sets of prognostic factors is problematic due to non- collapsibility (Section 5.2.4); it will make the subsequent summary meta-analysis result hard to interpret and impact upon (often increase) the between-trial heterogeneity in treatment effect. Even for collapsible measures (such as mean differences and risk ratios), the weighting of a partic- ular trial in the meta-analysis may be influenced by whether a full or reduced set of prognostic fac- tors is used, and so it is better to be consistent across trials." (p. 106) 
+4. "Partially missing prognostic factor values in a trial can be handled (in each trial separately) by using mean imputation or the missing indicator method, which – although rightly criticised for use in other medical research applications – is actually appropriate for randomised trials aiming to esti- mate a treatment effect.78,87 Again, multiple imputation is a possible alternative (Chapter 18), for example to utilise additional prognostic factors and outcomes available in the IPD, or even to con- sider missing not at random assumptions.78" (p. 106) 
+
+* age
+
+* clinical status 2-5:
+⋅⋅⋅Not all trials enrolled all stages?
+⋅⋅⋅As binary ordinal scale 1-3 vs 4-5 or continuous? 
+⋅⋅⋅Numeric or factor? 
+⋅⋅⋅Also for the outcome "clinical status at day 28"?
+
+* covid comedication: toci, dexa, rdv:
+⋅⋅⋅BariSolidact: Only 1 with toci, 8 with rdv, nearly all with dexa
+⋅⋅⋅ACTT2: No comedication data, all in intervention also had rdv
+⋅⋅⋅Ghazaeian: Noone toci, all rdv, all dexa
+⋅⋅⋅Tofacov: Noone toci, nearly all rdv, nearly all dexa
+⋅⋅⋅Covinib: Noone toci, noone rdv, a few dexa
+
+* Consistency across all trials/models? With and without?
+
+## Subgroup analyses
+1. Respiratory support & comedication: Numeric or factor?
+2. Comorbidities: Numeric or factor or count?
+3. CRP: truncated or not?
+4. Adjustments across all models? With and without?
+3. Rare event correction? See firth regression in Ghazaeian, respiratory support, all 7 events only in clinstatus_baseline == 3
+
+*_Chapter7_*
+
+## How to deal with rare events and small trials
+1. binary outcomes (page 99): "A problem occurs in trials that have no outcome events (or no non-events) in either the treatment group or the control group, as then the treatment effect estimate (e.g. log odds ratio or log risk ratio) and its variance cannot be calculated because the regression model cannot be fitted.32–34 Then, the meta-analyst is faced with either throwing such trials away (which might be viewed as research waste) or adding extra information to their data to allow estimates to be derived. Traditionally, the latter is addressed in a particular trial by using a continuity correction, where a small number is added to each cell of the trial’s two-by-two table (i.e. that which tabulates the number of events and non-events for the treatment and control groups). Traditionally 0.5 is the value added,35 but Sweeting et al. suggest that a ‘treatment arm’ continuity correction is more appropriate,33 which adds 1/(sample size of the opposite treatment group) to the number of event and non-events. In the IPD context, a similar approach is to add two extra participants to each group in a trial if it has zero events in either of the groups; one of the added participants has the event and the other does not have the event in each group. Then, a weighted regression analysis can be performed to analyse the extended IPD, with all participants weighted equally except the four added participants, who are given a weight according to Sweeting correction (i.e. 1/(sample size of the opposite treat- ment group)). However, this approach becomes problematic when adjusting for prognostic factors or extending to non-binary variables. For this reason, a more general approach is to adopt Firth regression,36 which is a penalisation method that reduces small sample bias for non-linear models such as logistic regression, and resolves problems related to separation. Alternatively, researchers may revert to a one-stage IPD meta-analysis approach (Chapter 6),14,34 and placing random effects on parameters (rather than stratifying parameters by trial) so that estimation of trial-specific terms are avoided."
+2. time-to-event outcomes (page 102): "are few events in some trials adaptions of Firth’s correction are important to reduce small sample bias in the estimated treatment effect.45"
+3. Add 0.5 correction to crosstab, calculate ORs and then inverse variance pooling in second stage
+4. 2x2 directly into Mantel-Haenszel across several trials (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5297998/)? "The meta-analysis models described in Sections 5.3.1 and 5.3.2 are known as inverse variance meta- analysis methods. They combine trial estimates of treatment effect (i.e. θi), with weights accounting for the inverse of their estimated variances (i.e. s2i . Both the common-effect and random-effects models of (5.10) and (5.14) assume that the θi are normally distributed and that the s2i are known. Though these assumptions are appropriate when trials are reasonably large (in terms of number of participants and, if applicable, the number of events), they are more tenuous when trials are small or outcome events are rare;6,32,33 indeed, trial estimates of treatment effects and their variances may even be biased in such situations.98 To address this, other two-stage approaches have been proposed that use a different weighting scheme, such as the Mantel-Haenszel and Peto methods.99,100 For example, the Peto method combines log odds ratio estimates (derived using an approximate method) using model (5.11),99 but with wi equal to the hypergeometric variance of the event count in the treatment group. For time-to-event outcomes, an extension to the Peto method is to calculate log hazard ratio estimates and variances based on the log-rank statistics in each trial, and then apply model (5.11). Simulation results suggest that, compared to the inverse variance method, the Peto method works well when treatment effects are small, event risks are <1%, and when treatment and control group sizes within trials are balanced (i.e. similar numbers allocated to each).6,32 A key advantage is that it does not require continuity corrections in trials with a zero event in either treatment or control groups. How- ever, this issue can also be addressed by applying a one-stage IPD meta-analysis model (Chapter 6), which is our preference as it can be more easily extended to more complex models, such as includ- ing prognostic factors and treatment-covariate interactions" (p. 113)
+
+* BariSolidact: mort_28: 36 deaths (15 vs 21), 12 missing, 289 total. 12%
+* ACTT2: mort_28: 61 deaths (24 vs 37), 47 missing, 1033 total. 6%
+* Ghazaeian: mort_28: 7 deaths (3 vs 4), 0 missing, 97 total. 7% (but ae_28: only 1 AE grade 3,4)
+* Tofacov: mort_28: 1 death, 0 missing, 116 total. 0.8%
+* Covinib: mort_28: 2 deaths (0 vs 2), 3 missing, 110 total. 1.8%
+
+## Missing data
+1. for covariates of adjustment, see notes under first subtitle. For missing outcome data: "Some trials may have missing outcome values for some participants, with little or no missing data in covariates included in the analysis. Then, if missing outcomes are considered ‘missing at random’ (that is, that the probability of being missing depends only on the observed data for included covariates such as treatment and prognostic factors), Sullivan et al. recommend generally using complete-case analysis for a single outcome or a likelihood-based approach for multiple outcomes (e.g. linear mixed model for multiple continuous outcomes).78 They note that for randomised trials aiming to estimate a treatment effect, “multiple imputation can be inferior to complete-case analysis and likelihood-based approaches, adding in unnecessary simu- lation error” and that complete-case analysis “is optimal when missing data are restricted to a univariate outcome and variables associated with missingness are included as covariates in the analysis model”.78 This agrees with Groenwold et al., who state that for randomised trials “com- plete-case analysis with covariate adjustment and multiple imputation yield similar estimates in the event of missing outcome data, as long as the same predictors of missingness are included. Hence, complete case analysis with covariate adjustment can and should be used as the analysis of choice more often”.79 The missing at random assumption is more plausible when prognostic fac- tors are included as adjustment covariates in the analysis model (or the imputation model80), which gives further weight to our recommendation to include a pre-defined set of prognostic factors (Section 5.2.4)." (p. 105)
+2. "Where multiple imputation is used, it is important to impute separately for each randomised group as this offers greater robustness.78"  (p. 105)
+
+* BariSolidact:
+⋅⋅⋅vacc: 5 missing -> MICE for subgroup analysis?
+⋅⋅⋅mort_28 & mort_60 outcomes: 12 missing -> MICE as SENS
+⋅⋅⋅new_mv_28 & new_mvd_28: 11 missing -> MICE as SENS
+* ACTT2: 
+⋅⋅⋅sympdur & comorbities -> MICE?
+⋅⋅⋅mort_28 (& mort_60): 47 missing -> MICE for SENS
+⋅⋅⋅new_mv_28 & new_mvd_28: 26 missing -> MICE for SENS
+* Ghazaeian: No missing (besides 2 in CRP)
+* Tofacov: No missing (besides 1 in CRP)
+* Covinib: 3-5 NAs in mort_28/mort_60/new_mv_28/new_mvd_28: MICE
+
+*_Chapter18_*
+
+## Second stage
+1. "Usually the assumption of a common treatment effect will be inappropriate, as the true effect of a treatment is likely to vary across trials. This is known as between-trial heterogeneity in treatment effect, and it occurs when the distribution of any treatment effect modifiers (i.e. methodological, clinical or participant-level characteristics that influence the magnitude of a treatment’s effect) varies across trials included in the IPD meta-analysis. Examples of potential effect modifiers include follow-up length, the dose of the treatment, the type of intervention in the control group (e.g. usual care), trial quality (risk of bias), and participant-level covariates that interact with treatment response. To allow for between-trial heterogeneity in treatment effect, the θi can be made random,89,90 such that the true treatment effects are allowed to be different but assumed to be drawn from a particular distribution, such as a normal distribution."
+2. "Model (5.14) is often loosely termed a random-effects meta-analysis; however, it is more explicit to refer to it as a random treatment effects meta-analysis (indeed, in subsequent chapters we introduce IPD meta-analysis models that place random effects on multiple parameters, not just the treatment effect). Usually the main interest is estimating the average treatment effect θ, which we also refer to as the summary treatment effect in this book. Conditional on having an estimate of τ2, the ML esti- mation solution for θ is again a weighted average of the treatment effect estimates" (p. 108/109)
+3. "In this situation, the w∗i weights (equation (5.17)) for each trial will be more similar to each other than the wi weights (equation (5.13)), such that larger and smaller trials will be more equally weighted when assuming random rather than common treatment effects. Some read- ers may view this as controversial, but it is a consequence of allowing for the heterogeneity in treat- ment effects, and estimating the average of a distribution of true treatment effects, rather than a single common treatment effect. A more equal weighting is of most concern when smaller trials are at a higher risk of bias, as then the distribution of true treatment effects is potentially distorted by the smaller trials. Sensitivity analyses excluding trials at high risk of bias are important in this situation (Chapter 9)." (p. 109)
+4. "Alongside the absolute magnitude of heterogeneity (τ2), it can also be helpful to report the mag- nitude of τ2 relative to the variation within each trial (i.e. the s2i ) given by the I2 statistic. I2 describes the percentage of variability in treatment effect esti- mates that is due to between-trial heterogeneity rather than chance. The value of I2 should not be used to decide between a common-effect or random-effects meta-analysis. Another common mis- take is to interpret I2 as a measure of the (absolute) amount of heterogeneity (i.e. to consider I2 as an estimate of τ2). This is dangerous, as I2 depends on the size of the within-trial variances; for exam- ple, if all trials are small and thus s2i values are large, I2 can be small (i.e. close to 0%) even when the magnitude of τ2 is large and important.97 Rather, I2 should be viewed as a measure of the impact of heterogeneity (τ2) on the summary treatment effect estimate, with the impact small if I2 is close to 0% and large if I2 is close to 100%. The heterogeneity of treatment effects can also be quantified by using a 95% prediction interval for the treatment effect in a new trial" (p. 112) -> see below, next point
+5. "Both the common-effect and random-effects models of (5.10) and (5.14) assume that the θi are normally distributed and that the s2i are known. Though these assumptions are appropriate when trials are reasonably large (in terms of number of participants and, if applicable, the number of events), they are more tenuous when trials are small or outcome events are rare;6,32,33 indeed, trial estimates of treatment effects and their variances may even be biased in such situations.98 To address this, other two-stage approaches have been proposed that use a different weighting scheme, such as the Mantel-Haenszel and Peto methods.99,100 For example, the Peto method combines log odds ratio estimates (derived using an approximate method) using model (5.11),99 but with wi equal to the hypergeometric variance of the event count in the treatment group. For time-to-event outcomes, an extension to the Peto method is to calculate log hazard ratio estimates and variances based on the log-rank statistics in each trial, and then apply model (5.11). Simulation results suggest that, compared to the inverse variance method, the Peto method works well when treatment effects are small, event risks are <1%, and when treatment and control group sizes within trials are balanced (i.e. similar numbers allocated to each).6,32 A key advantage is that it does not require continuity corrections in trials with a zero event in either treatment or control groups. How- ever, this issue can also be addressed by applying a one-stage IPD meta-analysis model (Chapter 6), which is our preference as it can be more easily extended to more complex models, such as includ- ing prognostic factors and treatment-covariate interactions" (p. 113)
+6. "Therefore, generally we recommend REML for fitting meta-analysis models assuming random treatment effects, and this is used when applying model (5.14) in Box 5.4 and Box 5.5. However, it is not perfect; as for other estimation methods, it has poor properties when trial sizes are small or the event of interest is rare. In situations where REML does not converge, the Paule Mandel approach is a viable alternative.95,109" (p. 113)
+7. "In summary, we generally recommend taking the HKSJ approach for deriving confidence inter- vals for the summary treatment effect following estimation of the random-effects meta-analysis model (5.14); however, if the standard method for deriving confidence intervals gives a wider inter- val than the HKSJ approach, then the standard confidence interval should (also) be presented.117" (p. 115)
+
+## Prediction interval
+1. "Predictive distributions are potentially the most relevant and complete statistical inferences to be drawn from random-effects meta-analyses.90" (p. 119)
+2. Section 5.3.10
+
+## Meta-regressions
+1. page 120
+* risk of bias
+* different JAK inhibitors
+
+## Add CTI biopharma trial 
+
+
+# One-stage approach
+"A potential concern, however, is that the second stage [of the two-stage approach] assumes treatment effect estimates in each trial are normally distributed and that their variances are known; this may be problematic when most trials in the meta-analysis are small (in terms of number of participants and/or events), and motivates rather using the one-stage approach described in the next chapter."
+
+## point 1
+
+
+

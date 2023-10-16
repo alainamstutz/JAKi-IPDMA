@@ -216,9 +216,8 @@ df %>%
 # Variant
 # Serology
 ```
-Clarifications and discussion points BASELINE data:
-1) 4 received Actemra (Tocilizumab) 2-4 days after randomization
-
+Discussion points BASELINE data:
+1. 4 received Actemra (Tocilizumab) 2-4 days after randomization
 
 # Endpoints
 ```{r echo=TRUE}
@@ -314,8 +313,6 @@ saveRDS(df_ae, file = "df_ae_ghazaeian.RData")
 
 ```
 Discussion points OUTCOME data:
-1) Get time to first adverse event?
-
 
 # Define final datasets, set references, summarize missing data and variables
 ```{r echo=TRUE}
@@ -371,23 +368,22 @@ missing_plot <- df_os %>%
 print(missing_plot)
 ```
 Discussion points
-1) Missing variables:
-  Baseline:
+1. Missing variables:
+* Baseline:
   - Vaccination
   - Viremia
   - Variant
   - Serology
-  Outcomes:
+* Outcomes:
   - viral load
-2) Missing data:
+2. Missing data:
 - crp: 2 NAs
 - NAs in new_mv_28, aesi_28, ae_28_list: Not part of denominator
-
 
 # (i) Primary outcome: Mortality at day 28
 ```{r}
 # adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
-table(df$mort_28, df$trt, useNA = "always")
+addmargins(table(df$mort_28, df$trt, useNA = "always"))
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
       + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
@@ -395,8 +391,7 @@ mort.28 <- df %>%
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) all (intervention + control) also had dexa and rdv. No-one had toci.
-
+1. all (intervention + control) also had dexa and rdv. No-one had toci.
 
 # (ii) Mortality at day 60
 ```{r}
@@ -408,8 +403,7 @@ mort.60 <- df %>%
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) max fup time was 28 days; thus mort_60 imputed from mort_28
-
+1. max fup time was 28 days; thus mort_60 imputed from mort_28
 
 # (iii) Time to death within max. follow-up time
 ```{r}
@@ -464,8 +458,6 @@ print(cz)
 plot(cz)
 ```
 Discussion points
-1) 
-
 
 # (iv) New mechanical ventilation among survivors within 28 days
 ```{r}
@@ -488,8 +480,7 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 
 ```
 Discussion points
-1) CAVE new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => not a single event in either arm!
-
+1. CAVE new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => not a single event in either arm!
 
 # (v) Clinical status at day 28
 ```{r warning=FALSE}
@@ -519,8 +510,6 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 ```
 Discussion points
-1)
-
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 ```{r warning=FALSE}
@@ -629,26 +618,23 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 Discussion points
-1) Use F&G for sens-analysis (sustained discharge)?
-2) "subdistribution / Fine & Gray" -> but here, the same as cause-specific, since noone was still hospitalized at day 28, all either dead (2) or discharged (1).
-3) Those in cont were faster discharged (because the sicker ones were all kept longer at hospital and died?) -> point estimate inconsistent with rest of outcomes.
-
+1. Use F&G for sens-analysis (sustained discharge)?
+2. "subdistribution / Fine & Gray" -> but here, the same as cause-specific, since noone was still hospitalized at day 28, all either dead (2) or discharged (1).
+3. Those in cont were faster discharged (because the sicker ones were all kept longer at hospital and died?) -> point estimate inconsistent with rest of outcomes.
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) Not available
-
+1. Not available
 
 # (viii) Quality of life at day 28 
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) Not available
-
+1. Not available
 
 # (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 ```{r warning=FALSE}
@@ -674,15 +660,12 @@ summary(ae.28.firth)
 
 ```
 Discussion points
-1) only 1 event, in int
-2) what to do with ae.28.sev
-
-
+1. only 1 event, in int
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
 # table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 3 included
-table(df$clinstatus_baseline, df$mort_28, df$trt, useNA = "always") # 0 in 2x2 table
+# table(df$clinstatus_baseline, df$mort_28, df$trt, useNA = "always") # 0 in 2x2 table
 # class(df$clinstatus_baseline)
 df$clinstatus_baseline_f <- df$clinstatus_baseline
 df$clinstatus_baseline <- as.numeric(df$clinstatus_baseline)
@@ -704,9 +687,8 @@ mort.28.vent.firth <- df %>%
 summary(mort.28.vent.firth)
 ```
 Discussion points
-1) How to apply rare event correction to interaction estimation?
-2) Firth regression?
-
+1. How to apply rare event correction to interaction estimation?
+2. Firth regression?
 
 # Subgroup analysis: Age on primary endpoint
 ```{r warning=FALSE}
@@ -719,8 +701,6 @@ mort.28.age <- df %>%
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # Subgroup analysis: Comorbidities on primary endpoint
 ```{r warning=FALSE}
@@ -755,8 +735,7 @@ mort.28.comorb.count <- df %>%
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Numeric or factor or count?
-
+1. Numeric or factor or count?
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 ```{r warning=FALSE}
@@ -790,16 +769,14 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 # summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Only Category 3 available => not possible / all (intervention + control) also had dexa and rdv. No-one had toci.
-
+1. Only Category 3 available => not possible / all (intervention + control) also had dexa and rdv. No-one had toci.
 
 # Subgroup analysis: Vaccination on adverse events
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) Vaccination data not available
-
+1. Vaccination data not available
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 ```{r warning=FALSE}
@@ -813,8 +790,6 @@ mort.28.symp <- df %>%
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # SENS Subgroup analysis: CRP on primary endpoint
 ```{r warning=FALSE}
@@ -828,16 +803,14 @@ mort.28.crp <- df %>%
 summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Truncated or not? How to standardize across studies (see Barisolidact)
-
+1. Truncated or not? How to standardize across studies (see Barisolidact)
 
 # SENS Subgroup analysis: Variant on primary endpoint
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) No data on variant available
-
+1. No data on variant available
 
 # Collect all treatment effect estimates across endpoints (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -954,8 +927,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_ghazaeian.RData")
 ```
 Discussion points
-1) Adjustments across all models.
-
+1. Adjustments across all models.
 
 # Collect all interaction estimates (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -1031,5 +1003,4 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_ghazaeian.RData")
 ```
 Discussion points
-1) Adjustments across all models. Firth?
-
+1. Adjustments across all models. Firth?

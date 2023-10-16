@@ -242,10 +242,9 @@ df <- df %>% # same 18 missing
 # Serology
 
 ```
-Clarifications and discussion points BASELINE data:
-1) For Country only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
-2) In the absence of a written policy, other experimental treatment and off-label use of marketed medications intended as specific treatment for Covid-19 were prohibited. This included glucocorticoids, which were permitted only for standard indications such as adrenal insufficiency, asthma exacerbation, laryngeal edema, septic shock, and acute respiratory distress syndrome.
-
+Discussion points BASELINE data:
+1. For Country only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
+2. In the absence of a written policy, other experimental treatment and off-label use of marketed medications intended as specific treatment for Covid-19 were prohibited. This included glucocorticoids, which were permitted only for standard indications such as adrenal insufficiency, asthma exacerbation, laryngeal edema, septic shock, and acute respiratory distress syndrome.
 
 # Endpoints
 ```{r echo=TRUE}
@@ -398,10 +397,8 @@ df$discharge_time_sus <- df$discharge_time
 
 ```
 Discussion points OUTCOME data:
-1) mort_28: The 16 not treated were censored at day 0 or 1 (=> NA). The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 Were withdrawn by investigator, 1 Became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
-2) Max follow-up time in ACTT-2 was 28 days; thus, mort_60 imputed from mort_28 (see study protocol)
-3) Get the (S)AE data
-
+1. mort_28: The 16 not treated were censored at day 0 or 1 (=> NA). The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 Were withdrawn by investigator, 1 Became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
+2. Get the (S)AE data
 
 # Define final dataset, set references, summarize missing data and variables
 ```{r echo=TRUE}
@@ -474,8 +471,8 @@ missing_plot <- df_os %>%
 print(missing_plot)
 ```
 Discussion points
-1) Missing variables:
-  Baseline:
+1. Missing variables:
+* Baseline:
   - ICU at enrolment
   - CRP
   - Viremia
@@ -483,21 +480,20 @@ Discussion points
   - Serology
   - Co-medication at baseline, except remdesivir (part of intervention)
   - Vaccination (still coming ?!?)
-  Outcomes:
+* Outcomes:
   - viral load
   - adverse events (still coming ?!?)
   - qol_28
-2) Missing data:
+2. Missing data:
 - sympdur & comorbities -> MICE?
 - crp & vl_baseline & variant
 - mort_28 (& mort_60): 47 missing -> MICE for SENS
 - new_mv_28 & new_mvd_28: 26 missing -> MICE for SENS
 
-
 # (i) Primary outcome: Mortality at day 28
 ```{r}
 # adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
-table(df$mort_28, df$trt, useNA = "always")
+addmargins(table(df$mort_28, df$trt, useNA = "always"))
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
       + age + clinstatus_baseline 
@@ -508,8 +504,7 @@ mort.28 <- df %>%
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
-
+1. respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
 
 # (ii) Mortality at day 60
 ```{r}
@@ -524,8 +519,6 @@ mort.60 <- df %>%
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # (iii) Time to death within max. follow-up time
 ```{r}
@@ -587,8 +580,6 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 Discussion points
-1) 
-
 
 # (iv) New mechanical ventilation among survivors within 28 days
 ```{r}
@@ -616,8 +607,6 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 
 ```
 Discussion points
-1) 
-
 
 # (v) Clinical status at day 28
 ```{r warning=FALSE}
@@ -649,8 +638,7 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 ```
 Discussion points
-1) keep clinstatus_baseline as adjustment? Highly correlated to outcome?
-
+1. keep clinstatus_baseline as adjustment? Highly correlated to outcome?
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 ```{r warning=FALSE}
@@ -805,24 +793,21 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 
 ```
 Discussion points
-1) Use F&G for sens-analysis (sustained discharge)?
-
+1. Use F&G for sens-analysis (sustained discharge)?
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) Not available
-
+1. Not available
 
 # (viii) Quality of life at day 28 
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) Not available
-
+1. Not available
 
 # (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 ```{r warning=FALSE}
@@ -832,8 +817,6 @@ Discussion points
 
 ```
 Discussion points
-1) 
-
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
@@ -852,8 +835,7 @@ mort.28.vent <- df %>%
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) numeric or factor?
-
+1. numeric or factor?
 
 # Subgroup analysis: Age on primary endpoint
 ```{r warning=FALSE}
@@ -868,8 +850,6 @@ mort.28.age <- df %>%
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # Subgroup analysis: Comorbidities on primary endpoint
 ```{r warning=FALSE}
@@ -910,24 +890,21 @@ mort.28.comorb.count <- df %>%
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Numeric or factor or count?
-
+1. Numeric or factor or count?
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) Comedication data not available
-
+1. Comedication data not available
 
 # Subgroup analysis: Vaccination on adverse events
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) Vaccination data not available
-
+1. Vaccination data not available
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 ```{r warning=FALSE}
@@ -943,24 +920,20 @@ mort.28.symp <- df %>%
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # SENS Subgroup analysis: CRP on primary endpoint
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) CRP not available
-
+1. CRP not available
 
 # SENS Subgroup analysis: Variant on primary endpoint
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) Variant data not available
-
+1. Variant data not available
 
 # Collect all treatment effect estimates across endpoints (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -1039,8 +1012,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_ACTT2.RData")
 ```
 Discussion points
-1) Adjustments across all models. In ACTT2: no comedication!
-
+1. Adjustments across all models. In ACTT2: no comedication!
 
 # Collect all interaction estimates (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -1097,5 +1069,4 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_ACTT2.RData")
 ```
 Discussion points
-1) Adjustments across all models. In ACTT2: no comedication!
-
+1. Adjustments across all models. In ACTT2: no comedication!

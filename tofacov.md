@@ -174,7 +174,6 @@ df %>%
 ```
 Discussion points
 
-
 # Endpoints
 
 ```r
@@ -265,18 +264,14 @@ df <- df %>%
 df_ae <- df %>% 
   select(id_pat, trt, ae_28_spec, ae_28_list, aesi_28)
 # Save
-save(df_ae, file = "df_ae_tofacitinib.RData")
+saveRDS(df_ae, file = "df_ae_tofacitinib.RData")
 ```
 Discussion points
-1) Get time to first adverse event?
-2) Outcome definition "new_mv_28" differs to original trial publication (included new non-invasive ventilations, i.e. clinstatus == 4)
-
+1. Outcome definition "new_mv_28" differs to original trial publication (included new non-invasive ventilations, i.e. clinstatus == 4)
 
 # Multiple imputation using chained equation
 
 Discussion points
-1)
-
 
 # Define final dataset, set references, summarize missing data and variables
 
@@ -309,7 +304,7 @@ df_os$vir_clear_5 <- NA
 df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
 # Save
-save(df_os, file = "df_os_tofacov.RData")
+saveRDS(df_os, file = "df_os_tofacov.RData")
 
 ## set references, re-level
 # df <- df %>% 
@@ -331,32 +326,32 @@ print(missing_plot)
 
 ![](tofacov_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 Discussion points
-1) Missing variables:
-  Baseline:
+1. Missing variables:
+* Baseline:
   - variant
   - sero
   - vl_baseline
   - clarify comorbidity categories (autoimmun, CKD, cancer)
-  Outcomes:
+* Outcomes:
   - vir_clear_5, vir_clear_10, vir_clear_15
-2) Missing data:
+2. Missing data:
 - 1 NA in crp 
 - NAs in new_mv_28, aesi_28, ae_28_list: Not part of denominator
-
 
 # (i) Primary outcome: Mortality at day 28
 
 ```r
 # adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
-table(df$mort_28, df$trt, useNA = "always")
+addmargins(table(df$mort_28, df$trt, useNA = "always"))
 ```
 
 ```
 ##       
-##         0  1 <NA>
-##   0    58 57    0
-##   1     0  1    0
-##   <NA>  0  0    0
+##          0   1 <NA> Sum
+##   0     58  57    0 115
+##   1      0   1    0   1
+##   <NA>   0   0    0   0
+##   Sum   58  58    0 116
 ```
 
 ```r
@@ -590,12 +585,11 @@ kable(mort.28.firth_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |:---|----------:|--------:|--------:|
 |trt |   2.536573| 0.127153| 380.1341|
 Discussion points
-1) Respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
-2) Rare event correction
+1. Respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
+2. Rare event correction
 -- Add 0.5 correction to crosstab, calculate ORs and then inverse variance pooling in second stage?
 -- 2x2 directly into Mantel-Haenszel across several trials (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5297998/)?
 -- Firth regression according to R.Riley IPDMA Handbook (page 99): "Traditionally 0.5 is the value added, but Sweeting et al. suggest that a ‘treatment arm’ continuity correction is more appropriate, which adds 1/(sample size of the opposite treatment group) to the number of event and non-events. In the IPD context, a similar approach is to add two extra participants to each group in a trial if it has zero events in either of the groups; one of the added participants has the event and the other does not have the event in each group. Then, a weighted regression analysis can be performed to analyse the extended IPD, with all participants weighted equally except the four added participants, who are given a weight according to Sweeting correction (i.e. 1/(sample size of the opposite treat- ment group)). However, this approach becomes problematic when adjusting for prognostic factors or extending to non-binary variables. For this reason, a more general approach is to adopt Firth regression, which is a penalisation method that reduces small sample bias for non-linear models such as logistic regression, and resolves problems related to separation. Alternatively, researchers may revert to a one-stage IPD meta-analysis approach and placing random effects on parameters (rather than stratifying parameters by trial) so that estimation of trial-specific terms are avoided."
-
 
 # (ii) Mortality at day 60
 
@@ -814,8 +808,6 @@ summary(mort.60.firth)
 ## Wald test = 36.19611 on 3 df, p = 6.806486e-08
 ```
 Discussion points
-1) 
-
 
 # (iii) Time to death within max. follow-up time
 
@@ -845,8 +837,7 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 #   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 Discussion points
-1) Result illogical. Time to event analysis not possible? R.Riley IPDMA handbook, page 102: "As for binary outcomes, when there are few events in some trials adaptions of Firth’s correction are important to reduce small sample bias in the estimated treatment effect." -> implement
-
+1. Result illogical. Time to event analysis not possible? R.Riley IPDMA handbook, page 102: "As for binary outcomes, when there are few events in some trials adaptions of Firth’s correction are important to reduce small sample bias in the estimated treatment effect." -> implement
 
 # (iv) New mechanical ventilation among survivors within 28 days
 
@@ -1190,8 +1181,6 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1)
-
 
 # (v) Clinical status at day 28
 
@@ -1248,8 +1237,6 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |age                  |age                  |   1.0319903| 0.9590140|     1.110520|
 |clinstatus_baseline3 |clinstatus_baseline3 |   0.5393065| 0.0859819|     3.382705|
 Discussion points
-1) 
-
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 
@@ -1559,18 +1546,15 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 |comed_toci          |NA     |NA         |NA          |
 Discussion points
 
-
 # (vii) Viral clearance up to day 5, day 10, and day 15
 
 Discussion points
-1) Not available
-
+1. Not available
 
 # (viii) Quality of life at day 28 
 
 Discussion points
-1) Not available
-
+1. Not available
 
 # (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 
@@ -1807,8 +1791,6 @@ summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) no time to first AE available
-
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -1944,9 +1926,8 @@ summary(mort.28.vent.firth)
 ## Wald test = 38.97522 on 4 df, p = 7.049024e-08
 ```
 Discussion points
-1) Does any interaction estimation make sense?
-2) Firth regression?
-
+1. Does any interaction estimation make sense?
+2. Firth regression?
 
 # Subgroup analysis: Age on primary endpoint
 
@@ -2067,8 +2048,8 @@ summary(mort.28.age.firth)
 ## Wald test = 39.92096 on 4 df, p = 4.494437e-08
 ```
 Discussion points
-1) Does any interaction estimation make sense?
-2) Firth regression?
+1. Does any interaction estimation make sense?
+2. Firth regression?
 
 
 # Subgroup analysis: Comorbidities on primary endpoint
@@ -2402,8 +2383,8 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) Does any interaction estimation make sense?
-
+1. Does any interaction estimation make sense?
+2. Firth regression?
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 
@@ -2514,9 +2495,8 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) Numerical or ordinal?
-2) Does any interaction estimation make sense?
-
+1. Does any interaction estimation make sense?
+2. Firth regression?
 
 # Subgroup analysis: Vaccination on adverse events
 
@@ -2614,8 +2594,6 @@ summ(ae.28.vacc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) 
-
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 
@@ -2701,8 +2679,8 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) Does any estimation make sense?
-
+1. Does any interaction estimation make sense?
+2. Firth regression?
 
 # SENS Subgroup analysis: CRP on primary endpoint
 
@@ -2788,14 +2766,13 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1) Does any estimation make sense?
+1. Does any interaction estimation make sense?
+2. Firth regression?
 
-
-# SENS Subgroup analysis: variant on primary endpoint
+# SENS Subgroup analysis: Variant on primary endpoint
 
 Discussion points
-1) No data on variant available
-
+1. No data on variant available
 
 # Collect all treatment effect estimates across endpoints (stage one)
 
@@ -3000,11 +2977,10 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 ```r
 # Save
-save(result_df, file = "trt_effects_tofacov.RData")
+saveRDS(result_df, file = "trt_effects_tofacov.RData")
 ```
 Discussion points
-1) Adjustments across all models
-
+1. Adjustments across all models
 
 # Collect all interaction estimates (stage one)
 
@@ -3066,8 +3042,8 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 ```r
 # Save
-save(interaction_df, file = "int_effects_tofacov.RData")
+saveRDS(interaction_df, file = "int_effects_tofacov.RData")
 ```
 Discussion points
-1) Can we really use ANY interaction estimates from TOFACOV?
-
+1. Can we really use ANY interaction estimates from TOFACOV?
+2. Firth regression?

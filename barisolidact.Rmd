@@ -12,7 +12,6 @@ output:
     toc: yes
 ---
 
-
 # Load packages
 ```{r load packages, echo=TRUE, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -34,22 +33,19 @@ library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
 ```
 
-
 # Load Data
 ```{r, include=FALSE}
 df <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/Bari-Solidact/bari_ipdma.sas7bdat")
 
 ```
 
-
 # Define ITT set
-9 participants (3 in int. / 6 in cont.) did not receive a single dose of baricitinib, or placebo, respectively.
-Main publication used mITT set excluding the 9, we use ITT set including them, to be consistent across included trials.
 ```{r}
 # df <- df %>% 
 #   filter(imp_adm_yn == 1)
 ```
-
+Discussion points:
+1. 9 participants (3 in int. / 6 in cont.) did not receive a single dose of baricitinib, or placebo, respectively. Main publication used mITT set excluding the 9, we use ITT set including them, to be consistent across included trials.
 
 # Baseline Characteristics
 ```{r echo=TRUE}
@@ -216,9 +212,8 @@ df <- df %>%
   mutate(sero = case_when(Anti_Spike_wt == "Positive" | Anti_Nucl_wt == "Positive" | anti_RBDwt == "Positive" ~ 1,
                              (Anti_Spike_wt == "Negative" | is.na(Anti_Spike_wt)) & (Anti_Nucl_wt == "Negative" | is.na(Anti_Nucl_wt)) & (anti_RBDwt == "Negative" | is.na(anti_RBDwt)) ~ 0))
 ```
-Clarifications and discussion points BASELINE data:
-1) Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91): steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> when was rescue therapie given, in relation to clinstatus (vs those not receiving rescue) -> investigate later
-
+Discussion points BASELINE data:
+1. Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91): steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> when was rescue therapie given, in relation to clinstatus (vs those not receiving rescue) -> investigate later
 
 # Endpoints
 ```{r echo=TRUE}
@@ -390,18 +385,15 @@ df <- df %>%
 
 ```
 Discussion points OUTCOME data:
-1) Discuss making new_mvd_28 the primary endpoint definition and not new_mv_28
-2) Re QoL: Wait for other trials first. Find out more about the QoL measure used.
-3) Get the safety data
-
+1. Discuss making new_mvd_28 the primary endpoint definition and not new_mv_28
+2. Re QoL: Wait for other trials first. Find out more about the QoL measure used.
+3. Get the safety data
 
 # Multiple imputation using chained equation
 ```{r}
 
 ```
 Discussion points
-1)
-
 
 # Define final dataset, set references, summarize missing data and variables
 ```{r echo=TRUE}
@@ -453,24 +445,23 @@ missing_plot <- df_os %>%
 print(missing_plot)
 ```
 Discussion points
-1) Missing variables:
-  Baseline:
+1. Missing variables:
+* Baseline:
   - Ethnicity: Only country of birth available
-  Outcomes:
+* Outcomes:
   - adverse events (still coming)
   - qol_28 (still working on it)
-2) Missing data:
+2. Missing data:
 - vacc: 5 missing -> MICE for subgroup analysis?
 - crp & vl_baseline & variant -> ignore
 - mort_28 & mort_60 outcomes: 12 missing -> MICE as SENS
 - new_mv_28 & new_mvd_28: 11 missing -> MICE as SENS
 - viral load (baseline and outcome) and variant data: substantial missing -> ignore
 
-
 # (i) Primary endpoint: Mortality at day 28
 ```{r warning=FALSE}
 # adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
-table(df$mort_28, df$trt, useNA = "always")
+addmargins(table(df$mort_28, df$trt, useNA = "always"))
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
       + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
@@ -478,8 +469,7 @@ mort.28 <- df %>%
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) adjustment respiratory support (as binary ordinal scale 1-3 vs 4-5 OR leave it as it is)? Bari-Solidact only included clinstatus 4 and 5. Numeric or factor?
-
+1. adjustment respiratory support (as binary ordinal scale 1-3 vs 4-5 OR leave it as it is)? Bari-Solidact only included clinstatus 4 and 5. Numeric or factor?
 
 # (ii) Mortality at day 60
 ```{r warning=FALSE}
@@ -491,8 +481,6 @@ mort.60 <- df %>%
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # (iii) Time to death within max. follow-up time
 ```{r warning=FALSE}
@@ -552,8 +540,6 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 Discussion points
-1) 
-
 
 # (iv) New mechanical ventilation among survivors within 28 days
 ```{r warning=FALSE}
@@ -578,8 +564,6 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 
 ```
 Discussion points
-1) 
-
 
 # (v) Clinical status at day 28
 ```{r warning=FALSE}
@@ -609,8 +593,7 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 ```
 Discussion points
-1) keep clinstatus_baseline as adjustment?
-
+1. keep clinstatus_baseline as adjustment?
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 ```{r warning=FALSE}
@@ -744,8 +727,7 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 
 ```
 Discussion points
-1) Use F&G for sens-analysis (sustained discharge)?
-
+1. Use F&G for sens-analysis (sustained discharge)?
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
 ```{r warning=FALSE}
@@ -772,16 +754,13 @@ vir.clear.15 <- df %>%
 summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # (viii) Quality of life at day 28 
 ```{r warning=FALSE}
 
 ```
 Discussion points
-1) detailed measures available - wait for other trials first
-
+1. detailed measures available - wait for other trials first
 
 # (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 ```{r warning=FALSE}
@@ -791,8 +770,6 @@ Discussion points
 
 ```
 Discussion points
-1) 
-
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
@@ -806,8 +783,7 @@ mort.28.vent <- df %>%
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) numeric or factor?
-
+1. numeric or factor?
 
 # Subgroup analysis: Age on primary endpoint
 ```{r warning=FALSE}
@@ -819,8 +795,6 @@ mort.28.age <- df %>%
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # Subgroup analysis: Comorbidities on primary endpoint
 ```{r warning=FALSE}
@@ -851,8 +825,7 @@ mort.28.comorb.count <- df %>%
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Numeric or factor or count?
-
+1. Numeric or factor or count?
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 ```{r warning=FALSE}
@@ -886,8 +859,7 @@ mort.28.comed.f <- df %>%
 summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Numeric or factor?
-
+1. Numeric or factor?
 
 # Subgroup analysis: Vaccination on adverse events
 ```{r warning=FALSE}
@@ -899,8 +871,6 @@ Discussion points
 # summ(X, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 ```{r warning=FALSE}
@@ -913,8 +883,6 @@ mort.28.symp <- df %>%
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # SENS Subgroup analysis: CRP on primary endpoint
 ```{r warning=FALSE}
@@ -937,8 +905,7 @@ mort.28.crp.trunc <- df %>%
 summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) Truncated or not?
-
+1. Truncated or not?
 
 # SENS Subgroup analysis: Variant on primary endpoint
 ```{r warning=FALSE}
@@ -951,8 +918,6 @@ mort.28.var <- df %>%
 summ(mort.28.var, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1) 
-
 
 # Collect all treatment effect estimates across endpoints (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -1034,8 +999,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_barisolidact.RData")
 ```
 Discussion points
-1) Adjustments across all models
-
+1. Adjustments across all models
 
 # Collect all interaction estimates (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -1092,5 +1056,4 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
-1) Adjustments across all models
-
+1. Adjustments across all models
