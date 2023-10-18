@@ -44,6 +44,7 @@ df <- read_xlsx("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente
 # Baseline Characteristics
 ```{r echo=TRUE}
 df$trial <- c("TOFACOV")
+df$JAKi <- c("Tofacitinib")
 df <- df %>%
   rename(id_pat = ID)
 df <- df %>% # no missing in sex
@@ -257,7 +258,7 @@ Discussion points
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, trial,
+  select(id_pat, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, trial,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -886,8 +887,10 @@ result_list[[14]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 day
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
-# Add the trial name
+
+# Add the trial name and JAKi
 result_df$trial <- "TOFACOV"
+result_df$JAKi <- "Tofacitinib"
 
 ### Add the rare event results
 ## Add the results from the 0.5-corrected models
@@ -908,7 +911,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$mort_28, df$trt))[3,2], 
     n_control = addmargins(table(df$mort_28, df$trt))[3,1],
-    trial = "TOFACOV")
+    trial = "TOFACOV",
+    JAKi = "Tofacitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # mort.60.corr
@@ -928,7 +932,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$mort_60, df$trt))[3,2], 
     n_control = addmargins(table(df$mort_60, df$trt))[3,1],
-    trial = "TOFACOV")
+    trial = "TOFACOV",
+    JAKi = "Tofacitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # new.mv.28.corr
@@ -948,7 +953,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$new_mv_28, df$trt))[3,2], 
     n_control = addmargins(table(df$new_mv_28, df$trt))[3,1],
-    trial = "TOFACOV")
+    trial = "TOFACOV",
+    JAKi = "Tofacitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # Nicely formatted table
@@ -1004,8 +1010,9 @@ result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 interaction_df$trial <- "TOFACOV"
+interaction_df$JAKi <- "Tofacitinib"
 
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%

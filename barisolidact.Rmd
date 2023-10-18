@@ -50,6 +50,7 @@ Discussion points:
 # Baseline Characteristics
 ```{r echo=TRUE}
 df$trial <- c("Bari-Solidact")
+df$JAKi <- c("Baricitinib")
 df <- df %>% ## no missing data
   rename(id_pat = PARTICIPANT_ID,
          trt = arm,
@@ -401,7 +402,7 @@ Discussion points
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, trial,
+  select(id_pat, trt, sex, age, trial, JAKi, 
          # ethn, 
          country, icu, sympdur, vacc, clinstatus_baseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
@@ -1005,8 +1006,9 @@ result_list[[13]] <- extract_trt_results(vir.clear.15, "viral clearance until da
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 result_df$trial <- "Bari-SolidAct"
+result_df$JAKi <- "Baricitinib"
 
 # Nicely formatted table
 kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -1062,8 +1064,9 @@ result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstat
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 interaction_df$trial <- "Bari-SolidAct"
+interaction_df$JAKi <- "Baricitinib"
 
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%

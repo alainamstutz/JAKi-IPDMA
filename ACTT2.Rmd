@@ -61,6 +61,7 @@ df <- df %>%
 # Baseline Characteristics
 ```{r echo=TRUE}
 df$trial <- c("ACTT2")
+df$JAKi <- c("Baricitinib")
 df <- df %>% ## no missing data // no randdate // ARM == 1 includes remdesivir!
   rename(id_pat = USUBJID,
          sex = SEX,
@@ -406,7 +407,7 @@ Discussion points OUTCOME data:
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, trial,
+  select(id_pat, trt, sex, age, trial, JAKi, 
          ethn, 
          # country, 
          # icu, 
@@ -1015,8 +1016,9 @@ result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge w
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 result_df$trial <- "ACTT-2"
+result_df$JAKi <- "Baricitinib"
 
 # Nicely formatted table
 kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -1072,8 +1074,9 @@ result_list[[4]] <- extract_interaction(mort.28.symp, "symptom duration") # adj:
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 interaction_df$trial <- "ACTT-2"
+interaction_df$JAKi <- "Baricitinib"
 
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%

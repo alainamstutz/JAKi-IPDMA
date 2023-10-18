@@ -44,6 +44,7 @@ df <- read_xlsx("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente
 # Baseline Characteristics
 ```{r echo=TRUE}
 df$trial <- c("Ghazaeian")
+df$JAKi <- c("Tofacitinib")
 df$country <- c("Iran")
 df$ethn <- c("Persian/Mazani")
 df <- df %>% # no missing in id_pat, trt, age, sex
@@ -320,7 +321,7 @@ Discussion points OUTCOME data:
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, ethn, trial,
+  select(id_pat, trt, sex, age, ethn, trial, JAKi, 
          country, icu, sympdur, 
          #vacc, 
          clinstatus_baseline,
@@ -905,8 +906,9 @@ result_list[[11]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 result_df$trial <- "Ghazaeian"
+result_df$JAKi <- "Tofacitinib"
 
 ### Add the rare event results
 ## Add the results from the 0.5-corrected models
@@ -984,8 +986,10 @@ result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstat
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
-# Add the trial name
+
+# Add the trial name and JAKi
 interaction_df$trial <- "Ghazaeian"
+interaction_df$JAKi <- "Tofacitinib"
 
 ### Add the rare event results
 ## Add the results from the firth regressions
