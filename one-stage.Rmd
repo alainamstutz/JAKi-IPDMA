@@ -124,6 +124,7 @@ addmargins(table(df_tot$trial, df_tot$mort_28, useNA = "always"))
 # table(df_tot$comed_rdv, df_tot$trt, useNA = "always")
 # table(df_tot$comed_toci, df_tot$trt, useNA = "always")
 
+## random intercept, common treatment effect, common residual variances
 mort28.os <- glmer(mort_28 ~ (1|trial) + trt + age + clinstatus_baseline ,
                    #+ comed_dexa + comed_rdv + comed_toci, 
                    data = df_tot, family = binomial)

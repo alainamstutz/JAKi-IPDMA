@@ -70,7 +70,7 @@ str(df_mort28)
 ```
 
 ```
-## 'data.frame':	5 obs. of  9 variables:
+## 'data.frame':	5 obs. of  10 variables:
 ##  $ variable         : chr  "death at day 28" "death at day 28" "death at day 28" "death at day 28_firth" ...
 ##  $ hazard_odds_ratio: num  0.656 0.704 0.791 2.537 0.182
 ##  $ ci_lower         : num  0.30018 0.39577 0.14728 0.12715 0.00131
@@ -80,6 +80,7 @@ str(df_mort28)
 ##  $ n_intervention   : num  137 494 46 58 53
 ##  $ n_control        : num  140 492 51 58 54
 ##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
 
 ```r
@@ -92,13 +93,13 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = T,
+                      prediction = F,
                       method.tau = "REML", # no difference with Paule-Mandel
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - mortality 28 days",
-                      # subset = trial == "x" | trial == "y" # exclude entirely
-                      # exclude = trial %in% c("MRC-1", "MRC-2")) # include in forestplot but exclude from analysis
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "COVINIB") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "COVINIB") # include in forestplot but exclude from analysis
                       )
 summary(mort28)
 ```
@@ -118,7 +119,6 @@ summary(mort28)
 ## 
 ##                                  OR           95%-CI     t p-value
 ## Random effects model (HK-SE) 0.6953 [0.3805; 1.2705] -1.67  0.1695
-## Prediction interval                 [0.3484; 1.3876]              
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 5.4355]; tau = 0 [0.0000; 2.3314]
@@ -133,7 +133,6 @@ summary(mort28)
 ## - Restricted maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
 ## - Hartung-Knapp adjustment for random effects model (df = 4)
-## - Prediction interval based on t-distribution (df = 3)
 ```
 
 ```r

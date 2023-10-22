@@ -82,13 +82,13 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = T,
+                      prediction = F,
                       method.tau = "REML", # no difference with Paule-Mandel
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - mortality 28 days",
-                      # subset = trial == "x" | trial == "y" # exclude entirely
-                      # exclude = trial %in% c("MRC-1", "MRC-2")) # include in forestplot but exclude from analysis
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "COVINIB") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "COVINIB") # include in forestplot but exclude from analysis
                       )
 summary(mort28)
 forest.meta(mort28,
