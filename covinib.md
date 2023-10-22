@@ -43,6 +43,7 @@ library(logistf) # Firth regression in case of rare events
 ```r
 # without the 2 that withdrew consent right after randomization, 1 in each group => 55 per group. See publication
 df$trial <- c("COVINIB")
+df$JAKi <- c("Baricitinib")
 df <- df %>%
   rename(id_pat = "Pat ID",
          trt = Trt,
@@ -373,7 +374,7 @@ Discussion points
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, trial,
+  select(id_pat, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, trial, JAKi, 
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -2804,8 +2805,10 @@ result_list[[12]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 day
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
-# Add the trial name
+
+# Add the trial name and JAKi
 result_df$trial <- "COVINIB"
+result_df$JAKi <- "Baricitinib"
 
 ## Add the results from the 0.5-corrected models
 # mort.28.corr
@@ -2825,7 +2828,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$mort_28, df$trt))[3,2], 
     n_control = addmargins(table(df$mort_28, df$trt))[3,1],
-    trial = "COVINIB")
+    trial = "COVINIB",
+    JAKi = "Baricitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # mort.60.corr
@@ -2845,7 +2849,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$mort_60, df$trt))[3,2],
     n_control = addmargins(table(df$mort_60, df$trt))[3,1],
-    trial = "COVINIB")
+    trial = "COVINIB",
+    JAKi = "Baricitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # Nicely formatted table
@@ -2855,21 +2860,21 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |
-|:-----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|---------:|:-------|
-|trt   |death at day 28_firth                      |         0.1815850| 0.0013083| 2.2871313|      1.3606659|        NA|             53|        54|COVINIB |
-|trt1  |death at day 60_firth                      |         0.1815850| 0.0013083| 2.2871313|      1.3606659|        NA|             53|        54|COVINIB |
-|trt2  |new MV within 28d                          |         0.2640381| 0.0363127| 1.2549071|      0.8602118| 0.1216071|             53|        52|COVINIB |
-|trt3  |new MV or death within 28d                 |         0.1975321| 0.0278862| 0.8744004|      0.8378952| 0.0529131|             53|        54|COVINIB |
-|trt4  |clinical status at day 28                  |         0.3212049| 0.0428055| 1.6548681|      0.8868231| 0.2003301|             55|        55|COVINIB |
-|trt5  |discharge within 28 days                   |         1.5350721| 1.0265954| 2.2953991|      0.2052739| 0.0368130|             55|        55|COVINIB |
-|trt6  |discharge within 28 days, death=comp.event |         1.5059446| 1.0177281| 2.2283645|      0.1999259| 0.0410000|             55|        55|COVINIB |
-|trt7  |discharge within 28 days, death=hypo.event |         1.5378194| 1.0283421| 2.2997099|      0.2053189| 0.0360748|             55|        55|COVINIB |
-|trt8  |sustained discharge within 28 days         |         1.5350721| 1.0265954| 2.2953991|      0.2052739| 0.0368130|             55|        55|COVINIB |
-|trt9  |any AE grade 3,4 within 28 days            |         0.8132692| 0.3101000| 2.1088917|      0.4847719| 0.6698370|             55|        53|COVINIB |
-|trt10 |AEs grade 3,4 within 28 days               |         0.5573314| 0.3044916| 0.9964835|      0.3004406| 0.0516796|             55|        53|COVINIB |
-|1     |death at day 28_0.5corr                    |         0.1962617| 0.0092010| 4.1860000|      1.0655099| 0.1264643|             53|        54|COVINIB |
-|11    |death at day 60_0.5corr                    |         0.1962617| 0.0092010| 4.1860000|      1.0655099| 0.1264643|             53|        54|COVINIB |
+|      |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |JAKi        |
+|:-----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|---------:|:-------|:-----------|
+|trt   |death at day 28_firth                      |         0.1815850| 0.0013083| 2.2871313|      1.3606659|        NA|             53|        54|COVINIB |Baricitinib |
+|trt1  |death at day 60_firth                      |         0.1815850| 0.0013083| 2.2871313|      1.3606659|        NA|             53|        54|COVINIB |Baricitinib |
+|trt2  |new MV within 28d                          |         0.2640381| 0.0363127| 1.2549071|      0.8602118| 0.1216071|             53|        52|COVINIB |Baricitinib |
+|trt3  |new MV or death within 28d                 |         0.1975321| 0.0278862| 0.8744004|      0.8378952| 0.0529131|             53|        54|COVINIB |Baricitinib |
+|trt4  |clinical status at day 28                  |         0.3212049| 0.0428055| 1.6548681|      0.8868231| 0.2003301|             55|        55|COVINIB |Baricitinib |
+|trt5  |discharge within 28 days                   |         1.5350721| 1.0265954| 2.2953991|      0.2052739| 0.0368130|             55|        55|COVINIB |Baricitinib |
+|trt6  |discharge within 28 days, death=comp.event |         1.5059446| 1.0177281| 2.2283645|      0.1999259| 0.0410000|             55|        55|COVINIB |Baricitinib |
+|trt7  |discharge within 28 days, death=hypo.event |         1.5378194| 1.0283421| 2.2997099|      0.2053189| 0.0360748|             55|        55|COVINIB |Baricitinib |
+|trt8  |sustained discharge within 28 days         |         1.5350721| 1.0265954| 2.2953991|      0.2052739| 0.0368130|             55|        55|COVINIB |Baricitinib |
+|trt9  |any AE grade 3,4 within 28 days            |         0.8132692| 0.3101000| 2.1088917|      0.4847719| 0.6698370|             55|        53|COVINIB |Baricitinib |
+|trt10 |AEs grade 3,4 within 28 days               |         0.5573314| 0.3044916| 0.9964835|      0.3004406| 0.0516796|             55|        53|COVINIB |Baricitinib |
+|1     |death at day 28_0.5corr                    |         0.1962617| 0.0092010| 4.1860000|      1.0655099| 0.1264643|             53|        54|COVINIB |Baricitinib |
+|11    |death at day 60_0.5corr                    |         0.1962617| 0.0092010| 4.1860000|      1.0655099| 0.1264643|             53|        54|COVINIB |Baricitinib |
 
 ```r
 # Save
@@ -2922,8 +2927,9 @@ result_list[[7]] <- extract_interaction(mort.28.crp, "crp")
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 interaction_df$trial <- "COVINIB"
+interaction_df$JAKi <- "Baricitinib"
 
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -2932,14 +2938,14 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                        |variable            | log_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value|trial   |
-|:-----------------------|:-------------------|--------------:|---------:|-------------:|--------------:|---------:|:-------|
-|trt:clinstatus_baseline |respiratory support |   0.000000e+00| 0.0000000|           Inf|    10486.22741| 0.9986192|COVINIB |
-|trt:age                 |age                 |   8.865057e-01| 0.0000000|  1.304701e+13|      412.50725| 0.9997670|COVINIB |
-|trt:comorb_cat          |comorbidity         |   9.017444e-01| 0.0000000| 1.835189e+189|     5018.89528| 0.9999836|COVINIB |
-|trt:comed_cat           |comedication        |   1.103354e+04| 0.0000000|           Inf|    12833.50557| 0.9994213|COVINIB |
-|trt:sympdur             |symptom duration    |   1.654451e+00| 0.0000000|  1.244735e+98|     2073.70776| 0.9998063|COVINIB |
-|trt:crp                 |crp                 |   1.004238e+00| 0.0059258|  1.701885e+02|       59.12446| 0.9999429|COVINIB |
+|                        |variable            | log_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value|trial   |JAKi        |
+|:-----------------------|:-------------------|--------------:|---------:|-------------:|--------------:|---------:|:-------|:-----------|
+|trt:clinstatus_baseline |respiratory support |   0.000000e+00| 0.0000000|           Inf|    10486.22741| 0.9986192|COVINIB |Baricitinib |
+|trt:age                 |age                 |   8.865057e-01| 0.0000000|  1.304701e+13|      412.50725| 0.9997670|COVINIB |Baricitinib |
+|trt:comorb_cat          |comorbidity         |   9.017444e-01| 0.0000000| 1.835189e+189|     5018.89528| 0.9999836|COVINIB |Baricitinib |
+|trt:comed_cat           |comedication        |   1.103354e+04| 0.0000000|           Inf|    12833.50557| 0.9994213|COVINIB |Baricitinib |
+|trt:sympdur             |symptom duration    |   1.654451e+00| 0.0000000|  1.244735e+98|     2073.70776| 0.9998063|COVINIB |Baricitinib |
+|trt:crp                 |crp                 |   1.004238e+00| 0.0059258|  1.701885e+02|       59.12446| 0.9999429|COVINIB |Baricitinib |
 
 ```r
 # Save

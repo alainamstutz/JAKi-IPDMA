@@ -42,6 +42,7 @@ library(logistf) # Firth regression in case of rare events
 
 ```r
 df$trial <- c("TOFACOV")
+df$JAKi <- c("Tofacitinib")
 df <- df %>%
   rename(id_pat = ID)
 df <- df %>% # no missing in sex
@@ -280,7 +281,7 @@ Discussion points
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, trial,
+  select(id_pat, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, trial,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -2860,8 +2861,10 @@ result_list[[14]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 day
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
-# Add the trial name
+
+# Add the trial name and JAKi
 result_df$trial <- "TOFACOV"
+result_df$JAKi <- "Tofacitinib"
 
 ### Add the rare event results
 ## Add the results from the 0.5-corrected models
@@ -2882,7 +2885,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$mort_28, df$trt))[3,2], 
     n_control = addmargins(table(df$mort_28, df$trt))[3,1],
-    trial = "TOFACOV")
+    trial = "TOFACOV",
+    JAKi = "Tofacitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # mort.60.corr
@@ -2902,7 +2906,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$mort_60, df$trt))[3,2], 
     n_control = addmargins(table(df$mort_60, df$trt))[3,1],
-    trial = "TOFACOV")
+    trial = "TOFACOV",
+    JAKi = "Tofacitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # new.mv.28.corr
@@ -2922,7 +2927,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$new_mv_28, df$trt))[3,2], 
     n_control = addmargins(table(df$new_mv_28, df$trt))[3,1],
-    trial = "TOFACOV")
+    trial = "TOFACOV",
+    JAKi = "Tofacitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # Nicely formatted table
@@ -2932,22 +2938,22 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |
-|:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:-------|
-|trt   |death at day 28_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138|        NA|             58|        58|TOFACOV |
-|trt1  |death at day 60_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138|        NA|             58|        58|TOFACOV |
-|trt2  |new MV within 28d_firth                    |         0.2174501| 0.0015447|   2.877308|      1.3853829|        NA|             57|        58|TOFACOV |
-|trt3  |new MV or death within 28d                 |         0.4681645| 0.0202358|   5.583582|      1.2882088| 0.5557673|             58|        58|TOFACOV |
-|trt4  |clinical status at day 28                  |         0.5089991| 0.0666734|   2.843006|      0.9065891| 0.4563383|             58|        58|TOFACOV |
-|trt5  |discharge within 28 days                   |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|             58|        58|TOFACOV |
-|trt6  |discharge within 28 days, death=comp.event |         1.2522755| 0.8672011|   1.808339|      0.1874762| 0.2300000|             58|        58|TOFACOV |
-|trt7  |discharge within 28 days, death=hypo.event |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|             58|        58|TOFACOV |
-|trt8  |sustained discharge within 28 days         |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|             58|        58|TOFACOV |
-|trt9  |any AE grade 3,4 within 28 days            |         0.6683255| 0.2294475|   1.908066|      0.5346138| 0.4509827|             58|        58|TOFACOV |
-|trt10 |AEs grade 3,4 within 28 days               |         0.6683255| 0.2294475|   1.908066|      0.5346138| 0.4509827|             58|        58|TOFACOV |
-|1     |death at day 28_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|             58|        58|TOFACOV |
-|11    |death at day 60_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|             58|        58|TOFACOV |
-|12    |new MV within 28d_0.5-corr                 |         0.1965217| 0.0092280|   4.185000|      1.0652480| 0.1266797|             57|        58|TOFACOV |
+|      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |JAKi        |
+|:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:-------|:-----------|
+|trt   |death at day 28_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138|        NA|             58|        58|TOFACOV |Tofacitinib |
+|trt1  |death at day 60_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138|        NA|             58|        58|TOFACOV |Tofacitinib |
+|trt2  |new MV within 28d_firth                    |         0.2174501| 0.0015447|   2.877308|      1.3853829|        NA|             57|        58|TOFACOV |Tofacitinib |
+|trt3  |new MV or death within 28d                 |         0.4681645| 0.0202358|   5.583582|      1.2882088| 0.5557673|             58|        58|TOFACOV |Tofacitinib |
+|trt4  |clinical status at day 28                  |         0.5089991| 0.0666734|   2.843006|      0.9065891| 0.4563383|             58|        58|TOFACOV |Tofacitinib |
+|trt5  |discharge within 28 days                   |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|             58|        58|TOFACOV |Tofacitinib |
+|trt6  |discharge within 28 days, death=comp.event |         1.2522755| 0.8672011|   1.808339|      0.1874762| 0.2300000|             58|        58|TOFACOV |Tofacitinib |
+|trt7  |discharge within 28 days, death=hypo.event |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|             58|        58|TOFACOV |Tofacitinib |
+|trt8  |sustained discharge within 28 days         |         1.2713952| 0.8582254|   1.883475|      0.2005156| 0.2311167|             58|        58|TOFACOV |Tofacitinib |
+|trt9  |any AE grade 3,4 within 28 days            |         0.6683255| 0.2294475|   1.908066|      0.5346138| 0.4509827|             58|        58|TOFACOV |Tofacitinib |
+|trt10 |AEs grade 3,4 within 28 days               |         0.6683255| 0.2294475|   1.908066|      0.5346138| 0.4509827|             58|        58|TOFACOV |Tofacitinib |
+|1     |death at day 28_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
+|11    |death at day 60_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
+|12    |new MV within 28d_0.5-corr                 |         0.1965217| 0.0092280|   4.185000|      1.0652480| 0.1266797|             57|        58|TOFACOV |Tofacitinib |
 
 ```r
 # Save
@@ -3000,8 +3006,9 @@ result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 interaction_df$trial <- "TOFACOV"
+interaction_df$JAKi <- "Tofacitinib"
 
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -3010,9 +3017,9 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                        |variable            | log_odds_ratio| ci_lower| ci_upper| standard_error|   p_value|trial   |
-|:-----------------------|:-------------------|--------------:|--------:|--------:|--------------:|---------:|:-------|
-|trt:clinstatus_baseline |respiratory support |       85316601|        0|      Inf|       21023.07| 0.9993069|TOFACOV |
+|                        |variable            | log_odds_ratio| ci_lower| ci_upper| standard_error|   p_value|trial   |JAKi        |
+|:-----------------------|:-------------------|--------------:|--------:|--------:|--------------:|---------:|:-------|:-----------|
+|trt:clinstatus_baseline |respiratory support |       85316601|        0|      Inf|       21023.07| 0.9993069|TOFACOV |Tofacitinib |
 
 ```r
 # Save

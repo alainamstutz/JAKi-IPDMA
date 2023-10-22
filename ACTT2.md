@@ -57,6 +57,7 @@ df <- df %>%
 
 ```r
 df$trial <- c("ACTT2")
+df$JAKi <- c("Baricitinib")
 df <- df %>% ## no missing data // no randdate // ARM == 1 includes remdesivir!
   rename(id_pat = USUBJID,
          sex = SEX,
@@ -439,7 +440,7 @@ Discussion points OUTCOME data:
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, trial,
+  select(id_pat, trt, sex, age, trial, JAKi, 
          ethn, 
          # country, 
          # icu, 
@@ -2279,8 +2280,9 @@ result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge w
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 result_df$trial <- "ACTT-2"
+result_df$JAKi <- "Baricitinib"
 
 # Nicely formatted table
 kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -2289,18 +2291,18 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|     |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_control|trial  |
-|:----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|---------:|:------|
-|trt  |death at day 28                            |         0.7040732| 0.3957723| 1.2350463|      0.2890288| 0.2247583|            494|       492|ACTT-2 |
-|trt1 |death at day 60                            |         0.7040732| 0.3957723| 1.2350463|      0.2890288| 0.2247583|            494|       492|ACTT-2 |
-|trt2 |death within fup                           |         0.7409249| 0.4415164| 1.2433733|      0.2641294| 0.2562656|            515|       518|ACTT-2 |
-|trt3 |new MV within 28d                          |         0.6873481| 0.4248321| 1.1042522|      0.2430476| 0.1229387|            437|       422|ACTT-2 |
-|trt4 |new MV or death within 28d                 |         0.6874157| 0.4667200| 1.0080115|      0.1961283| 0.0559949|            500|       499|ACTT-2 |
-|trt5 |clinical status at day 28                  |         0.6928205| 0.4961089| 0.9648921|      0.1695147| 0.0303944|            515|       518|ACTT-2 |
-|trt6 |discharge within 28 days                   |         1.2140636| 1.0596485| 1.3909807|      0.0694073| 0.0051947|            515|       518|ACTT-2 |
-|trt7 |discharge within 28 days, death=comp.event |         1.1601147| 1.0201821| 1.3192410|      0.0655817| 0.0240000|            515|       518|ACTT-2 |
-|trt8 |discharge within 28 days, death=hypo.event |         1.2108219| 1.0568667| 1.3872040|      0.0693844| 0.0058317|            515|       518|ACTT-2 |
-|trt9 |sustained discharge within 28 days         |         1.2140636| 1.0596485| 1.3909807|      0.0694073| 0.0051947|            515|       518|ACTT-2 |
+|     |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_control|trial  |JAKi        |
+|:----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|---------:|:------|:-----------|
+|trt  |death at day 28                            |         0.7040732| 0.3957723| 1.2350463|      0.2890288| 0.2247583|            494|       492|ACTT-2 |Baricitinib |
+|trt1 |death at day 60                            |         0.7040732| 0.3957723| 1.2350463|      0.2890288| 0.2247583|            494|       492|ACTT-2 |Baricitinib |
+|trt2 |death within fup                           |         0.7409249| 0.4415164| 1.2433733|      0.2641294| 0.2562656|            515|       518|ACTT-2 |Baricitinib |
+|trt3 |new MV within 28d                          |         0.6873481| 0.4248321| 1.1042522|      0.2430476| 0.1229387|            437|       422|ACTT-2 |Baricitinib |
+|trt4 |new MV or death within 28d                 |         0.6874157| 0.4667200| 1.0080115|      0.1961283| 0.0559949|            500|       499|ACTT-2 |Baricitinib |
+|trt5 |clinical status at day 28                  |         0.6928205| 0.4961089| 0.9648921|      0.1695147| 0.0303944|            515|       518|ACTT-2 |Baricitinib |
+|trt6 |discharge within 28 days                   |         1.2140636| 1.0596485| 1.3909807|      0.0694073| 0.0051947|            515|       518|ACTT-2 |Baricitinib |
+|trt7 |discharge within 28 days, death=comp.event |         1.1601147| 1.0201821| 1.3192410|      0.0655817| 0.0240000|            515|       518|ACTT-2 |Baricitinib |
+|trt8 |discharge within 28 days, death=hypo.event |         1.2108219| 1.0568667| 1.3872040|      0.0693844| 0.0058317|            515|       518|ACTT-2 |Baricitinib |
+|trt9 |sustained discharge within 28 days         |         1.2140636| 1.0596485| 1.3909807|      0.0694073| 0.0051947|            515|       518|ACTT-2 |Baricitinib |
 
 ```r
 # Save
@@ -2354,8 +2356,9 @@ result_list[[4]] <- extract_interaction(mort.28.symp, "symptom duration") # adj:
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 interaction_df$trial <- "ACTT-2"
+interaction_df$JAKi <- "Baricitinib"
 
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -2364,12 +2367,12 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                        |variable            | log_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial  |
-|:-----------------------|:-------------------|--------------:|---------:|--------:|--------------:|---------:|:------|
-|trt:clinstatus_baseline |respiratory support |      1.7465135| 0.8949053| 3.517276|      0.3473074| 0.1083715|ACTT-2 |
-|trt:age                 |age                 |      0.9910313| 0.9502784| 1.033385|      0.0213257| 0.6726926|ACTT-2 |
-|trt:comorb_cat          |comorbidity         |      0.8037548| 0.3348913| 1.930258|      0.4433790| 0.6222114|ACTT-2 |
-|trt:sympdur             |symptom duration    |      0.9530223| 0.8253460| 1.089607|      0.0708218| 0.4968780|ACTT-2 |
+|                        |variable            | log_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial  |JAKi        |
+|:-----------------------|:-------------------|--------------:|---------:|--------:|--------------:|---------:|:------|:-----------|
+|trt:clinstatus_baseline |respiratory support |      1.7465135| 0.8949053| 3.517276|      0.3473074| 0.1083715|ACTT-2 |Baricitinib |
+|trt:age                 |age                 |      0.9910313| 0.9502784| 1.033385|      0.0213257| 0.6726926|ACTT-2 |Baricitinib |
+|trt:comorb_cat          |comorbidity         |      0.8037548| 0.3348913| 1.930258|      0.4433790| 0.6222114|ACTT-2 |Baricitinib |
+|trt:sympdur             |symptom duration    |      0.9530223| 0.8253460| 1.089607|      0.0708218| 0.4968780|ACTT-2 |Baricitinib |
 
 ```r
 # Save

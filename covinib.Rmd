@@ -955,7 +955,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$mort_60, df$trt))[3,2],
     n_control = addmargins(table(df$mort_60, df$trt))[3,1],
-    trial = "COVINIB")
+    trial = "COVINIB",
+    JAKi = "Baricitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # Nicely formatted table

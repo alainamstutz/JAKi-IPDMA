@@ -50,6 +50,7 @@ Discussion points:
 
 ```r
 df$trial <- c("Bari-Solidact")
+df$JAKi <- c("Baricitinib")
 df <- df %>% ## no missing data
   rename(id_pat = PARTICIPANT_ID,
          trt = arm,
@@ -427,7 +428,7 @@ Discussion points
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, trial,
+  select(id_pat, trt, sex, age, trial, JAKi, 
          # ethn, 
          country, icu, sympdur, vacc, clinstatus_baseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
@@ -3312,8 +3313,9 @@ result_list[[13]] <- extract_trt_results(vir.clear.15, "viral clearance until da
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 result_df$trial <- "Bari-SolidAct"
+result_df$JAKi <- "Baricitinib"
 
 # Nicely formatted table
 kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -3322,21 +3324,21 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value| n_intervention| n_control|trial         |
-|:-----|:------------------------------------------|-----------------:|---------:|--------:|--------------:|---------:|--------------:|---------:|:-------------|
-|trt   |death at day 28                            |         0.6564886| 0.3001757| 1.402742|      0.3907344| 0.2814470|            137|       140|Bari-SolidAct |
-|trt1  |death at day 60                            |         0.9246251| 0.4640303| 1.835210|      0.3490735| 0.8223685|            137|       140|Bari-SolidAct |
-|trt2  |death within fup                           |         0.6218396| 0.3331061| 1.160845|      0.3184860| 0.1357880|            145|       144|Bari-SolidAct |
-|trt3  |new MV within 28d                          |         1.7053904| 0.8243377| 3.629051|      0.3755483| 0.1552084|            107|       104|Bari-SolidAct |
-|trt4  |new MV or death within 28d                 |         1.1121200| 0.6404560| 1.934779|      0.2812995| 0.7055973|            138|       140|Bari-SolidAct |
-|trt5  |clinical status at day 28                  |         1.1021607| 0.6649398| 1.831448|      0.2579487| 0.7060991|            145|       144|Bari-SolidAct |
-|trt6  |discharge within 28 days                   |         1.0085423| 0.7578700| 1.342127|      0.1457932| 0.9534756|            145|       144|Bari-SolidAct |
-|trt7  |discharge within 28 days, death=comp.event |         1.0495660| 0.7938911| 1.387582|      0.1424443| 0.7300000|            145|       144|Bari-SolidAct |
-|trt8  |discharge within 28 days, death=hypo.event |         1.0304317| 0.7738744| 1.372044|      0.1460861| 0.8374108|            145|       144|Bari-SolidAct |
-|trt9  |sustained discharge within 28 days         |         0.9920797| 0.7444529| 1.322074|      0.1465098| 0.9567159|            145|       144|Bari-SolidAct |
-|trt10 |viral clearance until day 5                |         1.5017463| 0.6380064| 3.622869|      0.4399578| 0.3553589|             62|        59|Bari-SolidAct |
-|trt11 |viral clearance until day 10               |         1.0910678| 0.5360772| 2.224284|      0.3619381| 0.8097055|             66|        61|Bari-SolidAct |
-|trt12 |viral clearance until day 15               |         1.0071540| 0.4957260| 2.047029|      0.3607270| 0.9842335|             67|        61|Bari-SolidAct |
+|      |variable                                   | hazard_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value| n_intervention| n_control|trial         |JAKi        |
+|:-----|:------------------------------------------|-----------------:|---------:|--------:|--------------:|---------:|--------------:|---------:|:-------------|:-----------|
+|trt   |death at day 28                            |         0.6564886| 0.3001757| 1.402742|      0.3907344| 0.2814470|            137|       140|Bari-SolidAct |Baricitinib |
+|trt1  |death at day 60                            |         0.9246251| 0.4640303| 1.835210|      0.3490735| 0.8223685|            137|       140|Bari-SolidAct |Baricitinib |
+|trt2  |death within fup                           |         0.6218396| 0.3331061| 1.160845|      0.3184860| 0.1357880|            145|       144|Bari-SolidAct |Baricitinib |
+|trt3  |new MV within 28d                          |         1.7053904| 0.8243377| 3.629051|      0.3755483| 0.1552084|            107|       104|Bari-SolidAct |Baricitinib |
+|trt4  |new MV or death within 28d                 |         1.1121200| 0.6404560| 1.934779|      0.2812995| 0.7055973|            138|       140|Bari-SolidAct |Baricitinib |
+|trt5  |clinical status at day 28                  |         1.1021607| 0.6649398| 1.831448|      0.2579487| 0.7060991|            145|       144|Bari-SolidAct |Baricitinib |
+|trt6  |discharge within 28 days                   |         1.0085423| 0.7578700| 1.342127|      0.1457932| 0.9534756|            145|       144|Bari-SolidAct |Baricitinib |
+|trt7  |discharge within 28 days, death=comp.event |         1.0495660| 0.7938911| 1.387582|      0.1424443| 0.7300000|            145|       144|Bari-SolidAct |Baricitinib |
+|trt8  |discharge within 28 days, death=hypo.event |         1.0304317| 0.7738744| 1.372044|      0.1460861| 0.8374108|            145|       144|Bari-SolidAct |Baricitinib |
+|trt9  |sustained discharge within 28 days         |         0.9920797| 0.7444529| 1.322074|      0.1465098| 0.9567159|            145|       144|Bari-SolidAct |Baricitinib |
+|trt10 |viral clearance until day 5                |         1.5017463| 0.6380064| 3.622869|      0.4399578| 0.3553589|             62|        59|Bari-SolidAct |Baricitinib |
+|trt11 |viral clearance until day 10               |         1.0910678| 0.5360772| 2.224284|      0.3619381| 0.8097055|             66|        61|Bari-SolidAct |Baricitinib |
+|trt12 |viral clearance until day 15               |         1.0071540| 0.4957260| 2.047029|      0.3607270| 0.9842335|             67|        61|Bari-SolidAct |Baricitinib |
 
 ```r
 # Save
@@ -3390,8 +3392,9 @@ result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstat
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 interaction_df$trial <- "Bari-SolidAct"
+interaction_df$JAKi <- "Baricitinib"
 
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -3400,14 +3403,14 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                         |variable            | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial         |
-|:------------------------|:-------------------|--------------:|---------:|------------:|--------------:|---------:|:-------------|
-|trt:clinstatus_baseline5 |respiratory support |      0.1771412| 0.0176719| 1.278619e+00|      1.0647029| 0.1040293|Bari-SolidAct |
-|trt:age                  |age                 |      1.0303420| 0.9576662| 1.112742e+00|      0.0378118| 0.4292279|Bari-SolidAct |
-|trt:comorb_cat           |comorbidity         |      1.0880965| 0.4238600| 2.883655e+00|      0.4825132| 0.8610960|Bari-SolidAct |
-|trt:comed_cat            |comedication        |   1630.0922525| 0.0000024| 1.675971e+83|    524.4423572| 0.9887475|Bari-SolidAct |
-|trt:sympdur              |symptom duration    |      0.8049900| 0.6341708| 1.013413e+00|      0.1183767| 0.0668769|Bari-SolidAct |
-|trt:crp                  |crp                 |      1.0001613| 0.9949679| 1.003066e+00|      0.0015319| 0.9161502|Bari-SolidAct |
+|                         |variable            | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:------------------------|:-------------------|--------------:|---------:|------------:|--------------:|---------:|:-------------|:-----------|
+|trt:clinstatus_baseline5 |respiratory support |      0.1771412| 0.0176719| 1.278619e+00|      1.0647029| 0.1040293|Bari-SolidAct |Baricitinib |
+|trt:age                  |age                 |      1.0303420| 0.9576662| 1.112742e+00|      0.0378118| 0.4292279|Bari-SolidAct |Baricitinib |
+|trt:comorb_cat           |comorbidity         |      1.0880965| 0.4238600| 2.883655e+00|      0.4825132| 0.8610960|Bari-SolidAct |Baricitinib |
+|trt:comed_cat            |comedication        |   1630.0922525| 0.0000024| 1.675971e+83|    524.4423572| 0.9887475|Bari-SolidAct |Baricitinib |
+|trt:sympdur              |symptom duration    |      0.8049900| 0.6341708| 1.013413e+00|      0.1183767| 0.0668769|Bari-SolidAct |Baricitinib |
+|trt:crp                  |crp                 |      1.0001613| 0.9949679| 1.003066e+00|      0.0015319| 0.9161502|Bari-SolidAct |Baricitinib |
 
 ```r
 # Save

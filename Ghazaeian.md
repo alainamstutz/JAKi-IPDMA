@@ -42,6 +42,7 @@ library(logistf) # Firth regression in case of rare events
 
 ```r
 df$trial <- c("Ghazaeian")
+df$JAKi <- c("Tofacitinib")
 df$country <- c("Iran")
 df$ethn <- c("Persian/Mazani")
 df <- df %>% # no missing in id_pat, trt, age, sex
@@ -354,7 +355,7 @@ Discussion points OUTCOME data:
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, ethn, trial,
+  select(id_pat, trt, sex, age, ethn, trial, JAKi, 
          country, icu, sympdur, 
          #vacc, 
          clinstatus_baseline,
@@ -2389,7 +2390,7 @@ result_list[[2]] <- extract_trt_results(mort.60, "death at day 60",
 result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
 # result_list[[x]] <- extract_trt_results(new.mv.28, "new MV within 28d",
-#                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # not possible
+#                                       addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # not possible
 result_list[[4]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
                                         addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus, comed
 result_list[[5]] <- extract_trt_results(clin.28, "clinical status at day 28",
@@ -2410,8 +2411,9 @@ result_list[[11]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 
-# Add the trial name
+# Add the trial name and JAKi
 result_df$trial <- "Ghazaeian"
+result_df$JAKi <- "Tofacitinib"
 
 ### Add the rare event results
 ## Add the results from the 0.5-corrected models
@@ -2432,7 +2434,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$ae_28, df$trt))[3,2], 
     n_control = addmargins(table(df$ae_28, df$trt))[3,1],
-    trial = "Ghazaeian")
+    trial = "Ghazaeian",
+    JAKi = "Tofacitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # Nicely formatted table
@@ -2442,20 +2445,20 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial     |
-|:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:---------|
-|trt   |death at day 28                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |
-|trt1  |death at day 60                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |
-|trt2  |death within fup                           |         0.8379501| 0.1873973|   3.746907|      0.7641607| 0.8170346|             46|        51|Ghazaeian |
-|trt3  |new MV or death within 28d                 |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |
-|trt4  |clinical status at day 28                  |         0.8256311| 0.1539462|   3.988879|      0.7975917| 0.8101502|             46|        51|Ghazaeian |
-|trt5  |discharge within 28 days                   |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |
-|trt6  |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |
-|trt7  |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812|   1.254624|      0.2150223| 0.3654539|             46|        51|Ghazaeian |
-|trt8  |sustained discharge within 28 days         |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |
-|trt9  |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989|        NA|             46|        51|Ghazaeian |
-|trt10 |AEs grade 3,4 within 28 days_firth         |         3.2247381| 0.1701822| 472.450898|      1.4759989|        NA|             46|        51|Ghazaeian |
-|1     |any AE grade 3,4 within 28 days_0.5-corr   |         3.3956044| 0.1349000|  85.440000|     21.7615051| 0.9552013|             46|        51|Ghazaeian |
+|      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial     |JAKi        |
+|:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:---------|:-----------|
+|trt   |death at day 28                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt1  |death at day 60                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt2  |death within fup                           |         0.8379501| 0.1873973|   3.746907|      0.7641607| 0.8170346|             46|        51|Ghazaeian |Tofacitinib |
+|trt3  |new MV or death within 28d                 |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt4  |clinical status at day 28                  |         0.8256311| 0.1539462|   3.988879|      0.7975917| 0.8101502|             46|        51|Ghazaeian |Tofacitinib |
+|trt5  |discharge within 28 days                   |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
+|trt6  |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
+|trt7  |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812|   1.254624|      0.2150223| 0.3654539|             46|        51|Ghazaeian |Tofacitinib |
+|trt8  |sustained discharge within 28 days         |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
+|trt9  |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989|        NA|             46|        51|Ghazaeian |Tofacitinib |
+|trt10 |AEs grade 3,4 within 28 days_firth         |         3.2247381| 0.1701822| 472.450898|      1.4759989|        NA|             46|        51|Ghazaeian |Tofacitinib |
+|1     |any AE grade 3,4 within 28 days_0.5-corr   |         3.3956044| 0.1349000|  85.440000|     21.7615051| 0.9552013|             46|        51|Ghazaeian |Tofacitinib |
 
 ```r
 # Save
@@ -2509,8 +2512,10 @@ result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstat
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
-# Add the trial name
+
+# Add the trial name and JAKi
 interaction_df$trial <- "Ghazaeian"
+interaction_df$JAKi <- "Tofacitinib"
 
 ### Add the rare event results
 ## Add the results from the firth regressions
@@ -2528,7 +2533,8 @@ new_row <- data.frame(
     ci_upper = ci_upper,
     standard_error = standard_error,
     p_value = p_value,
-    trial = "Ghazaeian")
+    trial = "Ghazaeian",
+    JAKi = "Tofacitinib")
 interaction_df <- rbind(interaction_df, new_row) # adj: age, clinstatus
 
 # Nicely formatted table
@@ -2538,13 +2544,13 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|               |variable                  | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial     |
-|:--------------|:-------------------------|--------------:|---------:|----------:|--------------:|---------:|:---------|
-|trt:age        |age                       |      1.0504721| 0.9508741|   1.180266|      0.0531186| 0.3539392|Ghazaeian |
-|trt:comorb_cat |comorbidity               |      1.9139158| 0.3278192|  16.486883|      0.9500040| 0.4944083|Ghazaeian |
-|trt:sympdur    |symptom duration          |      1.1956574| 0.6406956|   2.362071|      0.3232509| 0.5803940|Ghazaeian |
-|trt:crp        |crp                       |      0.9966468| 0.9552354|   1.034729|      0.0196176| 0.8640553|Ghazaeian |
-|trt            |respiratory support_firth |      0.8225652| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian |
+|               |variable                  | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial     |JAKi        |
+|:--------------|:-------------------------|--------------:|---------:|----------:|--------------:|---------:|:---------|:-----------|
+|trt:age        |age                       |      1.0504721| 0.9508741|   1.180266|      0.0531186| 0.3539392|Ghazaeian |Tofacitinib |
+|trt:comorb_cat |comorbidity               |      1.9139158| 0.3278192|  16.486883|      0.9500040| 0.4944083|Ghazaeian |Tofacitinib |
+|trt:sympdur    |symptom duration          |      1.1956574| 0.6406956|   2.362071|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
+|trt:crp        |crp                       |      0.9966468| 0.9552354|   1.034729|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
+|trt            |respiratory support_firth |      0.8225652| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
 
 ```r
 # Save

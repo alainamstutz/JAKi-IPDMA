@@ -929,7 +929,8 @@ new_row <- data.frame(
     p_value = p_value,
     n_intervention = addmargins(table(df$ae_28, df$trt))[3,2], 
     n_control = addmargins(table(df$ae_28, df$trt))[3,1],
-    trial = "Ghazaeian")
+    trial = "Ghazaeian",
+    JAKi = "Tofacitinib")
 result_df <- rbind(result_df, new_row) # no adj
 
 # Nicely formatted table
@@ -1007,7 +1008,8 @@ new_row <- data.frame(
     ci_upper = ci_upper,
     standard_error = standard_error,
     p_value = p_value,
-    trial = "Ghazaeian")
+    trial = "Ghazaeian",
+    JAKi = "Tofacitinib")
 interaction_df <- rbind(interaction_df, new_row) # adj: age, clinstatus
 
 # Nicely formatted table
