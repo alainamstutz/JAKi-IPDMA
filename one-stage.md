@@ -13,7 +13,8 @@ output:
 ---
 
 # Load packages
-```{r load packages, echo=TRUE, message=FALSE, warning=FALSE}
+
+```r
 library(tidyverse)
 library(readxl)
 library(writexl)
@@ -28,95 +29,14 @@ library(ggfortify) # autoplot
 library(lme4) # glmer / clmm
 library(sjPlot) # for tab_model
 library(glmmTMB) # to specify estimation method explicitly -> i.e. ML
-
 ```
 
 # Load standardized dataset of all trials
-```{r, include=FALSE}
-## barisolidact
-df_barisolidact <- readRDS("df_os_barisolidact.RData")
-df_barisolidact <- df_barisolidact %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
-         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
-         comed_cat,
-         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
-         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
-         crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
-         new_mv_28, new_mvd_28,
-         clinstatus_28_imp,
-         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         ae_28, ae_28_sev,
-         vir_clear_5, vir_clear_10, vir_clear_15)
-## actt2
-df_actt2 <- readRDS("df_os_actt2.RData")
-df_actt2 <- df_actt2 %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
-         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
-         comed_cat,
-         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
-         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
-         crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
-         new_mv_28, new_mvd_28,
-         clinstatus_28_imp,
-         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         ae_28, ae_28_sev,
-         vir_clear_5, vir_clear_10, vir_clear_15)
-## ghazaeian
-df_ghazaeian <- readRDS("df_os_ghazaeian.RData")
-df_ghazaeian <- df_ghazaeian %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
-         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
-         comed_cat,
-         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
-         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
-         crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
-         new_mv_28, new_mvd_28,
-         clinstatus_28_imp,
-         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         ae_28, ae_28_sev,
-         vir_clear_5, vir_clear_10, vir_clear_15)
-## tofacov
-df_tofacov <- readRDS("df_os_tofacov.RData")
-df_tofacov <- df_tofacov %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
-         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
-         comed_cat,
-         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
-         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
-         crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
-         new_mv_28, new_mvd_28,
-         clinstatus_28_imp,
-         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         ae_28, ae_28_sev,
-         vir_clear_5, vir_clear_10, vir_clear_15)
-## covinib
-df_covinib <- readRDS("df_os_covinib.RData")
-df_covinib <- df_covinib %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
-         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
-         comed_cat,
-         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
-         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
-         crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
-         new_mv_28, new_mvd_28,
-         clinstatus_28_imp,
-         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         ae_28, ae_28_sev,
-         vir_clear_5, vir_clear_10, vir_clear_15)
 
-# append
-df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib)
-str(df_tot)
-
-```
 
 # (i) Primary outcome: Mortality at day 28
-```{r warning=FALSE}
+
+```r
 # addmargins(table(df_tot$trial, df_tot$mort_28, useNA = "always"))
 # addmargins(table(df_tot$mort_28, df_tot$trt, useNA = "always"))
 # table(df_tot$age, df_tot$trt, useNA = "always")
@@ -291,11 +211,11 @@ mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n + tria
 #                               , subset = trial %in% c("Bari-Solidact", "ACTT2", "Ghazaeian")
 #                               )
 # tab_model(mort28.rtreat.strial.red)
-
 ```
 
 # collect effect estimates
-```{r}
+
+```r
 # Empty data frame to store the results
 result_df <- data.frame(
   variable = character(),
@@ -358,8 +278,94 @@ result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 # Nicely formatted table
 kable(result_df, format = "html", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-
 ```
+
+<table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:left;"> variable </th>
+   <th style="text-align:right;"> hazard_odds_ratio </th>
+   <th style="text-align:right;"> ci_lower </th>
+   <th style="text-align:right;"> ci_upper </th>
+   <th style="text-align:right;"> p_value </th>
+   <th style="text-align:right;"> n_intervention </th>
+   <th style="text-align:right;"> n_control </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 2.5 % </td>
+   <td style="text-align:left;"> common trt, random intercept, common age/clinstatus, no centering, ML </td>
+   <td style="text-align:right;"> 0.6884684 </td>
+   <td style="text-align:right;"> 0.4498382 </td>
+   <td style="text-align:right;"> 1.053687 </td>
+   <td style="text-align:right;"> 0.0855918 </td>
+   <td style="text-align:right;"> 788 </td>
+   <td style="text-align:right;"> 795 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2.5 %1 </td>
+   <td style="text-align:left;"> random trt, random intercept, common age/clinstatus, no centering, ML </td>
+   <td style="text-align:right;"> 0.6884684 </td>
+   <td style="text-align:right;"> 0.4498382 </td>
+   <td style="text-align:right;"> 1.053687 </td>
+   <td style="text-align:right;"> 0.0855918 </td>
+   <td style="text-align:right;"> 788 </td>
+   <td style="text-align:right;"> 795 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2.5 %2 </td>
+   <td style="text-align:left;"> random trt, stratified intercept, common age/clinstatus, no centering, ML </td>
+   <td style="text-align:right;"> 0.6943689 </td>
+   <td style="text-align:right;"> 0.4531068 </td>
+   <td style="text-align:right;"> 1.064094 </td>
+   <td style="text-align:right;"> 0.0939874 </td>
+   <td style="text-align:right;"> 788 </td>
+   <td style="text-align:right;"> 795 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2.5 %3 </td>
+   <td style="text-align:left;"> random trt, stratified intercept, common age/clinstatus, centered trt, ML </td>
+   <td style="text-align:right;"> 0.6943668 </td>
+   <td style="text-align:right;"> 0.4531057 </td>
+   <td style="text-align:right;"> 1.064090 </td>
+   <td style="text-align:right;"> 0.0939843 </td>
+   <td style="text-align:right;"> 788 </td>
+   <td style="text-align:right;"> 795 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2.5 %4 </td>
+   <td style="text-align:left;"> random trt, stratified intercept, common age/clinstatus, centered trt and centered age/clinstatus, ML </td>
+   <td style="text-align:right;"> 0.6943695 </td>
+   <td style="text-align:right;"> 0.4531063 </td>
+   <td style="text-align:right;"> 1.064097 </td>
+   <td style="text-align:right;"> 0.0939896 </td>
+   <td style="text-align:right;"> 788 </td>
+   <td style="text-align:right;"> 795 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2.5 %5 </td>
+   <td style="text-align:left;"> random trt, stratified intercept, random age/clinstatus, centered trt and centered age/clinstatus, ML </td>
+   <td style="text-align:right;"> 0.6816809 </td>
+   <td style="text-align:right;"> 0.4441410 </td>
+   <td style="text-align:right;"> 1.046264 </td>
+   <td style="text-align:right;"> 0.0795916 </td>
+   <td style="text-align:right;"> 788 </td>
+   <td style="text-align:right;"> 795 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2.5 %6 </td>
+   <td style="text-align:left;"> random trt, stratified intercept, stratified age/clinstatus, centered trt and centered age/clinstatus, ML </td>
+   <td style="text-align:right;"> 0.6798593 </td>
+   <td style="text-align:right;"> 0.4422924 </td>
+   <td style="text-align:right;"> 1.045030 </td>
+   <td style="text-align:right;"> 0.0785498 </td>
+   <td style="text-align:right;"> 788 </td>
+   <td style="text-align:right;"> 795 </td>
+  </tr>
+</tbody>
+</table>
 
 # Explanation of the different models
 
@@ -381,8 +387,24 @@ Justification: Although estimation of the exact likelihood is preferred, ML esti
 
 
 # new MV or death
-```{r warning=FALSE}
+
+```r
 addmargins(table(df_tot$trial, df_tot$new_mvd_28, useNA = "always"))
+```
+
+```
+##                
+##                    0    1 <NA>  Sum
+##   ACTT2          847  152   34 1033
+##   Bari-Solidact  205   73   11  289
+##   COVINIB         97   10    3  110
+##   Ghazaeian       90    7    0   97
+##   TOFACOV        113    3    0  116
+##   <NA>             0    0    0    0
+##   Sum           1352  245   48 1645
+```
+
+```r
 # addmargins(table(df_tot$mort_28, df_tot$trt, useNA = "always"))
 # table(df_tot$age, df_tot$trt, useNA = "always")
 # table(df_tot$clinstatus_baseline, df_tot$trt, useNA = "always")
@@ -394,6 +416,5 @@ addmargins(table(df_tot$trial, df_tot$new_mvd_28, useNA = "always"))
 #                    + comed_dexa + comed_rdv + comed_toci, 
 #                    data = df_tot, family = binomial)
 # tab_model(new.mvd.28.os)
-
 ```
 
