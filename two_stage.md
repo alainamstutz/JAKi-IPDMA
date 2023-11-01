@@ -31,8 +31,15 @@ library(meta)
 
 # Load treatment effect estimates from all trials
 
+```r
+df_barisolidact <- readRDS("trt_effects_barisolidact.RData")
+df_actt2 <- readRDS("trt_effects_actt2.RData")
+df_ghazaeian <- readRDS("trt_effects_ghazaeian.RData")
+df_tofacov <- readRDS("trt_effects_tofacov.RData")
+df_covinib <- readRDS("trt_effects_covinib.RData")
+```
 
-# Reshape dataframes for each outcome
+# Reshape dataframes for mort28
 
 ```r
 ### Create a list of all data frames / trials
