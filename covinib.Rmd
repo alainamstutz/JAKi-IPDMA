@@ -401,7 +401,8 @@ Discussion points
 addmargins(table(df$mort_28, df$trt, useNA = "always"))
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # Create a 2x2 contingency table
@@ -435,8 +436,7 @@ kable(mort.28.firth_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 Discussion points
-1. respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
-2. Rare event correction
+1. Rare event correction
 -- Add 0.5 correction to crosstab, calculate ORs and then inverse variance pooling in second stage?
 -- 2x2 directly into Mantel-Haenszel across several trials (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5297998/)?
 -- Firth regression according to R.Riley IPDMA Handbook (page 99): "Traditionally 0.5 is the value added, but Sweeting et al. suggest that a ‘treatment arm’ continuity correction is more appropriate, which adds 1/(sample size of the opposite treatment group) to the number of event and non-events. In the IPD context, a similar approach is to add two extra participants to each group in a trial if it has zero events in either of the groups; one of the added participants has the event and the other does not have the event in each group. Then, a weighted regression analysis can be performed to analyse the extended IPD, with all participants weighted equally except the four added participants, who are given a weight according to Sweeting correction (i.e. 1/(sample size of the opposite treat- ment group)). However, this approach becomes problematic when adjusting for prognostic factors or extending to non-binary variables. For this reason, a more general approach is to adopt Firth regression, which is a penalisation method that reduces small sample bias for non-linear models such as logistic regression, and resolves problems related to separation. Alternatively, researchers may revert to a one-stage IPD meta-analysis approach and placing random effects on parameters (rather than stratifying parameters by trial) so that estimation of trial-specific terms are avoided."
@@ -446,7 +446,8 @@ Discussion points
 table(df$mort_60, df$trt, useNA = "always")
 mort.60 <- df %>% 
   glm(mort_60 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # Create a 2x2 contingency table
@@ -466,7 +467,6 @@ mort.60.firth <- df %>%
       , data=.)
 summary(mort.60.firth)
 ```
-Discussion points
 
 # (iii) Time to death within max. follow-up time
 ```{r}
@@ -482,7 +482,8 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdeath <- df %>%
   coxph(Surv(death_time, death_reached) ~ trt
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
 
@@ -505,7 +506,7 @@ table(df$new_mv_28, df$trt, useNA = "always")
 new.mv.28 <- df %>% 
   glm(new_mv_28 ~ trt 
        + age + clinstatus_baseline 
-       + comed_dexa + comed_rdv + comed_toci
+       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
@@ -513,12 +514,12 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 table(df$new_mvd_28, df$trt, useNA = "always")
 new.mvd.28 <- df %>% 
   glm(new_mvd_28 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 ```
-Discussion points
 
 # (v) Clinical status at day 28
 ```{r warning=FALSE}
@@ -547,8 +548,6 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
-Discussion points
-1. adjustment?
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 ```{r warning=FALSE}
@@ -569,7 +568,8 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge <- df %>% 
   coxph(Surv(discharge_time, discharge_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_reg_tbl <- tbl_regression(ttdischarge, exp = TRUE)
 # Nicely formatted table
@@ -597,8 +597,8 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
 ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt
     + age
     #+ clinstatus_baseline
-    + comed_dexa + comed_rdv + comed_toci,
-    data = df)
+    #+ comed_dexa + comed_rdv + comed_toci
+    ,data = df)
 ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge.comp, exp = TRUE)
 # Nicely formatted table
 kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
@@ -616,7 +616,8 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
 # Nicely formatted table
@@ -643,7 +644,8 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge.sus <- df %>% 
   coxph(Surv(discharge_time_sus, discharge_reached_sus) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_sus_reg_tbl <- tbl_regression(ttdischarge.sus, exp = TRUE)
 # Nicely formatted table
@@ -672,7 +674,8 @@ Discussion points
 table(df$ae_28, df$trt, useNA = "always")
 ae.28 <- df %>% 
   glm(ae_28 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(ae.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
@@ -680,23 +683,22 @@ summ(ae.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 table(df$ae_28_sev, df$trt, useNA = "always")
 ae.28.sev <- df %>% 
   glm(ae_28_sev ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "poisson", data=.)
 summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 ```
-Discussion points
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
 # table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 2 - 3 included
 # table(df$clinstatus_baseline, df$mort_28, df$trt, useNA = "always") # 0 in 2x2 table
 # class(df$clinstatus_baseline)
-df$clinstatus_baseline_f <- df$clinstatus_baseline
-df$clinstatus_baseline <- as.numeric(df$clinstatus_baseline)
+df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
-  glm(mort_28 ~ trt*clinstatus_baseline
+  glm(mort_28 ~ trt*clinstatus_baseline_n
       + age 
       #+ clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
@@ -704,7 +706,7 @@ mort.28.vent <- df %>%
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # Firth regression
 mort.28.vent.firth <- df %>% 
-  logistf(mort_28 ~ trt*clinstatus_baseline
+  logistf(mort_28 ~ trt*clinstatus_baseline_n
       + age 
       #+ clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
@@ -720,7 +722,8 @@ Discussion points
 mort.28.age <- df %>% 
   glm(mort_28 ~ trt*age
       #+ age 
-      #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -733,8 +736,8 @@ table(df$comorb_cat, df$mort_28, useNA = "always")
 # class(df$comorb_cat)
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
-      #+ age 
-      #+ clinstatus_baseline 
+      + age 
+      + clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -745,7 +748,8 @@ df$comorb_cat_f <- as.factor(df$comorb_cat)
 mort.28.comorb.f <- df %>% 
   glm(mort_28 ~ trt*comorb_cat_f 
       + age 
-      #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # full comorbidity count
@@ -753,7 +757,8 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 mort.28.comorb.count <- df %>%
   glm(mort_28 ~ trt*comorb_count 
       + age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -771,7 +776,7 @@ Discussion points
 mort.28.comed <- df %>%
   glm(mort_28 ~ trt*comed_cat 
       + age 
-      + clinstatus_baseline 
+      #+ clinstatus_baseline 
       #+ comed_dexa 
       #+ comed_rdv 
       #+ comed_toci
@@ -785,7 +790,7 @@ Discussion points
 table(df$vacc, df$trt, useNA = "always") # only two vaccinated, both in intervention 
 ae.28.vacc <- df %>% 
   glm(ae_28 ~ trt*vacc
-      #+ age 
+      + age 
       #+ clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
@@ -798,8 +803,9 @@ Discussion points
 # table(df$sympdur, df$mort_28, useNA = "always")
 mort.28.symp <- df %>% 
   glm(mort_28 ~ trt*sympdur
-      #+ age 
-      #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -812,8 +818,9 @@ Discussion points
 # table(df$crp, df$mort_28, useNA = "always")
 mort.28.crp <- df %>% 
   glm(mort_28 ~ trt*crp
-      #+ age 
-      #+ clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -891,23 +898,23 @@ result_list[[2]] <- extract_trt_results(mort.60.firth, "death at day 60_firth",
 # result_list[[3]] <- extract_trt_results(ttdeath, "death within fup", 
 #                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d", 
-                                        addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d", 
-                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28", 
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
 result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days", 
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event", 
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age
 result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event", 
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days", 
-                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[11]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days", 
-                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[12]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days", 
-                                         addmargins(table(df$ae_28_sev, df$trt))[8,2], addmargins(table(df$ae_28_sev, df$trt))[8,1]) # adj: age, clinstatus, comed
+                                         addmargins(table(df$ae_28_sev, df$trt))[8,2], addmargins(table(df$ae_28_sev, df$trt))[8,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))

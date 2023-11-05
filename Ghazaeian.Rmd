@@ -387,7 +387,8 @@ Discussion points
 addmargins(table(df$mort_28, df$trt, useNA = "always"))
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -399,7 +400,8 @@ Discussion points
 table(df$mort_60, df$trt, useNA = "always")
 mort.60 <- df %>% 
   glm(mort_60 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -445,7 +447,8 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdeath <- df %>% 
   coxph(Surv(death_time, death_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
 # Nicely formatted table
@@ -475,7 +478,8 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 table(df$new_mvd_28, df$trt, useNA = "always")
 new.mvd.28 <- df %>% 
   glm(new_mvd_28 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
@@ -536,7 +540,8 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge <- df %>% 
   coxph(Surv(discharge_time, discharge_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_reg_tbl <- tbl_regression(ttdischarge, exp = TRUE)
 # Nicely formatted table
@@ -584,7 +589,8 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
 # Nicely formatted table
@@ -611,7 +617,8 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge.sus <- df %>% 
   coxph(Surv(discharge_time_sus, discharge_reached_sus) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_sus_reg_tbl <- tbl_regression(ttdischarge.sus, exp = TRUE)
 # Nicely formatted table
@@ -675,11 +682,10 @@ Discussion points
 # table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 3 included
 # table(df$clinstatus_baseline, df$mort_28, df$trt, useNA = "always") # 0 in 2x2 table
 # class(df$clinstatus_baseline)
-df$clinstatus_baseline_f <- df$clinstatus_baseline
-df$clinstatus_baseline <- as.numeric(df$clinstatus_baseline)
+df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
-  glm(mort_28 ~ trt*clinstatus_baseline
+  glm(mort_28 ~ trt*clinstatus_baseline_n
       #+ age 
       #+ clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
@@ -687,7 +693,7 @@ mort.28.vent <- df %>%
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # Firth regression
 mort.28.vent.firth <- df %>% 
-  logistf(mort_28 ~ trt*clinstatus_baseline
+  logistf(mort_28 ~ trt*clinstatus_baseline_n
       + age 
       + clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
@@ -697,6 +703,7 @@ summary(mort.28.vent.firth)
 Discussion points
 1. How to apply rare event correction to interaction estimation?
 2. Firth regression?
+3. numeric or factor?
 
 # Subgroup analysis: Age on primary endpoint
 ```{r warning=FALSE}
@@ -759,7 +766,7 @@ mort.28.comed <- df %>%
       + age 
       + clinstatus_baseline 
       #+ comed_dexa 
-      + comed_rdv 
+      #+ comed_rdv 
       #+ comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -797,7 +804,6 @@ mort.28.symp <- df %>%
       , family = "binomial", data=.)
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
-Discussion points
 
 # SENS Subgroup analysis: CRP on primary endpoint
 ```{r warning=FALSE}
@@ -879,29 +885,29 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
 result_list <- list()
 
 result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
-                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.60, "death at day 60",
-                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
-                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
 # result_list[[x]] <- extract_trt_results(new.mv.28, "new MV within 28d",
 #                                       addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # not possible
 result_list[[4]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
-                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[5]] <- extract_trt_results(clin.28, "clinical status at day 28",
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age
 result_list[[6]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
-                                        addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[10]] <- extract_trt_results(ae.28.firth, "any AE grade 3,4 within 28 days_firth",
                                          addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[11]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days_firth",
-                                         addmargins(table(df$ae_28_sev, df$trt))[3,2], addmargins(table(df$ae_28_sev, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                         addmargins(table(df$ae_28_sev, df$trt))[3,2], addmargins(table(df$ae_28_sev, df$trt))[3,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -982,7 +988,7 @@ result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: ag
 # result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") # not possible
 # result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
 result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus, comed
+result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
 # result_list[[x]] <- extract_interaction(mort.28.var, "variant") # not available
 
 # Filter out NULL results and bind the results into a single data frame

@@ -504,8 +504,6 @@ mort.28 <- df %>%
       , family = "binomial", data=.)
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
-Discussion points
-1. respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
 
 # (ii) Mortality at day 60
 ```{r}
@@ -519,7 +517,6 @@ mort.60 <- df %>%
       , family = "binomial", data=.)
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
-Discussion points
 
 # (iii) Time to death within max. follow-up time
 ```{r}
@@ -580,7 +577,6 @@ ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
 kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
-Discussion points
 
 # (iv) New mechanical ventilation among survivors within 28 days
 ```{r}
@@ -607,7 +603,6 @@ new.mvd.28 <- df %>%
 summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 ```
-Discussion points
 
 # (v) Clinical status at day 28
 ```{r warning=FALSE}
@@ -638,8 +633,6 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
-Discussion points
-1. keep clinstatus_baseline as adjustment? Highly correlated to outcome?
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 ```{r warning=FALSE}
@@ -822,11 +815,10 @@ Discussion points
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
 table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 5 included
-df$clinstatus_baseline_f <- df$clinstatus_baseline
-df$clinstatus_baseline <- as.numeric(df$clinstatus_baseline)
+df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
-  glm(mort_28 ~ trt*clinstatus_baseline
+  glm(mort_28 ~ trt*clinstatus_baseline_n
       + age 
      # + clinstatus_baseline 
      # + comed_dexa 

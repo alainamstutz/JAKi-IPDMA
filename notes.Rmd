@@ -45,7 +45,7 @@ a) age
 b) clinical status 2-5:
 * Not all trials enrolled all stages
 * Numeric or factor?
-* *__Decision 01.11.23__*: Don't assume linearity (numeric), use it as a factor
+* *__Decision 01.11.23__*: Don't assume linearity (numeric), use it as a factor (inkl. when centering in one-stage?)
 
 c) COVID comedication: toci, dexa, rdv
 * BariSolidact: Only 1 with toci, 8 with rdv, nearly all with dexa
@@ -53,15 +53,13 @@ c) COVID comedication: toci, dexa, rdv
 * Ghazaeian: Noone toci, all rdv, all dexa
 * Tofacov: Noone toci, nearly all rdv, nearly all dexa
 * Covinib: Noone toci, noone rdv, a few dexa
-* *__Decision 01.11.23__*: Drop this adjustment variable. Justification: consistency across trials/models; adjustment would not be by co-medication, but by trial; and collinearity in models.
-
+* *__Decision 01.11.23__*: Drop this adjustment variable. Justification: consistency across trials/models; adjustment would not be by co-medication, but by trial; and collinearity in models. Unadjusted analyses as sens-analysis (if needed).
 
 ## Subgroup analyses
-1. Respiratory support & comedication: Numeric or factor?
-2. Comorbidities: Factor
-3. CRP: truncated or not?
-4. Adjustments across all models? With and without?
-3. Rare event correction? See firth regression in Ghazaeian, respiratory support, all 7 events only in clinstatus_baseline == 3
+1. Respiratory support & comedication & comorbidity: Numeric or factor?
+2. CRP: truncated or not?
+3. Rare event correction? See e.g. firth regression in Ghazaeian, respiratory support, all 7 events only in clinstatus_baseline == 3
+
 
 *__Chapter7__* Using IPD Meta-Analysis to Examine Interactions between Treatment Effect and Participant-level Covariates
 
@@ -93,6 +91,15 @@ b) ACTT2:
 c) Ghazaeian: No missing (besides 2 in CRP)
 d) Tofacov: No missing (besides 1 in CRP)
 e) Covinib: 3-5 missings in mort_28/mort_60/new_mv_28/new_mvd_28 -> MICE for SENS or a different imputation technique?
+
+Alternative imputation strategy (based on ACTT2 clinicalstatus day 15):
+* Participant was randomized but had no clinical score data available for any timepoint (pre- or post-randomization): worse outcome but not death: 5 = ECMO/MV
+* Participant was discharged from the hospital not due to death or transfer to hospice/another hospital and was not readmitted again: 1 = out of hospital
+* Participant was discharged from the hospital due to transfer to hospice: 6 = death
+* Participant was discharged from the hospital due to transfer to another hospital: last observed value carried forward
+* Participant was withdrawn from the study while hospitalized (not due to death): last observed value carried forward
+BariSolidact: LVCF
+Covinib: Complete case
 
 *__Chapter18__*
 

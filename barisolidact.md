@@ -506,7 +506,8 @@ addmargins(table(df$mort_28, df$trt, useNA = "always"))
 ```r
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -551,7 +552,7 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -5.09 </td>
+   <td style="text-align:right;"> -5.85 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -567,47 +568,21 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
    <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> 4.82 </td>
+   <td style="text-align:right;"> 4.78 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.43 </td>
-   <td style="text-align:right;"> 0.96 </td>
-   <td style="text-align:right;"> 6.13 </td>
-   <td style="text-align:right;"> 1.88 </td>
+   <td style="text-align:right;"> 2.42 </td>
+   <td style="text-align:right;"> 0.97 </td>
+   <td style="text-align:right;"> 6.06 </td>
+   <td style="text-align:right;"> 1.89 </td>
    <td style="text-align:right;"> 0.06 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 2.94 </td>
-   <td style="text-align:right;"> 0.36 </td>
-   <td style="text-align:right;"> 24.35 </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 0.32 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.74 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 6.68 </td>
-   <td style="text-align:right;"> -0.27 </td>
-   <td style="text-align:right;"> 0.79 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
-1. adjustment respiratory support (as binary ordinal scale 1-3 vs 4-5 OR leave it as it is)? Bari-Solidact only included clinstatus 4 and 5. Numeric or factor?
 
 # (ii) Mortality at day 60
 
@@ -626,7 +601,8 @@ table(df$mort_60, df$trt, useNA = "always")
 ```r
 mort.60 <- df %>% 
   glm(mort_60 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -671,62 +647,37 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -5.31 </td>
+   <td style="text-align:right;"> -6.12 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
    <td style="text-align:right;"> 0.92 </td>
-   <td style="text-align:right;"> 0.47 </td>
-   <td style="text-align:right;"> 1.83 </td>
-   <td style="text-align:right;"> -0.22 </td>
-   <td style="text-align:right;"> 0.82 </td>
+   <td style="text-align:right;"> 0.46 </td>
+   <td style="text-align:right;"> 1.81 </td>
+   <td style="text-align:right;"> -0.25 </td>
+   <td style="text-align:right;"> 0.80 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.12 </td>
-   <td style="text-align:right;"> 5.05 </td>
+   <td style="text-align:right;"> 5.00 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.31 </td>
-   <td style="text-align:right;"> 0.99 </td>
-   <td style="text-align:right;"> 5.41 </td>
-   <td style="text-align:right;"> 1.93 </td>
+   <td style="text-align:right;"> 2.35 </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 5.48 </td>
+   <td style="text-align:right;"> 1.98 </td>
    <td style="text-align:right;"> 0.05 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 1.75 </td>
-   <td style="text-align:right;"> 0.36 </td>
-   <td style="text-align:right;"> 8.60 </td>
-   <td style="text-align:right;"> 0.69 </td>
-   <td style="text-align:right;"> 0.49 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.51 </td>
-   <td style="text-align:right;"> 0.06 </td>
-   <td style="text-align:right;"> 4.44 </td>
-   <td style="text-align:right;"> -0.61 </td>
-   <td style="text-align:right;"> 0.54 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # (iii) Time to death within max. follow-up time
 
@@ -818,7 +769,8 @@ plot(cz)
 # testing: cox ph
 ttdeath <- df %>% 
   coxph(Surv(death_time, death_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
 # Nicely formatted table
@@ -830,19 +782,15 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 |**Characteristic**    |**HR** |**95% CI** |**p-value** |
 |:---------------------|:------|:----------|:-----------|
-|Trial treatment group |0.62   |0.33, 1.16 |0.14        |
-|Age (years)           |1.08   |1.05, 1.12 |<0.001      |
+|Trial treatment group |0.77   |0.43, 1.38 |0.4         |
+|Age (years)           |1.08   |1.05, 1.11 |<0.001      |
 |clinstatus_baseline   |NA     |NA         |NA          |
 |1                     |NA     |NA         |NA          |
 |2                     |NA     |NA         |NA          |
 |3                     |NA     |NA         |NA          |
-|4                     |0.51   |0.26, 1.00 |0.050       |
+|4                     |0.47   |0.24, 0.92 |0.027       |
 |5                     |NA     |NA         |NA          |
 |6                     |NA     |NA         |NA          |
-|comed_dexa            |4.82   |1.03, 22.6 |0.046       |
-|Remdesivir at d1      |0.72   |0.10, 5.31 |0.7         |
-|Tocilizumab at d1     |0.00   |0.00, Inf  |>0.9        |
-Discussion points
 
 # (iv) New mechanical ventilation among survivors within 28 days
 
@@ -863,7 +811,7 @@ new.mv.28 <- df %>%
   glm(new_mv_28 ~ trt 
       + age 
       #+ clinstatus_baseline 
-      + comed_dexa + comed_rdv + comed_toci
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -906,50 +854,26 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.19 </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 2.43 </td>
-   <td style="text-align:right;"> -1.27 </td>
-   <td style="text-align:right;"> 0.20 </td>
+   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> 0.93 </td>
+   <td style="text-align:right;"> -2.05 </td>
+   <td style="text-align:right;"> 0.04 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.71 </td>
-   <td style="text-align:right;"> 0.82 </td>
-   <td style="text-align:right;"> 3.56 </td>
-   <td style="text-align:right;"> 1.42 </td>
-   <td style="text-align:right;"> 0.16 </td>
+   <td style="text-align:right;"> 1.54 </td>
+   <td style="text-align:right;"> 0.75 </td>
+   <td style="text-align:right;"> 3.16 </td>
+   <td style="text-align:right;"> 1.17 </td>
+   <td style="text-align:right;"> 0.24 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 0.97 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 0.94 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 0.77 </td>
-   <td style="text-align:right;"> 0.15 </td>
-   <td style="text-align:right;"> 4.09 </td>
-   <td style="text-align:right;"> -0.30 </td>
-   <td style="text-align:right;"> 0.76 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.02 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 98956049.61 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> -0.13 </td>
+   <td style="text-align:right;"> 0.89 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -974,7 +898,7 @@ new.mvd.28 <- df %>%
   glm(new_mvd_28 ~ trt 
       + age 
       + clinstatus_baseline 
-      + comed_dexa + comed_rdv + comed_toci
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1016,65 +940,40 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.03 </td>
-   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.19 </td>
-   <td style="text-align:right;"> -3.57 </td>
+   <td style="text-align:right;"> -4.32 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.11 </td>
-   <td style="text-align:right;"> 0.64 </td>
-   <td style="text-align:right;"> 1.93 </td>
-   <td style="text-align:right;"> 0.38 </td>
-   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> 0.61 </td>
+   <td style="text-align:right;"> 1.81 </td>
+   <td style="text-align:right;"> 0.18 </td>
+   <td style="text-align:right;"> 0.86 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.01 </td>
    <td style="text-align:right;"> 1.06 </td>
-   <td style="text-align:right;"> 3.29 </td>
+   <td style="text-align:right;"> 3.06 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 0.74 </td>
-   <td style="text-align:right;"> 0.33 </td>
-   <td style="text-align:right;"> 1.67 </td>
-   <td style="text-align:right;"> -0.72 </td>
-   <td style="text-align:right;"> 0.47 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 1.52 </td>
-   <td style="text-align:right;"> 0.39 </td>
-   <td style="text-align:right;"> 5.86 </td>
-   <td style="text-align:right;"> 0.61 </td>
-   <td style="text-align:right;"> 0.54 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.27 </td>
-   <td style="text-align:right;"> 0.03 </td>
-   <td style="text-align:right;"> 2.28 </td>
-   <td style="text-align:right;"> -1.20 </td>
-   <td style="text-align:right;"> 0.23 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 8152941.82 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.75 </td>
+   <td style="text-align:right;"> 0.34 </td>
+   <td style="text-align:right;"> 1.68 </td>
+   <td style="text-align:right;"> -0.69 </td>
+   <td style="text-align:right;"> 0.49 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # (v) Clinical status at day 28
 
@@ -1099,7 +998,7 @@ clin.28 <- df %>%
   clm(clinstatus_28_imp ~ trt 
       + age 
       + clinstatus_baseline 
-      + comed_dexa + comed_rdv + comed_toci
+      #+ comed_dexa + comed_rdv + comed_toci
       , link= c("logit"), data=.)
 # Summary and extract coefficients
 coefficients_table <- summary(clin.28)$coefficients
@@ -1121,21 +1020,16 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                     |Variable             |  Odds.Ratio|   CI.Lower|   CI.Upper|
-|:--------------------|:--------------------|-----------:|----------:|----------:|
-|1&#124;2             |1&#124;2             |  42.0958706|  7.7530157| 228.564262|
-|2&#124;3             |2&#124;3             |  49.6091986|  9.1168560| 269.947512|
-|3&#124;4             |3&#124;4             |  64.9018952| 11.8745476| 354.729810|
-|4&#124;5             |4&#124;5             |  85.6351041| 15.5367352| 472.002062|
-|5&#124;6             |5&#124;6             | 166.3246561| 29.1718451| 948.307903|
-|trt                  |trt                  |   1.1021607|  0.6647748|   1.827323|
-|age                  |age                  |   1.0569435|  1.0336080|   1.080806|
-|clinstatus_baseline5 |clinstatus_baseline5 |   2.5860234|  1.3459453|   4.968640|
-|comed_dexa           |comed_dexa           |   0.5946208|  0.2624203|   1.347357|
-|comed_rdv            |comed_rdv            |   0.2339044|  0.0273410|   2.001068|
-|comed_toci           |comed_toci           |  11.9103525|  0.6843917| 207.273827|
-Discussion points
-1. keep clinstatus_baseline as adjustment?
+|                     |Variable             | Odds.Ratio|   CI.Lower|    CI.Upper|
+|:--------------------|:--------------------|----------:|----------:|-----------:|
+|1&#124;2             |1&#124;2             |  62.612521| 15.3581907|  255.259742|
+|2&#124;3             |2&#124;3             |  73.328576| 17.8963385|  300.456993|
+|3&#124;4             |3&#124;4             |  95.109701| 23.0260446|  392.853196|
+|4&#124;5             |4&#124;5             | 124.745354| 29.9116414|  520.245715|
+|5&#124;6             |5&#124;6             | 241.877352| 56.0923037| 1043.006783|
+|trt                  |trt                  |   1.034573|  0.6280075|    1.704345|
+|age                  |age                  |   1.055827|  1.0331103|    1.079043|
+|clinstatus_baseline5 |clinstatus_baseline5 |   2.650606|  1.3871267|    5.064938|
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 
@@ -1193,7 +1087,8 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge <- df %>% 
   coxph(Surv(discharge_time, discharge_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_reg_tbl <- tbl_regression(ttdischarge, exp = TRUE)
 # Nicely formatted table
@@ -1205,18 +1100,15 @@ kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>
 
 |**Characteristic**    |**HR** |**95% CI** |**p-value** |
 |:---------------------|:------|:----------|:-----------|
-|Trial treatment group |1.01   |0.76, 1.34 |>0.9        |
+|Trial treatment group |1.07   |0.81, 1.42 |0.6         |
 |Age (years)           |0.98   |0.97, 0.99 |<0.001      |
 |clinstatus_baseline   |NA     |NA         |NA          |
 |1                     |NA     |NA         |NA          |
 |2                     |NA     |NA         |NA          |
 |3                     |NA     |NA         |NA          |
-|4                     |3.31   |1.95, 5.63 |<0.001      |
+|4                     |3.38   |1.99, 5.74 |<0.001      |
 |5                     |NA     |NA         |NA          |
 |6                     |NA     |NA         |NA          |
-|comed_dexa            |1.92   |0.84, 4.37 |0.12        |
-|Remdesivir at d1      |1.87   |0.86, 4.06 |0.11        |
-|Tocilizumab at d1     |0.00   |0.00, Inf  |>0.9        |
 
 ```r
 # Sub-distribution hazards, i.e., represents the rate per unit of time of the event as well as the influence of competing events. Instantaneous rate of occurrence of the given type of event in subjects who have not yet experienced an event of that type.
@@ -1313,8 +1205,8 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_cont) %>%
 ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt 
     + age 
     # + clinstatus_baseline
-    + comed_dexa + comed_rdv + comed_toci,
-    data = df)
+    #+ comed_dexa + comed_rdv + comed_toci
+    ,data = df)
 ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge.comp, exp = TRUE)
 # Nicely formatted table
 kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
@@ -1325,11 +1217,8 @@ kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"
 
 |**Characteristic**    |**HR** |**95% CI** |**p-value** |
 |:---------------------|:------|:----------|:-----------|
-|Trial treatment group |1.05   |0.79, 1.39 |0.7         |
+|Trial treatment group |1.11   |0.85, 1.46 |0.4         |
 |Age (years)           |0.97   |0.96, 0.98 |<0.001      |
-|comed_dexa            |1.71   |0.75, 3.90 |0.2         |
-|Remdesivir at d1      |1.76   |0.88, 3.51 |0.11        |
-|Tocilizumab at d1     |0.00   |0.00, 0.00 |<0.001      |
 
 ```r
 # Censoring and assigned worst outcome (28d) to competing event (death) // hypothetical estimand where no-one died. (Another option could be, but we don't do it, is to exclude the deaths entirely, i.e. discharge among those that survived (but that might bias in favour of those in control that died more, i.e. healthier comparator))
@@ -1349,7 +1238,8 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
 # Nicely formatted table
@@ -1361,18 +1251,15 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 
 |**Characteristic**    |**HR** |**95% CI** |**p-value** |
 |:---------------------|:------|:----------|:-----------|
-|Trial treatment group |1.03   |0.77, 1.37 |0.8         |
+|Trial treatment group |1.08   |0.82, 1.44 |0.6         |
 |Age (years)           |0.97   |0.96, 0.98 |<0.001      |
 |clinstatus_baseline   |NA     |NA         |NA          |
 |1                     |NA     |NA         |NA          |
 |2                     |NA     |NA         |NA          |
 |3                     |NA     |NA         |NA          |
-|4                     |3.50   |2.06, 5.94 |<0.001      |
+|4                     |3.53   |2.08, 6.00 |<0.001      |
 |5                     |NA     |NA         |NA          |
 |6                     |NA     |NA         |NA          |
-|comed_dexa            |1.63   |0.72, 3.70 |0.2         |
-|Remdesivir at d1      |1.50   |0.69, 3.25 |0.3         |
-|Tocilizumab at d1     |0.00   |0.00, Inf  |>0.9        |
 
 ```r
 # Assessing proportional hazards (using default discharge_time and discharge_reached) -> see KM plots, after the point when the curves really stqrt diverging, it does not cross over again
@@ -1413,7 +1300,8 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge.sus <- df %>% 
   coxph(Surv(discharge_time_sus, discharge_reached_sus) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_sus_reg_tbl <- tbl_regression(ttdischarge.sus, exp = TRUE)
 # Nicely formatted table
@@ -1425,18 +1313,15 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 
 |**Characteristic**    |**HR** |**95% CI** |**p-value** |
 |:---------------------|:------|:----------|:-----------|
-|Trial treatment group |0.99   |0.74, 1.32 |>0.9        |
+|Trial treatment group |1.06   |0.79, 1.40 |0.7         |
 |Age (years)           |0.98   |0.96, 0.99 |<0.001      |
 |clinstatus_baseline   |NA     |NA         |NA          |
 |1                     |NA     |NA         |NA          |
 |2                     |NA     |NA         |NA          |
 |3                     |NA     |NA         |NA          |
-|4                     |3.20   |1.88, 5.44 |<0.001      |
+|4                     |3.28   |1.93, 5.56 |<0.001      |
 |5                     |NA     |NA         |NA          |
 |6                     |NA     |NA         |NA          |
-|comed_dexa            |1.85   |0.81, 4.22 |0.14        |
-|Remdesivir at d1      |1.95   |0.90, 4.25 |0.090       |
-|Tocilizumab at d1     |0.00   |0.00, Inf  |>0.9        |
 Discussion points
 1. Use F&G for sens-analysis (sustained discharge)?
 
@@ -1458,7 +1343,8 @@ table(df$vir_clear_5, df$trt, useNA = "always") #  (Viral load value <LOQ and/or
 # up to 5 days
 vir.clear.5 <- df %>% 
   glm(vir_clear_5 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(vir.clear.5, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1500,59 +1386,35 @@ summ(vir.clear.5, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 3.10 </td>
-   <td style="text-align:right;"> 0.20 </td>
-   <td style="text-align:right;"> 48.95 </td>
-   <td style="text-align:right;"> 0.81 </td>
-   <td style="text-align:right;"> 0.42 </td>
+   <td style="text-align:right;"> 1.38 </td>
+   <td style="text-align:right;"> 0.17 </td>
+   <td style="text-align:right;"> 11.39 </td>
+   <td style="text-align:right;"> 0.30 </td>
+   <td style="text-align:right;"> 0.76 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.50 </td>
+   <td style="text-align:right;"> 1.49 </td>
    <td style="text-align:right;"> 0.63 </td>
-   <td style="text-align:right;"> 3.56 </td>
+   <td style="text-align:right;"> 3.52 </td>
    <td style="text-align:right;"> 0.92 </td>
    <td style="text-align:right;"> 0.36 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 0.97 </td>
+   <td style="text-align:right;"> 0.98 </td>
    <td style="text-align:right;"> 0.94 </td>
    <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> -1.50 </td>
-   <td style="text-align:right;"> 0.13 </td>
+   <td style="text-align:right;"> -1.44 </td>
+   <td style="text-align:right;"> 0.15 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
    <td style="text-align:right;"> 0.36 </td>
    <td style="text-align:right;"> 0.10 </td>
    <td style="text-align:right;"> 1.32 </td>
-   <td style="text-align:right;"> -1.55 </td>
+   <td style="text-align:right;"> -1.54 </td>
    <td style="text-align:right;"> 0.12 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 0.47 </td>
-   <td style="text-align:right;"> 0.10 </td>
-   <td style="text-align:right;"> 2.19 </td>
-   <td style="text-align:right;"> -0.97 </td>
-   <td style="text-align:right;"> 0.33 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1563,7 +1425,8 @@ summ(vir.clear.5, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 # up to 10 days
 vir.clear.10 <- df %>% 
   glm(vir_clear_10 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(vir.clear.10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1605,59 +1468,35 @@ summ(vir.clear.10, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 1.61 </td>
-   <td style="text-align:right;"> 0.15 </td>
-   <td style="text-align:right;"> 16.95 </td>
-   <td style="text-align:right;"> 0.40 </td>
-   <td style="text-align:right;"> 0.69 </td>
+   <td style="text-align:right;"> 0.77 </td>
+   <td style="text-align:right;"> 0.13 </td>
+   <td style="text-align:right;"> 4.50 </td>
+   <td style="text-align:right;"> -0.29 </td>
+   <td style="text-align:right;"> 0.78 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
    <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 0.54 </td>
-   <td style="text-align:right;"> 2.22 </td>
-   <td style="text-align:right;"> 0.24 </td>
+   <td style="text-align:right;"> 2.21 </td>
+   <td style="text-align:right;"> 0.23 </td>
    <td style="text-align:right;"> 0.81 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 0.97 </td>
+   <td style="text-align:right;"> 0.98 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.06 </td>
-   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> 0.16 </td>
+   <td style="text-align:right;"> 0.87 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 0.63 </td>
+   <td style="text-align:right;"> 0.61 </td>
    <td style="text-align:right;"> 0.25 </td>
-   <td style="text-align:right;"> 1.56 </td>
-   <td style="text-align:right;"> -1.01 </td>
-   <td style="text-align:right;"> 0.31 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 0.50 </td>
-   <td style="text-align:right;"> 0.11 </td>
-   <td style="text-align:right;"> 2.21 </td>
-   <td style="text-align:right;"> -0.92 </td>
-   <td style="text-align:right;"> 0.36 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> 0.07 </td>
-   <td style="text-align:right;"> 18.84 </td>
-   <td style="text-align:right;"> 0.09 </td>
-   <td style="text-align:right;"> 0.93 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> 1.52 </td>
+   <td style="text-align:right;"> -1.06 </td>
+   <td style="text-align:right;"> 0.29 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1668,7 +1507,8 @@ summ(vir.clear.10, exp = T, confint = T, model.info = T, model.fit = F, digits =
 # up to 15 days
 vir.clear.15 <- df %>% 
   glm(vir_clear_15 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1710,65 +1550,40 @@ summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 2.26 </td>
-   <td style="text-align:right;"> 0.19 </td>
-   <td style="text-align:right;"> 26.20 </td>
-   <td style="text-align:right;"> 0.65 </td>
-   <td style="text-align:right;"> 0.52 </td>
+   <td style="text-align:right;"> 0.86 </td>
+   <td style="text-align:right;"> 0.15 </td>
+   <td style="text-align:right;"> 4.96 </td>
+   <td style="text-align:right;"> -0.17 </td>
+   <td style="text-align:right;"> 0.87 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 0.50 </td>
-   <td style="text-align:right;"> 2.04 </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> 2.03 </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 1.01 </td>
    <td style="text-align:right;"> 0.98 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.27 </td>
-   <td style="text-align:right;"> 0.78 </td>
+   <td style="text-align:right;"> 0.39 </td>
+   <td style="text-align:right;"> 0.70 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 1.29 </td>
+   <td style="text-align:right;"> 1.26 </td>
    <td style="text-align:right;"> 0.52 </td>
-   <td style="text-align:right;"> 3.16 </td>
-   <td style="text-align:right;"> 0.55 </td>
-   <td style="text-align:right;"> 0.58 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 0.40 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 2.06 </td>
-   <td style="text-align:right;"> -1.10 </td>
-   <td style="text-align:right;"> 0.27 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.86 </td>
-   <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 14.32 </td>
-   <td style="text-align:right;"> -0.10 </td>
-   <td style="text-align:right;"> 0.92 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> 3.07 </td>
+   <td style="text-align:right;"> 0.50 </td>
+   <td style="text-align:right;"> 0.62 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # (viii) Quality of life at day 28 
 
@@ -1780,7 +1595,6 @@ Discussion points
 ```r
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 ```
-Discussion points
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -1801,11 +1615,13 @@ table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 4 and 5 inclu
 ```
 
 ```r
+df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
+
 mort.28.vent <- df %>% 
-  glm(mort_28 ~ trt*clinstatus_baseline
+  glm(mort_28 ~ trt*clinstatus_baseline_n
       + age 
       #+ clinstatus_baseline 
-      + comed_dexa + comed_rdv + comed_toci
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1850,23 +1666,23 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -5.22 </td>
+   <td style="text-align:right;"> -4.54 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.92 </td>
-   <td style="text-align:right;"> 0.39 </td>
-   <td style="text-align:right;"> 2.18 </td>
-   <td style="text-align:right;"> -0.19 </td>
-   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> 439.11 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 2446859.23 </td>
+   <td style="text-align:right;"> 1.38 </td>
+   <td style="text-align:right;"> 0.17 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 4.63 </td>
-   <td style="text-align:right;"> 1.43 </td>
-   <td style="text-align:right;"> 15.03 </td>
-   <td style="text-align:right;"> 2.55 </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline_n </td>
+   <td style="text-align:right;"> 4.25 </td>
+   <td style="text-align:right;"> 1.35 </td>
+   <td style="text-align:right;"> 13.45 </td>
+   <td style="text-align:right;"> 2.46 </td>
    <td style="text-align:right;"> 0.01 </td>
   </tr>
   <tr>
@@ -1874,40 +1690,16 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 1.10 </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.14 </td>
-   <td style="text-align:right;"> 4.87 </td>
+   <td style="text-align:right;"> 4.81 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 3.58 </td>
-   <td style="text-align:right;"> 0.42 </td>
-   <td style="text-align:right;"> 30.50 </td>
-   <td style="text-align:right;"> 1.16 </td>
-   <td style="text-align:right;"> 0.24 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.69 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 6.12 </td>
-   <td style="text-align:right;"> -0.33 </td>
-   <td style="text-align:right;"> 0.74 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 0.18 </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 1.43 </td>
-   <td style="text-align:right;"> -1.63 </td>
-   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:left;font-weight: bold;"> trt:clinstatus_baseline_n </td>
+   <td style="text-align:right;"> 0.21 </td>
+   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 1.66 </td>
+   <td style="text-align:right;"> -1.48 </td>
+   <td style="text-align:right;"> 0.14 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1922,7 +1714,8 @@ Discussion points
 mort.28.age <- df %>% 
   glm(mort_28 ~ trt*age
       #+ age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1966,65 +1759,41 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> -4.08 </td>
+   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> -4.19 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.09 </td>
+   <td style="text-align:right;"> 0.11 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 14.26 </td>
-   <td style="text-align:right;"> -0.94 </td>
-   <td style="text-align:right;"> 0.35 </td>
+   <td style="text-align:right;"> 17.99 </td>
+   <td style="text-align:right;"> -0.85 </td>
+   <td style="text-align:right;"> 0.40 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> 3.22 </td>
+   <td style="text-align:right;"> 3.24 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.41 </td>
-   <td style="text-align:right;"> 0.95 </td>
-   <td style="text-align:right;"> 6.12 </td>
+   <td style="text-align:right;"> 2.40 </td>
+   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> 6.02 </td>
    <td style="text-align:right;"> 1.86 </td>
    <td style="text-align:right;"> 0.06 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 3.11 </td>
-   <td style="text-align:right;"> 0.37 </td>
-   <td style="text-align:right;"> 25.88 </td>
-   <td style="text-align:right;"> 1.05 </td>
-   <td style="text-align:right;"> 0.29 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.78 </td>
-   <td style="text-align:right;"> 0.09 </td>
-   <td style="text-align:right;"> 7.00 </td>
-   <td style="text-align:right;"> -0.22 </td>
-   <td style="text-align:right;"> 0.82 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
    <td style="text-align:left;font-weight: bold;"> trt:age </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> 0.95 </td>
    <td style="text-align:right;"> 1.11 </td>
-   <td style="text-align:right;"> 0.79 </td>
-   <td style="text-align:right;"> 0.43 </td>
+   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> 0.49 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2040,7 +1809,8 @@ Discussion points
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
       + age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2085,72 +1855,48 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -4.75 </td>
+   <td style="text-align:right;"> -5.32 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.52 </td>
+   <td style="text-align:right;"> 0.51 </td>
    <td style="text-align:right;"> 0.04 </td>
-   <td style="text-align:right;"> 6.53 </td>
-   <td style="text-align:right;"> -0.51 </td>
-   <td style="text-align:right;"> 0.61 </td>
+   <td style="text-align:right;"> 6.33 </td>
+   <td style="text-align:right;"> -0.53 </td>
+   <td style="text-align:right;"> 0.60 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat </td>
    <td style="text-align:right;"> 1.58 </td>
    <td style="text-align:right;"> 0.83 </td>
-   <td style="text-align:right;"> 3.01 </td>
-   <td style="text-align:right;"> 1.38 </td>
-   <td style="text-align:right;"> 0.17 </td>
+   <td style="text-align:right;"> 3.00 </td>
+   <td style="text-align:right;"> 1.40 </td>
+   <td style="text-align:right;"> 0.16 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.04 </td>
    <td style="text-align:right;"> 1.12 </td>
-   <td style="text-align:right;"> 3.84 </td>
+   <td style="text-align:right;"> 3.79 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.22 </td>
-   <td style="text-align:right;"> 0.86 </td>
-   <td style="text-align:right;"> 5.70 </td>
-   <td style="text-align:right;"> 1.65 </td>
+   <td style="text-align:right;"> 2.18 </td>
+   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> 5.56 </td>
+   <td style="text-align:right;"> 1.63 </td>
    <td style="text-align:right;"> 0.10 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 2.84 </td>
-   <td style="text-align:right;"> 0.33 </td>
-   <td style="text-align:right;"> 24.21 </td>
-   <td style="text-align:right;"> 0.96 </td>
-   <td style="text-align:right;"> 0.34 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.81 </td>
-   <td style="text-align:right;"> 0.09 </td>
-   <td style="text-align:right;"> 7.54 </td>
-   <td style="text-align:right;"> -0.19 </td>
-   <td style="text-align:right;"> 0.85 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat </td>
-   <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 0.42 </td>
-   <td style="text-align:right;"> 2.80 </td>
-   <td style="text-align:right;"> 0.17 </td>
-   <td style="text-align:right;"> 0.86 </td>
+   <td style="text-align:right;"> 1.10 </td>
+   <td style="text-align:right;"> 0.43 </td>
+   <td style="text-align:right;"> 2.82 </td>
+   <td style="text-align:right;"> 0.20 </td>
+   <td style="text-align:right;"> 0.84 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2164,7 +1910,8 @@ df$comorb_cat_f <- as.factor(df$comorb_cat)
 mort.28.comorb.f <- df %>% 
   glm(mort_28 ~ trt*comorb_cat_f 
       + age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2209,104 +1956,80 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -4.63 </td>
+   <td style="text-align:right;"> -5.25 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.79 </td>
-   <td style="text-align:right;"> 0.10 </td>
-   <td style="text-align:right;"> 6.21 </td>
-   <td style="text-align:right;"> -0.22 </td>
    <td style="text-align:right;"> 0.83 </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> 6.43 </td>
+   <td style="text-align:right;"> -0.18 </td>
+   <td style="text-align:right;"> 0.86 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f2 </td>
-   <td style="text-align:right;"> 2.46 </td>
-   <td style="text-align:right;"> 0.44 </td>
-   <td style="text-align:right;"> 13.67 </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.31 </td>
+   <td style="text-align:right;"> 2.64 </td>
+   <td style="text-align:right;"> 0.48 </td>
+   <td style="text-align:right;"> 14.46 </td>
+   <td style="text-align:right;"> 1.12 </td>
+   <td style="text-align:right;"> 0.26 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f3 </td>
-   <td style="text-align:right;"> 2.49 </td>
-   <td style="text-align:right;"> 0.47 </td>
-   <td style="text-align:right;"> 13.17 </td>
-   <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 0.28 </td>
+   <td style="text-align:right;"> 2.55 </td>
+   <td style="text-align:right;"> 0.49 </td>
+   <td style="text-align:right;"> 13.35 </td>
+   <td style="text-align:right;"> 1.11 </td>
+   <td style="text-align:right;"> 0.27 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f4 </td>
-   <td style="text-align:right;"> 8.82 </td>
-   <td style="text-align:right;"> 0.65 </td>
-   <td style="text-align:right;"> 119.54 </td>
-   <td style="text-align:right;"> 1.64 </td>
-   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> 9.63 </td>
+   <td style="text-align:right;"> 0.72 </td>
+   <td style="text-align:right;"> 129.27 </td>
+   <td style="text-align:right;"> 1.71 </td>
+   <td style="text-align:right;"> 0.09 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.04 </td>
    <td style="text-align:right;"> 1.12 </td>
-   <td style="text-align:right;"> 3.81 </td>
+   <td style="text-align:right;"> 3.78 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.17 </td>
+   <td style="text-align:right;"> 2.14 </td>
    <td style="text-align:right;"> 0.83 </td>
-   <td style="text-align:right;"> 5.65 </td>
-   <td style="text-align:right;"> 1.58 </td>
-   <td style="text-align:right;"> 0.11 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 2.49 </td>
-   <td style="text-align:right;"> 0.29 </td>
-   <td style="text-align:right;"> 21.65 </td>
-   <td style="text-align:right;"> 0.83 </td>
-   <td style="text-align:right;"> 0.41 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.83 </td>
-   <td style="text-align:right;"> 0.09 </td>
-   <td style="text-align:right;"> 7.68 </td>
-   <td style="text-align:right;"> -0.16 </td>
-   <td style="text-align:right;"> 0.87 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 5.54 </td>
+   <td style="text-align:right;"> 1.57 </td>
+   <td style="text-align:right;"> 0.12 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f2 </td>
-   <td style="text-align:right;"> 0.49 </td>
+   <td style="text-align:right;"> 0.44 </td>
    <td style="text-align:right;"> 0.03 </td>
-   <td style="text-align:right;"> 7.13 </td>
-   <td style="text-align:right;"> -0.53 </td>
-   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 6.35 </td>
+   <td style="text-align:right;"> -0.60 </td>
+   <td style="text-align:right;"> 0.55 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f3 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.97 </td>
    <td style="text-align:right;"> 0.10 </td>
-   <td style="text-align:right;"> 10.06 </td>
-   <td style="text-align:right;"> -0.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 9.70 </td>
+   <td style="text-align:right;"> -0.03 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f4 </td>
-   <td style="text-align:right;"> 0.58 </td>
+   <td style="text-align:right;"> 0.55 </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 20.00 </td>
-   <td style="text-align:right;"> -0.30 </td>
-   <td style="text-align:right;"> 0.76 </td>
+   <td style="text-align:right;"> 19.01 </td>
+   <td style="text-align:right;"> -0.33 </td>
+   <td style="text-align:right;"> 0.74 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2319,7 +2042,8 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 mort.28.comorb.count <- df %>%
   glm(mort_28 ~ trt*comorb_count 
       + age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2364,23 +2088,23 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -4.61 </td>
+   <td style="text-align:right;"> -5.25 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.44 </td>
+   <td style="text-align:right;"> 0.43 </td>
    <td style="text-align:right;"> 0.11 </td>
-   <td style="text-align:right;"> 1.78 </td>
-   <td style="text-align:right;"> -1.15 </td>
-   <td style="text-align:right;"> 0.25 </td>
+   <td style="text-align:right;"> 1.72 </td>
+   <td style="text-align:right;"> -1.19 </td>
+   <td style="text-align:right;"> 0.23 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_count </td>
    <td style="text-align:right;"> 1.30 </td>
    <td style="text-align:right;"> 0.91 </td>
-   <td style="text-align:right;"> 1.86 </td>
-   <td style="text-align:right;"> 1.43 </td>
+   <td style="text-align:right;"> 1.85 </td>
+   <td style="text-align:right;"> 1.44 </td>
    <td style="text-align:right;"> 0.15 </td>
   </tr>
   <tr>
@@ -2388,48 +2112,24 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.04 </td>
    <td style="text-align:right;"> 1.12 </td>
-   <td style="text-align:right;"> 3.91 </td>
+   <td style="text-align:right;"> 3.89 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.05 </td>
-   <td style="text-align:right;"> 0.77 </td>
-   <td style="text-align:right;"> 5.45 </td>
-   <td style="text-align:right;"> 1.44 </td>
-   <td style="text-align:right;"> 0.15 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 2.68 </td>
-   <td style="text-align:right;"> 0.32 </td>
-   <td style="text-align:right;"> 22.72 </td>
-   <td style="text-align:right;"> 0.91 </td>
-   <td style="text-align:right;"> 0.36 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 0.10 </td>
-   <td style="text-align:right;"> 8.65 </td>
-   <td style="text-align:right;"> -0.07 </td>
-   <td style="text-align:right;"> 0.95 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 1.99 </td>
+   <td style="text-align:right;"> 0.75 </td>
+   <td style="text-align:right;"> 5.26 </td>
+   <td style="text-align:right;"> 1.39 </td>
+   <td style="text-align:right;"> 0.16 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_count </td>
-   <td style="text-align:right;"> 1.22 </td>
-   <td style="text-align:right;"> 0.68 </td>
-   <td style="text-align:right;"> 2.17 </td>
-   <td style="text-align:right;"> 0.67 </td>
-   <td style="text-align:right;"> 0.50 </td>
+   <td style="text-align:right;"> 1.24 </td>
+   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> 2.20 </td>
+   <td style="text-align:right;"> 0.74 </td>
+   <td style="text-align:right;"> 0.46 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2453,7 +2153,7 @@ mort.28.comed <- df %>%
       + age 
       + clinstatus_baseline 
       # + comed_dexa 
-      + comed_rdv 
+      #+ comed_rdv 
       # + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -2514,37 +2214,29 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
    <td style="text-align:left;font-weight: bold;"> comed_cat </td>
    <td style="text-align:right;"> 1.26 </td>
    <td style="text-align:right;"> 0.41 </td>
-   <td style="text-align:right;"> 3.85 </td>
+   <td style="text-align:right;"> 3.84 </td>
    <td style="text-align:right;"> 0.40 </td>
    <td style="text-align:right;"> 0.69 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.10 </td>
+   <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.14 </td>
-   <td style="text-align:right;"> 4.87 </td>
+   <td style="text-align:right;"> 4.85 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.35 </td>
-   <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 5.93 </td>
-   <td style="text-align:right;"> 1.80 </td>
+   <td style="text-align:right;"> 2.38 </td>
+   <td style="text-align:right;"> 0.95 </td>
+   <td style="text-align:right;"> 5.99 </td>
+   <td style="text-align:right;"> 1.84 </td>
    <td style="text-align:right;"> 0.07 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.73 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 6.51 </td>
-   <td style="text-align:right;"> -0.29 </td>
-   <td style="text-align:right;"> 0.77 </td>
-  </tr>
-  <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
-   <td style="text-align:right;"> 1630.09 </td>
+   <td style="text-align:right;"> 1617.41 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
@@ -2577,7 +2269,7 @@ mort.28.comed.f <- df %>%
       + age 
       + clinstatus_baseline 
       # + comed_dexa 
-      + comed_rdv 
+      #+ comed_rdv 
       # + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -2623,7 +2315,7 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -4.81 </td>
+   <td style="text-align:right;"> -4.80 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -2644,9 +2336,9 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comed_cat_f3 </td>
-   <td style="text-align:right;"> 1.55 </td>
+   <td style="text-align:right;"> 1.54 </td>
    <td style="text-align:right;"> 0.17 </td>
-   <td style="text-align:right;"> 14.43 </td>
+   <td style="text-align:right;"> 14.37 </td>
    <td style="text-align:right;"> 0.38 </td>
    <td style="text-align:right;"> 0.70 </td>
   </tr>
@@ -2655,24 +2347,16 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.14 </td>
-   <td style="text-align:right;"> 4.85 </td>
+   <td style="text-align:right;"> 4.84 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.34 </td>
-   <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 5.91 </td>
-   <td style="text-align:right;"> 1.80 </td>
+   <td style="text-align:right;"> 2.37 </td>
+   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> 5.97 </td>
+   <td style="text-align:right;"> 1.83 </td>
    <td style="text-align:right;"> 0.07 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.73 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 6.51 </td>
-   <td style="text-align:right;"> -0.29 </td>
-   <td style="text-align:right;"> 0.77 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat_f2 </td>
@@ -2684,7 +2368,7 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat_f3 </td>
-   <td style="text-align:right;"> 2714952.71 </td>
+   <td style="text-align:right;"> 2672470.15 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
@@ -2716,7 +2400,8 @@ Discussion points
 mort.28.symp <- df %>% 
   glm(mort_28 ~ trt*sympdur
       + age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2761,71 +2446,47 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -4.72 </td>
+   <td style="text-align:right;"> -5.27 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 3.92 </td>
-   <td style="text-align:right;"> 0.51 </td>
-   <td style="text-align:right;"> 30.18 </td>
-   <td style="text-align:right;"> 1.31 </td>
-   <td style="text-align:right;"> 0.19 </td>
+   <td style="text-align:right;"> 3.72 </td>
+   <td style="text-align:right;"> 0.49 </td>
+   <td style="text-align:right;"> 28.43 </td>
+   <td style="text-align:right;"> 1.27 </td>
+   <td style="text-align:right;"> 0.20 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> sympdur </td>
    <td style="text-align:right;"> 0.98 </td>
    <td style="text-align:right;"> 0.89 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> -0.38 </td>
-   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> -0.37 </td>
+   <td style="text-align:right;"> 0.71 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> 4.65 </td>
+   <td style="text-align:right;"> 4.60 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.73 </td>
-   <td style="text-align:right;"> 1.04 </td>
-   <td style="text-align:right;"> 7.12 </td>
-   <td style="text-align:right;"> 2.05 </td>
+   <td style="text-align:right;"> 2.71 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> 6.99 </td>
+   <td style="text-align:right;"> 2.06 </td>
    <td style="text-align:right;"> 0.04 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 3.06 </td>
-   <td style="text-align:right;"> 0.36 </td>
-   <td style="text-align:right;"> 25.83 </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.30 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.59 </td>
-   <td style="text-align:right;"> 0.07 </td>
-   <td style="text-align:right;"> 5.36 </td>
-   <td style="text-align:right;"> -0.47 </td>
-   <td style="text-align:right;"> 0.64 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
    <td style="text-align:left;font-weight: bold;"> trt:sympdur </td>
-   <td style="text-align:right;"> 0.80 </td>
+   <td style="text-align:right;"> 0.81 </td>
    <td style="text-align:right;"> 0.64 </td>
    <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> -1.83 </td>
+   <td style="text-align:right;"> -1.79 </td>
    <td style="text-align:right;"> 0.07 </td>
   </tr>
 </tbody>
@@ -2841,7 +2502,8 @@ Discussion points
 mort.28.crp <- df %>% 
   glm(mort_28 ~ trt*crp
       + age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2886,72 +2548,48 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -4.93 </td>
+   <td style="text-align:right;"> -5.84 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.68 </td>
+   <td style="text-align:right;"> 0.69 </td>
    <td style="text-align:right;"> 0.29 </td>
-   <td style="text-align:right;"> 1.63 </td>
-   <td style="text-align:right;"> -0.86 </td>
-   <td style="text-align:right;"> 0.39 </td>
+   <td style="text-align:right;"> 1.64 </td>
+   <td style="text-align:right;"> -0.84 </td>
+   <td style="text-align:right;"> 0.40 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> crp </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 0.25 </td>
-   <td style="text-align:right;"> 0.80 </td>
+   <td style="text-align:right;"> 0.30 </td>
+   <td style="text-align:right;"> 0.77 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> 4.81 </td>
+   <td style="text-align:right;"> 4.77 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.45 </td>
-   <td style="text-align:right;"> 0.97 </td>
-   <td style="text-align:right;"> 6.22 </td>
-   <td style="text-align:right;"> 1.89 </td>
+   <td style="text-align:right;"> 2.46 </td>
+   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> 6.20 </td>
+   <td style="text-align:right;"> 1.91 </td>
    <td style="text-align:right;"> 0.06 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 2.48 </td>
-   <td style="text-align:right;"> 0.29 </td>
-   <td style="text-align:right;"> 21.34 </td>
-   <td style="text-align:right;"> 0.83 </td>
-   <td style="text-align:right;"> 0.41 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.73 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 6.54 </td>
-   <td style="text-align:right;"> -0.29 </td>
-   <td style="text-align:right;"> 0.77 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:crp </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 0.11 </td>
-   <td style="text-align:right;"> 0.92 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 0.93 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2966,7 +2604,8 @@ df <- df %>%
 mort.28.crp.trunc <- df %>% 
   glm(mort_28 ~ trt*crp_trunc
       + age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -3011,72 +2650,48 @@ summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, dig
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -4.95 </td>
+   <td style="text-align:right;"> -5.84 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.53 </td>
-   <td style="text-align:right;"> 0.15 </td>
-   <td style="text-align:right;"> 1.84 </td>
-   <td style="text-align:right;"> -1.00 </td>
-   <td style="text-align:right;"> 0.32 </td>
+   <td style="text-align:right;"> 0.55 </td>
+   <td style="text-align:right;"> 0.16 </td>
+   <td style="text-align:right;"> 1.90 </td>
+   <td style="text-align:right;"> -0.94 </td>
+   <td style="text-align:right;"> 0.35 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> crp_trunc </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> 0.25 </td>
-   <td style="text-align:right;"> 0.80 </td>
+   <td style="text-align:right;"> 0.32 </td>
+   <td style="text-align:right;"> 0.75 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 1.05 </td>
-   <td style="text-align:right;"> 1.14 </td>
-   <td style="text-align:right;"> 4.75 </td>
+   <td style="text-align:right;"> 1.13 </td>
+   <td style="text-align:right;"> 4.71 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.35 </td>
-   <td style="text-align:right;"> 0.92 </td>
-   <td style="text-align:right;"> 5.99 </td>
-   <td style="text-align:right;"> 1.79 </td>
+   <td style="text-align:right;"> 2.36 </td>
+   <td style="text-align:right;"> 0.93 </td>
+   <td style="text-align:right;"> 5.97 </td>
+   <td style="text-align:right;"> 1.82 </td>
    <td style="text-align:right;"> 0.07 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> 2.54 </td>
-   <td style="text-align:right;"> 0.29 </td>
-   <td style="text-align:right;"> 21.96 </td>
-   <td style="text-align:right;"> 0.85 </td>
-   <td style="text-align:right;"> 0.40 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> 0.77 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 7.13 </td>
-   <td style="text-align:right;"> -0.23 </td>
-   <td style="text-align:right;"> 0.82 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:crp_trunc </td>
    <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 0.99 </td>
    <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> 0.64 </td>
-   <td style="text-align:right;"> 0.52 </td>
+   <td style="text-align:right;"> 0.58 </td>
+   <td style="text-align:right;"> 0.56 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -3092,7 +2707,8 @@ Discussion points
 mort.28.var <- df %>% 
   glm(mort_28 ~ trt*variant
       + age 
-      + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.var, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -3181,30 +2797,6 @@ summ(mort.28.var, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:right;"> 0.62 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
    <td style="text-align:left;font-weight: bold;"> trt:variantOmicron </td>
    <td style="text-align:right;"> 1.37 </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -3280,31 +2872,31 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
 result_list <- list()
 
 result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
-                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.60, "death at day 60",
-                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
-                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d",
-                                        addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, comed
+                                        addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age
 result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
-                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28",
-                                        addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
 result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age
 result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
-                                        addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[11]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5",
-                                        addmargins(table(df$vir_clear_5, df$trt))[3,2], addmargins(table(df$vir_clear_5, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$vir_clear_5, df$trt))[3,2], addmargins(table(df$vir_clear_5, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[12]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10",
-                                        addmargins(table(df$vir_clear_10, df$trt))[3,2], addmargins(table(df$vir_clear_10, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$vir_clear_10, df$trt))[3,2], addmargins(table(df$vir_clear_10, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[13]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15",
-                                        addmargins(table(df$vir_clear_15, df$trt))[3,2], addmargins(table(df$vir_clear_15, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$vir_clear_15, df$trt))[3,2], addmargins(table(df$vir_clear_15, df$trt))[3,1]) # adj: age, clinstatus
 # result_list[[14]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
 #                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1])
 # result_list[[15]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
@@ -3326,19 +2918,19 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |      |variable                                   | hazard_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value| n_intervention| n_control|trial         |JAKi        |
 |:-----|:------------------------------------------|-----------------:|---------:|--------:|--------------:|---------:|--------------:|---------:|:-------------|:-----------|
-|trt   |death at day 28                            |         0.6564886| 0.3001757| 1.402742|      0.3907344| 0.2814470|            137|       140|Bari-SolidAct |Baricitinib |
-|trt1  |death at day 60                            |         0.9246251| 0.4640303| 1.835210|      0.3490735| 0.8223685|            137|       140|Bari-SolidAct |Baricitinib |
-|trt2  |death within fup                           |         0.6218396| 0.3331061| 1.160845|      0.3184860| 0.1357880|            145|       144|Bari-SolidAct |Baricitinib |
-|trt3  |new MV within 28d                          |         1.7053904| 0.8243377| 3.629051|      0.3755483| 0.1552084|            107|       104|Bari-SolidAct |Baricitinib |
-|trt4  |new MV or death within 28d                 |         1.1121200| 0.6404560| 1.934779|      0.2812995| 0.7055973|            138|       140|Bari-SolidAct |Baricitinib |
-|trt5  |clinical status at day 28                  |         1.1021607| 0.6649398| 1.831448|      0.2579487| 0.7060991|            145|       144|Bari-SolidAct |Baricitinib |
-|trt6  |discharge within 28 days                   |         1.0085423| 0.7578700| 1.342127|      0.1457932| 0.9534756|            145|       144|Bari-SolidAct |Baricitinib |
-|trt7  |discharge within 28 days, death=comp.event |         1.0495660| 0.7938911| 1.387582|      0.1424443| 0.7300000|            145|       144|Bari-SolidAct |Baricitinib |
-|trt8  |discharge within 28 days, death=hypo.event |         1.0304317| 0.7738744| 1.372044|      0.1460861| 0.8374108|            145|       144|Bari-SolidAct |Baricitinib |
-|trt9  |sustained discharge within 28 days         |         0.9920797| 0.7444529| 1.322074|      0.1465098| 0.9567159|            145|       144|Bari-SolidAct |Baricitinib |
-|trt10 |viral clearance until day 5                |         1.5017463| 0.6380064| 3.622869|      0.4399578| 0.3553589|             62|        59|Bari-SolidAct |Baricitinib |
-|trt11 |viral clearance until day 10               |         1.0910678| 0.5360772| 2.224284|      0.3619381| 0.8097055|             66|        61|Bari-SolidAct |Baricitinib |
-|trt12 |viral clearance until day 15               |         1.0071540| 0.4957260| 2.047029|      0.3607270| 0.9842335|             67|        61|Bari-SolidAct |Baricitinib |
+|trt   |death at day 28                            |         0.6573165| 0.3016319| 1.398889|      0.3888042| 0.2805077|            137|       140|Bari-SolidAct |Baricitinib |
+|trt1  |death at day 60                            |         0.9170453| 0.4614448| 1.814547|      0.3476107| 0.8032644|            137|       140|Bari-SolidAct |Baricitinib |
+|trt2  |death within fup                           |         0.7727450| 0.4321717| 1.381708|      0.2964984| 0.3845724|            145|       144|Bari-SolidAct |Baricitinib |
+|trt3  |new MV within 28d                          |         1.5355491| 0.7522041| 3.207729|      0.3676045| 0.2433273|            107|       104|Bari-SolidAct |Baricitinib |
+|trt4  |new MV or death within 28d                 |         1.0501251| 0.6083616| 1.813664|      0.2779433| 0.8603186|            138|       140|Bari-SolidAct |Baricitinib |
+|trt5  |clinical status at day 28                  |         1.0345730| 0.6278274| 1.707144|      0.2546898| 0.8938362|            145|       144|Bari-SolidAct |Baricitinib |
+|trt6  |discharge within 28 days                   |         1.0720566| 0.8082711| 1.421930|      0.1441029| 0.6292086|            145|       144|Bari-SolidAct |Baricitinib |
+|trt7  |discharge within 28 days, death=comp.event |         1.1132720| 0.8468207| 1.463562|      0.1395789| 0.4400000|            145|       144|Bari-SolidAct |Baricitinib |
+|trt8  |discharge within 28 days, death=hypo.event |         1.0826737| 0.8161998| 1.436146|      0.1441504| 0.5816017|            145|       144|Bari-SolidAct |Baricitinib |
+|trt9  |sustained discharge within 28 days         |         1.0553905| 0.7946311| 1.401719|      0.1447925| 0.7096461|            145|       144|Bari-SolidAct |Baricitinib |
+|trt10 |viral clearance until day 5                |         1.4947189| 0.6387866| 3.583365|      0.4368603| 0.3575409|             62|        59|Bari-SolidAct |Baricitinib |
+|trt11 |viral clearance until day 10               |         1.0882308| 0.5360542| 2.212393|      0.3606135| 0.8146196|             66|        61|Bari-SolidAct |Baricitinib |
+|trt12 |viral clearance until day 15               |         1.0042249| 0.4961136| 2.033213|      0.3588361| 0.9906258|             67|        61|Bari-SolidAct |Baricitinib |
 
 ```r
 # Save
@@ -3380,13 +2972,13 @@ extract_interaction <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # adj: age, clinstatus, comed
-result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus, comed
-result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus, comed
-result_list[[4]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus, comed
+result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # adj: age, clinstatus
+result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
+result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
+result_list[[4]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
 # result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # still to come
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus, comed
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus, comed
+result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
 # result_list[[7]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
 
 # Filter out NULL results and bind the results into a single data frame
@@ -3403,14 +2995,14 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                         |variable            | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial         |JAKi        |
-|:------------------------|:-------------------|--------------:|---------:|------------:|--------------:|---------:|:-------------|:-----------|
-|trt:clinstatus_baseline5 |respiratory support |      0.1771412| 0.0176719| 1.278619e+00|      1.0647029| 0.1040293|Bari-SolidAct |Baricitinib |
-|trt:age                  |age                 |      1.0303420| 0.9576662| 1.112742e+00|      0.0378118| 0.4292279|Bari-SolidAct |Baricitinib |
-|trt:comorb_cat           |comorbidity         |      1.0880965| 0.4238600| 2.883655e+00|      0.4825132| 0.8610960|Bari-SolidAct |Baricitinib |
-|trt:comed_cat            |comedication        |   1630.0922525| 0.0000024| 1.675971e+83|    524.4423572| 0.9887475|Bari-SolidAct |Baricitinib |
-|trt:sympdur              |symptom duration    |      0.8049900| 0.6341708| 1.013413e+00|      0.1183767| 0.0668769|Bari-SolidAct |Baricitinib |
-|trt:crp                  |crp                 |      1.0001613| 0.9949679| 1.003066e+00|      0.0015319| 0.9161502|Bari-SolidAct |Baricitinib |
+|                          |variable            | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:-------------------------|:-------------------|--------------:|---------:|------------:|--------------:|---------:|:-------------|:-----------|
+|trt:clinstatus_baseline_n |respiratory support |      0.2120952| 0.0216867| 1.492091e+00|      1.0509098| 0.1400520|Bari-SolidAct |Baricitinib |
+|trt:age                   |age                 |      1.0266420| 0.9543445| 1.108300e+00|      0.0376993| 0.4855233|Bari-SolidAct |Baricitinib |
+|trt:comorb_cat            |comorbidity         |      1.0985344| 0.4298968| 2.902199e+00|      0.4805639| 0.8449580|Bari-SolidAct |Baricitinib |
+|trt:comed_cat             |comedication        |   1617.4122055| 0.0000000| 9.088402e+71|    524.4918850| 0.9887605|Bari-SolidAct |Baricitinib |
+|trt:sympdur               |symptom duration    |      0.8094195| 0.6375130| 1.018851e+00|      0.1184351| 0.0742183|Bari-SolidAct |Baricitinib |
+|trt:crp                   |crp                 |      1.0001293| 0.9949001| 1.003014e+00|      0.0015382| 0.9330246|Bari-SolidAct |Baricitinib |
 
 ```r
 # Save

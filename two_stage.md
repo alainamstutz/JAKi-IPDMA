@@ -79,10 +79,10 @@ str(df_mort28)
 ```
 ## 'data.frame':	5 obs. of  10 variables:
 ##  $ variable         : chr  "death at day 28" "death at day 28" "death at day 28" "death at day 28_firth" ...
-##  $ hazard_odds_ratio: num  0.656 0.704 0.791 2.537 0.182
-##  $ ci_lower         : num  0.30018 0.39577 0.14728 0.12715 0.00131
+##  $ hazard_odds_ratio: num  0.657 0.704 0.791 2.537 0.182
+##  $ ci_lower         : num  0.30163 0.39577 0.14728 0.12715 0.00131
 ##  $ ci_upper         : num  1.4 1.24 3.83 380.13 2.29
-##  $ standard_error   : num  0.391 0.289 0.798 1.315 1.361
+##  $ standard_error   : num  0.389 0.289 0.798 1.315 1.361
 ##  $ p_value          : num  0.281 0.225 0.769 NA NA
 ##  $ n_intervention   : num  137 494 46 58 53
 ##  $ n_control        : num  140 492 51 58 54
@@ -115,8 +115,8 @@ summary(mort28)
 ## Review:     Average treatment effect - mortality 28 days
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.6565 [0.3052;  1.4120]       30.9
-## ACTT-2        0.7041 [0.3996;  1.2406]       56.4
+## Bari-SolidAct 0.6573 [0.3068;  1.4084]       31.1
+## ACTT-2        0.7041 [0.3996;  1.2406]       56.3
 ## Ghazaeian     0.7909 [0.1654;  3.7807]        7.4
 ## TOFACOV       2.5366 [0.1928; 33.3748]        2.7
 ## COVINIB       0.1816 [0.0126;  2.6139]        2.5
@@ -125,15 +125,15 @@ summary(mort28)
 ## Number of observations: o = 1583
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.6953 [0.3805; 1.2705] -1.67  0.1695
+## Random effects model (HK-SE) 0.6954 [0.3809; 1.2696] -1.68  0.1692
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 5.4355]; tau = 0 [0.0000; 2.3314]
+##  tau^2 = 0 [0.0000; 5.4350]; tau = 0 [0.0000; 2.3313]
 ##  I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.99    4  0.7372
+##  1.99    4  0.7373
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method

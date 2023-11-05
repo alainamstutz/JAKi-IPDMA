@@ -436,7 +436,8 @@ addmargins(table(df$mort_28, df$trt, useNA = "always"))
 ```r
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -508,30 +509,6 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.99 </td>
   </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
@@ -556,7 +533,8 @@ table(df$mort_60, df$trt, useNA = "always")
 ```r
 mort.60 <- df %>% 
   glm(mort_60 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -627,30 +605,6 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -733,7 +687,8 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdeath <- df %>% 
   coxph(Surv(death_time, death_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ```
 
@@ -768,9 +723,6 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |4                   |NA     |NA         |NA          |
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
-|comed_dexa          |NA     |NA         |NA          |
-|comed_rdv           |NA     |NA         |NA          |
-|comed_toci          |NA     |NA         |NA          |
 
 ```r
 # Assessing proportional hazards // also just check KM curve
@@ -888,7 +840,8 @@ table(df$new_mvd_28, df$trt, useNA = "always")
 ```r
 new.mvd.28 <- df %>% 
   glm(new_mvd_28 ~ trt 
-      + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -959,30 +912,6 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_dexa </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_toci </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1085,7 +1014,8 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge <- df %>% 
   coxph(Surv(discharge_time, discharge_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_reg_tbl <- tbl_regression(ttdischarge, exp = TRUE)
 # Nicely formatted table
@@ -1106,9 +1036,6 @@ kable(ttdischarge_reg_tbl, format = "markdown", table.attr = 'class="table"') %>
 |4                   |NA     |NA         |NA          |
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
-|comed_dexa          |NA     |NA         |NA          |
-|comed_rdv           |NA     |NA         |NA          |
-|comed_toci          |NA     |NA         |NA          |
 
 ```r
 # Sub-distribution hazards
@@ -1157,7 +1084,8 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
 # Nicely formatted table
@@ -1178,9 +1106,6 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 |4                   |NA     |NA         |NA          |
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
-|comed_dexa          |NA     |NA         |NA          |
-|comed_rdv           |NA     |NA         |NA          |
-|comed_toci          |NA     |NA         |NA          |
 
 ```r
 # Assessing proportional hazards using default discharge_time and discharge_reached
@@ -1221,7 +1146,8 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge.sus <- df %>% 
   coxph(Surv(discharge_time_sus, discharge_reached_sus) ~ trt 
-        + age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline 
+        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_sus_reg_tbl <- tbl_regression(ttdischarge.sus, exp = TRUE)
 # Nicely formatted table
@@ -1242,9 +1168,6 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 |4                   |NA     |NA         |NA          |
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
-|comed_dexa          |NA     |NA         |NA          |
-|comed_rdv           |NA     |NA         |NA          |
-|comed_toci          |NA     |NA         |NA          |
 Discussion points
 1. Use F&G for sens-analysis (sustained discharge)?
 2. "subdistribution / Fine & Gray" -> but here, the same as cause-specific, since noone was still hospitalized at day 28, all either dead (2) or discharged (1).
@@ -1407,12 +1330,18 @@ Discussion points
 ```r
 # table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 3 included
 # table(df$clinstatus_baseline, df$mort_28, df$trt, useNA = "always") # 0 in 2x2 table
-# class(df$clinstatus_baseline)
-df$clinstatus_baseline_f <- df$clinstatus_baseline
-df$clinstatus_baseline <- as.numeric(df$clinstatus_baseline)
+class(df$clinstatus_baseline)
+```
+
+```
+## [1] "factor"
+```
+
+```r
+df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
-  glm(mort_28 ~ trt*clinstatus_baseline
+  glm(mort_28 ~ trt*clinstatus_baseline_n
       #+ age 
       #+ clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
@@ -1472,7 +1401,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 0.76 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline_n </td>
    <td style="text-align:right;"> 1391232.07 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
@@ -1480,7 +1409,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:clinstatus_baseline </td>
+   <td style="text-align:left;font-weight: bold;"> trt:clinstatus_baseline_n </td>
    <td style="text-align:right;"> NA </td>
    <td style="text-align:right;"> NA </td>
    <td style="text-align:right;"> NA </td>
@@ -1495,7 +1424,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 ```r
 # Firth regression
 mort.28.vent.firth <- df %>% 
-  logistf(mort_28 ~ trt*clinstatus_baseline
+  logistf(mort_28 ~ trt*clinstatus_baseline_n
       + age 
       + clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
@@ -1504,32 +1433,35 @@ summary(mort.28.vent.firth)
 ```
 
 ```
-## logistf(formula = mort_28 ~ trt * clinstatus_baseline + age + 
+## logistf(formula = mort_28 ~ trt * clinstatus_baseline_n + age + 
 ##     clinstatus_baseline, data = .)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                                  coef   se(coef)   lower 0.95 upper 0.95
-## (Intercept)             -1.594494e+00 4.86180692 -16.51379031 6.58451097
-## trt                     -1.953276e-01 0.73443023  -8.54199877 2.45329861
-## clinstatus_baseline     -6.743902e-01 1.62421666  -3.40628862 4.31000843
-## age                      2.484561e-02 0.02230260  -0.02064775 0.07186912
-## trt:clinstatus_baseline  2.434075e-18 0.03278866  -6.42646040 6.42646040
-##                                Chisq         p method
-## (Intercept)             1.106933e-01 0.7393562      2
-## trt                     0.000000e+00 1.0000000      2
-## clinstatus_baseline     1.520923e-01 0.6965439      2
-## age                     1.122698e+00 0.2893383      2
-## trt:clinstatus_baseline 5.684342e-13 0.9999994      2
+##                                   coef    se(coef)   lower 0.95  upper 0.95
+## (Intercept)                3.921932195 7.838165237 -114.7212086 104.5504731
+## trt                       -0.040505356 0.214043035 -101.7500617  29.0250711
+## clinstatus_baseline_n     -0.839413412 1.254978703  -41.8130839  52.4993314
+## age                       -0.035633146 0.091043986   -0.2125685   0.3452410
+## clinstatus_baseline3       0.527964060 0.011652629   -7.7777974  21.3004901
+## trt:clinstatus_baseline_n  0.002267923 0.002500404   -0.4062278   0.3863562
+##                           Chisq p method
+## (Intercept)                   0 1      2
+## trt                           0 1      2
+## clinstatus_baseline_n         0 1      2
+## age                           0 1      2
+## clinstatus_baseline3          0 1      2
+## trt:clinstatus_baseline_n     0 1      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=1.156863 on 4 df, p=0.8851485, n=97
-## Wald test = 42.28886 on 4 df, p = 1.453298e-08
+## Likelihood ratio test=151.69 on 5 df, p=0, n=97
+## Wald test = 2397.112 on 5 df, p = 0
 ```
 Discussion points
 1. How to apply rare event correction to interaction estimation?
 2. Firth regression?
+3. numeric or factor?
 
 # Subgroup analysis: Age on primary endpoint
 
@@ -1603,7 +1535,7 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:right;"> 0.83 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
    <td style="text-align:right;"> 1400323.35 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
@@ -1720,8 +1652,8 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
    <td style="text-align:right;"> 0.42 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
-   <td style="text-align:right;"> 1382411.90 </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 1382411.91 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
@@ -1837,8 +1769,8 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:right;"> 0.72 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
-   <td style="text-align:right;"> 39049369.28 </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 39049369.40 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -1862,7 +1794,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f4 </td>
-   <td style="text-align:right;"> 123350894351704320.00 </td>
+   <td style="text-align:right;"> 123350894352471232.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -1953,7 +1885,7 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
    <td style="text-align:right;"> 0.61 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
    <td style="text-align:right;"> 1371744.16 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
@@ -1990,7 +1922,7 @@ mort.28.comed <- df %>%
       + age 
       + clinstatus_baseline 
       #+ comed_dexa 
-      + comed_rdv 
+      #+ comed_rdv 
       #+ comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -2064,20 +1996,12 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
    <td style="text-align:right;"> 0.28 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
    <td style="text-align:right;"> 1351843.73 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_rdv </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
@@ -2195,7 +2119,7 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 0.27 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
    <td style="text-align:right;"> 1441590.64 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
@@ -2214,7 +2138,6 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # SENS Subgroup analysis: CRP on primary endpoint
 
@@ -2297,7 +2220,7 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:right;"> 0.26 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
    <td style="text-align:right;"> 1606727.31 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
@@ -2384,29 +2307,29 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
 result_list <- list()
 
 result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
-                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.60, "death at day 60",
-                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
-                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
 # result_list[[x]] <- extract_trt_results(new.mv.28, "new MV within 28d",
 #                                       addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # not possible
 result_list[[4]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
-                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[5]] <- extract_trt_results(clin.28, "clinical status at day 28",
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age
 result_list[[6]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
-                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
-                                        addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                        addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[10]] <- extract_trt_results(ae.28.firth, "any AE grade 3,4 within 28 days_firth",
                                          addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[11]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days_firth",
-                                         addmargins(table(df$ae_28_sev, df$trt))[3,2], addmargins(table(df$ae_28_sev, df$trt))[3,1]) # adj: age, clinstatus, comed
+                                         addmargins(table(df$ae_28_sev, df$trt))[3,2], addmargins(table(df$ae_28_sev, df$trt))[3,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2507,7 +2430,7 @@ result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: ag
 # result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") # not possible
 # result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
 result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus, comed
+result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
 # result_list[[x]] <- extract_interaction(mort.28.var, "variant") # not available
 
 # Filter out NULL results and bind the results into a single data frame
@@ -2544,13 +2467,13 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|               |variable                  | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial     |JAKi        |
-|:--------------|:-------------------------|--------------:|---------:|----------:|--------------:|---------:|:---------|:-----------|
-|trt:age        |age                       |      1.0504721| 0.9508741|   1.180266|      0.0531186| 0.3539392|Ghazaeian |Tofacitinib |
-|trt:comorb_cat |comorbidity               |      1.9139158| 0.3278192|  16.486883|      0.9500040| 0.4944083|Ghazaeian |Tofacitinib |
-|trt:sympdur    |symptom duration          |      1.1956574| 0.6406956|   2.362071|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
-|trt:crp        |crp                       |      0.9966468| 0.9552354|   1.034729|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
-|trt            |respiratory support_firth |      0.8225652| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
+|               |variable                  | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial     |JAKi        |
+|:--------------|:-------------------------|--------------:|---------:|---------:|--------------:|---------:|:---------|:-----------|
+|trt:age        |age                       |      1.0504721| 0.9508741|  1.180266|      0.0531186| 0.3539392|Ghazaeian |Tofacitinib |
+|trt:comorb_cat |comorbidity               |      1.9139158| 0.3278192| 16.486883|      0.9500040| 0.4944083|Ghazaeian |Tofacitinib |
+|trt:sympdur    |symptom duration          |      1.1956574| 0.6406956|  2.362071|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
+|trt:crp        |crp                       |      0.9966468| 0.9552354|  1.034729|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
+|trt            |respiratory support_firth |      0.9603040| 0.6661584|  1.471609|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
 
 ```r
 # Save

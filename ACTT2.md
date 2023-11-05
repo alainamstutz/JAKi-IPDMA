@@ -298,8 +298,8 @@ df <- df %>% # 47 have no outcome data, reason for censoring unclear (see below)
 # table(df$ACTARM, df$mort_28, useNA = "always") # the 16 not treated were censored at day 0 or 1 => NA for death_d/discharge_d/clinstatus_28 // The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 was withdrawn by investigator, 1 became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
 
 # df %>%
-#   select(mort_28, ACTARM, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, 
-#          #clinstatus_15_imp, 
+#   select(mort_28, ACTARM, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15,
+#          #clinstatus_15_imp,
 #          clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
 #   filter(is.na(mort_28)) %>%
 #   View()
@@ -640,8 +640,6 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
-1. respiratory support at baseline (ordinal scale 1-3 vs 4-5 OR leave it as it is)?
 
 # (ii) Mortality at day 60
 
@@ -755,7 +753,6 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # (iii) Time to death within max. follow-up time
 
@@ -891,7 +888,6 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |4                   |0.38   |0.21, 0.69 |0.002       |
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
-Discussion points
 
 # (iv) New mechanical ventilation among survivors within 28 days
 
@@ -1110,7 +1106,6 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # (v) Clinical status at day 28
 
@@ -1171,8 +1166,6 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |clinstatus_baseline3 |clinstatus_baseline3 |   2.4518101|   1.1331585|    5.3049708|
 |clinstatus_baseline4 |clinstatus_baseline4 |   7.8108597|   3.5587936|   17.1433174|
 |clinstatus_baseline5 |clinstatus_baseline5 |  33.9990627|  15.0945034|   76.5799465|
-Discussion points
-1. keep clinstatus_baseline as adjustment? Highly correlated to outcome?
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 
@@ -1527,11 +1520,10 @@ table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 5 included
 ```
 
 ```r
-df$clinstatus_baseline_f <- df$clinstatus_baseline
-df$clinstatus_baseline <- as.numeric(df$clinstatus_baseline)
+df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
-  glm(mort_28 ~ trt*clinstatus_baseline
+  glm(mort_28 ~ trt*clinstatus_baseline_n
       + age 
      # + clinstatus_baseline 
      # + comed_dexa 
@@ -1593,7 +1585,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 0.07 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline_n </td>
    <td style="text-align:right;"> 2.75 </td>
    <td style="text-align:right;"> 1.82 </td>
    <td style="text-align:right;"> 4.16 </td>
@@ -1609,7 +1601,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:clinstatus_baseline </td>
+   <td style="text-align:left;font-weight: bold;"> trt:clinstatus_baseline_n </td>
    <td style="text-align:right;"> 1.75 </td>
    <td style="text-align:right;"> 0.88 </td>
    <td style="text-align:right;"> 3.45 </td>
@@ -1676,41 +1668,57 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -8.77 </td>
-   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.03 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.24 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 19.38 </td>
-   <td style="text-align:right;"> 0.16 </td>
-   <td style="text-align:right;"> 0.88 </td>
+   <td style="text-align:right;"> 1.15 </td>
+   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 18.14 </td>
+   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> 0.92 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 4.18 </td>
+   <td style="text-align:right;"> 4.15 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
-   <td style="text-align:right;"> 3.41 </td>
-   <td style="text-align:right;"> 2.45 </td>
-   <td style="text-align:right;"> 4.74 </td>
-   <td style="text-align:right;"> 7.30 </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 8972253.43 </td>
    <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 29515124.24 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 90337069.20 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:age </td>
    <td style="text-align:right;"> 0.99 </td>
    <td style="text-align:right;"> 0.95 </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> -0.42 </td>
-   <td style="text-align:right;"> 0.67 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> -0.35 </td>
+   <td style="text-align:right;"> 0.72 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1787,49 +1795,65 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -8.52 </td>
-   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.03 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.23 </td>
+   <td style="text-align:right;"> 1.22 </td>
    <td style="text-align:right;"> 0.11 </td>
-   <td style="text-align:right;"> 13.61 </td>
-   <td style="text-align:right;"> 0.17 </td>
+   <td style="text-align:right;"> 13.63 </td>
+   <td style="text-align:right;"> 0.16 </td>
    <td style="text-align:right;"> 0.87 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat </td>
-   <td style="text-align:right;"> 1.67 </td>
-   <td style="text-align:right;"> 0.91 </td>
-   <td style="text-align:right;"> 3.05 </td>
    <td style="text-align:right;"> 1.65 </td>
-   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> 0.90 </td>
+   <td style="text-align:right;"> 3.02 </td>
+   <td style="text-align:right;"> 1.62 </td>
+   <td style="text-align:right;"> 0.11 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 4.74 </td>
+   <td style="text-align:right;"> 4.72 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
-   <td style="text-align:right;"> 3.44 </td>
-   <td style="text-align:right;"> 2.47 </td>
-   <td style="text-align:right;"> 4.80 </td>
-   <td style="text-align:right;"> 7.31 </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 8436366.35 </td>
    <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 28527731.45 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 86895822.81 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat </td>
-   <td style="text-align:right;"> 0.80 </td>
+   <td style="text-align:right;"> 0.81 </td>
    <td style="text-align:right;"> 0.34 </td>
-   <td style="text-align:right;"> 1.92 </td>
-   <td style="text-align:right;"> -0.49 </td>
-   <td style="text-align:right;"> 0.62 </td>
+   <td style="text-align:right;"> 1.93 </td>
+   <td style="text-align:right;"> -0.48 </td>
+   <td style="text-align:right;"> 0.63 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1890,81 +1914,97 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -7.92 </td>
-   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.03 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 2.23 </td>
-   <td style="text-align:right;"> 0.18 </td>
-   <td style="text-align:right;"> 26.95 </td>
-   <td style="text-align:right;"> 0.63 </td>
-   <td style="text-align:right;"> 0.53 </td>
+   <td style="text-align:right;"> 2.26 </td>
+   <td style="text-align:right;"> 0.19 </td>
+   <td style="text-align:right;"> 27.45 </td>
+   <td style="text-align:right;"> 0.64 </td>
+   <td style="text-align:right;"> 0.52 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f2 </td>
-   <td style="text-align:right;"> 3.34 </td>
-   <td style="text-align:right;"> 0.39 </td>
-   <td style="text-align:right;"> 28.91 </td>
-   <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 0.27 </td>
+   <td style="text-align:right;"> 3.23 </td>
+   <td style="text-align:right;"> 0.37 </td>
+   <td style="text-align:right;"> 28.06 </td>
+   <td style="text-align:right;"> 1.06 </td>
+   <td style="text-align:right;"> 0.29 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f3 </td>
-   <td style="text-align:right;"> 5.33 </td>
-   <td style="text-align:right;"> 0.67 </td>
-   <td style="text-align:right;"> 42.22 </td>
-   <td style="text-align:right;"> 1.58 </td>
-   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> 5.13 </td>
+   <td style="text-align:right;"> 0.65 </td>
+   <td style="text-align:right;"> 40.74 </td>
+   <td style="text-align:right;"> 1.55 </td>
+   <td style="text-align:right;"> 0.12 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f4 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.02 </td>
-   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 1.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 1.07 </td>
+   <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 4.67 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
-   <td style="text-align:right;"> 3.38 </td>
-   <td style="text-align:right;"> 2.42 </td>
-   <td style="text-align:right;"> 4.73 </td>
-   <td style="text-align:right;"> 7.13 </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 8071386.93 </td>
    <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 25641621.71 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 80203043.31 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f2 </td>
    <td style="text-align:right;"> 0.37 </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 5.80 </td>
-   <td style="text-align:right;"> -0.70 </td>
+   <td style="text-align:right;"> 5.76 </td>
+   <td style="text-align:right;"> -0.71 </td>
    <td style="text-align:right;"> 0.48 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f3 </td>
    <td style="text-align:right;"> 0.22 </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 2.98 </td>
+   <td style="text-align:right;"> 2.99 </td>
    <td style="text-align:right;"> -1.14 </td>
    <td style="text-align:right;"> 0.26 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f4 </td>
-   <td style="text-align:right;"> 705759.76 </td>
+   <td style="text-align:right;"> 13465587.45 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 1.00 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2024,24 +2064,24 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -9.56 </td>
-   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.03 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 0.37 </td>
-   <td style="text-align:right;"> 3.20 </td>
-   <td style="text-align:right;"> 0.14 </td>
-   <td style="text-align:right;"> 0.89 </td>
+   <td style="text-align:right;"> 3.24 </td>
+   <td style="text-align:right;"> 0.15 </td>
+   <td style="text-align:right;"> 0.88 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_count </td>
    <td style="text-align:right;"> 1.27 </td>
    <td style="text-align:right;"> 0.98 </td>
    <td style="text-align:right;"> 1.66 </td>
-   <td style="text-align:right;"> 1.81 </td>
+   <td style="text-align:right;"> 1.79 </td>
    <td style="text-align:right;"> 0.07 </td>
   </tr>
   <tr>
@@ -2049,24 +2089,40 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 4.76 </td>
+   <td style="text-align:right;"> 4.75 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
-   <td style="text-align:right;"> 3.49 </td>
-   <td style="text-align:right;"> 2.50 </td>
-   <td style="text-align:right;"> 4.87 </td>
-   <td style="text-align:right;"> 7.37 </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 9047213.89 </td>
    <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 30485867.30 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 95214885.15 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_count </td>
    <td style="text-align:right;"> 0.82 </td>
    <td style="text-align:right;"> 0.55 </td>
-   <td style="text-align:right;"> 1.22 </td>
-   <td style="text-align:right;"> -0.97 </td>
-   <td style="text-align:right;"> 0.33 </td>
+   <td style="text-align:right;"> 1.23 </td>
+   <td style="text-align:right;"> -0.96 </td>
+   <td style="text-align:right;"> 0.34 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2139,47 +2195,63 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -9.37 </td>
-   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.03 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 0.29 </td>
-   <td style="text-align:right;"> 3.56 </td>
-   <td style="text-align:right;"> 0.03 </td>
-   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> 3.63 </td>
+   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> 0.96 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> sympdur </td>
    <td style="text-align:right;"> 0.99 </td>
    <td style="text-align:right;"> 0.92 </td>
    <td style="text-align:right;"> 1.07 </td>
-   <td style="text-align:right;"> -0.21 </td>
-   <td style="text-align:right;"> 0.83 </td>
+   <td style="text-align:right;"> -0.24 </td>
+   <td style="text-align:right;"> 0.81 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 5.08 </td>
+   <td style="text-align:right;"> 5.07 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline </td>
-   <td style="text-align:right;"> 3.47 </td>
-   <td style="text-align:right;"> 2.50 </td>
-   <td style="text-align:right;"> 4.83 </td>
-   <td style="text-align:right;"> 7.39 </td>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 9559832.31 </td>
    <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 31958439.15 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 99044710.82 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:sympdur </td>
    <td style="text-align:right;"> 0.95 </td>
    <td style="text-align:right;"> 0.83 </td>
-   <td style="text-align:right;"> 1.09 </td>
+   <td style="text-align:right;"> 1.10 </td>
    <td style="text-align:right;"> -0.68 </td>
    <td style="text-align:right;"> 0.50 </td>
   </tr>
@@ -2367,12 +2439,12 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                        |variable            | log_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial  |JAKi        |
-|:-----------------------|:-------------------|--------------:|---------:|--------:|--------------:|---------:|:------|:-----------|
-|trt:clinstatus_baseline |respiratory support |      1.7465135| 0.8949053| 3.517276|      0.3473074| 0.1083715|ACTT-2 |Baricitinib |
-|trt:age                 |age                 |      0.9910313| 0.9502784| 1.033385|      0.0213257| 0.6726926|ACTT-2 |Baricitinib |
-|trt:comorb_cat          |comorbidity         |      0.8037548| 0.3348913| 1.930258|      0.4433790| 0.6222114|ACTT-2 |Baricitinib |
-|trt:sympdur             |symptom duration    |      0.9530223| 0.8253460| 1.089607|      0.0708218| 0.4968780|ACTT-2 |Baricitinib |
+|                          |variable            | log_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial  |JAKi        |
+|:-------------------------|:-------------------|--------------:|---------:|--------:|--------------:|---------:|:------|:-----------|
+|trt:clinstatus_baseline_n |respiratory support |      1.7465135| 0.8949053| 3.517276|      0.3473074| 0.1083715|ACTT-2 |Baricitinib |
+|trt:age                   |age                 |      0.9924607| 0.9514065| 1.035299|      0.0214898| 0.7247154|ACTT-2 |Baricitinib |
+|trt:comorb_cat            |comorbidity         |      0.8084191| 0.3359861| 1.945693|      0.4446861| 0.6324665|ACTT-2 |Baricitinib |
+|trt:sympdur               |symptom duration    |      0.9527670| 0.8245538| 1.089695|      0.0710958| 0.4961508|ACTT-2 |Baricitinib |
 
 ```r
 # Save

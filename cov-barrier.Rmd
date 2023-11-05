@@ -1,0 +1,114 @@
+---
+title: "COV-BARRIER"
+author: "A.Amstutz"
+date: "2023-11-05"
+output: 
+  html_document:
+    keep_md: yes
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+  pdf_document:
+    toc: yes
+---
+
+# Load packages
+```{r load packages, echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(tableone)
+library(haven) # Read sas files
+library(here)
+library(kableExtra)
+
+library(jtools) # for summ() and plot_summs
+library(sjPlot) # for tab_model
+library(ggplot2) # survival/TTE analyses and other graphs
+library(ggsurvfit) # survival/TTE analyses
+library(survival) # survival/TTE analyses
+library(gtsummary) # survival/TTE analyses
+library(ggfortify) # autoplot
+library(tidycmprsk) # competing risk analysis
+library(ordinal) # clinstatus ordinal regression
+
+```
+
+# Load Data
+```{r, include=FALSE}
+# SDTM_KHAA_final_new
+
+# df_adverse_events <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ae.sas7bdat")
+# df_adverse_events_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppae.sas7bdat")
+# df_clinclass <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/cc.sas7bdat")
+# df_clinevent <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ce.sas7bdat")
+# df_comed <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/cm.sas7bdat")
+# df_comed_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppcm.sas7bdat")
+# df_demographics <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/dm.sas7bdat")
+# df_demographics_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppdm.sas7bdat")
+# df_disco <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ds.sas7bdat")
+# df_prot_dev <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/dv.sas7bdat")
+# df_prot_dev_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppdv.sas7bdat")
+# df_dose_details <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ec.sas7bdat")
+# df_dose_details_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppec.sas7bdat")
+# df_dose_details2 <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ex.sas7bdat")
+# df_death_SE <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/fa.sas7bdat")
+# df_death_SE_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppfa.sas7bdat")
+# df_hosp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ho.sas7bdat")
+# df_lab <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/lb.sas7bdat")
+# df_lab_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/supplb.sas7bdat")
+# df_lab_ext <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/xl.sas7bdat")
+# df_lab_ext_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppxl.sas7bdat")
+# df_microbio <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/mb.sas7bdat")
+# df_medicalhist <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/mh.sas7bdat")
+# df_medicalhist_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppmh.sas7bdat")
+# df_resp_procedure <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/pr.sas7bdat")
+# df_resp_procedure_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/supppr.sas7bdat")
+# df_rel_CM_AE <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/relrec.sas7bdat")
+# # df_do_not_intubate <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/sc.sas7bdat")
+# # df_do_not_intubate_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppsc.sas7bdat")
+# # df_unknown <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/se.sas7bdat")
+# df_death <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ss.sas7bdat")
+# df_substance_use <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/su.sas7bdat")
+# df_substance_use_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppsu.sas7bdat")
+# df_subj_visits <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/sv.sas7bdat")
+# df_subj_visit_findings <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/xv.sas7bdat")
+# # df_unknown <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ta.sas7bdat")
+# # df_unknown <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/te.sas7bdat")
+# # df_screen_exclusions <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ti.sas7bdat")
+# # df_trial_info <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ts.sas7bdat")
+# # df_trial_info2 <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/tv.sas7bdat")
+# df_vitalsigns <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/vs.sas7bdat")
+# df_vitalsigns_suppO2 <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppvs.sas7bdat")
+# df_chest_imaging <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/xp.sas7bdat")
+# df_chest_imaging_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppxp.sas7bdat")
+
+# ADaM_KHAA_final_new
+df_ae_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adae.sas7bdat")
+df_comed_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adcm.sas7bdat")
+df_disco_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adds.sas7bdat")
+df_prot_dev_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/addv.sas7bdat")
+df_dose_details_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adex.sas7bdat")
+df_lab_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adlb.sas7bdat")
+df_lab_ext_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adlbcn.sas7bdat")
+df_medicalhist_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/admh.sas7bdat")
+df_niaid_score_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adniaid.sas7bdat")
+df_ind_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adsl.sas7bdat")
+df_ind2_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adsl2.sas7bdat")
+df_tte_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adtte.sas7bdat")
+df_tte2_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/adtte2.sas7bdat")
+df_vitalsigns_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/advs.sas7bdat")
+```
+
+# Reshape dataset and define ITT population
+```{r echo=TRUE}
+
+
+```
+
+# Baseline Characteristics
+```{r echo=TRUE}
+
+
+```
+
