@@ -44,7 +44,7 @@ library(ordinal) # clinstatus ordinal regression
 # df_clinevent <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ce.sas7bdat")
 # df_comed <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/cm.sas7bdat")
 # df_comed_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppcm.sas7bdat")
-# df_demographics <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/dm.sas7bdat")
+df_demographics <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/dm.sas7bdat")
 # df_demographics_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppdm.sas7bdat")
 # df_disco <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ds.sas7bdat")
 # df_prot_dev <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/dv.sas7bdat")
@@ -59,7 +59,7 @@ library(ordinal) # clinstatus ordinal regression
 # df_lab_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/supplb.sas7bdat")
 # df_lab_ext <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/xl.sas7bdat")
 # df_lab_ext_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppxl.sas7bdat")
-# df_microbio <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/mb.sas7bdat")
+df_microbio <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/mb.sas7bdat")
 # df_medicalhist <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/mh.sas7bdat")
 # df_medicalhist_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppmh.sas7bdat")
 # df_resp_procedure <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/pr.sas7bdat")
@@ -69,8 +69,8 @@ library(ordinal) # clinstatus ordinal regression
 # # df_do_not_intubate_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppsc.sas7bdat")
 # # df_unknown <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/se.sas7bdat")
 # df_death <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ss.sas7bdat")
-# df_substance_use <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/su.sas7bdat")
-# df_substance_use_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppsu.sas7bdat")
+df_substance_use <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/su.sas7bdat")
+df_substance_use_supp <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/suppsu.sas7bdat")
 # df_subj_visits <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/sv.sas7bdat")
 # df_subj_visit_findings <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/xv.sas7bdat")
 # # df_unknown <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/SDTM_KHAA_final_new/ta.sas7bdat")
@@ -100,13 +100,262 @@ df_tte2_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/D
 df_vitalsigns_set <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/COV-BARRIER/ADaM_KHAA_final_new/advs.sas7bdat")
 ```
 
-# Reshape dataset and define ITT population
+# Define ITT population and mark COV-BARRIER and COV-BARRIER expl.
 ```{r echo=TRUE}
-
-
+df <- df_ind_set %>% # keep only those randomized
+  filter(RANDFL == "Y")
+df <- df %>% # mark COV-BARRIER (main trial, all severity except MV/ECMO) and COV-BARRIER exploratory (only MV/ECMO)
+  mutate(subtrial = case_when(BNIAID == "7" ~ "COV-BARRIER_MV",
+                               TRUE ~ c("COV-BARRIER_main")))
+addmargins(table(df$ARM, df$subtrial))
 ```
 
 # Baseline Characteristics
+```{r echo=TRUE}
+df <- df %>% # no missing in all these
+  rename(id_pat = SUBJID,
+         country = COUNTRY,
+         randdate = RANDDT
+         )
+df <- df %>% # COV-BARRIER exploratory (only MV/ECMO) were recruited in ICU
+  mutate(icu = case_when(subtrial == "COV-BARRIER_MV" ~ 1,
+                               TRUE ~ 0))
+df <- df %>%
+  mutate(trt = case_when(ARM == "Baricitinib-4mg-QD" ~ 1,
+                         TRUE ~ 0))
+# add trial variables
+df$trial <- c("COV-BARRIER")
+df$JAKi <- c("Baricitinib")
+df <- df %>% # no missing in sex
+  mutate(sex = case_when(SEX == "F" ~ "female",
+                         SEX == "M" ~ "male"))
+# Ethnicity
+df <- df %>% # no missing in ethnicity
+  mutate(ethn = case_when(RACE == "UNKNOWN" & ETHNIC == "HISPANIC OR LATINO" ~ "HISPANIC OR LATINO",
+                          TRUE ~ c(RACE)))
+# AGE: add 90 to ages ">89" // age data also not available in df_demographics due to anonymization
+df$age <- as.numeric(df$AGE)
+df <- df %>%
+  mutate(age = case_when(is.na(age) ~ 90,
+                         TRUE ~ c(age)))
+df %>% 
+  drop_na(age) %>% 
+  ggplot(aes(x = age)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Age",
+       x = "Age",
+       y = "Density")
+
+# Days with symptoms prior to randomization
+df <- df %>% 
+  mutate(sympdur = case_when(SYMHDUR == "-24" ~ "0",
+                             SYMHDUR == "-22" ~ "0",
+                             SYMHDUR == "-16" ~ "0",
+                             SYMHDUR == "-15" ~ "0",
+                             SYMHDUR == "-8" ~ "0",
+                             TRUE ~ c(SYMHDUR)))
+df$sympdur <- as.numeric(df$sympdur)
+df %>% 
+  drop_na(sympdur) %>% 
+  ggplot(aes(x = sympdur)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Symptom Duration",
+       x = "Symptom Duration",
+       y = "Density")
+
+# Severity of COVID-19 with respect to respiratory support at randomisation, according to NIAID score
+# transform all clinical scores
+score_transform <- function(df, clinstatus_var, score_var) {
+  df <- df %>%
+    mutate({{ clinstatus_var }} :=
+             case_when({{ score_var }} %in% c(1, 2, 3) ~ 1,
+                       {{ score_var }} == 4 ~ 2,
+                       {{ score_var }} == 5 ~ 3,
+                       {{ score_var }} == 6 ~ 4,
+                       {{ score_var }} == 7 ~ 5,
+                       {{ score_var }} == 8 ~ 6)) %>%
+    mutate({{ clinstatus_var }} := factor({{ clinstatus_var }}, levels = 1:6))
+}
+df <- score_transform(df, clinstatus_baseline, BNIAIDN) 
+addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always")) # 7 missing
+addmargins(table(df$clinstatus_baseline, df$trt, df$subtrial, useNA = "always")) # 7 missing in COV-BARRIER main, no missing in COV-BARRIER 2 // # corresponds to publications
+
+
+### Co-medication at baseline
+table(df$BLSTRFN, df$trt, df$subtrial, useNA = "always") # corresponds to publications
+table(df$BRMDSVFL, df$trt, df$subtrial, useNA = "always") # corresponds to publications
+
+# check df_comed_set for prior/baseline co-medications for the following:
+df$comed_toci <- 0 # excluded according to protocol
+df$comed_acoa <- NA
+df$comed_interferon <- 0 # excluded according to protocol
+
+df <- df %>% 
+  mutate(comed_dexa = case_when(BLSTRFN == 1 ~ 1,
+                                BLSTRFN == 0 ~ 0))
+df <- df %>% 
+  mutate(comed_rdv = case_when(BRMDSVFL == 1 ~ 1,
+                                BRMDSVFL == 0 ~ 0))
+df <- df %>% 
+  mutate(comed_ab = case_when(PTHANTBI == "Y" ~ 1,
+                                TRUE ~ 0))
+df <- df %>% 
+  mutate(comed_other = case_when(PTHOTH == "Y" ~ 1,
+                                TRUE ~ 0))
+
+# group them for the subgroup analysis, according to protocol
+df <- df %>% 
+  mutate(comed_cat = case_when(comed_dexa == 0 & (comed_toci == 0 | is.na(comed_toci)) ~ 1, # patients without Dexamethasone nor Tocilizumab
+                               comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexamethasone and Tocilizumab
+                               comed_dexa == 1 & (comed_toci == 0 | is.na(comed_toci)) ~ 3, # patients with Dexamethasone but no Tocilizumab
+                               comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Tocilizumab but no Dexamethasone (if exist)
+
+
+### Comorbidity at baseline, including immunocompromised
+df <- df %>% 
+  mutate(comorb_dm = case_when(CMRDFL == "Y" ~ 1,
+                              CMRDFL == "N" ~ 0))
+df <- df %>%
+  mutate(comorb_obese = case_when(CMROFL == "Y" ~ 1,
+                                   CMROFL == "N" ~ 0))
+df <- df %>%
+  mutate(comorb_aht = case_when(CMRHFL == "Y" ~ 1,
+                                   CMRHFL == "N" ~ 0))
+df <- df %>%
+  mutate(comorb_lung = case_when(CMRCFL == "Y" ~ 1,
+                                  CMRCFL == "N" ~ 0))
+df <- df %>%
+  mutate(comorb_kidney = case_when(BRNLGR1 == "Impaired" ~ 1,
+                                   TRUE ~ 0))
+# take it from medicalhistory dataset
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(comorb_cancer = case_when(ASOC == "Neoplasms benign, malignant and unspecified (incl cysts and polyps)" & (grepl("Cancer", ALLT) | grepl("cancer", ALLT) | grepl("neoplasm", ALLT) | grepl("Neoplasm", ALLT) | grepl("carcinoma", ALLT) | grepl("Carcinoma", ALLT)) ~ 1))
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(comorb_liver = case_when(ALLT == "Chronic liver disease" ~ 1))
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(comorb_cvd = case_when(ASOC == "Cardiac disorders" ~ 1))
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(immunosupp = case_when(grepl("immune deficiency", ALLT) ~ 1))
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(comorb_autoimm = case_when((grepl("rheuma", ALLT) | grepl("Rheuma", ALLT) | grepl("immune", ALLT) | grepl("immune", ASOC) | grepl("immune", ADECOD)) & is.na(immunosupp) ~ 1))
+# remove duplicates  
+df_comorb_cancer <- df_medicalhist_set %>% 
+  filter(comorb_cancer == 1) %>%
+  distinct(USUBJID,comorb_cancer)
+df_comorb_liver <- df_medicalhist_set %>% 
+  filter(comorb_liver == 1) %>%
+  distinct(USUBJID,comorb_liver)
+df_comorb_cvd <- df_medicalhist_set %>% 
+  filter(comorb_cvd == 1) %>%
+  distinct(USUBJID,comorb_cvd)
+df_immunosupp <- df_medicalhist_set %>% 
+  filter(immunosupp == 1) %>%
+  distinct(USUBJID,immunosupp)
+df_comorb_autoimm <- df_medicalhist_set %>% 
+  filter(comorb_autoimm == 1) %>%
+  distinct(USUBJID,comorb_autoimm)
+# merge
+df <- left_join(df, df_comorb_cancer[, c("comorb_cancer", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_comorb_liver[, c("comorb_liver", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_comorb_cvd[, c("comorb_cvd", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_immunosupp[, c("immunosupp", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_comorb_autoimm[, c("comorb_autoimm", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+
+# take smoking from substance use set
+df_substance_use_supp <- df_substance_use_supp %>% 
+  mutate(comorb_smoker = case_when(QVAL == "CURRENT" ~ 1))
+df_comorb_smoker <- df_substance_use_supp %>% 
+  filter(comorb_smoker == 1) %>%
+  distinct(USUBJID,comorb_smoker)
+df <- left_join(df, df_comorb_smoker[, c("comorb_smoker", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+
+# the remaining missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
+df <- df %>% 
+  mutate(comorb_cancer = case_when(is.na(comorb_cancer) ~ 0,
+                                TRUE ~ c(comorb_cancer)),
+         comorb_liver = case_when(is.na(comorb_liver) ~ 0,
+                                TRUE ~ c(comorb_liver)),
+         comorb_cvd = case_when(is.na(comorb_cvd) ~ 0,
+                                TRUE ~ c(comorb_cvd)),
+         immunosupp = case_when(is.na(immunosupp) ~ 0,
+                                TRUE ~ c(immunosupp)),
+         comorb_autoimm = case_when(is.na(comorb_autoimm) ~ 0,
+                                TRUE ~ c(comorb_autoimm)),
+         comorb_smoker = case_when(is.na(comorb_smoker) ~ 0,
+                                TRUE ~ c(comorb_smoker)))
+df <- df %>% 
+  mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
+                                  comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
+                                | immunosupp == 1 | comorb_cancer == 1 | comorb_autoimm == 1 | comorb_kidney == 1 
+                                  ~ 1,
+                                comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
+                                  comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0
+                                ~ 0))
+addmargins(table(df$any_comorb, df$trt, df$subtrial, useNA = "always"))
+
+## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
+comorb <- df %>% 
+  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp, comorb_kidney, comorb_autoimm, comorb_cancer)
+comorb$comorb_count <- NA
+for (i in 1:dim(comorb)[[1]]) {
+  comorb$comorb_count[i] <- ifelse(
+    sum(comorb[i, ] %in% c(1)) > 0,
+    sum(comorb[i, ] %in% c(1)),
+    NA
+  )
+}
+comorb <- comorb %>%
+  mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
+                                  comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0 ~ 0,
+                                TRUE ~ comorb_count))
+df <- left_join(df, comorb[, c("comorb_count", "id_pat")], by = join_by(id_pat == id_pat)) ## merge imputed variable back
+df <- df %>%
+  mutate(comorb_cat = case_when(immunosupp == 1 ~ 4, # immunocompromised
+                                comorb_count == 0 ~ 1, # no comorbidity
+                                comorb_count == 1 ~ 2, # one comorbidity
+                                comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
+
+## CRP
+df_crp <- df_lab_set %>% 
+  filter(LBTESTCD == "CRP") %>% 
+  filter(VISIT == "Screening") %>% 
+  filter(AVISITN == 1)
+df_crp <- df_crp %>% 
+  distinct(USUBJID, .keep_all = TRUE)
+df_crp <- df_crp %>% 
+  rename(crp = LBSTRESN)
+df <- left_join(df, df_crp[, c("crp", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df %>% 
+  drop_na(crp) %>% 
+  ggplot(aes(x = crp)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Symptom Duration",
+       x = "CRP",
+       y = "Density")
+
+# Viremia dataset 
+df_viremia <- df_microbio %>% 
+  filter(MBTESTCD != "MBALL") %>% 
+  filter(MBTSTDTL == "DETECTION") %>% 
+  filter(MBBLFL == "Y")
+df_viremia <- df_viremia %>% 
+  distinct(USUBJID, .keep_all = TRUE)
+df_viremia <- df_viremia %>% # viral load value <LOQ and/or undectectable
+  mutate(vl_baseline = case_when(MBORRES == "POSITIVE" ~ 0,
+                                 TRUE ~ 1))
+df <- left_join(df, df_viremia[, c("vl_baseline", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+
+# Vaccination // not available
+# Variant // not available
+# Serology // not available
+
+```
+Discussion points BASELINE data:
+1. Double-check co-medication
+
+# Endpoints
 ```{r echo=TRUE}
 
 
