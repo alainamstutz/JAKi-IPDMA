@@ -311,7 +311,7 @@ df <- df %>% # 26 are missing; all other NAs are either dead or started with cli
 #   filter(death_reached == 0 | is.na(death_reached)) %>%
 #   View()
 
-# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
 df <- df %>% # same 26 are missing
   mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
                                 new_mv_28 == 0 | mort_28 == 0 ~ 0))
@@ -357,7 +357,7 @@ df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pa
 # table(df$clinstatus_28_imp, useNA = "always") # interesting: All imputed (i.e. carried forward from imputed day 15) are still hospitalized but not dead
 
 
-# (vi) Time to discharge or reaching discharge criteria up to day 28 // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days (as someone who has been censored on day 28). 
+# (vi) Time to discharge or reaching discharge criteria up to day 28
 df <- df %>% 
   mutate(discharge_reached = case_when(discharge_d <29 ~ 1,
                                        TRUE ~ 0))
@@ -367,7 +367,7 @@ df <- df %>% # 2 are left without any time to event data => impute max. follow-u
 df <- df %>% # restrict to max fup time 28d
   mutate(discharge_time = case_when(discharge_time >28 ~ 28,
                                     TRUE ~ discharge_time))
-df <- df %>% # add 28d for those that died
+df <- df %>% # add 28d for those that died // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days (as someone who has been censored on day 28). 
   mutate(discharge_time_sens = case_when(mort_28 == 1 ~ 28,
                                     TRUE ~ discharge_time))
 # table(df$discharge_time, df$discharge_reached, useNA = "always")

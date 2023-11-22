@@ -37,9 +37,514 @@ library(ordinal) # clinstatus ordinal regression
 # Load Data
 
 
-# Reshape dataset and define ITT population
+# Define ITT population and mark COV-BARRIER and COV-BARRIER expl.
 
+```r
+df <- df_ind_set %>% # keep only those randomized
+  filter(RANDFL == "Y")
+df <- df %>% # mark COV-BARRIER (main trial, all severity except MV/ECMO) and COV-BARRIER exploratory (only MV/ECMO)
+  mutate(subtrial = case_when(BNIAID == "7" ~ "COV-BARRIER_MV",
+                               TRUE ~ c("COV-BARRIER_main")))
+addmargins(table(df$ARM, df$subtrial))
+```
+
+```
+##                     
+##                      COV-BARRIER_main COV-BARRIER_MV  Sum
+##   Baricitinib-4mg-QD              764             51  815
+##   Placebo                         761             50  811
+##   Sum                            1525            101 1626
+```
 
 # Baseline Characteristics
+
+```r
+df <- df %>% # no missing in all these
+  rename(id_pat = SUBJID,
+         country = COUNTRY,
+         randdate = RANDDT
+         )
+df <- df %>% # COV-BARRIER exploratory (only MV/ECMO) were recruited in ICU
+  mutate(icu = case_when(subtrial == "COV-BARRIER_MV" ~ 1,
+                               TRUE ~ 0))
+df <- df %>%
+  mutate(trt = case_when(ARM == "Baricitinib-4mg-QD" ~ 1,
+                         TRUE ~ 0))
+# add trial variables
+df$trial <- c("COV-BARRIER")
+df$JAKi <- c("Baricitinib")
+df <- df %>% # no missing in sex
+  mutate(sex = case_when(SEX == "F" ~ "female",
+                         SEX == "M" ~ "male"))
+# Ethnicity
+df <- df %>% # no missing in ethnicity
+  mutate(ethn = case_when(RACE == "UNKNOWN" & ETHNIC == "HISPANIC OR LATINO" ~ "HISPANIC OR LATINO",
+                          TRUE ~ c(RACE)))
+# AGE: add 90 to ages ">89" // age data also not available in df_demographics due to anonymization
+df$age <- as.numeric(df$AGE)
+df <- df %>%
+  mutate(age = case_when(is.na(age) ~ 90,
+                         TRUE ~ c(age)))
+df %>% 
+  drop_na(age) %>% 
+  ggplot(aes(x = age)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Age",
+       x = "Age",
+       y = "Density")
+```
+
+![](cov-barrier_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
+# Days with symptoms prior to randomization
+df <- df %>% 
+  mutate(sympdur = case_when(SYMHDUR == "-24" ~ "0",
+                             SYMHDUR == "-22" ~ "0",
+                             SYMHDUR == "-16" ~ "0",
+                             SYMHDUR == "-15" ~ "0",
+                             SYMHDUR == "-8" ~ "0",
+                             TRUE ~ c(SYMHDUR)))
+df$sympdur <- as.numeric(df$sympdur)
+df %>% 
+  drop_na(sympdur) %>% 
+  ggplot(aes(x = sympdur)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Symptom Duration",
+       x = "Symptom Duration",
+       y = "Density")
+```
+
+![](cov-barrier_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
+
+```r
+# Severity of COVID-19 with respect to respiratory support at randomisation, according to NIAID score
+# transform all clinical scores
+score_transform <- function(df, clinstatus_var, score_var) {
+  df <- df %>%
+    mutate({{ clinstatus_var }} :=
+             case_when({{ score_var }} %in% c(1, 2, 3) ~ 1,
+                       {{ score_var }} == 4 ~ 2,
+                       {{ score_var }} == 5 ~ 3,
+                       {{ score_var }} == 6 ~ 4,
+                       {{ score_var }} == 7 ~ 5,
+                       {{ score_var }} == 8 ~ 6)) %>%
+    mutate({{ clinstatus_var }} := factor({{ clinstatus_var }}, levels = 1:6))
+}
+df <- score_transform(df, clinstatus_baseline, BNIAIDN) 
+# addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always")) # 7 missing
+# addmargins(table(df$clinstatus_baseline, df$trt, df$subtrial, useNA = "always")) # 7 missing in COV-BARRIER main, no missing in COV-BARRIER 2 // # corresponds to publications
+
+
+### Co-medication at baseline
+# table(df$BLSTRFN, df$trt, df$subtrial, useNA = "always") # corresponds to publications
+# table(df$BRMDSVFL, df$trt, df$subtrial, useNA = "always") # corresponds to publications
+
+# check df_comed_set for prior/baseline co-medications for the following:
+df$comed_toci <- 0 # excluded according to protocol
+df$comed_acoa <- NA
+df$comed_interferon <- 0 # excluded according to protocol
+
+df <- df %>% 
+  mutate(comed_dexa = case_when(BLSTRFN == 1 ~ 1,
+                                BLSTRFN == 0 ~ 0))
+df <- df %>% 
+  mutate(comed_rdv = case_when(BRMDSVFL == 1 ~ 1,
+                                BRMDSVFL == 0 ~ 0))
+df <- df %>% 
+  mutate(comed_ab = case_when(PTHANTBI == "Y" ~ 1,
+                                TRUE ~ 0))
+df <- df %>% 
+  mutate(comed_other = case_when(PTHOTH == "Y" ~ 1,
+                                TRUE ~ 0))
+
+# group them for the subgroup analysis, according to protocol
+df <- df %>% 
+  mutate(comed_cat = case_when(comed_dexa == 0 & (comed_toci == 0 | is.na(comed_toci)) ~ 1, # patients without Dexamethasone nor Tocilizumab
+                               comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexamethasone and Tocilizumab
+                               comed_dexa == 1 & (comed_toci == 0 | is.na(comed_toci)) ~ 3, # patients with Dexamethasone but no Tocilizumab
+                               comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Tocilizumab but no Dexamethasone (if exist)
+
+
+### Comorbidity at baseline, including immunocompromised
+df <- df %>% 
+  mutate(comorb_dm = case_when(CMRDFL == "Y" ~ 1,
+                              CMRDFL == "N" ~ 0))
+df <- df %>%
+  mutate(comorb_obese = case_when(CMROFL == "Y" ~ 1,
+                                   CMROFL == "N" ~ 0))
+df <- df %>%
+  mutate(comorb_aht = case_when(CMRHFL == "Y" ~ 1,
+                                   CMRHFL == "N" ~ 0))
+df <- df %>%
+  mutate(comorb_lung = case_when(CMRCFL == "Y" ~ 1,
+                                  CMRCFL == "N" ~ 0))
+df <- df %>%
+  mutate(comorb_kidney = case_when(BRNLGR1 == "Impaired" ~ 1,
+                                   TRUE ~ 0))
+# take it from medicalhistory dataset
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(comorb_cancer = case_when(ASOC == "Neoplasms benign, malignant and unspecified (incl cysts and polyps)" & (grepl("Cancer", ALLT) | grepl("cancer", ALLT) | grepl("neoplasm", ALLT) | grepl("Neoplasm", ALLT) | grepl("carcinoma", ALLT) | grepl("Carcinoma", ALLT)) ~ 1))
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(comorb_liver = case_when(ALLT == "Chronic liver disease" ~ 1))
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(comorb_cvd = case_when(ASOC == "Cardiac disorders" ~ 1))
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(immunosupp = case_when(grepl("immune deficiency", ALLT) ~ 1))
+df_medicalhist_set <- df_medicalhist_set %>% 
+  mutate(comorb_autoimm = case_when((grepl("rheuma", ALLT) | grepl("Rheuma", ALLT) | grepl("immune", ALLT) | grepl("immune", ASOC) | grepl("immune", ADECOD)) & is.na(immunosupp) ~ 1))
+# remove duplicates  
+df_comorb_cancer <- df_medicalhist_set %>% 
+  filter(comorb_cancer == 1) %>%
+  distinct(USUBJID,comorb_cancer)
+df_comorb_liver <- df_medicalhist_set %>% 
+  filter(comorb_liver == 1) %>%
+  distinct(USUBJID,comorb_liver)
+df_comorb_cvd <- df_medicalhist_set %>% 
+  filter(comorb_cvd == 1) %>%
+  distinct(USUBJID,comorb_cvd)
+df_immunosupp <- df_medicalhist_set %>% 
+  filter(immunosupp == 1) %>%
+  distinct(USUBJID,immunosupp)
+df_comorb_autoimm <- df_medicalhist_set %>% 
+  filter(comorb_autoimm == 1) %>%
+  distinct(USUBJID,comorb_autoimm)
+# merge
+df <- left_join(df, df_comorb_cancer[, c("comorb_cancer", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_comorb_liver[, c("comorb_liver", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_comorb_cvd[, c("comorb_cvd", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_immunosupp[, c("immunosupp", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_comorb_autoimm[, c("comorb_autoimm", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+
+# take smoking from substance use set
+df_substance_use_supp <- df_substance_use_supp %>% 
+  mutate(comorb_smoker = case_when(QVAL == "CURRENT" ~ 1))
+df_comorb_smoker <- df_substance_use_supp %>% 
+  filter(comorb_smoker == 1) %>%
+  distinct(USUBJID,comorb_smoker)
+df <- left_join(df, df_comorb_smoker[, c("comorb_smoker", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+
+# the remaining missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
+df <- df %>% 
+  mutate(comorb_cancer = case_when(is.na(comorb_cancer) ~ 0,
+                                TRUE ~ c(comorb_cancer)),
+         comorb_liver = case_when(is.na(comorb_liver) ~ 0,
+                                TRUE ~ c(comorb_liver)),
+         comorb_cvd = case_when(is.na(comorb_cvd) ~ 0,
+                                TRUE ~ c(comorb_cvd)),
+         immunosupp = case_when(is.na(immunosupp) ~ 0,
+                                TRUE ~ c(immunosupp)),
+         comorb_autoimm = case_when(is.na(comorb_autoimm) ~ 0,
+                                TRUE ~ c(comorb_autoimm)),
+         comorb_smoker = case_when(is.na(comorb_smoker) ~ 0,
+                                TRUE ~ c(comorb_smoker)))
+df <- df %>% 
+  mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
+                                  comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
+                                | immunosupp == 1 | comorb_cancer == 1 | comorb_autoimm == 1 | comorb_kidney == 1 
+                                  ~ 1,
+                                comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
+                                  comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0
+                                ~ 0))
+# addmargins(table(df$any_comorb, df$trt, df$subtrial, useNA = "always"))
+
+## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
+comorb <- df %>% 
+  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp, comorb_kidney, comorb_autoimm, comorb_cancer)
+comorb$comorb_count <- NA
+for (i in 1:dim(comorb)[[1]]) {
+  comorb$comorb_count[i] <- ifelse(
+    sum(comorb[i, ] %in% c(1)) > 0,
+    sum(comorb[i, ] %in% c(1)),
+    NA
+  )
+}
+comorb <- comorb %>%
+  mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
+                                  comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
+                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0 ~ 0,
+                                TRUE ~ comorb_count))
+df <- left_join(df, comorb[, c("comorb_count", "id_pat")], by = join_by(id_pat == id_pat)) ## merge imputed variable back
+df <- df %>%
+  mutate(comorb_cat = case_when(immunosupp == 1 ~ 4, # immunocompromised
+                                comorb_count == 0 ~ 1, # no comorbidity
+                                comorb_count == 1 ~ 2, # one comorbidity
+                                comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
+
+## CRP
+df_crp <- df_lab_set %>% 
+  filter(LBTESTCD == "CRP") %>% 
+  filter(VISIT == "Screening") %>% 
+  filter(AVISITN == 1)
+df_crp <- df_crp %>% 
+  distinct(USUBJID, .keep_all = TRUE)
+df_crp <- df_crp %>% 
+  rename(crp = LBSTRESN)
+df <- left_join(df, df_crp[, c("crp", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df %>% 
+  drop_na(crp) %>% 
+  ggplot(aes(x = crp)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Symptom Duration",
+       x = "CRP",
+       y = "Density")
+```
+
+![](cov-barrier_files/figure-html/unnamed-chunk-3-3.png)<!-- -->
+
+```r
+# Viremia dataset 
+df_viremia <- df_microbio %>% 
+  filter(MBTESTCD != "MBALL") %>% 
+  filter(MBTSTDTL == "DETECTION") %>% 
+  filter(MBBLFL == "Y")
+df_viremia <- df_viremia %>% 
+  distinct(USUBJID, .keep_all = TRUE)
+df_viremia <- df_viremia %>% # viral load value <LOQ and/or undectectable
+  mutate(vl_baseline = case_when(MBORRES == "POSITIVE" ~ 0,
+                                 TRUE ~ 1))
+df <- left_join(df, df_viremia[, c("vl_baseline", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+
+# Vaccination // not available
+# Variant // not available
+# Serology // not available
+```
+Discussion points BASELINE data:
+1. Double-check co-medication
+
+# Endpoints
+
+```r
+# (i) Primary outcome: Mortality at day 28
+df_ttd <- df_tte_set %>% 
+  filter(PARAM == "Time to Death by Day 28") %>% 
+  filter(RANDFL == "Y") # only randomised population
+df_ttd <- df_ttd %>% # use censoring variable to identify deaths within 28 days
+  mutate(mort_28 = case_when(CNSR == 0 ~ 1,
+                             CNSR == 1 ~ 0))
+df <- left_join(df, df_ttd[, c("mort_28", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+# table(df$mort_28, df$trt, df$subtrial, useNA = "always") # corresponds to publications; they used LOVCF and no transfer to hospice
+
+# (ii) Mortality at day 60
+df_ttd <- df_tte_set %>% 
+  filter(PARAM == "Time to Death by Day 60") %>% 
+  filter(RANDFL == "Y") # only randomised population
+df_ttd <- df_ttd %>% # use censoring variable to identify deaths within 28 days
+  mutate(mort_60 = case_when(CNSR == 0 ~ 1,
+                             CNSR == 1 ~ 0))
+df <- left_join(df, df_ttd[, c("mort_60", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+# table(df$mort_60, df$trt, df$subtrial, useNA = "always") # corresponds to publications; they used LOVCF and no transfer to hospice
+
+# (iii) Time to death within max. follow-up time (systematically until 60 days!)
+df_ttd <- df_tte_set %>% 
+  filter(PARAM == "Time to Death") %>% 
+  filter(RANDFL == "Y") # only randomised population
+df_ttd <- df_ttd %>% # use censoring variable to identify deaths within 28 days
+  mutate(death_reached = case_when(CNSR == 0 ~ 1,
+                             CNSR == 1 ~ 0))
+df <- left_join(df, df_ttd[, c("death_reached", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+# table(df$death_reached, df$trt, df$subtrial, useNA = "always")
+df_ttd <- df_tte_set %>% 
+  filter(PARAM == "Time to Death by Day 60") %>% 
+  filter(RANDFL == "Y") # only randomised population
+df_ttd$death_time <- df_ttd$AVAL
+df <- left_join(df, df_ttd[, c("death_time", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+# table(df$death_time, df$death_reached, useNA = "always") 
+# Cap at 60 days, since this was max. systematic follow-up, no deaths recorded afterwards anymore
+df <- df %>% 
+  mutate(death_time = case_when(death_time >60 ~ 60,
+                                TRUE ~ c(death_time)))
+
+# (iv) New mechanical ventilation among survivors within 28 days
+# table(df_tte_set$PARAM)
+df_mv <- df_tte_set %>% 
+  filter(PARAM == "Time to invasive ventilation (OS =7)") %>% 
+  filter(RANDFL == "Y") # only randomised population
+df_mv$tt_mv <- df_mv$AVAL # time to MV (incl. censoring for those dead or last available visit) -> longer than 28d!
+df_mv <- df_mv %>% # use censoring variable to identify MV 
+  mutate(new_mv_28 = case_when(CNSR == 0 & tt_mv < 29 ~ 1,
+                             CNSR == 1 | (CNSR == 0 & tt_mv > 28) ~ 0))
+df <- left_join(df, df_mv[, c("new_mv_28", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+# classify those dead within 28d and those that were MV at baseline as NA ("among survivors")
+df <- df %>% 
+  mutate(new_mv_28 = case_when(mort_28 == 1 | clinstatus_baseline == 5 ~ NA,
+                               TRUE ~ c(new_mv_28)))
+# table(df$new_mv_28, df$mort_28, useNA = "always")
+# table(df$new_mv_28, df$clinstatus_baseline, useNA = "always")
+# see missing data rule: the 7 with no clinstatus at all, not even baseline clinstatus -> assume clinstatus == 5
+df <- df %>% 
+  mutate(new_mv_28 = case_when(is.na(clinstatus_baseline) ~ 1,
+                               TRUE ~ c(new_mv_28)))
+
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days
+df <- df %>% 
+  mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
+                                new_mv_28 == 0 | mort_28 == 0 ~ 0))
+# table(df$new_mvd_28, df$mort_28, useNA = "always")
+# table(df$new_mvd_28, df$clinstatus_baseline, useNA = "always")
+
+
+# (v) Clinical status at day 28
+df_cs <- df_niaid_score_set %>% 
+  filter(AVISIT == "Day 28") %>%
+  filter(PARAM == "NIAID OS Scale")
+df_cs$clinstatus_28_niaid <- df_cs$AVAL
+df <- left_join(df, df_cs[, c("clinstatus_28_niaid", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+# table(df$clinstatus_28_niaid, useNA = "always")
+df$clinstatus_28 <- NA
+df <- score_transform(df, clinstatus_28, clinstatus_28_niaid) # transform the NIAID score to our score
+# table(df$clinstatus_28, useNA = "always")
+
+# df %>% # these ones are not even part of the niaid_score dataset, they withdrew on screening day or 1-2 days after. See missing data rule: If no baseline score at ALL => clinstatus == 5 (MV/ECMO); if at least a baseline score, then LOVCF
+#   filter(is.na(clinstatus_28)) %>%
+#   select(clinstatus_28, clinstatus_baseline, mort_28, mort_60, new_mvd_28, new_mv_28, everything()) %>%
+#   View()
+
+df <- df %>% 
+  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_baseline) ~ "5", # those with no clinstatus at all -> impute 5
+                               TRUE ~ c(clinstatus_28)))
+df <- df %>% 
+  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28_imp) ~ c(clinstatus_baseline), # those with at least a baseline clinstatus -> LOVCF
+                               TRUE ~ c(clinstatus_28_imp)))
+
+
+# (vi) Time to discharge or reaching discharge criteria up to day 28
+df_ttdis <- df_tte_set %>% 
+  filter(PARAM == "Time to recovery by Day 28 (OS <=3)") %>% 
+  filter(RANDFL == "Y") # only randomised population
+df_ttdis$discharge_time <- df_ttdis$AVAL # time to discharge -> longer than 28d!
+# table(df_ttdis$EVNTDESC)
+df_ttdis <- df_ttdis %>% # use censoring variable to identify MV 
+  mutate(discharge_reached = case_when(CNSR == 0 & discharge_time < 29 ~ 1,
+                             CNSR == 1 | (CNSR == 0 & discharge_time > 28) ~ 0))
+# table(df_ttdis$discharge_reached, df_ttdis$discharge_time, useNA = "always")
+df <- left_join(df, df_ttdis[, c("discharge_reached", "discharge_time", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+# Cap at 28 days
+df <- df %>% 
+  mutate(discharge_time = case_when(discharge_time >28 ~ 28,
+                                TRUE ~ c(discharge_time)))
+# table(df$discharge_reached, df$discharge_time, useNA = "always")
+# table(df$discharge_reached, df$clinstatus_28, useNA = "always")
+
+# df %>% # these ones were discharged, but then readmitted (1 even died, but after day 28)
+#   filter(clinstatus_28 != 1 & discharge_reached == 1) %>%
+#   select(discharge_reached, discharge_time, clinstatus_28, clinstatus_baseline, mort_28, mort_60, new_mvd_28, new_mv_28, everything()) %>%
+#   View()
+
+df <- df %>% # add 28d for those that died // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days (as someone who has been censored on day 28). 
+  mutate(discharge_time_sens = case_when(mort_28 == 1 ~ 28,
+                                    TRUE ~ discharge_time))
+# table(df$discharge_time, df$discharge_reached, useNA = "always")
+
+# (vi) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days. There are 8 re-admissions documented in COV-BARRIER
+df <- df %>% 
+  mutate(discharge_reached_sus = case_when(discharge_reached == 1 & clinstatus_28 != 1 ~ 0,
+                                           TRUE ~ c(discharge_reached)))
+df <- df %>% 
+  mutate(discharge_time_sus = case_when(discharge_reached == 1 & clinstatus_28 != 1 ~ 28,
+                                           TRUE ~ c(discharge_time)))
+
+
+# (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
+df_viremia <- df_microbio %>% 
+  filter(MBTESTCD != "MBALL") %>% 
+  filter(MBTSTDTL == "DETECTION")
+# table(df_viremia$VISITNUM, useNA = "always") # the NAs are not relevant: They are either from before randomization or after day 15
+df_viremia <- df_viremia %>% 
+  filter(VISITNUM %in% c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15))
+df_viremia <- df_viremia %>% # viral load value <LOQ and/or undectectable
+  mutate(vl = case_when(MBORRES == "POSITIVE" ~ 0,
+                                 MBORRES == "NEGATIVE" ~ 1))
+# Filtering and extracting the last measurement for each participant
+df_vir_clear_5 <- df_viremia %>%
+  filter(VISITNUM <= 5) %>%
+  group_by(SUBJID) %>%
+  slice_max(VISITNUM)
+df_vir_clear_5$vir_clear_5 <- df_vir_clear_5$vl
+# Check for duplicates in SUBJID and VL
+df_vir_clear_5 <- df_vir_clear_5 %>%
+  mutate(participant_duplicate = duplicated(SUBJID) | duplicated(SUBJID, fromLast = TRUE))
+df_vir_clear_5 <- df_vir_clear_5 %>% # remove exact duplicates
+  distinct(SUBJID, vir_clear_5, .keep_all = TRUE)
+specific_duplicates <- any(duplicated(df_vir_clear_5[, c("SUBJID")]))
+
+df_vir_clear_10 <- df_viremia %>%
+  filter(VISITNUM <= 10) %>%
+  group_by(SUBJID) %>%
+  slice_max(VISITNUM)
+df_vir_clear_10$vir_clear_10 <- df_vir_clear_10$vl
+# Check for duplicates in SUBJID and VL
+df_vir_clear_10 <- df_vir_clear_10 %>%
+  mutate(participant_duplicate = duplicated(SUBJID) | duplicated(SUBJID, fromLast = TRUE))
+df_vir_clear_10 <- df_vir_clear_10 %>% # remove exact duplicates
+  distinct(SUBJID, vir_clear_10, .keep_all = TRUE)
+specific_duplicates <- any(duplicated(df_vir_clear_10[, c("SUBJID")]))
+
+df_vir_clear_15 <- df_viremia %>%
+  filter(VISITNUM <= 15) %>%
+  group_by(SUBJID) %>%
+  slice_max(VISITNUM)
+df_vir_clear_15$vir_clear_15 <- df_vir_clear_15$vl
+# Check for duplicates in SUBJID and VL
+df_vir_clear_15 <- df_vir_clear_15 %>%
+  mutate(participant_duplicate = duplicated(SUBJID) | duplicated(SUBJID, fromLast = TRUE))
+df_vir_clear_15 <- df_vir_clear_15 %>% # remove exact duplicates
+  distinct(SUBJID, vir_clear_15, .keep_all = TRUE)
+specific_duplicates <- any(duplicated(df_vir_clear_15[, c("SUBJID")]))
+
+df <- left_join(df, df_vir_clear_5[, c("vir_clear_5", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_vir_clear_10[, c("vir_clear_10", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+df <- left_join(df, df_vir_clear_15[, c("vir_clear_15", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+
+
+# (viii) Quality of life at day 28: Not available in COV-BARRIER
+
+# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
+df_ae34 <- df_ae_set %>% 
+  filter(AESEV == "SEVERE" | AESER == "Y") %>% 
+  filter(ASTDY <29)
+# Keep just 1 id_pat (-> ANY adverse event grade 3 (severe), 4 (serious)) 
+df_ae34_unique <- df_ae34 %>% distinct(USUBJID, .keep_all = TRUE)
+# Assign the outcome
+df_ae34_unique$ae_28 <- 1
+# merge
+df <- left_join(df, df_ae34_unique[, c("ae_28", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge variable to main df
+# the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
+df <- df %>% 
+  mutate(ae_28 = case_when(is.na(ae_28) ~ 0, # the LTFU were discharged
+                           mort_28 == 1 ~ NA, # exclude the deaths
+                                TRUE ~ ae_28))
+# table(df$ae_28, df$mort_28, useNA = "always")
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
+ae_npp <- df_ae34 %>% 
+  group_by(USUBJID)%>%  
+  summarise(ae_28_sev = n())
+df <- left_join(df, ae_npp[, c("ae_28_sev", "USUBJID")], by = join_by(USUBJID == USUBJID)) # merge variable to main df
+# the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
+df <- df %>% 
+  mutate(ae_28_sev = case_when(is.na(ae_28_sev) ~ 0, # the LTFU were discharged
+                           mort_28 == 1 ~ NA, # exclude the deaths
+                                TRUE ~ ae_28_sev))
+# table(df$ae_28_sev, df$mort_28, useNA = "always")
+
+# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
+# rediscuss if this is still a necessary analysis
+
+# (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+
+# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
+
+# df_ae <- df %>% 
+#   select(id_pat, trt, x, ae_28_list, aesi_28)
+# # Save
+# saveRDS(df_ae, file = "df_ae_cov-barrier.RData")
+```
+Discussion points OUTCOME data:
+1. finalize ae_28_list & aesi_28 -> separate export
+
+
+
 
 
