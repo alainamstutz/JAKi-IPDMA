@@ -386,9 +386,8 @@ df <- df %>%
 
 ```
 Discussion points OUTCOME data:
-1. Discuss making new_mvd_28 the primary endpoint definition and not new_mv_28
-2. Re QoL: Wait for other trials first. Find out more about the QoL measure used.
-3. Get the safety data
+1. Re QoL: Wait for other trials first. Find out more about the QoL measure used.
+2. Get the safety data
 
 # Multiple imputation using chained equation
 ```{r}
@@ -1027,7 +1026,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_barisolidact.RData")
 ```
 Discussion points
-1. Adjustments across all models
+
 
 # Collect all interaction estimates (stage one)
 ```{r message=FALSE, warning=FALSE}
