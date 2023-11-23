@@ -40,7 +40,7 @@ df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 
 ```
 
-# Reshape dataframes for mort28
+# Reshape dataframes
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
 list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier) # add all trials

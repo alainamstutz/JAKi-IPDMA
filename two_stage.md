@@ -40,7 +40,7 @@ df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 ```
 
-# Reshape dataframes for mort28
+# Reshape dataframes
 
 ```r
 ### Create a list of all data frames / trials
