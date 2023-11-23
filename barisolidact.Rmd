@@ -214,7 +214,7 @@ df <- df %>%
                              (Anti_Spike_wt == "Negative" | is.na(Anti_Spike_wt)) & (Anti_Nucl_wt == "Negative" | is.na(Anti_Nucl_wt)) & (anti_RBDwt == "Negative" | is.na(anti_RBDwt)) ~ 0))
 ```
 Discussion points BASELINE data:
-1. Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91): steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> when was rescue therapie given, in relation to clinstatus (vs those not receiving rescue) -> investigate later
+1. Rescue therapy: Tocilizumab (n=12) or increased steroid dose (n=91): steroids_dosechang_yn, steroids_dosechang_date, rescue_yn, rescuedate -> when was rescue therapie given, in relation to clinstatus (vs those not receiving rescue)? -> investigate later
 
 # Endpoints
 ```{r echo=TRUE}
@@ -250,18 +250,24 @@ df <- whoscore_transform(df, clinstatus_discharge, whoscore_DISCH)
 df <- whoscore_transform(df, clinstatus_dropout, whoscore_DROP)
 
 # (i) Primary outcome: Mortality at day 28
-df <- df %>% # 12 have no outcome data and withdrew or were withdrawn -> multiple imputation
+df <- df %>% # 12 have no outcome data and withdrew or were withdrawn, but have clinstatus_baseline and fup lcinstatus data -> see missing data rule: No transfer to hospice happened in bari-solidact -> assign "alive"
   mutate(mort_28 = case_when(death_d <29 ~ 1,
                              discharge_d <29 ~ 0, # all discharged were discharged alive and not to hospice
                              clinstatus_28 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >28 ~ 0)) # discharged later, proof of still alive
-     
+df <- df %>%
+  mutate(mort_28 = case_when(is.na(mort_28) ~ 0,
+                             TRUE ~ c(mort_28)))
+
 # (ii) Mortality at day 60
-df <- df %>% # same 12 that have no outcome data and withdrew or were withdrawn -> multiple imputation
+df <- df %>% # same 12 that have no outcome data and withdrew or were withdrawn -> see above
   mutate(mort_60 = case_when(death_d <61 ~ 1,
                              discharge_d <61 ~ 0, # all discharged were discharged alive and not to hospice
                              clinstatus_35 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >60 ~ 0)) # discharged later, proof of still alive
+df <- df %>%
+  mutate(mort_60 = case_when(is.na(mort_60) ~ 0,
+                             TRUE ~ c(mort_60)))
 
 # (iii) Time to death within max. follow-up time 
 df$death_reached <- df$death_yn # do not bother about missings in mort_28
@@ -273,14 +279,9 @@ df <- df %>% # 2 are left without any time to event data => impute max. follow-u
                                 maxfup_d >=0 & is.na(withdraw_d) & is.na(withdrawi_d) ~ c(maxfup_d), # max fup for the remaining ones not withdrawn
                                 withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal for those withdrawn (and not discharged before)
                                 withdrawi_d >=0 ~ c(withdrawi_d))) # time to investigator withdrawal for those inv-withdrawn (and not discharged before)
-# df %>%
-#   select(imp_adm_yn, death_reached, death_time, mort_28, mort_60, death_d, discharge_d, withdraw_d, withdrawi_d, readmission_d, maxfup_d, clinstatus_baseline,
-#          clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28) %>%
-#   filter(is.na(mort_28)) %>%
-#   View()
 
 # (iv) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.
-df <- df %>% # 11 NA are due to missing mortality data -> multiple imputation. The other NA are not eligible (died or clinstatus_baseline == 5) and thus are excluded from denominator -> no multiple imputation
+df <- df %>% # The NAs are not eligible (died or clinstatus_baseline == 5) and thus are excluded from denominator
   mutate(new_mv_28 = case_when(clinstatus_baseline == 4 & (mort_28 == 0 | is.na(mort_28)) 
                                & (clinstatus_2 == 5 | clinstatus_4 == 5 | clinstatus_7 == 5 | clinstatus_14 == 5 
                                   | clinstatus_21 == 5 | clinstatus_28 == 5)
@@ -288,7 +289,7 @@ df <- df %>% # 11 NA are due to missing mortality data -> multiple imputation. T
                                clinstatus_baseline == 4 & mort_28 == 0
                                ~ 0))
 # (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator.
-df <- df %>% # 11 NA are due to missing mortality data -> multiple imputation.
+df <- df %>% # no missing
   mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
                                 new_mv_28 == 0 | mort_28 == 0 ~ 0))
 
@@ -298,9 +299,12 @@ df <- df %>% # Adapt clinstatus_28, since currently excluding those discharged o
                                    clinstatus_28 == 4 ~ 4,
                                    clinstatus_28 == 3 ~ 3,
                                    clinstatus_28 == 2 ~ 2,
+                                   clinstatus_28 == 1 ~ 1,
                                    mort_28 == 1 ~ 6, # died within 28d
-                                   mort_28 == 0 ~ 1)) # discharged alive / reached discharge criteria within 28d
+                                   discharge_d <29 ~ 1 # discharged alive / reached discharge criteria within 28d
+                                   )) 
 df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) # same 12 missing -> imputation, LVCF
+# table(df$clinstatus_28, useNA = "always")
 ## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days) -> no window data in Bari-Solidact => LVCF
 dfcs <- df %>% 
     select(id_pat, clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28)
@@ -387,7 +391,7 @@ df <- df %>%
 ```
 Discussion points OUTCOME data:
 1. Re QoL: Wait for other trials first. Find out more about the QoL measure used.
-2. Get the safety data
+2. Analyze the safety data
 
 # Multiple imputation using chained equation
 ```{r}
@@ -454,9 +458,8 @@ Discussion points
 2. Missing data:
 - vacc: 5 missing -> MICE for subgroup analysis?
 - crp & vl_baseline & variant -> ignore
-- mort_28 & mort_60 outcomes: 12 missing -> MICE as SENS
-- new_mv_28 & new_mvd_28: 11 missing -> MICE as SENS
-- viral load (baseline and outcome) and variant data: substantial missing -> ignore
+- new_mv_28: not part of denominator
+- viral load (baseline and outcome) -> ignore
 
 # (i) Primary endpoint: Mortality at day 28
 ```{r warning=FALSE}
@@ -497,7 +500,7 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # time to death, by group. Kaplan-Meier estimate of conditional survival probability.
 km.ttdeath.check <- with(df, Surv(death_time, death_reached))
-head(km.ttdeath.check, 100)
+# head(km.ttdeath.check, 100)
 
 km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
 # summary(km.ttdeath_trt, times = 28)
@@ -595,7 +598,7 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 # Kaplan-Meier estimate of conditional discharge probability
 # Censoring the deaths => Cause-specific hazards, i.e., represents the rate per unit of time of the event among those not having failed from other events. Instantaneous rate of occurrence of the given type of event in subjects who are currently event‐free. But by simply censoring the competing event, we bias in favour of comparator (if treatment leads to less deaths)
 km.ttdischarge.check <- with(df, Surv(discharge_time, discharge_reached))
-head(km.ttdischarge.check, 100)
+# head(km.ttdischarge.check, 100)
 km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, data=df)
 # summary(km.ttdischarge_trt, times = 28)
 ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
@@ -739,6 +742,7 @@ vir.clear.5 <- df %>%
 summ(vir.clear.5, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # up to 10 days
+table(df$vir_clear_10, df$trt, useNA = "always") #  (Viral load value <LOQ and/or undectectable)
 vir.clear.10 <- df %>% 
   glm(vir_clear_10 ~ trt 
       + age + clinstatus_baseline 
@@ -747,6 +751,7 @@ vir.clear.10 <- df %>%
 summ(vir.clear.10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # up to 15 days
+table(df$vir_clear_15, df$trt, useNA = "always") #  (Viral load value <LOQ and/or undectectable)
 vir.clear.15 <- df %>% 
   glm(vir_clear_15 ~ trt 
       + age + clinstatus_baseline 
@@ -767,14 +772,12 @@ Discussion points
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 
-
 ```
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
-table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 4 and 5 included
+# table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 4 and 5 included
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
-
 mort.28.vent <- df %>% 
   glm(mort_28 ~ trt*clinstatus_baseline_n
       + age 
@@ -852,7 +855,7 @@ mort.28.comed <- df %>%
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # comedication as ordinal factor
 df$comed_cat_f <- factor(df$comed_cat, levels = 1:4)
-table(df$comed_cat_f, df$mort_28, useNA = "always") 
+# table(df$comed_cat_f, df$mort_28, useNA = "always") 
 mort.28.comed.f <- df %>%
   glm(mort_28 ~ trt*comed_cat_f 
       + age 
@@ -1084,4 +1087,3 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
-1. Adjustments across all models
