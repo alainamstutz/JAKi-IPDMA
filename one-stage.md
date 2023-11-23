@@ -109,10 +109,31 @@ df_covinib <- df_covinib %>%
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          ae_28, ae_28_sev,
          vir_clear_5, vir_clear_10, vir_clear_15)
+## COV-BARRIER
+df_covbarrier <- readRDS("df_os_cov-barrier.RData")
+df_covbarrier <- df_covbarrier %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+
+df_covbarrier <- df_covbarrier %>% 
+  filter(!is.na(clinstatus_baseline)) ## 
 
 # append
-df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib)
+df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier)
 ```
+Discussion:
+1. Careful about missing clinstatus_baseline
+
 
 # (i) Primary outcome: Mortality at day 28
 
@@ -138,14 +159,14 @@ table(df_tot$clinstatus_baseline, df_tot$trial, useNA = "always")
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COVINIB Ghazaeian TOFACOV <NA>
-##   1        0             0       0         0       0    0
-##   2      142             0      35         2      25    0
-##   3      564             0      75        95      91    0
-##   4      216           249       0         0       0    0
-##   5      111            40       0         0       0    0
-##   6        0             0       0         0       0    0
-##   <NA>     0             0       0         0       0    0
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian TOFACOV <NA>
+##   1        0             0           0       0         0       0    0
+##   2      142             0         186      35         2      25    0
+##   3      564             0         962      75        95      91    0
+##   4      216           249         370       0         0       0    0
+##   5      111            40         101       0         0       0    0
+##   6        0             0           0       0         0       0    0
+##   <NA>     0             0           0       0         0       0    0
 ```
 
 ```r
@@ -157,10 +178,10 @@ table(df_tot$vbaseline, df_tot$trial, useNA = "always")
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COVINIB Ghazaeian TOFACOV <NA>
-##   0      706             0     110        97     116    0
-##   1      327           289       0         0       0    0
-##   <NA>     0             0       0         0       0    0
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian TOFACOV <NA>
+##   0      706             0        1148     110        97     116    0
+##   1      327           289         471       0         0       0    0
+##   <NA>     0             0           0       0         0       0    0
 ```
 
 ```r
@@ -170,8 +191,9 @@ df_tot <- df_tot %>%
                              trial == "ACTT2" ~ 2,
                              trial == "Ghazaeian" ~ 3,
                              trial == "TOFACOV" ~ 4,
-                             trial == "COVINIB" ~ 5))
-
+                             trial == "COVINIB" ~ 5,
+                             trial == "COV-BARRIER" ~ 6))
+# table(df_tot$trial_n, useNA = "always")
 # (1) common treatment effect, random trial intercept, common prognostic factors, ML
 mort28.ctreat.rtrial.ml <- glmmTMB(mort_28 ~ trt + (1|trial)
                               + age + clinstatus_baseline_n
@@ -283,31 +305,35 @@ df_tot <- df_tot %>%
          age_trial_2 = case_when(trial == "ACTT2" ~ age, TRUE ~ 0),
          age_trial_3 = case_when(trial == "Ghazaeian" ~ age, TRUE ~ 0),
          age_trial_4 = case_when(trial == "TOFACOV" ~ age, TRUE ~ 0),
-         age_trial_5 = case_when(trial == "COVINIB" ~ age, TRUE ~ 0))
+         age_trial_5 = case_when(trial == "COVINIB" ~ age, TRUE ~ 0),
+         age_trial_6 = case_when(trial == "COV-BARRIER" ~ age, TRUE ~ 0))
 
 df_tot <- df_tot %>%
   mutate(clinstat_trial_1 = case_when(trial == "Bari-Solidact" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_2 = case_when(trial == "ACTT2" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_3 = case_when(trial == "Ghazaeian" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_4 = case_when(trial == "TOFACOV" ~ clinstatus_baseline, TRUE ~ "0"),
-         clinstat_trial_5 = case_when(trial == "COVINIB" ~ clinstatus_baseline, TRUE ~ "0"))
+         clinstat_trial_5 = case_when(trial == "COVINIB" ~ clinstatus_baseline, TRUE ~ "0"),
+         clinstat_trial_6 = case_when(trial == "COV-BARRIER" ~ clinstatus_baseline, TRUE ~ "0"))
 # centered
 df_tot <- df_tot %>%
   mutate(age_cent_trial_1 = case_when(trial == "Bari-Solidact" ~ age_centered, TRUE ~ 0),
          age_cent_trial_2 = case_when(trial == "ACTT2" ~ age_centered, TRUE ~ 0),
          age_cent_trial_3 = case_when(trial == "Ghazaeian" ~ age_centered, TRUE ~ 0),
          age_cent_trial_4 = case_when(trial == "TOFACOV" ~ age_centered, TRUE ~ 0),
-         age_cent_trial_5 = case_when(trial == "COVINIB" ~ age_centered, TRUE ~ 0))
+         age_cent_trial_5 = case_when(trial == "COVINIB" ~ age_centered, TRUE ~ 0),
+         age_cent_trial_6 = case_when(trial == "COV-BARRIER" ~ age_centered, TRUE ~ 0))
 
 df_tot <- df_tot %>%
   mutate(clinstat_cent_trial_1 = case_when(trial == "Bari-Solidact" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_2 = case_when(trial == "ACTT2" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_3 = case_when(trial == "Ghazaeian" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_4 = case_when(trial == "TOFACOV" ~ clinstatus_baseline_centered, TRUE ~ 0),
-         clinstat_cent_trial_5 = case_when(trial == "COVINIB" ~ clinstatus_baseline_centered, TRUE ~ 0))
+         clinstat_cent_trial_5 = case_when(trial == "COVINIB" ~ clinstatus_baseline_centered, TRUE ~ 0),
+         clinstat_cent_trial_6 = case_when(trial == "COV-BARRIER" ~ clinstatus_baseline_centered, TRUE ~ 0))
 
 # df_tot %>%
-#   select(trial, trial_n, age_trial_1, age_trial_2, age_trial_3, clinstat_trial_1, clinstat_trial_2, clinstat_trial_3, trt, age, age_centered, clinstatus_baseline, clinstatus_baseline_centered, mort_28) %>%
+#   select(trial, trial_n, age_trial_1, age_trial_2, age_trial_3, age_trial_6, age_cent_trial_6, clinstat_trial_1, clinstat_trial_2, clinstat_trial_3, clinstat_trial_6, clinstat_cent_trial_6, trt, age, age_centered, clinstatus_baseline, clinstatus_baseline_centered, mort_28) %>%
 #   View()
 
 # (5c) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering of the treatment variable BUT not the prognostic factors AND maximum likelihood (ML)
@@ -318,11 +344,11 @@ df_tot <- df_tot %>%
 # tab_model(mort28.rtreat.strial.cent.ml.spf) # it can't estimate
 
 # (5d) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors AND maximum likelihood (ML)
-mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_n) -1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 + age_cent_trial_5 + clinstat_cent_trial_1 + clinstat_cent_trial_2 + clinstat_cent_trial_3 + clinstat_cent_trial_4 + clinstat_cent_trial_5
+mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_n) -1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + clinstat_cent_trial_1 + clinstat_cent_trial_2 + clinstat_cent_trial_3 + clinstat_cent_trial_4 + clinstat_cent_trial_5 + clinstat_cent_trial_6
                    #+ comed_dexa + comed_rdv + comed_toci
                    , data = df_tot, family = binomial
                    )
-# tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
+# tab_model(mort28.rtreat.strial.cent.ml.spf.cent) ## remember to add all TRIAL centering variables if adding new trials!
 
 
 # #####
@@ -344,7 +370,7 @@ mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n + tria
 # tab_model(mort28.rtreat.strial.red)
 ```
 
-# collect effect estimates
+## Collect the effect estimates from all models
 
 ```r
 # Empty data frame to store the results
@@ -432,112 +458,112 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
   <tr>
    <td style="text-align:left;"> 2.5 % </td>
    <td style="text-align:left;"> common trt, random intercept, common age/clinstatus, no centering, ML </td>
-   <td style="text-align:right;"> 0.6884684 </td>
-   <td style="text-align:right;"> 0.4498382 </td>
-   <td style="text-align:right;"> 1.053687 </td>
-   <td style="text-align:right;"> 0.0855918 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5821389 </td>
+   <td style="text-align:right;"> 0.4487727 </td>
+   <td style="text-align:right;"> 0.7551387 </td>
+   <td style="text-align:right;"> 4.59e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %1 </td>
    <td style="text-align:left;"> common trt, random intercept, common age/clinstatus, no centering, ML, vb </td>
-   <td style="text-align:right;"> 0.6709798 </td>
-   <td style="text-align:right;"> 0.4410568 </td>
-   <td style="text-align:right;"> 1.020762 </td>
-   <td style="text-align:right;"> 0.0623260 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5872180 </td>
+   <td style="text-align:right;"> 0.4544374 </td>
+   <td style="text-align:right;"> 0.7587955 </td>
+   <td style="text-align:right;"> 4.69e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %2 </td>
    <td style="text-align:left;"> random trt, random intercept, common age/clinstatus, no centering, ML </td>
-   <td style="text-align:right;"> 0.6884684 </td>
-   <td style="text-align:right;"> 0.4498382 </td>
-   <td style="text-align:right;"> 1.053687 </td>
-   <td style="text-align:right;"> 0.0855918 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5821390 </td>
+   <td style="text-align:right;"> 0.4487728 </td>
+   <td style="text-align:right;"> 0.7551388 </td>
+   <td style="text-align:right;"> 4.59e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %3 </td>
    <td style="text-align:left;"> random trt, random intercept, common age/clinstatus, no centering, ML, vb </td>
-   <td style="text-align:right;"> 0.6905747 </td>
-   <td style="text-align:right;"> 0.4515838 </td>
-   <td style="text-align:right;"> 1.056046 </td>
-   <td style="text-align:right;"> 0.0875734 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5825606 </td>
+   <td style="text-align:right;"> 0.4491453 </td>
+   <td style="text-align:right;"> 0.7556059 </td>
+   <td style="text-align:right;"> 4.67e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %4 </td>
    <td style="text-align:left;"> random trt, stratified intercept, common age/clinstatus, no centering, ML </td>
-   <td style="text-align:right;"> 0.6943689 </td>
-   <td style="text-align:right;"> 0.4531068 </td>
-   <td style="text-align:right;"> 1.064094 </td>
-   <td style="text-align:right;"> 0.0939874 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5824402 </td>
+   <td style="text-align:right;"> 0.4488603 </td>
+   <td style="text-align:right;"> 0.7557733 </td>
+   <td style="text-align:right;"> 4.77e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %5 </td>
    <td style="text-align:left;"> random trt, stratified intercept, common age/clinstatus, no centering, ML, vb </td>
-   <td style="text-align:right;"> 0.6786286 </td>
-   <td style="text-align:right;"> 0.4454288 </td>
-   <td style="text-align:right;"> 1.033918 </td>
-   <td style="text-align:right;"> 0.0711229 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5875129 </td>
+   <td style="text-align:right;"> 0.4545284 </td>
+   <td style="text-align:right;"> 0.7594055 </td>
+   <td style="text-align:right;"> 4.87e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %6 </td>
    <td style="text-align:left;"> random trt, stratified intercept, common age/clinstatus, centered trt, ML </td>
-   <td style="text-align:right;"> 0.6943668 </td>
-   <td style="text-align:right;"> 0.4531057 </td>
-   <td style="text-align:right;"> 1.064090 </td>
-   <td style="text-align:right;"> 0.0939843 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5824402 </td>
+   <td style="text-align:right;"> 0.4488603 </td>
+   <td style="text-align:right;"> 0.7557733 </td>
+   <td style="text-align:right;"> 4.77e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %7 </td>
    <td style="text-align:left;"> random trt, stratified intercept, common age/clinstatus, centered trt, ML, vb </td>
-   <td style="text-align:right;"> 0.6786271 </td>
-   <td style="text-align:right;"> 0.4454282 </td>
-   <td style="text-align:right;"> 1.033915 </td>
-   <td style="text-align:right;"> 0.0711208 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5875102 </td>
+   <td style="text-align:right;"> 0.4545262 </td>
+   <td style="text-align:right;"> 0.7594024 </td>
+   <td style="text-align:right;"> 4.87e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %8 </td>
    <td style="text-align:left;"> random trt, stratified intercept, common age/clinstatus, centered trt and centered age/clinstatus, ML </td>
-   <td style="text-align:right;"> 0.6943695 </td>
-   <td style="text-align:right;"> 0.4531063 </td>
-   <td style="text-align:right;"> 1.064097 </td>
-   <td style="text-align:right;"> 0.0939896 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5824406 </td>
+   <td style="text-align:right;"> 0.4488615 </td>
+   <td style="text-align:right;"> 0.7557723 </td>
+   <td style="text-align:right;"> 4.77e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %9 </td>
    <td style="text-align:left;"> random trt, stratified intercept, random age/clinstatus, centered trt and centered age/clinstatus, ML </td>
-   <td style="text-align:right;"> 0.6816809 </td>
-   <td style="text-align:right;"> 0.4441410 </td>
-   <td style="text-align:right;"> 1.046264 </td>
-   <td style="text-align:right;"> 0.0795916 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5755111 </td>
+   <td style="text-align:right;"> 0.4430679 </td>
+   <td style="text-align:right;"> 0.7475445 </td>
+   <td style="text-align:right;"> 3.47e-05 </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %10 </td>
    <td style="text-align:left;"> random trt, stratified intercept, stratified age/clinstatus, centered trt and centered age/clinstatus, ML </td>
-   <td style="text-align:right;"> 0.6798593 </td>
-   <td style="text-align:right;"> 0.4422924 </td>
-   <td style="text-align:right;"> 1.045030 </td>
-   <td style="text-align:right;"> 0.0785498 </td>
-   <td style="text-align:right;"> 788 </td>
-   <td style="text-align:right;"> 795 </td>
+   <td style="text-align:right;"> 0.5744248 </td>
+   <td style="text-align:right;"> NaN </td>
+   <td style="text-align:right;"> NaN </td>
+   <td style="text-align:right;"> NaN </td>
+   <td style="text-align:right;"> 1632 </td>
+   <td style="text-align:right;"> 1632 </td>
   </tr>
 </tbody>
 </table>
@@ -559,6 +585,9 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
 
 6. The word ‘fixed’ is ambiguous; it could refer to either a common or stratified parameter, even though they imply different model specifications and assumptions. Therefore, we recommend that the word ‘fixed’ be avoided in one-stage IPD models, and encourage researchers to use common or stratified instead.
 
+## Present the main model
+
+
 
 # new MV or death
 
@@ -569,13 +598,14 @@ addmargins(table(df_tot$trial, df_tot$new_mvd_28, useNA = "always"))
 ```
 ##                
 ##                    0    1 <NA>  Sum
-##   ACTT2          847  152   34 1033
-##   Bari-Solidact  205   73   11  289
-##   COVINIB         97   10    3  110
+##   ACTT2          881  152    0 1033
+##   Bari-Solidact  216   73    0  289
+##   COV-BARRIER   1270  349    0 1619
+##   COVINIB        100   10    0  110
 ##   Ghazaeian       90    7    0   97
 ##   TOFACOV        113    3    0  116
 ##   <NA>             0    0    0    0
-##   Sum           1352  245   48 1645
+##   Sum           2670  594    0 3264
 ```
 
 ```r

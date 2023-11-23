@@ -37,13 +37,14 @@ df_actt2 <- readRDS("trt_effects_actt2.RData")
 df_ghazaeian <- readRDS("trt_effects_ghazaeian.RData")
 df_tofacov <- readRDS("trt_effects_tofacov.RData")
 df_covinib <- readRDS("trt_effects_covinib.RData")
+df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 ```
 
 # Reshape dataframes for mort28
 
 ```r
 ### Create a list of all data frames / trials
-list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib) # add all trials
+list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier) # add all trials
 
 
 ## Mortality at day 28
@@ -77,15 +78,15 @@ str(df_mort28)
 ```
 
 ```
-## 'data.frame':	5 obs. of  10 variables:
+## 'data.frame':	6 obs. of  10 variables:
 ##  $ variable         : chr  "death at day 28" "death at day 28" "death at day 28" "death at day 28_firth" ...
-##  $ hazard_odds_ratio: num  0.657 0.704 0.791 2.537 0.182
-##  $ ci_lower         : num  0.30163 0.39577 0.14728 0.12715 0.00131
-##  $ ci_upper         : num  1.4 1.24 3.83 380.13 2.29
-##  $ standard_error   : num  0.389 0.289 0.798 1.315 1.361
-##  $ p_value          : num  0.281 0.225 0.769 NA NA
-##  $ n_intervention   : num  137 494 46 58 53
-##  $ n_control        : num  140 492 51 58 54
+##  $ hazard_odds_ratio: num  0.64 0.737 0.791 2.537 0.182 ...
+##  $ ci_lower         : num  0.29477 0.41582 0.14728 0.12715 0.00131 ...
+##  $ ci_upper         : num  1.36 1.29 3.83 380.13 2.29 ...
+##  $ standard_error   : num  0.387 0.287 0.798 1.315 1.358 ...
+##  $ p_value          : num  0.25 0.287 0.769 NA NA ...
+##  $ n_intervention   : num  145 515 46 58 55 815
+##  $ n_control        : num  144 518 51 58 55 811
 ##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
 ##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
@@ -115,31 +116,32 @@ summary(mort28)
 ## Review:     Average treatment effect - mortality 28 days
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.6573 [0.3068;  1.4084]       31.1
-## ACTT-2        0.7041 [0.3996;  1.2406]       56.3
-## Ghazaeian     0.7909 [0.1654;  3.7807]        7.4
-## TOFACOV       2.5366 [0.1928; 33.3748]        2.7
-## COVINIB       0.1816 [0.0126;  2.6139]        2.5
+## Bari-SolidAct 0.6404 [0.2998;  1.3677]       11.9
+## ACTT-2        0.7368 [0.4197;  1.2933]       21.6
+## Ghazaeian     0.7909 [0.1654;  3.7807]        2.8
+## TOFACOV       2.5366 [0.1928; 33.3748]        1.0
+## COVINIB       0.1822 [0.0127;  2.6082]        1.0
+## COV-BARRIER   0.5122 [0.3674;  0.7141]       61.8
 ## 
-## Number of studies: k = 5
-## Number of observations: o = 1583
+## Number of studies: k = 6
+## Number of observations: o = 3271
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.6954 [0.3809; 1.2696] -1.68  0.1692
+## Random effects model (HK-SE) 0.5795 [0.4114; 0.8164] -4.09  0.0094
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 5.4350]; tau = 0 [0.0000; 2.3313]
-##  I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
+##  tau^2 = 0 [0.0000; 2.5985]; tau = 0 [0.0000; 1.6120]
+##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.99    4  0.7373
+##  3.43    5  0.6333
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Restricted maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 4)
+## - Hartung-Knapp adjustment for random effects model (df = 5)
 ```
 
 ```r

@@ -36,13 +36,14 @@ df_actt2 <- readRDS("trt_effects_actt2.RData")
 df_ghazaeian <- readRDS("trt_effects_ghazaeian.RData")
 df_tofacov <- readRDS("trt_effects_tofacov.RData")
 df_covinib <- readRDS("trt_effects_covinib.RData")
+df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 
 ```
 
 # Reshape dataframes for mort28
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
-list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib) # add all trials
+list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier) # add all trials
 
 
 ## Mortality at day 28
@@ -71,7 +72,7 @@ rownames(df_mort60) <- NULL
 ```
 
 # (i) Primary outcome: Mortality at day 28
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=12, fig.height=4}
 str(df_mort28)
 mort28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
@@ -101,6 +102,7 @@ forest.meta(mort28,
             # xlim = c(0.15,5),
             # xlab = "Average treatment effect (95% CI)"
             )
+
 
 # Open a pdf file
 # pdf("./fp_aggregated.pdf", width=9, height=4)
