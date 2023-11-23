@@ -238,6 +238,8 @@ df <- df %>% # same 18 missing
 
 # CRP
 # Vaccination
+df$vacc <- 0 # trial happened before roll-out of any vaccine
+
 # Viremia
 # Variant
 # Serology
@@ -262,14 +264,19 @@ df <- df %>% # 47 have no outcome data, reason for censoring unclear (see below)
                              discharge_d >28 ~ 0)) # discharged later, proof of still alive, but empty
 # table(df$mort_28, df$trt, useNA = "always") # deaths correspond to publication (but they have -1 based on different counting of day 0) // However, the 21 missing in int and the 26 missing in cont do not really correspond to publication
 
-# table(df$ACTARM, df$mort_28, useNA = "always") # the 16 not treated were censored at day 0 or 1 => NA for death_d/discharge_d/clinstatus_28 // The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 was withdrawn by investigator, 1 became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
+# table(df$ACTARM, df$mort_28, useNA = "always") # the 16 not treated were censored at day 0 or 1 => NA for death_d/discharge_d/clinstatus_28 // The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 was withdrawn by investigator, 1 became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason. 
 
 # df %>%
 #   select(mort_28, ACTARM, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15,
-#          #clinstatus_15_imp,
+#          clinstatus_15_imp,
 #          clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
 #   filter(is.na(mort_28)) %>%
 #   View()
+# Apply missing data rule; we use the same rules as ACTT2 => we can use clinstatus_15_imp
+df <- score_transform(df, clinstatus_15_imp, df$or15scor)
+df <- df %>% 
+  mutate(mort_28 = case_when(is.na(mort_28) & clinstatus_15_imp %in% c("1","2","3","4","5") ~ 0,
+                             TRUE ~ c(mort_28)))
 
 
 # (ii) Mortality at day 60
@@ -291,13 +298,14 @@ df <- df %>% # no missing and those that were discharged and afterwards died hav
 
 
 # (iv) New mechanical ventilation among survivors within 28 days.
-df <- df %>% # 26 are missing; all other NAs are either dead or started with clinstatus_baseline == 5 (see View below) -> multiple imputation? Or carry over imputed day 15 (see clinstatus_28_imp below)?
+df <- df %>% # allNAs are either dead or started with clinstatus_baseline == 5 (see View below)
   mutate(new_mv_28 = case_when((clinstatus_baseline == 2 | clinstatus_baseline == 3 | clinstatus_baseline == 4) 
                                & (mort_28 == 0 | is.na(mort_28)) 
                                & (clinstatus_1 == 5 | clinstatus_2 == 5 | clinstatus_3 == 5 | clinstatus_4 == 5 |
                                    clinstatus_5 == 5 | clinstatus_6 == 5 | clinstatus_7 == 5 | clinstatus_8 == 5 |
                                     clinstatus_9 == 5 | clinstatus_10 == 5 | clinstatus_11 == 5 | clinstatus_12 == 5 |
-                                    clinstatus_13 == 5 | clinstatus_14 == 5 | clinstatus_15 == 5 | clinstatus_16 == 5 |
+                                    clinstatus_13 == 5 | clinstatus_14 == 5 | clinstatus_15 == 5 | clinstatus_15_imp == 5 | 
+                                    clinstatus_16 == 5 |
                                     clinstatus_17 == 5 | clinstatus_18 == 5 | clinstatus_19 == 5 | clinstatus_20 == 5 |
                                     clinstatus_21 == 5 | clinstatus_22 == 5 | clinstatus_23 == 5 | clinstatus_24 == 5 |
                                     clinstatus_25 == 5 | clinstatus_26 == 5 | clinstatus_27 == 5 | clinstatus_28 == 5)
@@ -308,18 +316,13 @@ df <- df %>% # 26 are missing; all other NAs are either dead or started with cli
 #   select(new_mv_28, death_reached, death_time, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, or15scor, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
 #   filter(is.na(new_mv_28)) %>%
 #   filter(clinstatus_baseline != 5) %>%
-#   filter(death_reached == 0 | is.na(death_reached)) %>%
+#   filter(death_reached == 0) %>%
 #   View()
 
 # (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
-df <- df %>% # same 26 are missing
+df <- df %>% # no missing
   mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
                                 new_mv_28 == 0 | mort_28 == 0 ~ 0))
-# df %>%
-#   select(new_mvd_28, new_mv_28, death_reached, death_time, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, or15scor, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
-#   filter(is.na(new_mvd_28)) %>%
-#   filter(clinstatus_baseline != 5) %>%
-#   View()
 
 
 # (v) Clinical status at day 28
@@ -333,7 +336,6 @@ df <- df %>% # Adapt clinstatus_28, since currently NA for those discharged or d
 df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6)
 
 ## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days) but there was nothing in that window => LVCF
-df <- score_transform(df, clinstatus_15_imp, df$or15scor)
 dfcs <- df %>% 
     select(id_pat, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15_imp, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28)
 impute_last_forw = function(df){
@@ -354,7 +356,7 @@ dfcs <- dfcs %>% # To control, don't overwrite
 df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat)) # Merge imputed variable back
 
 # table(df$clinstatus_28, useNA = "always")
-# table(df$clinstatus_28_imp, useNA = "always") # interesting: All imputed (i.e. carried forward from imputed day 15) are still hospitalized but not dead
+# table(df$clinstatus_28_imp, useNA = "always") # All imputed (i.e. carried forward from imputed day 15) are still hospitalized but not dead
 
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
@@ -398,8 +400,7 @@ df$discharge_time_sus <- df$discharge_time
 
 ```
 Discussion points OUTCOME data:
-1. mort_28: The 16 not treated were censored at day 0 or 1 (=> NA). The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 Were withdrawn by investigator, 1 Became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
-2. Get the (S)AE data
+1. Get the (S)AE data
 
 # Define final dataset, set references, summarize missing data and variables
 ```{r echo=TRUE}
@@ -412,7 +413,7 @@ df <- df %>%
          # country, 
          # icu, 
          sympdur, 
-         # vacc, 
+         vacc, 
          clinstatus_baseline,
          # comed_dexa, 
          comed_rdv, 
@@ -434,7 +435,6 @@ df <- df %>%
 df_os <- df
 df_os$country <- NA
 df_os$icu <- NA
-df_os$vacc <- NA
 df_os$comed_dexa <- NA
 df_os$comed_toci <- NA
 df_os$comed_ab <- NA
@@ -474,26 +474,24 @@ print(missing_plot)
 Discussion points
 1. Missing variables:
 * Baseline:
-  - ICU at enrolment
-  - CRP
-  - Viremia
-  - Variant
-  - Serology
-  - Co-medication at baseline, except remdesivir (part of intervention)
-  - Vaccination (still coming ?!?)
+  - ICU at enrolment: Double-check with trial team
+  - CRP: Double-check with trial team
+  - Viremia: Double-check with trial team
+  - Variant: Double-check with trial team
+  - Serology: Double-check with trial team
+  - Co-medication at baseline: Double-check with trial team (except remdesivir (part of intervention))
 * Outcomes:
-  - viral load
-  - adverse events (still coming ?!?)
+  - viral load: Double-check with trial team
+  - adverse events: Double-check with trial team
   - qol_28
 2. Missing data:
 - sympdur & comorbities -> MICE?
 - crp & vl_baseline & variant
-- mort_28 (& mort_60): 47 missing -> MICE for SENS
-- new_mv_28 & new_mvd_28: 26 missing -> MICE for SENS
+
 
 # (i) Primary outcome: Mortality at day 28
 ```{r}
-# adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
+# adjusted for baseline patient characteristics (age, respiratory support at baseline)
 addmargins(table(df$mort_28, df$trt, useNA = "always"))
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
@@ -519,7 +517,7 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 # (iii) Time to death within max. follow-up time
-```{r}
+```{r message=FALSE, warning=FALSE}
 # table(df$death_reached, df$death_time, useNA = "always")
 # table(df$death_reached, df$mort_60, useNA = "always")
 # 
@@ -534,7 +532,7 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # time to death, by group. Kaplan-Meier estimate of conditional survival probability.
 km.ttdeath.check <- with(df, Surv(death_time, death_reached))
-head(km.ttdeath.check, 100)
+# head(km.ttdeath.check, 100)
 
 km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
 # summary(km.ttdeath_trt, times = 28)
@@ -639,7 +637,7 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 # Kaplan-Meier estimate of conditional discharge probability
 # Just censoring => Cause-specific hazards
 km.ttdischarge.check <- with(df, Surv(discharge_time, discharge_reached))
-head(km.ttdischarge.check, 100)
+# head(km.ttdischarge.check, 100)
 km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, data=df)
 # summary(km.ttdischarge_trt, times = 28)
 ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
@@ -816,7 +814,6 @@ Discussion points
 ```{r warning=FALSE}
 table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 5 included
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
-
 mort.28.vent <- df %>% 
   glm(mort_28 ~ trt*clinstatus_baseline_n
       + age 
@@ -847,7 +844,7 @@ Discussion points
 # Subgroup analysis: Comorbidities on primary endpoint
 ```{r warning=FALSE}
 # 4 comorbidity categories as numeric/continuous, i.e., linear interaction
-table(df$comorb_cat, df$mort_28, useNA = "always") 
+# table(df$comorb_cat, df$mort_28, useNA = "always") 
 # class(df$comorb_cat)
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
@@ -897,7 +894,7 @@ Discussion points
 
 ```
 Discussion points
-1. Vaccination data not available
+1. Noone was vaccinated in ACTT2
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 ```{r warning=FALSE}
@@ -1020,7 +1017,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_ACTT2.RData")
 ```
 Discussion points
-1. Adjustments across all models. In ACTT2: no comedication!
+
 
 # Collect all interaction estimates (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -1058,7 +1055,7 @@ result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # a
 result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
 # result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") # not available
-# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
+# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not possible, noone vaccinated
 result_list[[4]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 # result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # not available
 # result_list[[7]] <- extract_interaction(mort.28.var, "variant") # not available
@@ -1078,4 +1075,4 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_ACTT2.RData")
 ```
 Discussion points
-1. Adjustments across all models. In ACTT2: no comedication!
+

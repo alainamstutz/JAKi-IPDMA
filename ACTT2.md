@@ -271,6 +271,8 @@ df <- df %>% # same 18 missing
 
 # CRP
 # Vaccination
+df$vacc <- 0 # trial happened before roll-out of any vaccine
+
 # Viremia
 # Variant
 # Serology
@@ -295,14 +297,19 @@ df <- df %>% # 47 have no outcome data, reason for censoring unclear (see below)
                              discharge_d >28 ~ 0)) # discharged later, proof of still alive, but empty
 # table(df$mort_28, df$trt, useNA = "always") # deaths correspond to publication (but they have -1 based on different counting of day 0) // However, the 21 missing in int and the 26 missing in cont do not really correspond to publication
 
-# table(df$ACTARM, df$mort_28, useNA = "always") # the 16 not treated were censored at day 0 or 1 => NA for death_d/discharge_d/clinstatus_28 // The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 was withdrawn by investigator, 1 became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
+# table(df$ACTARM, df$mort_28, useNA = "always") # the 16 not treated were censored at day 0 or 1 => NA for death_d/discharge_d/clinstatus_28 // The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 was withdrawn by investigator, 1 became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason. 
 
 # df %>%
 #   select(mort_28, ACTARM, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15,
-#          #clinstatus_15_imp,
+#          clinstatus_15_imp,
 #          clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
 #   filter(is.na(mort_28)) %>%
 #   View()
+# Apply missing data rule; we use the same rules as ACTT2 => we can use clinstatus_15_imp
+df <- score_transform(df, clinstatus_15_imp, df$or15scor)
+df <- df %>% 
+  mutate(mort_28 = case_when(is.na(mort_28) & clinstatus_15_imp %in% c("1","2","3","4","5") ~ 0,
+                             TRUE ~ c(mort_28)))
 
 
 # (ii) Mortality at day 60
@@ -324,13 +331,14 @@ df <- df %>% # no missing and those that were discharged and afterwards died hav
 
 
 # (iv) New mechanical ventilation among survivors within 28 days.
-df <- df %>% # 26 are missing; all other NAs are either dead or started with clinstatus_baseline == 5 (see View below) -> multiple imputation? Or carry over imputed day 15 (see clinstatus_28_imp below)?
+df <- df %>% # allNAs are either dead or started with clinstatus_baseline == 5 (see View below)
   mutate(new_mv_28 = case_when((clinstatus_baseline == 2 | clinstatus_baseline == 3 | clinstatus_baseline == 4) 
                                & (mort_28 == 0 | is.na(mort_28)) 
                                & (clinstatus_1 == 5 | clinstatus_2 == 5 | clinstatus_3 == 5 | clinstatus_4 == 5 |
                                    clinstatus_5 == 5 | clinstatus_6 == 5 | clinstatus_7 == 5 | clinstatus_8 == 5 |
                                     clinstatus_9 == 5 | clinstatus_10 == 5 | clinstatus_11 == 5 | clinstatus_12 == 5 |
-                                    clinstatus_13 == 5 | clinstatus_14 == 5 | clinstatus_15 == 5 | clinstatus_16 == 5 |
+                                    clinstatus_13 == 5 | clinstatus_14 == 5 | clinstatus_15 == 5 | clinstatus_15_imp == 5 | 
+                                    clinstatus_16 == 5 |
                                     clinstatus_17 == 5 | clinstatus_18 == 5 | clinstatus_19 == 5 | clinstatus_20 == 5 |
                                     clinstatus_21 == 5 | clinstatus_22 == 5 | clinstatus_23 == 5 | clinstatus_24 == 5 |
                                     clinstatus_25 == 5 | clinstatus_26 == 5 | clinstatus_27 == 5 | clinstatus_28 == 5)
@@ -341,18 +349,13 @@ df <- df %>% # 26 are missing; all other NAs are either dead or started with cli
 #   select(new_mv_28, death_reached, death_time, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, or15scor, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
 #   filter(is.na(new_mv_28)) %>%
 #   filter(clinstatus_baseline != 5) %>%
-#   filter(death_reached == 0 | is.na(death_reached)) %>%
+#   filter(death_reached == 0) %>%
 #   View()
 
-# (iv) Sens-analysis: Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
-df <- df %>% # same 26 are missing
+# (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator. 
+df <- df %>% # no missing
   mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
                                 new_mv_28 == 0 | mort_28 == 0 ~ 0))
-# df %>%
-#   select(new_mvd_28, new_mv_28, death_reached, death_time, death_d, discharge_d, d29dthe1, ttrecov1, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, or15scor, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
-#   filter(is.na(new_mvd_28)) %>%
-#   filter(clinstatus_baseline != 5) %>%
-#   View()
 
 
 # (v) Clinical status at day 28
@@ -366,7 +369,6 @@ df <- df %>% # Adapt clinstatus_28, since currently NA for those discharged or d
 df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6)
 
 ## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days) but there was nothing in that window => LVCF
-df <- score_transform(df, clinstatus_15_imp, df$or15scor)
 dfcs <- df %>% 
     select(id_pat, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15_imp, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28)
 impute_last_forw = function(df){
@@ -387,10 +389,10 @@ dfcs <- dfcs %>% # To control, don't overwrite
 df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat)) # Merge imputed variable back
 
 # table(df$clinstatus_28, useNA = "always")
-# table(df$clinstatus_28_imp, useNA = "always") # interesting: All imputed (i.e. carried forward from imputed day 15) are still hospitalized but not dead
+# table(df$clinstatus_28_imp, useNA = "always") # All imputed (i.e. carried forward from imputed day 15) are still hospitalized but not dead
 
 
-# (vi) Time to discharge or reaching discharge criteria up to day 28 // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days (as someone who has been censored on day 28). 
+# (vi) Time to discharge or reaching discharge criteria up to day 28
 df <- df %>% 
   mutate(discharge_reached = case_when(discharge_d <29 ~ 1,
                                        TRUE ~ 0))
@@ -400,7 +402,7 @@ df <- df %>% # 2 are left without any time to event data => impute max. follow-u
 df <- df %>% # restrict to max fup time 28d
   mutate(discharge_time = case_when(discharge_time >28 ~ 28,
                                     TRUE ~ discharge_time))
-df <- df %>% # add 28d for those that died
+df <- df %>% # add 28d for those that died // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days (as someone who has been censored on day 28). 
   mutate(discharge_time_sens = case_when(mort_28 == 1 ~ 28,
                                     TRUE ~ discharge_time))
 # table(df$discharge_time, df$discharge_reached, useNA = "always")
@@ -430,8 +432,7 @@ df$discharge_time_sus <- df$discharge_time
 # saveRDS(df_ae, file = "df_ae_actt2.RData")
 ```
 Discussion points OUTCOME data:
-1. mort_28: The 16 not treated were censored at day 0 or 1 (=> NA). The remaining 14 in intervention, I guess (see Fig 1): 8 Withdrew, 1 Were withdrawn by investigator, 1 Became ineligible after enrollment, 2 Had severe adverse event or adverse event other than death (?!?), 2 Had other reason (?!?) // The remaining 17 in control, I guess (see Fig 1): 16 Withdrew, 2 Were withdrawn by investigator, 1 Became ineligible after enrollment, 1 Had severe adverse event or adverse event other than death, 1 Was transferred to another hospital, 3 Had other reason
-2. Get the (S)AE data
+1. Get the (S)AE data
 
 # Define final dataset, set references, summarize missing data and variables
 
@@ -445,7 +446,7 @@ df <- df %>%
          # country, 
          # icu, 
          sympdur, 
-         # vacc, 
+         vacc, 
          clinstatus_baseline,
          # comed_dexa, 
          comed_rdv, 
@@ -467,7 +468,6 @@ df <- df %>%
 df_os <- df
 df_os$country <- NA
 df_os$icu <- NA
-df_os$vacc <- NA
 df_os$comed_dexa <- NA
 df_os$comed_toci <- NA
 df_os$comed_ab <- NA
@@ -509,36 +509,34 @@ print(missing_plot)
 Discussion points
 1. Missing variables:
 * Baseline:
-  - ICU at enrolment
-  - CRP
-  - Viremia
-  - Variant
-  - Serology
-  - Co-medication at baseline, except remdesivir (part of intervention)
-  - Vaccination (still coming ?!?)
+  - ICU at enrolment: Double-check with trial team
+  - CRP: Double-check with trial team
+  - Viremia: Double-check with trial team
+  - Variant: Double-check with trial team
+  - Serology: Double-check with trial team
+  - Co-medication at baseline: Double-check with trial team (except remdesivir (part of intervention))
 * Outcomes:
-  - viral load
-  - adverse events (still coming ?!?)
+  - viral load: Double-check with trial team
+  - adverse events: Double-check with trial team
   - qol_28
 2. Missing data:
 - sympdur & comorbities -> MICE?
 - crp & vl_baseline & variant
-- mort_28 (& mort_60): 47 missing -> MICE for SENS
-- new_mv_28 & new_mvd_28: 26 missing -> MICE for SENS
+
 
 # (i) Primary outcome: Mortality at day 28
 
 ```r
-# adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
+# adjusted for baseline patient characteristics (age, respiratory support at baseline)
 addmargins(table(df$mort_28, df$trt, useNA = "always"))
 ```
 
 ```
 ##       
 ##           0    1 <NA>  Sum
-##   0     455  470    0  925
+##   0     481  491    0  972
 ##   1      37   24    0   61
-##   <NA>   26   21    0   47
+##   <NA>    0    0    0    0
 ##   Sum   518  515    0 1033
 ```
 
@@ -557,7 +555,7 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 986 (47 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1033 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -598,31 +596,31 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.70 </td>
-   <td style="text-align:right;"> 0.40 </td>
-   <td style="text-align:right;"> 1.24 </td>
-   <td style="text-align:right;"> -1.21 </td>
-   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 0.74 </td>
+   <td style="text-align:right;"> 0.42 </td>
+   <td style="text-align:right;"> 1.29 </td>
+   <td style="text-align:right;"> -1.06 </td>
+   <td style="text-align:right;"> 0.29 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.06 </td>
+   <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 5.12 </td>
+   <td style="text-align:right;"> 5.07 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 9161062.27 </td>
+   <td style="text-align:right;"> 9051906.86 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 30134978.01 </td>
+   <td style="text-align:right;"> 28583476.06 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -630,7 +628,7 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 92622285.66 </td>
+   <td style="text-align:right;"> 86051205.64 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -650,9 +648,9 @@ table(df$mort_60, df$trt, useNA = "always")
 ```
 ##       
 ##          0   1 <NA>
-##   0    455 470    0
+##   0    481 491    0
 ##   1     37  24    0
-##   <NA>  26  21    0
+##   <NA>   0   0    0
 ```
 
 ```r
@@ -670,7 +668,7 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 986 (47 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1033 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -711,31 +709,31 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.70 </td>
-   <td style="text-align:right;"> 0.40 </td>
-   <td style="text-align:right;"> 1.24 </td>
-   <td style="text-align:right;"> -1.21 </td>
-   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 0.74 </td>
+   <td style="text-align:right;"> 0.42 </td>
+   <td style="text-align:right;"> 1.29 </td>
+   <td style="text-align:right;"> -1.06 </td>
+   <td style="text-align:right;"> 0.29 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.06 </td>
+   <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 5.12 </td>
+   <td style="text-align:right;"> 5.07 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 9161062.27 </td>
+   <td style="text-align:right;"> 9051906.86 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 30134978.01 </td>
+   <td style="text-align:right;"> 28583476.06 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -743,7 +741,7 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 92622285.66 </td>
+   <td style="text-align:right;"> 86051205.64 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -771,19 +769,8 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # time to death, by group. Kaplan-Meier estimate of conditional survival probability.
 km.ttdeath.check <- with(df, Surv(death_time, death_reached))
-head(km.ttdeath.check, 100)
-```
+# head(km.ttdeath.check, 100)
 
-```
-##   [1] 27+ 14+ 28+ 28+ 28+ 27+ 28+ 26+ 28+ 28+ 28+  0+ 28+ 28+  8+ 11+  1+ 28+
-##  [19] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 24+ 25+ 28+ 28+ 28+ 28+ 27+ 28+ 12  27+ 28+
-##  [37] 28+ 28+ 28+ 28+ 28+ 28+ 15+ 28+  0+ 28+  6  26+ 27+ 28+ 28+ 28+ 28+ 27+
-##  [55] 23+ 28+ 28+ 28+ 27+ 28+ 27+ 28+ 28+  2+ 28+  1+ 25+ 28+ 28+ 28+ 28+ 26+
-##  [73] 28+ 28+ 28+ 28+ 28+ 25+ 26+ 28+ 28+ 17  28+ 25+ 28+ 24  28+ 26+ 27+ 28+
-##  [91] 28+ 28+ 28+ 26+ 28+  5+ 28+ 28+ 28+ 19
-```
-
-```r
 km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df)
 # summary(km.ttdeath_trt, times = 28)
 ttdeath_28d_tbl <- km.ttdeath_trt %>% 
@@ -794,12 +781,6 @@ ttdeath_28d_tbl <- km.ttdeath_trt %>%
 # Nicely formatted table
 kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-```
-
-```
-## Warning in kable_styling(., bootstrap_options = "striped", full_width = FALSE):
-## Please specify format in kable. kableExtra can customize either HTML or LaTeX
-## outputs. See https://haozhu233.github.io/kableExtra/ for details.
 ```
 
 
@@ -855,24 +836,10 @@ ttdeath <- df %>%
         # + comed_rdv 
         # + comed_toci
         , data =.)
-```
-
-```
-## Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :
-## Loglik converged before variable 3 ; coefficient may be infinite.
-```
-
-```r
 ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
 # Nicely formatted table
 kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-```
-
-```
-## Warning in kable_styling(., bootstrap_options = "striped", full_width = FALSE):
-## Please specify format in kable. kableExtra can customize either HTML or LaTeX
-## outputs. See https://haozhu233.github.io/kableExtra/ for details.
 ```
 
 
@@ -898,9 +865,9 @@ table(df$new_mv_28, df$trt, useNA = "always")
 ```
 ##       
 ##          0   1 <NA>
-##   0    370 398    0
+##   0    384 410    0
 ##   1     52  39    0
-##   <NA>  96  78    0
+##   <NA>  82  66    0
 ```
 
 ```r
@@ -919,7 +886,7 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 859 (174 missing obs. deleted) </td>
+   <td style="text-align:right;"> 885 (148 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -960,23 +927,23 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.69 </td>
-   <td style="text-align:right;"> 0.43 </td>
-   <td style="text-align:right;"> 1.11 </td>
-   <td style="text-align:right;"> -1.54 </td>
-   <td style="text-align:right;"> 0.12 </td>
+   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 0.44 </td>
+   <td style="text-align:right;"> 1.13 </td>
+   <td style="text-align:right;"> -1.44 </td>
+   <td style="text-align:right;"> 0.15 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 1.01 </td>
    <td style="text-align:right;"> 1.05 </td>
-   <td style="text-align:right;"> 3.73 </td>
+   <td style="text-align:right;"> 3.54 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 7058773.94 </td>
+   <td style="text-align:right;"> 6932374.72 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.03 </td>
@@ -984,7 +951,7 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 50134363.56 </td>
+   <td style="text-align:right;"> 48201781.94 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.03 </td>
@@ -1003,9 +970,9 @@ table(df$new_mvd_28, df$trt, useNA = "always")
 ```
 ##       
 ##          0   1 <NA>
-##   0    410 437    0
+##   0    429 452    0
 ##   1     89  63    0
-##   <NA>  19  15    0
+##   <NA>   0   0    0
 ```
 
 ```r
@@ -1023,7 +990,7 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 999 (34 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1033 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1064,23 +1031,23 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.69 </td>
-   <td style="text-align:right;"> 0.47 </td>
-   <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> -1.91 </td>
-   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 0.48 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> -1.76 </td>
+   <td style="text-align:right;"> 0.08 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.04 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 1.06 </td>
-   <td style="text-align:right;"> 5.92 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> 5.76 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 10555088.31 </td>
+   <td style="text-align:right;"> 10420148.12 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.03 </td>
@@ -1088,7 +1055,7 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 66392757.39 </td>
+   <td style="text-align:right;"> 64054482.71 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.03 </td>
@@ -1096,7 +1063,7 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 32269059.81 </td>
+   <td style="text-align:right;"> 29767286.98 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.03 </td>
@@ -1116,11 +1083,11 @@ table(df$clinstatus_28_imp, df$trt, useNA = "always")
 ```
 ##       
 ##          0   1 <NA>
-##   1    398 426    0
-##   2      8  11    0
-##   3     22  17    0
-##   4      9  14    0
-##   5     44  23    0
+##   1    424 447    0
+##   2      4  10    0
+##   3     14   7    0
+##   4      5  10    0
+##   5     34  17    0
 ##   6     37  24    0
 ##   <NA>   0   0    0
 ```
@@ -1154,18 +1121,18 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                     |Variable             |  Odds.Ratio|    CI.Lower|     CI.Upper|
-|:--------------------|:--------------------|-----------:|-----------:|------------:|
-|1&#124;2             |1&#124;2             | 171.0499106|  59.0168581|  495.7578704|
-|2&#124;3             |2&#124;3             | 199.2191754|  68.5132176|  579.2791704|
-|3&#124;4             |3&#124;4             | 282.9396320|  96.5445488|  829.2009892|
-|4&#124;5             |4&#124;5             | 360.4450437| 122.2888097| 1062.4081618|
-|5&#124;6             |5&#124;6             | 956.2046168| 314.7195438| 2905.2128708|
-|trt                  |trt                  |   0.6928205|   0.4969663|    0.9658607|
-|age                  |age                  |   1.0419744|   1.0299575|    1.0541314|
-|clinstatus_baseline3 |clinstatus_baseline3 |   2.4518101|   1.1331585|    5.3049708|
-|clinstatus_baseline4 |clinstatus_baseline4 |   7.8108597|   3.5587936|   17.1433174|
-|clinstatus_baseline5 |clinstatus_baseline5 |  33.9990627|  15.0945034|   76.5799465|
+|                     |Variable             |   Odds.Ratio|    CI.Lower|    CI.Upper|
+|:--------------------|:--------------------|------------:|-----------:|-----------:|
+|1&#124;2             |1&#124;2             |  468.1010717| 119.2635066| 1837.264554|
+|2&#124;3             |2&#124;3             |  538.2641819| 136.7226461| 2119.095393|
+|3&#124;4             |3&#124;4             |  674.8761079| 170.5940152| 2669.834345|
+|4&#124;5             |4&#124;5             |  806.7560166| 203.1215117| 3204.265589|
+|5&#124;6             |5&#124;6             | 1782.1097218| 438.6470565| 7240.251617|
+|trt                  |trt                  |    0.7030869|   0.4844558|    1.020385|
+|age                  |age                  |    1.0466754|   1.0327247|    1.060814|
+|clinstatus_baseline3 |clinstatus_baseline3 |    3.1426655|   1.0952577|    9.017373|
+|clinstatus_baseline4 |clinstatus_baseline4 |   11.3135636|   3.9248970|   32.611485|
+|clinstatus_baseline5 |clinstatus_baseline5 |   49.8485624|  17.0320892|  145.893974|
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 
@@ -1173,19 +1140,7 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 # Kaplan-Meier estimate of conditional discharge probability
 # Just censoring => Cause-specific hazards
 km.ttdischarge.check <- with(df, Surv(discharge_time, discharge_reached))
-head(km.ttdischarge.check, 100)
-```
-
-```
-##   [1] 20   1   6  28+  4   3  22   3  15   8   5   1+  2  28+  8+ 11   2+  5 
-##  [19] 10   6   6   5  27  25   9   3   3   2   9  28+  6   2  28+ 28+  5   5 
-##  [37] 28+ 14  14  10   7   6   2   1   1+ 25  28+  6   4  22  28+ 28+ 15   4 
-##  [55]  6   4  28+  5   7   3   8  23  28+  3+ 27   1+  8   7  20   4   9  10 
-##  [73]  7   9   5  28+ 28+  2   5  10  19  28+  6  17   3   9  28+ 11   5   3 
-##  [91]  7  28+  4   2   5   5+ 10  28+ 28+ 28+
-```
-
-```r
+# head(km.ttdischarge.check, 100)
 km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, data=df)
 # summary(km.ttdischarge_trt, times = 28)
 ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
@@ -1511,17 +1466,16 @@ table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 5 included
 ##       
 ##          0   1 <NA>
 ##   1      0   0    0
-##   2    138   0    4
-##   3    525  17   22
-##   4    183  20   13
-##   5     79  24    8
+##   2    142   0    0
+##   3    547  17    0
+##   4    196  20    0
+##   5     87  24    0
 ##   6      0   0    0
 ##   <NA>   0   0    0
 ```
 
 ```r
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
-
 mort.28.vent <- df %>% 
   glm(mort_28 ~ trt*clinstatus_baseline_n
       + age 
@@ -1537,7 +1491,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 986 (47 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1033 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1573,40 +1527,40 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -8.44 </td>
+   <td style="text-align:right;"> -8.43 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 0.06 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 1.25 </td>
-   <td style="text-align:right;"> -1.81 </td>
-   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> -1.96 </td>
+   <td style="text-align:right;"> 0.05 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline_n </td>
-   <td style="text-align:right;"> 2.75 </td>
-   <td style="text-align:right;"> 1.82 </td>
-   <td style="text-align:right;"> 4.16 </td>
-   <td style="text-align:right;"> 4.80 </td>
+   <td style="text-align:right;"> 2.61 </td>
+   <td style="text-align:right;"> 1.74 </td>
+   <td style="text-align:right;"> 3.93 </td>
+   <td style="text-align:right;"> 4.63 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.06 </td>
-   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 5.21 </td>
+   <td style="text-align:right;"> 5.20 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:clinstatus_baseline_n </td>
-   <td style="text-align:right;"> 1.75 </td>
-   <td style="text-align:right;"> 0.88 </td>
-   <td style="text-align:right;"> 3.45 </td>
-   <td style="text-align:right;"> 1.61 </td>
-   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> 1.86 </td>
+   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> 3.66 </td>
+   <td style="text-align:right;"> 1.80 </td>
+   <td style="text-align:right;"> 0.07 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1633,7 +1587,7 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 986 (47 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1033 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1674,31 +1628,31 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.15 </td>
-   <td style="text-align:right;"> 0.07 </td>
-   <td style="text-align:right;"> 18.14 </td>
-   <td style="text-align:right;"> 0.10 </td>
-   <td style="text-align:right;"> 0.92 </td>
+   <td style="text-align:right;"> 1.18 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 18.02 </td>
+   <td style="text-align:right;"> 0.12 </td>
+   <td style="text-align:right;"> 0.91 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 4.15 </td>
+   <td style="text-align:right;"> 4.09 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 8972253.43 </td>
+   <td style="text-align:right;"> 8932754.53 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 29515124.24 </td>
+   <td style="text-align:right;"> 28163384.34 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -1706,7 +1660,7 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 90337069.20 </td>
+   <td style="text-align:right;"> 84346929.27 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -1716,9 +1670,9 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:left;font-weight: bold;"> trt:age </td>
    <td style="text-align:right;"> 0.99 </td>
    <td style="text-align:right;"> 0.95 </td>
-   <td style="text-align:right;"> 1.04 </td>
-   <td style="text-align:right;"> -0.35 </td>
-   <td style="text-align:right;"> 0.72 </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> -0.34 </td>
+   <td style="text-align:right;"> 0.73 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1730,20 +1684,7 @@ Discussion points
 
 ```r
 # 4 comorbidity categories as numeric/continuous, i.e., linear interaction
-table(df$comorb_cat, df$mort_28, useNA = "always") 
-```
-
-```
-##       
-##          0   1 <NA>
-##   1    143   3    5
-##   2    266  14    8
-##   3    483  41   22
-##   4     26   3    1
-##   <NA>   7   0   11
-```
-
-```r
+# table(df$comorb_cat, df$mort_28, useNA = "always") 
 # class(df$comorb_cat)
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
@@ -1760,7 +1701,7 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 979 (54 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1015 (18 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1803,29 +1744,29 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
    <td style="text-align:left;font-weight: bold;"> trt </td>
    <td style="text-align:right;"> 1.22 </td>
    <td style="text-align:right;"> 0.11 </td>
-   <td style="text-align:right;"> 13.63 </td>
+   <td style="text-align:right;"> 13.50 </td>
    <td style="text-align:right;"> 0.16 </td>
    <td style="text-align:right;"> 0.87 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat </td>
-   <td style="text-align:right;"> 1.65 </td>
-   <td style="text-align:right;"> 0.90 </td>
-   <td style="text-align:right;"> 3.02 </td>
    <td style="text-align:right;"> 1.62 </td>
+   <td style="text-align:right;"> 0.89 </td>
+   <td style="text-align:right;"> 2.97 </td>
+   <td style="text-align:right;"> 1.58 </td>
    <td style="text-align:right;"> 0.11 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 4.72 </td>
+   <td style="text-align:right;"> 1.07 </td>
+   <td style="text-align:right;"> 4.71 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 8436366.35 </td>
+   <td style="text-align:right;"> 8473096.16 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -1833,7 +1774,7 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 28527731.45 </td>
+   <td style="text-align:right;"> 27421883.63 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -1841,7 +1782,7 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 86895822.81 </td>
+   <td style="text-align:right;"> 84624789.45 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -1849,11 +1790,11 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat </td>
-   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 0.82 </td>
    <td style="text-align:right;"> 0.34 </td>
-   <td style="text-align:right;"> 1.93 </td>
-   <td style="text-align:right;"> -0.48 </td>
-   <td style="text-align:right;"> 0.63 </td>
+   <td style="text-align:right;"> 1.95 </td>
+   <td style="text-align:right;"> -0.45 </td>
+   <td style="text-align:right;"> 0.65 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1879,7 +1820,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 979 (54 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1015 (18 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1920,25 +1861,25 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 2.26 </td>
-   <td style="text-align:right;"> 0.19 </td>
-   <td style="text-align:right;"> 27.45 </td>
-   <td style="text-align:right;"> 0.64 </td>
-   <td style="text-align:right;"> 0.52 </td>
+   <td style="text-align:right;"> 2.44 </td>
+   <td style="text-align:right;"> 0.20 </td>
+   <td style="text-align:right;"> 29.42 </td>
+   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> 0.48 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f2 </td>
-   <td style="text-align:right;"> 3.23 </td>
-   <td style="text-align:right;"> 0.37 </td>
-   <td style="text-align:right;"> 28.06 </td>
-   <td style="text-align:right;"> 1.06 </td>
-   <td style="text-align:right;"> 0.29 </td>
+   <td style="text-align:right;"> 3.36 </td>
+   <td style="text-align:right;"> 0.39 </td>
+   <td style="text-align:right;"> 28.94 </td>
+   <td style="text-align:right;"> 1.10 </td>
+   <td style="text-align:right;"> 0.27 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f3 </td>
-   <td style="text-align:right;"> 5.13 </td>
+   <td style="text-align:right;"> 5.09 </td>
    <td style="text-align:right;"> 0.65 </td>
-   <td style="text-align:right;"> 40.74 </td>
+   <td style="text-align:right;"> 40.09 </td>
    <td style="text-align:right;"> 1.55 </td>
    <td style="text-align:right;"> 0.12 </td>
   </tr>
@@ -1954,21 +1895,21 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 4.67 </td>
+   <td style="text-align:right;"> 1.07 </td>
+   <td style="text-align:right;"> 4.66 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 8071386.93 </td>
+   <td style="text-align:right;"> 8138648.20 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 25641621.71 </td>
+   <td style="text-align:right;"> 24884598.63 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -1976,7 +1917,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 80203043.31 </td>
+   <td style="text-align:right;"> 78372267.34 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -1984,23 +1925,23 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f2 </td>
-   <td style="text-align:right;"> 0.37 </td>
+   <td style="text-align:right;"> 0.33 </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 5.76 </td>
-   <td style="text-align:right;"> -0.71 </td>
-   <td style="text-align:right;"> 0.48 </td>
+   <td style="text-align:right;"> 5.09 </td>
+   <td style="text-align:right;"> -0.80 </td>
+   <td style="text-align:right;"> 0.43 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f3 </td>
-   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 0.21 </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 2.99 </td>
-   <td style="text-align:right;"> -1.14 </td>
-   <td style="text-align:right;"> 0.26 </td>
+   <td style="text-align:right;"> 2.88 </td>
+   <td style="text-align:right;"> -1.16 </td>
+   <td style="text-align:right;"> 0.25 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f4 </td>
-   <td style="text-align:right;"> 13465587.45 </td>
+   <td style="text-align:right;"> 11462219.92 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
@@ -2029,7 +1970,138 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 979 (54 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1015 (18 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.03 </td>
+   <td style="text-align:right;"> 0.98 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 0.36 </td>
+   <td style="text-align:right;"> 3.19 </td>
+   <td style="text-align:right;"> 0.14 </td>
+   <td style="text-align:right;"> 0.89 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comorb_count </td>
+   <td style="text-align:right;"> 1.25 </td>
+   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> 1.62 </td>
+   <td style="text-align:right;"> 1.68 </td>
+   <td style="text-align:right;"> 0.09 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 4.74 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 8972983.56 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 28710335.26 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 91381063.53 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.98 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:comorb_count </td>
+   <td style="text-align:right;"> 0.83 </td>
+   <td style="text-align:right;"> 0.56 </td>
+   <td style="text-align:right;"> 1.24 </td>
+   <td style="text-align:right;"> -0.89 </td>
+   <td style="text-align:right;"> 0.38 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+Discussion points
+1. Numeric or factor or count?
+
+# Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
+
+Discussion points
+1. Comedication data not available
+
+# Subgroup analysis: Vaccination on adverse events
+
+Discussion points
+1. Noone was vaccinated in ACTT2
+
+# SENS Subgroup analysis: Duration since symptom onset on primary endpoint
+
+```r
+# table(df$sympdur, df$mort_28, useNA = "always")
+mort.28.symp <- df %>% 
+  glm(mort_28 ~ trt*sympdur
+      + age 
+      + clinstatus_baseline 
+      #+ comed_dexa 
+      #+ comed_rdv 
+      #+ comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 1017 (16 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -2071,169 +2143,38 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
    <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 0.37 </td>
-   <td style="text-align:right;"> 3.24 </td>
-   <td style="text-align:right;"> 0.15 </td>
-   <td style="text-align:right;"> 0.88 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comorb_count </td>
-   <td style="text-align:right;"> 1.27 </td>
-   <td style="text-align:right;"> 0.98 </td>
-   <td style="text-align:right;"> 1.66 </td>
-   <td style="text-align:right;"> 1.79 </td>
-   <td style="text-align:right;"> 0.07 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.05 </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 4.75 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 9047213.89 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 30485867.30 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.98 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 95214885.15 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.98 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:comorb_count </td>
-   <td style="text-align:right;"> 0.82 </td>
-   <td style="text-align:right;"> 0.55 </td>
-   <td style="text-align:right;"> 1.23 </td>
-   <td style="text-align:right;"> -0.96 </td>
-   <td style="text-align:right;"> 0.34 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: MLE</td></tr></tfoot>
-</table>
-Discussion points
-1. Numeric or factor or count?
-
-# Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
-
-Discussion points
-1. Comedication data not available
-
-# Subgroup analysis: Vaccination on adverse events
-
-Discussion points
-1. Vaccination data not available
-
-# SENS Subgroup analysis: Duration since symptom onset on primary endpoint
-
-```r
-# table(df$sympdur, df$mort_28, useNA = "always")
-mort.28.symp <- df %>% 
-  glm(mort_28 ~ trt*sympdur
-      + age 
-      + clinstatus_baseline 
-      #+ comed_dexa 
-      #+ comed_rdv 
-      #+ comed_toci
-      , family = "binomial", data=.)
-summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-```
-
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 985 (48 missing obs. deleted) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> mort_28 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> Generalized linear model </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Family </td>
-   <td style="text-align:right;"> binomial </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Link </td>
-   <td style="text-align:right;"> logit </td>
-  </tr>
-</tbody>
-</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> exp(Est.) </th>
-   <th style="text-align:right;"> 2.5% </th>
-   <th style="text-align:right;"> 97.5% </th>
-   <th style="text-align:right;"> z val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.03 </td>
-   <td style="text-align:right;"> 0.98 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.29 </td>
-   <td style="text-align:right;"> 3.63 </td>
-   <td style="text-align:right;"> 0.04 </td>
-   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> 0.31 </td>
+   <td style="text-align:right;"> 3.78 </td>
+   <td style="text-align:right;"> 0.13 </td>
+   <td style="text-align:right;"> 0.90 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> sympdur </td>
    <td style="text-align:right;"> 0.99 </td>
    <td style="text-align:right;"> 0.92 </td>
    <td style="text-align:right;"> 1.07 </td>
-   <td style="text-align:right;"> -0.24 </td>
-   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> -0.15 </td>
+   <td style="text-align:right;"> 0.88 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 5.07 </td>
+   <td style="text-align:right;"> 5.04 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 9559832.31 </td>
+   <td style="text-align:right;"> 9520440.90 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.98 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 31958439.15 </td>
+   <td style="text-align:right;"> 30562314.19 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -2241,7 +2182,7 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 99044710.82 </td>
+   <td style="text-align:right;"> 97233469.64 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.02 </td>
@@ -2251,9 +2192,9 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:left;font-weight: bold;"> trt:sympdur </td>
    <td style="text-align:right;"> 0.95 </td>
    <td style="text-align:right;"> 0.83 </td>
-   <td style="text-align:right;"> 1.10 </td>
-   <td style="text-align:right;"> -0.68 </td>
-   <td style="text-align:right;"> 0.50 </td>
+   <td style="text-align:right;"> 1.09 </td>
+   <td style="text-align:right;"> -0.75 </td>
+   <td style="text-align:right;"> 0.45 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -2363,25 +2304,25 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|     |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_control|trial  |JAKi        |
-|:----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|---------:|:------|:-----------|
-|trt  |death at day 28                            |         0.7040732| 0.3957723| 1.2350463|      0.2890288| 0.2247583|            494|       492|ACTT-2 |Baricitinib |
-|trt1 |death at day 60                            |         0.7040732| 0.3957723| 1.2350463|      0.2890288| 0.2247583|            494|       492|ACTT-2 |Baricitinib |
-|trt2 |death within fup                           |         0.7409249| 0.4415164| 1.2433733|      0.2641294| 0.2562656|            515|       518|ACTT-2 |Baricitinib |
-|trt3 |new MV within 28d                          |         0.6873481| 0.4248321| 1.1042522|      0.2430476| 0.1229387|            437|       422|ACTT-2 |Baricitinib |
-|trt4 |new MV or death within 28d                 |         0.6874157| 0.4667200| 1.0080115|      0.1961283| 0.0559949|            500|       499|ACTT-2 |Baricitinib |
-|trt5 |clinical status at day 28                  |         0.6928205| 0.4961089| 0.9648921|      0.1695147| 0.0303944|            515|       518|ACTT-2 |Baricitinib |
-|trt6 |discharge within 28 days                   |         1.2140636| 1.0596485| 1.3909807|      0.0694073| 0.0051947|            515|       518|ACTT-2 |Baricitinib |
-|trt7 |discharge within 28 days, death=comp.event |         1.1601147| 1.0201821| 1.3192410|      0.0655817| 0.0240000|            515|       518|ACTT-2 |Baricitinib |
-|trt8 |discharge within 28 days, death=hypo.event |         1.2108219| 1.0568667| 1.3872040|      0.0693844| 0.0058317|            515|       518|ACTT-2 |Baricitinib |
-|trt9 |sustained discharge within 28 days         |         1.2140636| 1.0596485| 1.3909807|      0.0694073| 0.0051947|            515|       518|ACTT-2 |Baricitinib |
+|     |variable                                   | hazard_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value| n_intervention| n_control|trial  |JAKi        |
+|:----|:------------------------------------------|-----------------:|---------:|--------:|--------------:|---------:|--------------:|---------:|:------|:-----------|
+|trt  |death at day 28                            |         0.7367848| 0.4158210| 1.287850|      0.2870900| 0.2873355|            515|       518|ACTT-2 |Baricitinib |
+|trt1 |death at day 60                            |         0.7367848| 0.4158210| 1.287850|      0.2870900| 0.2873355|            515|       518|ACTT-2 |Baricitinib |
+|trt2 |death within fup                           |         0.7409249| 0.4415164| 1.243373|      0.2641294| 0.2562656|            515|       518|ACTT-2 |Baricitinib |
+|trt3 |new MV within 28d                          |         0.7054987| 0.4373959| 1.130433|      0.2415896| 0.1487450|            449|       436|ACTT-2 |Baricitinib |
+|trt4 |new MV or death within 28d                 |         0.7096609| 0.4833302| 1.037682|      0.1946077| 0.0780092|            515|       518|ACTT-2 |Baricitinib |
+|trt5 |clinical status at day 28                  |         0.7030869| 0.4832857| 1.019033|      0.1900277| 0.0637668|            515|       518|ACTT-2 |Baricitinib |
+|trt6 |discharge within 28 days                   |         1.2140636| 1.0596485| 1.390981|      0.0694073| 0.0051947|            515|       518|ACTT-2 |Baricitinib |
+|trt7 |discharge within 28 days, death=comp.event |         1.1601147| 1.0201821| 1.319241|      0.0655817| 0.0240000|            515|       518|ACTT-2 |Baricitinib |
+|trt8 |discharge within 28 days, death=hypo.event |         1.2108219| 1.0568667| 1.387204|      0.0693844| 0.0058317|            515|       518|ACTT-2 |Baricitinib |
+|trt9 |sustained discharge within 28 days         |         1.2140636| 1.0596485| 1.390981|      0.0694073| 0.0051947|            515|       518|ACTT-2 |Baricitinib |
 
 ```r
 # Save
 saveRDS(result_df, file = "trt_effects_ACTT2.RData")
 ```
 Discussion points
-1. Adjustments across all models. In ACTT2: no comedication!
+
 
 # Collect all interaction estimates (stage one)
 
@@ -2420,7 +2361,7 @@ result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # a
 result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
 # result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") # not available
-# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
+# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not possible, noone vaccinated
 result_list[[4]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 # result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # not available
 # result_list[[7]] <- extract_interaction(mort.28.var, "variant") # not available
@@ -2441,14 +2382,14 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |                          |variable            | log_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial  |JAKi        |
 |:-------------------------|:-------------------|--------------:|---------:|--------:|--------------:|---------:|:------|:-----------|
-|trt:clinstatus_baseline_n |respiratory support |      1.7465135| 0.8949053| 3.517276|      0.3473074| 0.1083715|ACTT-2 |Baricitinib |
-|trt:age                   |age                 |      0.9924607| 0.9514065| 1.035299|      0.0214898| 0.7247154|ACTT-2 |Baricitinib |
-|trt:comorb_cat            |comorbidity         |      0.8084191| 0.3359861| 1.945693|      0.4446861| 0.6324665|ACTT-2 |Baricitinib |
-|trt:sympdur               |symptom duration    |      0.9527670| 0.8245538| 1.089695|      0.0710958| 0.4961508|ACTT-2 |Baricitinib |
+|trt:clinstatus_baseline_n |respiratory support |      1.8585791| 0.9560639| 3.727410|      0.3452521| 0.0726146|ACTT-2 |Baricitinib |
+|trt:age                   |age                 |      0.9927675| 0.9522794| 1.035112|      0.0212119| 0.7321975|ACTT-2 |Baricitinib |
+|trt:comorb_cat            |comorbidity         |      0.8179394| 0.3403640| 1.961603|      0.4435274| 0.6504691|ACTT-2 |Baricitinib |
+|trt:sympdur               |symptom duration    |      0.9487791| 0.8225029| 1.083731|      0.0702852| 0.4544093|ACTT-2 |Baricitinib |
 
 ```r
 # Save
 saveRDS(interaction_df, file = "int_effects_ACTT2.RData")
 ```
 Discussion points
-1. Adjustments across all models. In ACTT2: no comedication!
+
