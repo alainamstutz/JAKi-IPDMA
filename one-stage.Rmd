@@ -124,40 +124,32 @@ df_covbarrier <- df_covbarrier %>%
          ae_28, ae_28_sev,
          vir_clear_5, vir_clear_10, vir_clear_15)
 
-df_covbarrier <- df_covbarrier %>% 
-  filter(!is.na(clinstatus_baseline)) ## 
-
 # append
 df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier)
 
 ```
-Discussion:
-1. Careful about missing clinstatus_baseline
 
 
 # (i) Primary outcome: Mortality at day 28
 ```{r warning=FALSE}
-# addmargins(table(df_tot$trial, df_tot$mort_28, useNA = "always"))
-# addmargins(table(df_tot$mort_28, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$trial, df_tot$mort_28, useNA = "always"))
+addmargins(table(df_tot$mort_28, df_tot$trt, useNA = "always"))
 # table(df_tot$age, df_tot$trt, useNA = "always")
-# table(df_tot$clinstatus_baseline, df_tot$trt, useNA = "always")
+table(df_tot$clinstatus_baseline, df_tot$trt, useNA = "always")
+table(df_tot$clinstatus_baseline, df_tot$trial, useNA = "always")
 # table(df_tot$comed_dexa, df_tot$trt, useNA = "always")
 # table(df_tot$comed_rdv, df_tot$trt, useNA = "always")
 # table(df_tot$comed_toci, df_tot$trt, useNA = "always")
 
-
-#####
-# GOAL: random treatment effect, stratified trial intercept, stratified prognostic factors, AND centering the treatment variable by the proportion treated in the trial (to improve the estimation of between-study variance) AND maximum likelihood (ML) estimator (due to small trials with rare events). See notes.
-# REML is default in glmer, for ML use glmmTMB
-
-# reformatting for more complex models
+# reformatting
 df_tot$trt_f <- as.factor(df_tot$trt)
 df_tot$trial_f <- as.factor(df_tot$trial)
-table(df_tot$clinstatus_baseline, df_tot$trial, useNA = "always")
+
 df_tot <- df_tot %>% 
   mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
                                 clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
-table(df_tot$vbaseline, df_tot$trial, useNA = "always")
+# table(df_tot$vbaseline, df_tot$trial, useNA = "always")
+
 df_tot$clinstatus_baseline_n <- as.numeric(df_tot$clinstatus_baseline)
 df_tot <- df_tot %>%
   mutate(trial_n = case_when(trial == "Bari-Solidact" ~ 1,
@@ -167,86 +159,114 @@ df_tot <- df_tot %>%
                              trial == "COVINIB" ~ 5,
                              trial == "COV-BARRIER" ~ 6))
 # table(df_tot$trial_n, useNA = "always")
+```
+
+GOAL: random treatment effect, stratified trial intercept, stratified prognostic factors, AND centering the treatment variable by the proportion treated in the trial (to improve the estimation of between-study variance) AND maximum likelihood (ML) estimator (due to small trials with rare events). REML is default in glmer, for ML use glmmTMB. See notes.
+
+### (1) common treatment effect, random trial intercept, common prognostic factors
+```{r}
 # (1) common treatment effect, random trial intercept, common prognostic factors, ML
 mort28.ctreat.rtrial.ml <- glmmTMB(mort_28 ~ trt + (1|trial)
-                              + age + clinstatus_baseline_n
+                              + age + clinstatus_baseline
                               # + comed_dexa + comed_rdv + comed_toci 
                               , data = df_tot, family = binomial)
 # tab_model(mort28.ctreat.rtrial.ml)
+
 mort28.ctreat.rtrial.ml.vb <- glmmTMB(mort_28 ~ trt + (1|trial)
                               + age + vbaseline
                               # + comed_dexa + comed_rdv + comed_toci 
                               , data = df_tot, family = binomial)
 # tab_model(mort28.ctreat.rtrial.ml.vb)
+```
 
-# (2) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, REML, and WITHOUT centering the treatment variable, ML
-mort28.rtreat.strial.ml <- glmmTMB(mort_28 ~ trt_f + trial_f + (trt - 1 | trial_n)
-                              + age + clinstatus_baseline_n 
+
+### (2) random treatment effect, stratified trial intercept, common prognostic factors and residual variances
+```{r}
+# (2) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, and WITHOUT centering the treatment variable, ML
+mort28.rtreat.strial.ml <- glmmTMB(mort_28 ~ trt_f + trial_f + (trt - 1 | trial_f)
+                              + age + clinstatus_baseline
                               # + comed_dexa + comed_rdv + comed_toci
                               , data = df_tot, family = binomial)
 # tab_model(mort28.rtreat.strial.ml)
-mort28.rtreat.strial.ml.vb <- glmmTMB(mort_28 ~ trt_f + trial_f + (trt - 1 | trial_n)
+
+mort28.rtreat.strial.ml.vb <- glmmTMB(mort_28 ~ trt_f + trial_f + (trt - 1 | trial_f)
                               + age + vbaseline 
                               # + comed_dexa + comed_rdv + comed_toci
                               , data = df_tot, family = binomial)
 # tab_model(mort28.rtreat.strial.ml.vb)
 
-# The - 1 within (trt - 1 | trial_n) specifies that there is no random intercept for the grouping factor trial_n. We're specifying random slopes for the variable trt within each level of trial_n, i.e., the effect of the trt variable may vary from one trial to another. Together with trial_f, this gives the stratified intercept model. This is a more flexible model compared to a model with a random intercept, which assumes a common baseline for all groups.
+# The - 1 within (trt - 1 | trial_n) specifies that there is no random intercept for the grouping factor trial_n. We're specifying random slopes for the variable trt within each level of trial_n, i.e., the effect may vary from one trial to another. Together with trial_f, this gives the stratified intercept model. This is a more flexible model compared to a model with a random intercept, which assumes a common baseline for all groups.
 
 # dummy variable for each trial (trial_1, trial_2, trial_3, etc - e.g. where trial_1 = 1 if in trial 1 and 0 otherwise)
-# df_tot <- df_tot %>%
-#   mutate(trial_1 = case_when(trial == "Bari-Solidact" ~ 1, TRUE ~ 0),
-#          trial_2 = case_when(trial == "ACTT2" ~ 1, TRUE ~ 0),
-#          trial_3 = case_when(trial == "Ghazaeian" ~ 1, TRUE ~ 0),
-#          trial_4 = case_when(trial == "TOFACOV" ~ 1, TRUE ~ 0),
-#          trial_5 = case_when(trial == "COVINIB" ~ 1, TRUE ~ 0))
-## With this, we could also use "Stata syntax":
-# mort28.rtreat.strial.2 <- glmer(mort_28 ~ trt_f + trial* + (trt -1 | trial_n) 
-#                               + age + clinstatus_baseline_n 
+df_tot <- df_tot %>%
+  mutate(trial_1 = case_when(trial == "Bari-Solidact" ~ 1, TRUE ~ 0),
+         trial_2 = case_when(trial == "ACTT2" ~ 1, TRUE ~ 0),
+         trial_3 = case_when(trial == "Ghazaeian" ~ 1, TRUE ~ 0),
+         trial_4 = case_when(trial == "TOFACOV" ~ 1, TRUE ~ 0),
+         trial_5 = case_when(trial == "COVINIB" ~ 1, TRUE ~ 0),
+         trial_6 = case_when(trial == "COV-BARRIER" ~ 1, TRUE ~ 0))
+
+## Use "Stata syntax":
+# mort28.rtreat.strial.2 <- glmer(mort_28 ~ trt_f + trial* + (trt -1 | trial_n)
+#                               + age + clinstatus_baseline_n
 #                               # + comed_dexa + comed_rdv + comed_toci
 #                               , data = df_tot, family = binomial)
 # tab_model(mort28.rtreat.strial.2)
+```
 
-# (3) random treatment effect, random trial intercept, common prognostic factors and residual variances, ML // not 100% if it should be (trt|trial_n) or independent random effects: (1|trt) and (1|trial_n)
-mort28.rtreat.rtrial.ml <- glmmTMB(mort_28 ~ trt + (1|trt) + (1|trial_n)
-                              + age + clinstatus_baseline_n 
+### (3) random treatment effect, random trial intercept, common prognostic factors and residual variances
+```{r}
+# (3) random treatment effect, random trial intercept, common prognostic factors and residual variances, ML
+mort28.rtreat.rtrial.ml <- glmmTMB(mort_28 ~ trt + (1|trt) + (1|trial_f)
+                              + age + clinstatus_baseline
                               # + comed_dexa + comed_rdv + comed_toci
                               , data = df_tot, family = binomial)
 # tab_model(mort28.rtreat.rtrial.ml)
-mort28.rtreat.rtrial.ml.vb <- glmmTMB(mort_28 ~ trt + (1|trt) + (1|trial_n)
-                              + age + clinstatus_baseline 
+
+mort28.rtreat.rtrial.ml.vb <- glmmTMB(mort_28 ~ trt + (1|trt) + (1|trial_f)
+                              + age + vbaseline 
                               # + comed_dexa + comed_rdv + comed_toci
                               , data = df_tot, family = binomial)
 # tab_model(mort28.rtreat.rtrial.ml.vb)
+```
 
+### (4) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, centering the treatment variable
+```{r}
 # (4) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, ML, but WITH centering the treatment variable
+
 # calculate the proportion treated by trial
 proportions <- df_tot %>%
   group_by(trial) %>%
   summarize(proportion_treated = sum(trt) / n())
 df_tot <- left_join(df_tot, proportions[, c("proportion_treated", "trial")], by = join_by(trial == trial))
+# table(df_tot$trial, df_tot$proportion_treated)
+
 # create the centered treatment variable
 df_tot$trt_centered_n <- df_tot$trt - df_tot$proportion_treated
 df_tot$trt_centered_f <- as.factor(df_tot$trt_centered_n)
+# table(df_tot$trial, df_tot$trt_centered_f) ## keep it minus?
+
 # build the model. '-1' indicating there is no overall random intercept.
-mort28.rtreat.strial.cent.ml <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_n) -1 
-                   + age + clinstatus_baseline_n 
+mort28.rtreat.strial.cent.ml <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1
+                   + age + clinstatus_baseline
                    #+ comed_dexa + comed_rdv + comed_toci
                    , data = df_tot, family = binomial
                    )
 # tab_model(mort28.rtreat.strial.cent.ml)
-mort28.rtreat.strial.cent.ml.vb <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_n) -1 
+
+mort28.rtreat.strial.cent.ml.vb <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 
                    + age + vbaseline 
                    #+ comed_dexa + comed_rdv + comed_toci
                    , data = df_tot, family = binomial
                    )
 # tab_model(mort28.rtreat.strial.cent.ml.vb)
+```
 
-# (5) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering the treatment variable AND the prognostic variables AND maximum likelihood (ML)
+### (5) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering the treatment variable AND the prognostic variables
+```{r}
+# "Our default recommendation is to use stratified prognostic effects (i.e. estimate a separate effect of each included prognostic factor for each trial), with trial-specific centering of each prognostic factor to improve ML estimation (for the reasons explained in Section 6.2.8.3). However, if outcome data or prognostic factor categories are sparse, the stratification approach may lead to estimation difficulties, and then allowing prognostic factor effects to be random is a sensible alternative." (p. 145) Centering disentangles (i.e. makes uncorrelated) the estimation of main parameters of interest from other nuisance parameters, which leads to less downward bias in estimates of variance parameters (Figure 6.2) and thus improves coverage of 95% confidence intervals. This can be achieved by centering the covariates by their mean values within trials, such that the interaction estimate is then only based on within-trial information.
 
-# "Our default recommendation is to use stratified prognostic effects (i.e. estimate a separate effect of each included prognostic factor for each trial), with trial-specific centering of each prognostic factor to improve ML estimation (for the reasons explained in Section 6.2.8.3). However, if outcome data or prognostic factor categories are sparse, the stratification approach may lead to estimation difficulties, and then allowing prognostic factor effects to be random is a sensible alternative." (p. 145) Centering disentangles (i.e. makes uncorrelated) the estimation of main parameters of interest from other nuisance parameters, which leads to less downward bias in estimates of variance parameters (Figure 6.2) and thus improves coverage of 95% confidence intervals.  This can be achieved by centering the covariates by their mean values within trials, such that the interaction estimate is then only based on within-trial information.
-
-# Calculate the mean values of prognostic factors within each trial
+# Calculate the mean values of (continuous) prognostic factors within each trial
 trial_means <- df_tot %>%
   group_by(trial) %>%
   summarize(mean_age = mean(age, na.rm = TRUE), mean_clinstatus = mean(clinstatus_baseline_n, na.rm = TRUE))
@@ -254,25 +274,59 @@ trial_means <- df_tot %>%
 df_tot <- df_tot %>% left_join(trial_means, by = "trial")
 # Center the age and clinstatus_baseline variables
 df_tot <- df_tot %>%
-  mutate(age_centered = age - mean_age, clinstatus_baseline_centered = clinstatus_baseline_n - mean_clinstatus)
+  mutate(age_centered = age - mean_age, 
+         clinstatus_baseline_centered = clinstatus_baseline_n - mean_clinstatus)
 
-# (5a) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors AND maximum likelihood (ML) instead of REML
-mort28.rtreat.strial.cent.ml.pf.cent <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_n) -1 
-                   + age_centered + clinstatus_baseline_centered
-                   #+ comed_dexa + comed_rdv + comed_toci
-                   , data = df_tot, family = binomial
-                   )
+# df_tot %>%
+#   select(trial_f, trial_n, trt, trt_centered_n, age, mean_age, age_centered, clinstatus_baseline_n, mean_clinstatus, clinstatus_baseline_centered, mort_28) %>%
+#   View()
+
+
+## CAVE: clinstatus_baseline is a factor -> How to center a factor? By the proportion in each level? Or not at all? 
+
+
+# # (5a) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors
+# mort28.rtreat.strial.cent.ml.cpf.cent <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + age_centered + clinstatus_baseline_centered
+#                    #+ comed_dexa + comed_rdv + comed_toci
+#                    , data = df_tot, family = binomial
+#                    )
 # tab_model(mort28.rtreat.strial.cent.ml.pf.cent)
+# 
+# mort28.rtreat.strial.cent.ml.cpf.cent.vb <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + age_centered + vbaseline
+#                    #+ comed_dexa + comed_rdv + comed_toci
+#                    , data = df_tot, family = binomial
+#                    )
+# tab_model(mort28.rtreat.strial.cent.ml.pf.cent.vb)
 
-# (5b) random treatment effect, stratified trial intercept, random prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors AND maximum likelihood (ML) instead of REML
-mort28.rtreat.strial.cent.ml.rpf.cent <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_n) -1 + (age_centered -1 | trial_n) + (clinstatus_baseline_centered -1| trial_n)
-                   #+ comed_dexa + comed_rdv + comed_toci
-                   , data = df_tot, family = binomial
-                   )
+# # (5b) random treatment effect, stratified trial intercept, random prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors AND maximum likelihood (ML)
+# mort28.rtreat.strial.cent.ml.rpf.cent <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + (age_centered -1 | trial_f) + (clinstatus_baseline_centered -1 | trial_f)
+#                    #+ comed_dexa + comed_rdv + comed_toci
+#                    , data = df_tot, family = binomial
+#                    )
 # tab_model(mort28.rtreat.strial.cent.ml.rpf.cent)
+# 
+# mort28.rtreat.strial.cent.ml.rpf.cent.vb <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + (age_centered -1 | trial_f) + (vbaseline -1 | trial_f)
+#                    #+ comed_dexa + comed_rdv + comed_toci
+#                    , data = df_tot, family = binomial
+#                    )
+# tab_model(mort28.rtreat.strial.cent.ml.rpf.cent.vb)
 
-# now add the prognostic factors stratified, i.e. create stratified variables for each prognostic factor
-# uncentered
+# # (5c) random treatment effect, stratified trial intercept, random prognostic factors and residual variances, with centering of the treatment variable BUT not the prognostic factors
+# mort28.rtreat.strial.cent.ml.rpf <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + (age -1 | trial_f) + (clinstatus_baseline_n -1 | trial_f)
+#                    #+ comed_dexa + comed_rdv + comed_toci
+#                    , data = df_tot, family = binomial
+#                    )
+# tab_model(mort28.rtreat.strial.cent.ml.rpf)
+# 
+# mort28.rtreat.strial.cent.ml.rpf.vb <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + (age -1 | trial_f) + (vbaseline -1 | trial_f)
+#                    #+ comed_dexa + comed_rdv + comed_toci
+#                    , data = df_tot, family = binomial
+#                    )
+# tab_model(mort28.rtreat.strial.cent.ml.rpf.vb)
+
+
+### Add the prognostic factors stratified, i.e. create stratified variables for each prognostic factor
+## uncentered
 df_tot <- df_tot %>%
   mutate(age_trial_1 = case_when(trial == "Bari-Solidact" ~ age, TRUE ~ 0),
          age_trial_2 = case_when(trial == "ACTT2" ~ age, TRUE ~ 0),
@@ -280,7 +334,6 @@ df_tot <- df_tot %>%
          age_trial_4 = case_when(trial == "TOFACOV" ~ age, TRUE ~ 0),
          age_trial_5 = case_when(trial == "COVINIB" ~ age, TRUE ~ 0),
          age_trial_6 = case_when(trial == "COV-BARRIER" ~ age, TRUE ~ 0))
-
 df_tot <- df_tot %>%
   mutate(clinstat_trial_1 = case_when(trial == "Bari-Solidact" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_2 = case_when(trial == "ACTT2" ~ clinstatus_baseline, TRUE ~ "0"),
@@ -288,7 +341,8 @@ df_tot <- df_tot %>%
          clinstat_trial_4 = case_when(trial == "TOFACOV" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_5 = case_when(trial == "COVINIB" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_6 = case_when(trial == "COV-BARRIER" ~ clinstatus_baseline, TRUE ~ "0"))
-# centered
+
+## centered
 df_tot <- df_tot %>%
   mutate(age_cent_trial_1 = case_when(trial == "Bari-Solidact" ~ age_centered, TRUE ~ 0),
          age_cent_trial_2 = case_when(trial == "ACTT2" ~ age_centered, TRUE ~ 0),
@@ -296,7 +350,6 @@ df_tot <- df_tot %>%
          age_cent_trial_4 = case_when(trial == "TOFACOV" ~ age_centered, TRUE ~ 0),
          age_cent_trial_5 = case_when(trial == "COVINIB" ~ age_centered, TRUE ~ 0),
          age_cent_trial_6 = case_when(trial == "COV-BARRIER" ~ age_centered, TRUE ~ 0))
-
 df_tot <- df_tot %>%
   mutate(clinstat_cent_trial_1 = case_when(trial == "Bari-Solidact" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_2 = case_when(trial == "ACTT2" ~ clinstatus_baseline_centered, TRUE ~ 0),
@@ -306,43 +359,61 @@ df_tot <- df_tot %>%
          clinstat_cent_trial_6 = case_when(trial == "COV-BARRIER" ~ clinstatus_baseline_centered, TRUE ~ 0))
 
 # df_tot %>%
-#   select(trial, trial_n, age_trial_1, age_trial_2, age_trial_3, age_trial_6, age_cent_trial_6, clinstat_trial_1, clinstat_trial_2, clinstat_trial_3, clinstat_trial_6, clinstat_cent_trial_6, trt, age, age_centered, clinstatus_baseline, clinstatus_baseline_centered, mort_28) %>%
+#   select(trial_f, trial_n, trt, trt_centered_n, age, mean_age, age_centered, clinstatus_baseline_n, mean_clinstatus, clinstatus_baseline_centered, mort_28,
+#          age_trial_1, age_cent_trial_1, age_trial_5, age_cent_trial_5, age_trial_6, age_cent_trial_6, clinstat_trial_1, clinstat_cent_trial_1, clinstat_trial_5, clinstat_cent_trial_5, clinstat_trial_6, clinstat_cent_trial_6,
+#          ) %>%
 #   View()
 
-# (5c) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering of the treatment variable BUT not the prognostic factors AND maximum likelihood (ML)
-# mort28.rtreat.strial.cent.ml.spf <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_n) -1 + age_trial_1 + age_trial_2 + age_trial_3 + age_trial_4 + age_trial_5 + clinstat_trial_1 + clinstat_trial_2 + clinstat_trial_3 + clinstat_trial_4 + clinstat_trial_5
-#                    #+ comed_dexa + comed_rdv + comed_toci
-#                    , data = df_tot, family = binomial
-#                    )
-# tab_model(mort28.rtreat.strial.cent.ml.spf) # it can't estimate
 
-# (5d) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors AND maximum likelihood (ML)
-mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_n) -1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + clinstat_cent_trial_1 + clinstat_cent_trial_2 + clinstat_cent_trial_3 + clinstat_cent_trial_4 + clinstat_cent_trial_5 + clinstat_cent_trial_6
-                   #+ comed_dexa + comed_rdv + comed_toci
-                   , data = df_tot, family = binomial
-                   )
-# tab_model(mort28.rtreat.strial.cent.ml.spf.cent) ## remember to add all TRIAL centering variables if adding new trials!
+# (5d) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors
+# mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n 
+#                                                  + trial_f 
+#                                                  + (trt_centered_n -1 | trial_f) -1 
+#                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
+#                                                  + age_cent_trial_5 + age_cent_trial_6 
+#                                                  + clinstat_cent_trial_1 + clinstat_cent_trial_2 + clinstat_cent_trial_3 
+#                                                  + clinstat_cent_trial_4 + clinstat_cent_trial_5 + clinstat_cent_trial_6
+#                                                  #+ comed_dexa + comed_rdv + comed_toci
+#                                                  , data = df_tot, family = binomial)
+# tab_model(mort28.rtreat.strial.cent.ml.spf.cent) 
+# mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n 
+#                                                  + trial_f 
+#                                                  + (trt_centered_n -1 | trial_f) -1 
+#                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
+#                                                  + age_cent_trial_5 + age_cent_trial_6 
+#                                                  + clinstat_trial_1 + clinstat_trial_2 + clinstat_trial_3 
+#                                                  + clinstat_trial_4 + clinstat_trial_5 + clinstat_trial_6
+#                                                  #+ comed_dexa + comed_rdv + comed_toci
+#                                                  , data = df_tot, family = binomial)
+# tab_model(mort28.rtreat.strial.cent.ml.spf.cent) # Not all trials have all levels, cannot estimate a stratified clinstatus_baseline by trial. Moreover, not sure the centering of the factor variable clinstatus_baseline is ok like this. => Second best option: Add clinstatus_baseline as a random parameter
 
+mort28.rtreat.strial.cent.ml.sage.cent.rclinstat <- glmmTMB(mort_28 ~ trt_centered_n 
+                                                 + trial_f 
+                                                 + (trt_centered_n -1 | trial_f) -1 
+                                                 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
+                                                 + age_cent_trial_5 + age_cent_trial_6 
+                                                 + (clinstatus_baseline_n -1 | trial_f)
+                                                 #+ comed_dexa + comed_rdv + comed_toci
+                                                 , data = df_tot, family = binomial)
+# tab_model(mort28.rtreat.strial.cent.ml.sage.cent.rclinstat) 
 
-# #####
-# # investigate the point that a "one-stage random effects model" equals a "two-stage fixed effects model"
-# # only use trials without rare event problems // standardize adjustments in two-stage?
-# mort28.ctreat.rtrial.red <- glmer(mort_28 ~ trt + (1|trial)
-#                               + age + clinstatus_baseline
-#                               # + comed_dexa + comed_rdv + comed_toci
-#                               , data = df_tot, family = binomial
-#                               , subset = trial %in% c("Bari-Solidact", "ACTT2", "Ghazaeian")
-#                               )
-# tab_model(mort28.ctreat.rtrial.red)
-# mort28.rtreat.strial.red <- glmer(mort_28 ~ trt_f + trial_f + (trt -1 | trial_n)
-#                               + age + clinstatus_baseline
-#                               # + comed_dexa + comed_rdv + comed_toci
-#                               , data = df_tot, family = binomial
-#                               , subset = trial %in% c("Bari-Solidact", "ACTT2", "Ghazaeian")
-#                               )
-# tab_model(mort28.rtreat.strial.red)
+mort28.rtreat.strial.cent.ml.sage.cent.rvb <- glmmTMB(mort_28 ~ trt_centered_n 
+                                                 + trial_f 
+                                                 + (trt_centered_n -1 | trial_f) -1 
+                                                 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
+                                                 + age_cent_trial_5 + age_cent_trial_6 
+                                                 + (vbaseline -1 | trial_f)
+                                                 #+ comed_dexa + comed_rdv + comed_toci
+                                                 , data = df_tot, family = binomial)
+# tab_model(mort28.rtreat.strial.cent.ml.sage.cent.rvb) 
+
 
 ```
+Discussion:
+1. Clinstatus_baseline is a factor -> How to center a factor? By the proportion in each level? More important: Not all trials have all levels, hard to estimate a stratified clinstatus_baseline by trial => Second best option: Add clinstatus_baseline as a random parameter
+2. Remember to add all TRIAL centering variables if adding new trials!
+3. Investigate the point that a "one-stage random effects model" equals a "two-stage fixed effects model" (only use trials without rare event problems // double-check adjustments in two-stage)
+
 
 ## Collect the effect estimates from all models
 ```{r}
@@ -388,23 +459,21 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_trt_results(mort28.ctreat.rtrial.ml, "common trt, random intercept, common age/clinstatus, no centering, ML", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-result_list[[2]] <- extract_trt_results(mort28.ctreat.rtrial.ml.vb, "common trt, random intercept, common age/clinstatus, no centering, ML, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[1]] <- extract_trt_results(mort28.ctreat.rtrial.ml, "c trt, r intercept, c age/clinstatus, no cent", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[2]] <- extract_trt_results(mort28.ctreat.rtrial.ml.vb, "c trt, r intercept, c age/clinstatus, no cent, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
-result_list[[3]] <- extract_trt_results(mort28.rtreat.rtrial.ml, "random trt, random intercept, common age/clinstatus, no centering, ML", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-result_list[[4]] <- extract_trt_results(mort28.rtreat.rtrial.ml.vb, "random trt, random intercept, common age/clinstatus, no centering, ML, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[3]] <- extract_trt_results(mort28.rtreat.rtrial.ml, "r trt, r intercept, c age/clinstatus, no cent", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[4]] <- extract_trt_results(mort28.rtreat.rtrial.ml.vb, "r trt, r intercept, c age/clinstatus, no cent, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
-result_list[[5]] <- extract_trt_results(mort28.rtreat.strial.ml, "random trt, stratified intercept, common age/clinstatus, no centering, ML", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-result_list[[6]] <- extract_trt_results(mort28.rtreat.strial.ml.vb, "random trt, stratified intercept, common age/clinstatus, no centering, ML, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[5]] <- extract_trt_results(mort28.rtreat.strial.ml, "r trt, s intercept, c age/clinstatus, no cent", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[6]] <- extract_trt_results(mort28.rtreat.strial.ml.vb, "r trt, s intercept, c age/clinstatus, no cent, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
-result_list[[7]] <- extract_trt_results(mort28.rtreat.strial.cent.ml, "random trt, stratified intercept, common age/clinstatus, centered trt, ML", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-result_list[[8]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.vb, "random trt, stratified intercept, common age/clinstatus, centered trt, ML, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[7]] <- extract_trt_results(mort28.rtreat.strial.cent.ml, "r trt, s intercept, c age/clinstatus, cent trt", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[8]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.vb, "r trt, s intercept, c age/clinstatus, cent trt, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
-result_list[[9]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.pf.cent, "random trt, stratified intercept, common age/clinstatus, centered trt and centered age/clinstatus, ML", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[9]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.sage.cent.rclinstat, "r trt, s intercept, s and cent age, r clinstatus, cent trt", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
-result_list[[10]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.rpf.cent, "random trt, stratified intercept, random age/clinstatus, centered trt and centered age/clinstatus, ML", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-
-result_list[[11]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.spf.cent, "random trt, stratified intercept, stratified age/clinstatus, centered trt and centered age/clinstatus, ML", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[10]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.sage.cent.rvb, "r trt, s intercept, s and cent age, r clinstatus, cent trt, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -415,7 +484,26 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
 
 ```
 
-## The main recommendations for one-stage IPD meta-analysis models using GLMMs (IPDMA handbook R.Riley)
+```{r}
+# Convert necessary columns to numeric
+result_df[, c("hazard_odds_ratio", "ci_lower", "ci_upper", "p_value", "n_intervention", "n_control")] <- lapply(result_df[, c("hazard_odds_ratio", "ci_lower", "ci_upper", "p_value", "n_intervention", "n_control")], as.numeric)
+
+# Plotting
+ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.3) +
+  labs(title = "Mortality at Day 28 - All models",
+       x = "Model",
+       y = "Odds Ratio") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.margin = margin(l = 50, r = 10, b = 20, t = 20, unit = "pt")) +  # Adjust left margin
+  scale_y_continuous(limits = c(0.4, 0.9), breaks = c(0.4, 0.5, 0.6, 0.7, 0.8, 0.9), trans = "log10") +
+  coord_flip()  # Flip axes to show longer variable names
+
+```
+
+### The main recommendations for one-stage IPD meta-analysis models using GLMMs (IPDMA handbook R.Riley)
 1. *__Use a random treatment effect.__*
 * Justification: Typically the included trials are conducted in different settings, populations and time periods. Therefore, some heterogeneity of treatment effect is expected. Heterogeneity might be reduced by inclusion of prognostic factors or trial-level covariates, but usually unexplained heterogeneity remains and so should be acknowledged. Homogeneity of treatment effect is a strong assumption, and often will be inappropriate due to unexplained between-trial heterogeneity. To address this, the treatment effect parameter can be made random, such that the true treatment effect in each trial is assumed drawn from a particular distribution, typically a normal distribution.
 
@@ -432,10 +520,27 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
 
 6. The word ‘fixed’ is ambiguous; it could refer to either a common or stratified parameter, even though they imply different model specifications and assumptions. Therefore, we recommend that the word ‘fixed’ be avoided in one-stage IPD models, and encourage researchers to use common or stratified instead.
 
-## Present the main model
+7. See sample R code here: https://www.ipdma.co.uk/one-stage-ipd-ma 
+
+## Present the main model: "r trt, s intercept, s and cent age, r clinstatus, cent trt"
+1. Treatment parameter: Random treatment effect
+2. Trial parameter: Stratified intercept by trial
+3. Prognostic factor 'age': Stratified by trial
+4. Prognostic factor 'clinical status': As a random parameter by trial. Not all trials have all levels, hard to estimate a stratified clinstatus_baseline by trial => Random effect as sensible alternative (see guidance above)
+5. Trial-specific centering of the treatment variable and age (to improve estimation of the between-study variance). 
+
 ```{r}
+mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline
+                  , data = df_tot, family = binomial)
+tab_model(mort28)
 
 ```
+
 
 
 # new MV or death
