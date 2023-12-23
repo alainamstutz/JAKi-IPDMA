@@ -38,6 +38,7 @@ df_ghazaeian <- readRDS("trt_effects_ghazaeian.RData")
 df_tofacov <- readRDS("trt_effects_tofacov.RData")
 df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
+# df_murugesan <- readRDS("trt_effects_murugesan.RData")
 ```
 
 # Reshape dataframes
@@ -102,7 +103,7 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       fixed = F,
                       random = T,
                       prediction = F,
-                      method.tau = "REML", # no difference with Paule-Mandel
+                      method.tau = "REML",
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - mortality 28 days",
