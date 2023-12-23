@@ -55,20 +55,14 @@ df$ethn <- c("Indian")
 df <- df %>% 
   mutate(trt = case_when(grepl("I", study_id) ~ 1,
                          grepl("C", study_id) ~ 0))
-addmargins(table(df$trt, useNA = "always")) # no missing
+df <- df %>%
+  rename(id_pat = study_id,
+         sympdur = symptom_onset)
+# Extracting age and sex # no missing
+df$age <- as.numeric(substr(df$`Age/Sex`, 1, regexpr("\\D", df$`Age/Sex`) - 1))  # Extract digits until the first non-digit character
+sex <- substr(df$`Age/Sex`, regexpr("\\D", df$`Age/Sex`), nchar(df$`Age/Sex`))  # Extract the non-digit character
+df$sex <- gsub("/", "", sex) # get rid of "/"
 
-
-
-
-
-
-
-df <- df %>% # no missing in id_pat, trt, age, sex
-  rename(id_pat = "patient ID",
-         trt = "Treatment group",
-         age = Age,
-         sex = Sex)
-df$id_pat = as.character(paste0('ghazaeian-', df$id_pat))
 df %>% 
   drop_na(age) %>% 
   ggplot(aes(x = age)) +
@@ -80,13 +74,16 @@ df %>%
 df$icu <- 0 # no icu patients at enrolment
 
 # Days with symptoms prior to randomization
-df %>% # no missings
+df %>% # no missing
   drop_na(sympdur) %>% 
   ggplot(aes(x = sympdur)) +
   geom_density(fill = "blue", color = "black") +
   labs(title = "Density Plot of Symptom Duration",
        x = "Symptom Duration",
        y = "Density")
+
+
+addmargins(table(df$symptom_onset, useNA = "always")) # no missing
 
 # Severity of COVID-19 with respect to respiratory support at randomisation / from publication: "Scores on the ordinal scale are as follows: 1, not hospitalized, no limitations of activities; 2, not hospitalized, limitation of activities, home oxygen requirement, or both; 3, hospitalized, not requiring supplemental oxygen and no longer requiring ongoing medical care (used if hospitalization was extended for infection-control reasons); 4, hospitalized, not requiring supplemental oxygen but requiring ongoing medical care (Covid-19–related or other medical conditions); 5, hospitalized, requiring any supplemental oxygen; 6, hospitalized, receiving noninvasive ventilation or use of high-flow oxygen devices; 7, hospitalized, receiving invasive mechanical ventilation or ECMO; and 8, death. Same as ACTT2.
 
