@@ -82,51 +82,31 @@ df %>% # no missing
        x = "Symptom Duration",
        y = "Density")
 
+# Severity of COVID-19 with respect to respiratory support at randomisation
+df$clinstatus_baseline <- factor(df$clinstat_day_baseline, levels = 1:6) # no missing
 
-addmargins(table(df$symptom_onset, useNA = "always")) # no missing
-
-# Severity of COVID-19 with respect to respiratory support at randomisation / from publication: "Scores on the ordinal scale are as follows: 1, not hospitalized, no limitations of activities; 2, not hospitalized, limitation of activities, home oxygen requirement, or both; 3, hospitalized, not requiring supplemental oxygen and no longer requiring ongoing medical care (used if hospitalization was extended for infection-control reasons); 4, hospitalized, not requiring supplemental oxygen but requiring ongoing medical care (Covid-19–related or other medical conditions); 5, hospitalized, requiring any supplemental oxygen; 6, hospitalized, receiving noninvasive ventilation or use of high-flow oxygen devices; 7, hospitalized, receiving invasive mechanical ventilation or ECMO; and 8, death. Same as ACTT2.
-
-# transform clinical score
-score_transform <- function(df, clinstatus_var, score_var) {
-  df <- df %>%
-    mutate({{ clinstatus_var }} :=
-             case_when({{ score_var }} %in% c(1, 2, 3) ~ 1,
-                       {{ score_var }} == 4 ~ 2,
-                       {{ score_var }} == 5 ~ 3,
-                       {{ score_var }} == 6 ~ 4,
-                       {{ score_var }} == 7 ~ 5,
-                       {{ score_var }} == 8 ~ 6)) %>%
-    mutate({{ clinstatus_var }} := factor({{ clinstatus_var }}, levels = 1:6))
-}
-df <- score_transform(df, clinstatus_baseline, clinstatus_baseline) 
-addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always")) # no missing
-df <- score_transform(df, clinstatus_7, df$clinstatus_7)
-df <- score_transform(df, clinstatus_14, df$clinstatus_14)
-df <- score_transform(df, clinstatus_28, df$`clinstatus-28`)
+df$clinstatus_1 <- factor(df$clinstat_day_1, levels = 1:6)
+df$clinstatus_3 <- factor(df$clinstat_day_3, levels = 1:6)
+df$clinstatus_5 <- factor(df$clinstat_day_5, levels = 1:6)
+df$clinstatus_7 <- factor(df$clinstat_day_7, levels = 1:6)
+df$clinstatus_discharge <- factor(df$clinstat_day_discharge, levels = 1:6)
 
 # Co-medication at baseline
-class(df$"Comed-Dexa")
 df <- df %>% 
-  mutate(comed_dexa = case_when(`Comed-Dexa` == "yes" ~ 1,
+  mutate(comed_dexa = case_when(grepl("D", `Concomitant therapy`) | grepl("M", `Concomitant therapy`) ~ 1,
                               TRUE ~ 0))
 df <- df %>% 
-  mutate(comed_rdv = case_when(`COMed-RDV` == "yes" ~ 1,
+  mutate(comed_rdv = case_when(grepl("R", `Concomitant therapy`) ~ 1,
                               TRUE ~ 0))
 df <- df %>% 
-  mutate(comed_ab = case_when(`Comed-ab` == "yes" ~ 1,
+  mutate(comed_ab = case_when(grepl("X", `Concomitant therapy`) ~ 1,
                               TRUE ~ 0))
 df <- df %>% 
-  mutate(comed_acoa = case_when(`Comed-anticoagulant` == "yes" ~ 1,
+  mutate(comed_acoa = case_when(grepl("H", `Concomitant therapy`) | grepl("E", `Concomitant therapy`) ~ 1,
                               TRUE ~ 0))
-df <- df %>% 
-  mutate(comed_interferon = case_when(`Comed-interferon` == "no" ~ 0,
-                              TRUE ~ 1))
-df$comed_toci <- 0 # but 4 received Actemra (Tocilizumab) 2-4 days after randomization
-
-df <- df %>% # comed_other notes all as no - but there is a separate statin variable..
-  mutate(comed_other = case_when(Statin == "no" ~ 0,
-                                 Statin == "yes" ~ 1))
+df$comed_toci <- 0
+df$comed_interferon <- 0
+df$comed_other <- 0
 
 ## group them for the subgroup analysis, according to protocol
 df <- df %>% 
@@ -136,39 +116,30 @@ df <- df %>%
                                comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Tocilizumab but no Dexamethasone (if exist)
 
 # Comorbidity at baseline, including immunocompromised
-df <- df %>% 
-  mutate(comorb_lung = case_when(Asthma == "yes" ~ 1,
-                                 Asthma == "no" ~ 0))
-df$comorb_liver <- NA
-df <- df %>% 
-  mutate(comorb_cvd = case_when(`IHD (ischemic heart disease)` == "yes" | Stroke == "yes" ~ 1,
-                                 `IHD (ischemic heart disease)` == "no" & Stroke == "no" ~ 0))
-df <- df %>% 
-  mutate(comorb_aht = case_when(HTN == "yes" ~ 1,
-                                 HTN == "no" ~ 0))
-df <- df %>% 
-  mutate(comorb_dm = case_when(`DM (diabetes melitus)` == "yes" ~ 1,
-                               `DM (diabetes melitus)` == "no" ~ 0))
-df <- df %>% 
-  mutate(bmi = Weight/((Height/100)*(Height/100)))
-df <- df %>% 
-  mutate(comorb_obese = case_when(bmi > 30 ~ 1,
-                                  bmi <= 30 ~ 0))
-df <- df %>% 
-  mutate(comorb_smoker = case_when(Smoker == "yes" ~ 1,
-                                    Smoker == "no" ~ 0))
-df <- df %>% 
-  mutate(immunosupp = case_when(Malignancy == "yes" ~ 1,
-                                    Malignancy == "no" ~ 0))
-df <- df %>% 
-  mutate(comorb_cancer = case_when(Malignancy == "yes" ~ 1,
-                                    Malignancy == "no" ~ 0))
-df <- df %>% 
-  mutate(comorb_autoimm = case_when(`IBD (irritable bowel disease)` == "yes" | `Thyroid dis` == "yes" ~ 1,
-                                    `IBD (irritable bowel disease)` == "no" & `Thyroid dis` == "no" ~ 0))
-df$comorb_kidney <- NA
+df$comorb_cancer <- 0 # see exclusion criteria
+df$immunosupp <- 0 # see exclusion criteria
+df$comorb_liver <- 0 # see exclusion criteria
+df$comorb_kidney <- 0 # see exclusion criteria
 
-df <- df %>% # 18 missing - as in publication
+df <- df %>% 
+  mutate(comorb_lung = case_when(grepl("BA", Comorbidites) | grepl("COPD", Comorbidites) ~ 1,
+                                 TRUE ~ 0))
+df <- df %>% 
+  mutate(comorb_cvd = case_when(grepl("CAD", Comorbidites) | grepl("RHD-MS", Comorbidites) ~ 1,
+                                TRUE ~ 0))
+df <- df %>% 
+  mutate(comorb_aht = case_when(grepl("SHTN", Comorbidites) ~ 1,
+                                TRUE ~ 0))
+df <- df %>% 
+  mutate(comorb_dm = case_when(grepl("DM", Comorbidites) ~ 1,
+                               TRUE ~ 0))
+df <- df %>% 
+  mutate(comorb_autoimm = case_when(grepl("Hypothyroidism", Comorbidites) ~ 1,
+                                    TRUE ~ 0))
+df$comorb_obese <- NA
+df$comorb_smoker <- NA
+
+df <- df %>%
   mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
                                   comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
                                 | immunosupp == 1 | comorb_cancer == 1 | comorb_autoimm == 1 | comorb_kidney == 1 
@@ -177,14 +148,11 @@ df <- df %>% # 18 missing - as in publication
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
                                 & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0
                                 ~ 0))
-# the remaining 41 missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
+# the remaining 39 missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
 df <- df %>% 
   mutate(any_comorb = case_when(is.na(any_comorb) ~ 0,
                                 TRUE ~ any_comorb))
-# df %>%
-#   select(any_comorb, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp, comorb_kidney, comorb_autoimm, comorb_cancer) %>%
-#   filter(is.na(any_comorb)) %>%
-#   View()
+
 
 ## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
 comorb <- df %>% 
@@ -202,7 +170,8 @@ comorb <- comorb %>%
                                   comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
                                 & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0 ~ 0,
                                 TRUE ~ comorb_count))
-# the remaining 11 missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
+
+# the remaining 39 missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
 comorb <- comorb %>% 
   mutate(comorb_count = case_when(is.na(comorb_count) ~ 0,
                                 TRUE ~ comorb_count))
@@ -214,22 +183,32 @@ df <- df %>% #
                                 comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
 
 # CRP
-df$crp <- df$CRP ## 1 missing
-df <- df %>% # 0 does not make sense
-  mutate(crp = na_if(crp, 0))
+df <- df %>% 
+  mutate(crp = case_when(CRP == "<2.5" ~ 2.4,
+                         CRP == "16. 17" ~ 16.17,
+                         CRP == "3. 29" ~ 3.29,
+                         TRUE ~ as.numeric(CRP)))
+# df %>% ## corresponds to publication
+#   filter(trt == 1) %>%
+#   summarise(median_crp = median(crp))
+
 df %>% 
-  drop_na(crp) %>% 
+  # drop_na(crp) %>% 
   ggplot(aes(x = crp)) +
   geom_density(fill = "blue", color = "black") +
   labs(title = "Density Plot of CRP",
        x = "CRP",
        y = "Density")
 
-# Vaccination
+# Vaccination: no vaccines available during the study period
+df$vacc <- 0
+
 # Viremia
 # Variant
 # Serology
 ```
 Discussion points BASELINE data:
-1. 4 received Actemra (Tocilizumab) 2-4 days after randomization
+1) 
+
+
 
