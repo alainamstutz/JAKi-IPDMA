@@ -103,7 +103,7 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       fixed = F,
                       random = T,
                       prediction = F,
-                      method.tau = "REML",
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - mortality 28 days",
@@ -169,6 +169,9 @@ forest.meta(mort28,
 #             fs.xlab = 9)
 # dev.off()
 ```
+Discussion:
+1. REML or ML ? -> Give the exact same result, but the one-stage uses ML (including centering) due to rare events. REML is preferred (see notes), but to correspond with one-stage, a sens-analysis with ML is probably worth it. The choice of estimator might have the biggest influence on the 95%CI, larger than other model parameter choices.
+
 
 # (ii) Mortality at day 60
 
