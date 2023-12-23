@@ -124,16 +124,32 @@ df_covbarrier <- df_covbarrier %>%
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          ae_28, ae_28_sev,
          vir_clear_5, vir_clear_10, vir_clear_15)
+## Murugesan
+df_murugesan <- readRDS("df_os_murugesan.RData")
+df_murugesan <- df_murugesan %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
 
 # append
 df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier)
+df_tot_Muru <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_murugesan)
 ```
 
 
 # (i) Primary outcome: Mortality at day 28
 
 ```r
-addmargins(table(df_tot$trial, df_tot$mort_28, useNA = "always"))
+addmargins(table(df_tot_Muru$trial, df_tot_Muru$mort_28, useNA = "always"))
 ```
 
 ```
@@ -144,35 +160,36 @@ addmargins(table(df_tot$trial, df_tot$mort_28, useNA = "always"))
 ##   COV-BARRIER   1415  211    0 1626
 ##   COVINIB        108    2    0  110
 ##   Ghazaeian       90    7    0   97
+##   Murugesan      100    0    0  100
 ##   TOFACOV        115    1    0  116
 ##   <NA>             0    0    0    0
-##   Sum           2953  318    0 3271
+##   Sum           3053  318    0 3371
 ```
 
 ```r
-addmargins(table(df_tot$mort_28, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt, useNA = "always"))
 ```
 
 ```
 ##       
 ##           0    1 <NA>  Sum
-##   0    1444 1509    0 2953
+##   0    1494 1559    0 3053
 ##   1     193  125    0  318
 ##   <NA>    0    0    0    0
-##   Sum  1637 1634    0 3271
+##   Sum  1687 1684    0 3371
 ```
 
 ```r
-# table(df_tot$age, df_tot$trt, useNA = "always")
-table(df_tot$clinstatus_baseline, df_tot$trt, useNA = "always")
+# table(df_tot_Muru$age, df_tot_Muru$trt, useNA = "always")
+table(df_tot_Muru$clinstatus_baseline, df_tot_Muru$trt, useNA = "always")
 ```
 
 ```
 ##       
 ##          0   1 <NA>
 ##   1      0   0    0
-##   2    206 184    0
-##   3    875 912    0
+##   2    253 234    0
+##   3    878 912    0
 ##   4    422 413    0
 ##   5    129 123    0
 ##   6      0   0    0
@@ -180,25 +197,25 @@ table(df_tot$clinstatus_baseline, df_tot$trt, useNA = "always")
 ```
 
 ```r
-table(df_tot$clinstatus_baseline, df_tot$trial, useNA = "always")
+table(df_tot_Muru$clinstatus_baseline, df_tot_Muru$trial, useNA = "always")
 ```
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian TOFACOV <NA>
-##   1        0             0           0       0         0       0    0
-##   2      142             0         186      35         2      25    0
-##   3      564             0         962      75        95      91    0
-##   4      216           249         370       0         0       0    0
-##   5      111            40         101       0         0       0    0
-##   6        0             0           0       0         0       0    0
-##   <NA>     0             0           7       0         0       0    0
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian Murugesan TOFACOV <NA>
+##   1        0             0           0       0         0         0       0    0
+##   2      142             0         186      35         2        97      25    0
+##   3      564             0         962      75        95         3      91    0
+##   4      216           249         370       0         0         0       0    0
+##   5      111            40         101       0         0         0       0    0
+##   6        0             0           0       0         0         0       0    0
+##   <NA>     0             0           7       0         0         0       0    0
 ```
 
 ```r
-# table(df_tot$comed_dexa, df_tot$trt, useNA = "always")
-# table(df_tot$comed_rdv, df_tot$trt, useNA = "always")
-# table(df_tot$comed_toci, df_tot$trt, useNA = "always")
+# table(df_tot_Muru$comed_dexa, df_tot_Muru$trt, useNA = "always")
+# table(df_tot_Muru$comed_rdv, df_tot_Muru$trt, useNA = "always")
+# table(df_tot_Muru$comed_toci, df_tot_Muru$trt, useNA = "always")
 
 # reformatting
 df_tot$trt_f <- as.factor(df_tot$trt)
@@ -216,8 +233,16 @@ df_tot <- df_tot %>%
                              trial == "Ghazaeian" ~ 3,
                              trial == "TOFACOV" ~ 4,
                              trial == "COVINIB" ~ 5,
-                             trial == "COV-BARRIER" ~ 6))
-# table(df_tot$trial_n, useNA = "always")
+                             trial == "COV-BARRIER" ~ 6,
+                             # trial == "Murugesan" ~ 7
+                             ))
+table(df_tot$trial_n, useNA = "always")
+```
+
+```
+## 
+##    1    2    3    4    5    6 <NA> 
+##  289 1033   97  116  110 1626    0
 ```
 
 GOAL: random treatment effect, stratified trial intercept, stratified prognostic factors, AND centering the treatment variable by the proportion treated in the trial (to improve the estimation of between-study variance) AND maximum likelihood (ML) estimator (due to small trials with rare events). REML is default in glmer, for ML use glmmTMB. See notes.
@@ -292,7 +317,7 @@ mort28.rtreat.rtrial.ml.vb <- glmmTMB(mort_28 ~ trt + (1|trt) + (1|trial_f)
 # tab_model(mort28.rtreat.rtrial.ml.vb)
 ```
 
-### (4) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, centering the treatment variable
+### (4) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, AND centering the treatment variable
 
 ```r
 # (4) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, ML, but WITH centering the treatment variable
@@ -349,45 +374,6 @@ df_tot <- df_tot %>%
 ## CAVE: clinstatus_baseline is a factor -> How to center a factor? By the proportion in each level? Or not at all? 
 
 
-# # (5a) random treatment effect, stratified trial intercept, common prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors
-# mort28.rtreat.strial.cent.ml.cpf.cent <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + age_centered + clinstatus_baseline_centered
-#                    #+ comed_dexa + comed_rdv + comed_toci
-#                    , data = df_tot, family = binomial
-#                    )
-# tab_model(mort28.rtreat.strial.cent.ml.pf.cent)
-# 
-# mort28.rtreat.strial.cent.ml.cpf.cent.vb <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + age_centered + vbaseline
-#                    #+ comed_dexa + comed_rdv + comed_toci
-#                    , data = df_tot, family = binomial
-#                    )
-# tab_model(mort28.rtreat.strial.cent.ml.pf.cent.vb)
-
-# # (5b) random treatment effect, stratified trial intercept, random prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors AND maximum likelihood (ML)
-# mort28.rtreat.strial.cent.ml.rpf.cent <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + (age_centered -1 | trial_f) + (clinstatus_baseline_centered -1 | trial_f)
-#                    #+ comed_dexa + comed_rdv + comed_toci
-#                    , data = df_tot, family = binomial
-#                    )
-# tab_model(mort28.rtreat.strial.cent.ml.rpf.cent)
-# 
-# mort28.rtreat.strial.cent.ml.rpf.cent.vb <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + (age_centered -1 | trial_f) + (vbaseline -1 | trial_f)
-#                    #+ comed_dexa + comed_rdv + comed_toci
-#                    , data = df_tot, family = binomial
-#                    )
-# tab_model(mort28.rtreat.strial.cent.ml.rpf.cent.vb)
-
-# # (5c) random treatment effect, stratified trial intercept, random prognostic factors and residual variances, with centering of the treatment variable BUT not the prognostic factors
-# mort28.rtreat.strial.cent.ml.rpf <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + (age -1 | trial_f) + (clinstatus_baseline_n -1 | trial_f)
-#                    #+ comed_dexa + comed_rdv + comed_toci
-#                    , data = df_tot, family = binomial
-#                    )
-# tab_model(mort28.rtreat.strial.cent.ml.rpf)
-# 
-# mort28.rtreat.strial.cent.ml.rpf.vb <- glmmTMB(mort_28 ~ trt_centered_n + trial_f + (trt_centered_n -1 | trial_f) -1 + (age -1 | trial_f) + (vbaseline -1 | trial_f)
-#                    #+ comed_dexa + comed_rdv + comed_toci
-#                    , data = df_tot, family = binomial
-#                    )
-# tab_model(mort28.rtreat.strial.cent.ml.rpf.vb)
-
 
 ### Add the prognostic factors stratified, i.e. create stratified variables for each prognostic factor
 ## uncentered
@@ -429,33 +415,36 @@ df_tot <- df_tot %>%
 #   View()
 
 
-# (5d) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors
-# mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n 
-#                                                  + trial_f 
-#                                                  + (trt_centered_n -1 | trial_f) -1 
-#                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
-#                                                  + age_cent_trial_5 + age_cent_trial_6 
-#                                                  + clinstat_cent_trial_1 + clinstat_cent_trial_2 + clinstat_cent_trial_3 
+# (5) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors
+
+# mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n
+#                                                  + trial_f
+#                                                  + (trt_centered_n -1 | trial_f) -1
+#                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4
+#                                                  + age_cent_trial_5 + age_cent_trial_6
+#                                                  + clinstat_cent_trial_1 + clinstat_cent_trial_2 + clinstat_cent_trial_3
 #                                                  + clinstat_cent_trial_4 + clinstat_cent_trial_5 + clinstat_cent_trial_6
 #                                                  #+ comed_dexa + comed_rdv + comed_toci
 #                                                  , data = df_tot, family = binomial)
-# tab_model(mort28.rtreat.strial.cent.ml.spf.cent) 
-# mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n 
-#                                                  + trial_f 
-#                                                  + (trt_centered_n -1 | trial_f) -1 
-#                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
-#                                                  + age_cent_trial_5 + age_cent_trial_6 
-#                                                  + clinstat_trial_1 + clinstat_trial_2 + clinstat_trial_3 
+# tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
+# mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n
+#                                                  + trial_f
+#                                                  + (trt_centered_n -1 | trial_f) -1
+#                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4
+#                                                  + age_cent_trial_5 + age_cent_trial_6
+#                                                  + clinstat_trial_1 + clinstat_trial_2 + clinstat_trial_3
 #                                                  + clinstat_trial_4 + clinstat_trial_5 + clinstat_trial_6
 #                                                  #+ comed_dexa + comed_rdv + comed_toci
 #                                                  , data = df_tot, family = binomial)
-# tab_model(mort28.rtreat.strial.cent.ml.spf.cent) # Not all trials have all levels, cannot estimate a stratified clinstatus_baseline by trial. Moreover, not sure the centering of the factor variable clinstatus_baseline is ok like this. => Second best option: Add clinstatus_baseline as a random parameter
+# tab_model(mort28.rtreat.strial.cent.ml.spf.cent) 
+
+# Not all trials have all levels, cannot estimate a stratified clinstatus_baseline by trial. Moreover, not sure the centering of the factor variable clinstatus_baseline is ok like this. => Second best option: Add clinstatus_baseline as a random parameter
 
 mort28.rtreat.strial.cent.ml.sage.cent.rclinstat <- glmmTMB(mort_28 ~ trt_centered_n 
                                                  + trial_f 
                                                  + (trt_centered_n -1 | trial_f) -1 
                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
-                                                 + age_cent_trial_5 + age_cent_trial_6 
+                                                 + age_cent_trial_5 + age_cent_trial_6
                                                  + (clinstatus_baseline_n -1 | trial_f)
                                                  #+ comed_dexa + comed_rdv + comed_toci
                                                  , data = df_tot, family = binomial)
@@ -522,21 +511,20 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_trt_results(mort28.ctreat.rtrial.ml, "c trt, r intercept, c age/clinstatus, no cent", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-result_list[[2]] <- extract_trt_results(mort28.ctreat.rtrial.ml.vb, "c trt, r intercept, c age/clinstatus, no cent, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[1]] <- extract_trt_results(mort28.ctreat.rtrial.ml, "c trt, r intercept, c age/clinstatus", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+# result_list[[2]] <- extract_trt_results(mort28.ctreat.rtrial.ml.vb, "c trt, r intercept, c age/clinstatus, no cent, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
-result_list[[3]] <- extract_trt_results(mort28.rtreat.rtrial.ml, "r trt, r intercept, c age/clinstatus, no cent", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-result_list[[4]] <- extract_trt_results(mort28.rtreat.rtrial.ml.vb, "r trt, r intercept, c age/clinstatus, no cent, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[3]] <- extract_trt_results(mort28.rtreat.rtrial.ml, "r trt, r intercept, c age/clinstatus", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+# result_list[[4]] <- extract_trt_results(mort28.rtreat.rtrial.ml.vb, "r trt, r intercept, c age/clinstatus, no cent, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
-result_list[[5]] <- extract_trt_results(mort28.rtreat.strial.ml, "r trt, s intercept, c age/clinstatus, no cent", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-result_list[[6]] <- extract_trt_results(mort28.rtreat.strial.ml.vb, "r trt, s intercept, c age/clinstatus, no cent, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[5]] <- extract_trt_results(mort28.rtreat.strial.ml, "r trt, s intercept, c age/clinstatus", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+# result_list[[6]] <- extract_trt_results(mort28.rtreat.strial.ml.vb, "r trt, s intercept, c age/clinstatus, no cent, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
-result_list[[7]] <- extract_trt_results(mort28.rtreat.strial.cent.ml, "r trt, s intercept, c age/clinstatus, cent trt", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-result_list[[8]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.vb, "r trt, s intercept, c age/clinstatus, cent trt, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[7]] <- extract_trt_results(mort28.rtreat.strial.cent.ml, "r cent trt, s intercept, c age/clinstatus", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+# result_list[[8]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.vb, "r trt, s intercept, c age/clinstatus, cent trt, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
-result_list[[9]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.sage.cent.rclinstat, "r trt, s intercept, s and cent age, r clinstatus, cent trt", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-
-result_list[[10]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.sage.cent.rvb, "r trt, s intercept, s and cent age, r clinstatus, cent trt, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[9]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.sage.cent.rclinstat, "r cent trt, s intercept, s and cent age, r clinstatus", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+# result_list[[10]] <- extract_trt_results(mort28.rtreat.strial.cent.ml.sage.cent.rvb, "r trt, s intercept, s and cent age, r clinstatus, cent trt, vb", addmargins(table(df_tot$mort_28, df_tot$trt))[3,2], addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -562,7 +550,7 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
 <tbody>
   <tr>
    <td style="text-align:left;"> 2.5 % </td>
-   <td style="text-align:left;"> c trt, r intercept, c age/clinstatus, no cent </td>
+   <td style="text-align:left;"> c trt, r intercept, c age/clinstatus </td>
    <td style="text-align:right;"> 0.5825613 </td>
    <td style="text-align:right;"> 0.4491458 </td>
    <td style="text-align:right;"> 0.7556068 </td>
@@ -572,17 +560,7 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %1 </td>
-   <td style="text-align:left;"> c trt, r intercept, c age/clinstatus, no cent, vb </td>
-   <td style="text-align:right;"> 0.5872180 </td>
-   <td style="text-align:right;"> 0.4544374 </td>
-   <td style="text-align:right;"> 0.7587955 </td>
-   <td style="text-align:right;"> 4.69e-05 </td>
-   <td style="text-align:right;"> 1634 </td>
-   <td style="text-align:right;"> 1637 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2.5 %2 </td>
-   <td style="text-align:left;"> r trt, r intercept, c age/clinstatus, no cent </td>
+   <td style="text-align:left;"> r trt, r intercept, c age/clinstatus </td>
    <td style="text-align:right;"> 0.5825606 </td>
    <td style="text-align:right;"> 0.4491453 </td>
    <td style="text-align:right;"> 0.7556059 </td>
@@ -591,18 +569,8 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
    <td style="text-align:right;"> 1637 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2.5 %3 </td>
-   <td style="text-align:left;"> r trt, r intercept, c age/clinstatus, no cent, vb </td>
-   <td style="text-align:right;"> 0.5872180 </td>
-   <td style="text-align:right;"> 0.4544373 </td>
-   <td style="text-align:right;"> 0.7587955 </td>
-   <td style="text-align:right;"> 4.69e-05 </td>
-   <td style="text-align:right;"> 1634 </td>
-   <td style="text-align:right;"> 1637 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2.5 %4 </td>
-   <td style="text-align:left;"> r trt, s intercept, c age/clinstatus, no cent </td>
+   <td style="text-align:left;"> 2.5 %2 </td>
+   <td style="text-align:left;"> r trt, s intercept, c age/clinstatus </td>
    <td style="text-align:right;"> 0.5828403 </td>
    <td style="text-align:right;"> 0.4492055 </td>
    <td style="text-align:right;"> 0.7562302 </td>
@@ -611,18 +579,8 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
    <td style="text-align:right;"> 1637 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2.5 %5 </td>
-   <td style="text-align:left;"> r trt, s intercept, c age/clinstatus, no cent, vb </td>
-   <td style="text-align:right;"> 0.5875129 </td>
-   <td style="text-align:right;"> 0.4545284 </td>
-   <td style="text-align:right;"> 0.7594055 </td>
-   <td style="text-align:right;"> 4.87e-05 </td>
-   <td style="text-align:right;"> 1634 </td>
-   <td style="text-align:right;"> 1637 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2.5 %6 </td>
-   <td style="text-align:left;"> r trt, s intercept, c age/clinstatus, cent trt </td>
+   <td style="text-align:left;"> 2.5 %3 </td>
+   <td style="text-align:left;"> r cent trt, s intercept, c age/clinstatus </td>
    <td style="text-align:right;"> 0.5828406 </td>
    <td style="text-align:right;"> 0.4492058 </td>
    <td style="text-align:right;"> 0.7562306 </td>
@@ -631,32 +589,12 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
    <td style="text-align:right;"> 1637 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> 2.5 %7 </td>
-   <td style="text-align:left;"> r trt, s intercept, c age/clinstatus, cent trt, vb </td>
-   <td style="text-align:right;"> 0.5875102 </td>
-   <td style="text-align:right;"> 0.4545262 </td>
-   <td style="text-align:right;"> 0.7594023 </td>
-   <td style="text-align:right;"> 4.87e-05 </td>
-   <td style="text-align:right;"> 1634 </td>
-   <td style="text-align:right;"> 1637 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2.5 %8 </td>
-   <td style="text-align:left;"> r trt, s intercept, s and cent age, r clinstatus, cent trt </td>
+   <td style="text-align:left;"> 2.5 %4 </td>
+   <td style="text-align:left;"> r cent trt, s intercept, s and cent age, r clinstatus </td>
    <td style="text-align:right;"> 0.5750015 </td>
    <td style="text-align:right;"> 0.4427118 </td>
    <td style="text-align:right;"> 0.7468218 </td>
    <td style="text-align:right;"> 3.35e-05 </td>
-   <td style="text-align:right;"> 1634 </td>
-   <td style="text-align:right;"> 1637 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> 2.5 %9 </td>
-   <td style="text-align:left;"> r trt, s intercept, s and cent age, r clinstatus, cent trt, vb </td>
-   <td style="text-align:right;"> 0.5829509 </td>
-   <td style="text-align:right;"> 0.4506374 </td>
-   <td style="text-align:right;"> 0.7541135 </td>
-   <td style="text-align:right;"> 3.98e-05 </td>
    <td style="text-align:right;"> 1634 </td>
    <td style="text-align:right;"> 1637 </td>
   </tr>
@@ -667,6 +605,16 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
 ```r
 # Convert necessary columns to numeric
 result_df[, c("hazard_odds_ratio", "ci_lower", "ci_upper", "p_value", "n_intervention", "n_control")] <- lapply(result_df[, c("hazard_odds_ratio", "ci_lower", "ci_upper", "p_value", "n_intervention", "n_control")], as.numeric)
+
+result_df$variable <- factor(result_df$variable, 
+                             levels = c("c trt, r intercept, c age/clinstatus", 
+                                        "r trt, r intercept, c age/clinstatus", 
+                                        "r trt, s intercept, c age/clinstatus",
+                                        "r cent trt, s intercept, c age/clinstatus",
+                                        "r cent trt, s intercept, s and cent age, r clinstatus"))
+
+# Plotting the reordered data
+
 
 # Plotting
 ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
@@ -703,7 +651,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 
 7. See sample R code here: https://www.ipdma.co.uk/one-stage-ipd-ma 
 
-## Present the main model: "r trt, s intercept, s and cent age, r clinstatus, cent trt"
+## Present the main model: "r cent trt, s intercept, s and cent age, r clinstatus"
 1. Treatment parameter: Random treatment effect
 2. Trial parameter: Stratified intercept by trial
 3. Prognostic factor 'age': Stratified by trial
@@ -713,9 +661,9 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 
 ```r
 mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
-                  + trial_f 
-                  + (trt_centered_n -1 | trial_f) -1 
-                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline
                   , data = df_tot, family = binomial)
