@@ -35,29 +35,31 @@ a) age
 b) clinical status 2-5:
 * Not all trials enrolled all stages
 * Numeric or factor?
-
 * *__Decision 01.11.23__*: Don't assume linearity (numeric), use it as a factor (incl. when centering in one-stage?)
+
 c) COVID comedication: toci, dexa, rdv
 * BariSolidact: Only 1 with toci, 8 with rdv, nearly all with dexa
 * ACTT2: Noone toci, Noone dexa, all in intervention also had rdv
 * Ghazaeian: Noone toci, all rdv, all dexa
 * Tofacov: Noone toci, nearly all rdv, nearly all dexa
 * Covinib: Noone toci, noone rdv, a few dexa
-
 * *__Decision 01.11.23__*: Drop this adjustment variable. Justification: consistency across trials/models; adjustment would not be by co-medication, but by trial; and collinearity in models. Unadjusted analyses as sens-analysis (if needed).
 
 
 ## Subgroup analyses
-1. Respiratory support & comedication & comorbidity: Numeric or factor? 
-* *__Decision 29.11.23__*: Respiratory support as a two-group variable according to previous IPDMA and due to clinical hypothesis and sparse/non-existent data in some categories
+1. Respiratory support 
+* *__Decision 29.11.23__*: Respiratory support as a two-group variable according to previous IPDMA and due to clinical hypothesis and sparse/non-existent data in some categories.
 
-2. CRP: truncated or not?
+2. Comedication & Comorbidity
+* *__Decision 29.11.23__*: See point 14 below: Assume linearity for interaction testing- for now.
+
+3. CRP: truncated or not?
 * *__Decision 29.11.23__*: Not.
 
-3. Rare event strategy? See e.g. firth regression in Ghazaeian, respiratory support, all 7 events only in clinstatus_baseline == 3
+4. Rare event strategy? See e.g. firth regression in Ghazaeian, respiratory support, all 7 events only in clinstatus_baseline == 3
 * *__Decision 29.11.23__*: Firth regression.
 
-4. Assumptions about linearity and common vs random effects?
+5. Assumptions about linearity and common vs random effects
 * *__Decision xx.01.24__*: ...
 
 *__Chapter7__* "Using IPD Meta-Analysis to Examine Interactions between Treatment Effect and Participant-level Covariates
