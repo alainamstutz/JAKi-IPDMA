@@ -114,6 +114,10 @@ df <- score_transform(df, clinstatus_7, df$clinstatus_7)
 df <- score_transform(df, clinstatus_14, df$clinstatus_14)
 df <- score_transform(df, clinstatus_28, df$`clinstatus-28`)
 
+df <- df %>% 
+  mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
+                                clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
+
 # Co-medication at baseline
 class(df$"Comed-Dexa")
 ```
@@ -358,7 +362,7 @@ df <- df %>%
   select(id_pat, trt, sex, age, ethn, trial, JAKi, 
          country, icu, sympdur, 
          #vacc, 
-         clinstatus_baseline,
+         clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -1329,15 +1333,8 @@ Discussion points
 
 ```r
 # table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 3 included
-# table(df$clinstatus_baseline, df$mort_28, df$trt, useNA = "always") # 0 in 2x2 table
-class(df$clinstatus_baseline)
-```
-
-```
-## [1] "factor"
-```
-
-```r
+# table(df$vbaseline, df$mort_28, useNA = "always") # 0 in 2x2 table
+# class(df$clinstatus_baseline)
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
@@ -1426,42 +1423,49 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 mort.28.vent.firth <- df %>% 
   logistf(mort_28 ~ trt*clinstatus_baseline_n
       + age 
-      + clinstatus_baseline 
+      #+ clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
       , data=.)
 summary(mort.28.vent.firth)
 ```
 
 ```
-## logistf(formula = mort_28 ~ trt * clinstatus_baseline_n + age + 
-##     clinstatus_baseline, data = .)
+## logistf(formula = mort_28 ~ trt * clinstatus_baseline_n + age, 
+##     data = .)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                                   coef    se(coef)   lower 0.95  upper 0.95
-## (Intercept)                3.921932195 7.838165237 -114.7212086 104.5504731
-## trt                       -0.040505356 0.214043035 -101.7500617  29.0250711
-## clinstatus_baseline_n     -0.839413412 1.254978703  -41.8130839  52.4993314
-## age                       -0.035633146 0.091043986   -0.2125685   0.3452410
-## clinstatus_baseline3       0.527964060 0.011652629   -7.7777974  21.3004901
-## trt:clinstatus_baseline_n  0.002267923 0.002500404   -0.4062278   0.3863562
-##                           Chisq p method
-## (Intercept)                   0 1      2
-## trt                           0 1      2
-## clinstatus_baseline_n         0 1      2
-## age                           0 1      2
-## clinstatus_baseline3          0 1      2
-## trt:clinstatus_baseline_n     0 1      2
+##                                    coef   se(coef)   lower 0.95 upper 0.95
+## (Intercept)               -1.594494e+00 4.86180692 -16.51379031 6.58451097
+## trt                       -1.953276e-01 0.73443023  -8.54199877 2.45329861
+## clinstatus_baseline_n     -6.743902e-01 1.62421666  -3.40628862 4.31000843
+## age                        2.484561e-02 0.02230260  -0.02064775 0.07186912
+## trt:clinstatus_baseline_n  2.434075e-18 0.03278866  -6.42646040 6.42646040
+##                                  Chisq         p method
+## (Intercept)               1.106933e-01 0.7393562      2
+## trt                       0.000000e+00 1.0000000      2
+## clinstatus_baseline_n     1.520923e-01 0.6965439      2
+## age                       1.122698e+00 0.2893383      2
+## trt:clinstatus_baseline_n 5.684342e-13 0.9999994      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=151.69 on 5 df, p=0, n=97
-## Wald test = 2397.112 on 5 df, p = 0
+## Likelihood ratio test=1.156863 on 4 df, p=0.8851485, n=97
+## Wald test = 42.28886 on 4 df, p = 1.453298e-08
+```
+
+```r
+# vbaseline
+# mort.28.vent.vb.firth <- df %>% 
+#   logistf(mort_28 ~ trt*vbaseline
+#       + age 
+#       #+ clinstatus_baseline 
+#       #+ comed_dexa + comed_rdv + comed_toci
+#       , data=.)
+# summary(mort.28.vent.vb.firth)
 ```
 Discussion points
-1. How to apply rare event correction to interaction estimation?
-2. Firth regression?
-3. numeric or factor?
+1. Firth regression works for clinstatus_baseline but not for vbaseline
 
 # Subgroup analysis: Age on primary endpoint
 
@@ -2017,21 +2021,44 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 </table>
 
 ```r
-# comedication as ordinal factor
-# df$comed_cat_f <- factor(df$comed_cat, levels = 1:4)
-# table(df$comed_cat_f, df$mort_28, useNA = "always") 
-# mort.28.comed.f <- df %>%
-#   glm(mort_28 ~ trt*comed_cat_f 
-#       + age 
-#       + clinstatus_baseline 
-#       # + comed_dexa 
-#       + comed_rdv 
-#       # + comed_toci
-#       , family = "binomial", data=.)
-# summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# Firth regression
+mort.28.comed.firth <- df %>%
+  logistf(mort_28 ~ trt*comed_cat
+      + age
+      + clinstatus_baseline
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.comed.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * comed_cat + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                              coef    se(coef)  lower 0.95  upper 0.95
+## (Intercept)          -2.367767608 0.498647282 -5.37473605 -0.27150849
+## trt                  -0.132602845 0.755384692 -6.51770842  2.74495000
+## comed_cat             0.006176520 0.015597918 -1.59862398  2.67322842
+## age                   0.003782100 0.002365689 -0.02493716  0.05313793
+## clinstatus_baseline3 -0.213089716 0.146926420 -3.25419082  1.90832488
+## trt:comed_cat        -0.005673973 0.034182289 -7.24325719  2.05886105
+##                            Chisq         p method
+## (Intercept)          0.000000000 1.0000000      2
+## trt                  0.000000000 1.0000000      2
+## comed_cat            0.000000000 1.0000000      2
+## age                  0.224217051 0.6358454      2
+## clinstatus_baseline3 0.235142455 0.6277367      2
+## trt:comed_cat        0.003800159 0.9508452      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.1959682 on 5 df, p=0.9991566, n=97
+## Wald test = 47.56424 on 5 df, p = 4.359034e-09
 ```
 Discussion points
-1. Only Category 3 available => not possible / all (intervention + control) also had dexa and rdv. No-one had toci.
+1. Only Category 3 available. All (intervention + control) also had dexa and rdv. No-one had toci.
 
 # Subgroup analysis: Vaccination on adverse events
 
@@ -2240,7 +2267,6 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1. Truncated or not? How to standardize across studies (see Barisolidact)
 
 # SENS Subgroup analysis: Variant on primary endpoint
 
@@ -2285,7 +2311,7 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     hazard_odds_ratio <- exp(trt_coef)
     ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
     se <- sqrt(diag(vcov(model)))["trt"]
-    p_value <- NA # how to extract directly from the object?
+    p_value <- model$prob["trt"]
   } else {
     stop("Unsupported model class")
   }
@@ -2379,8 +2405,8 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt6  |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
 |trt7  |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812|   1.254624|      0.2150223| 0.3654539|             46|        51|Ghazaeian |Tofacitinib |
 |trt8  |sustained discharge within 28 days         |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
-|trt9  |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989|        NA|             46|        51|Ghazaeian |Tofacitinib |
-|trt10 |AEs grade 3,4 within 28 days_firth         |         3.2247381| 0.1701822| 472.450898|      1.4759989|        NA|             46|        51|Ghazaeian |Tofacitinib |
+|trt9  |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
+|trt10 |AEs grade 3,4 within 28 days_firth         |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
 |1     |any AE grade 3,4 within 28 days_0.5-corr   |         3.3956044| 0.1349000|  85.440000|     21.7615051| 0.9552013|             46|        51|Ghazaeian |Tofacitinib |
 
 ```r
@@ -2388,7 +2414,6 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_ghazaeian.RData")
 ```
 Discussion points
-1. Adjustments across all models.
 
 # Collect all interaction estimates (stage one)
 
@@ -2402,13 +2427,24 @@ interaction_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
+
 # Extract and format results for the interaction term
 extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "glm") || inherits(model, "clm")) {
       trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
       log_odds_ratio <- exp(trt_coef)
       ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
       se <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Std. Error"]
       p_value <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Pr(>|z|)"]
+  } else if (inherits(model, "logistf")) {
+      trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
+      log_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
+      se <- sqrt(diag(vcov(model)))[grep("^trt:", names(coef(model)))]
+      p_value <- model$prob[grep("^trt:", names(coef(model)))]
+  } else {
+    stop("Unsupported model class")
+  }
       # capture the results
       result <- data.frame(
         variable = variable_name,
@@ -2424,13 +2460,14 @@ extract_interaction <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-# result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
+result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth") # adj: age, clinstatus
+# result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation") # adj: age, clinstatus // not possible
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") # not possible
-# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+result_list[[5]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
+# result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
+result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
 # result_list[[x]] <- extract_interaction(mort.28.var, "variant") # not available
 
 # Filter out NULL results and bind the results into a single data frame
@@ -2467,17 +2504,19 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|               |variable                  | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial     |JAKi        |
-|:--------------|:-------------------------|--------------:|---------:|---------:|--------------:|---------:|:---------|:-----------|
-|trt:age        |age                       |      1.0504721| 0.9508741|  1.180266|      0.0531186| 0.3539392|Ghazaeian |Tofacitinib |
-|trt:comorb_cat |comorbidity               |      1.9139158| 0.3278192| 16.486883|      0.9500040| 0.4944083|Ghazaeian |Tofacitinib |
-|trt:sympdur    |symptom duration          |      1.1956574| 0.6406956|  2.362071|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
-|trt:crp        |crp                       |      0.9966468| 0.9552354|  1.034729|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
-|trt            |respiratory support_firth |      0.9603040| 0.6661584|  1.471609|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
+|                          |variable                  | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial     |JAKi        |
+|:-------------------------|:-------------------------|--------------:|---------:|----------:|--------------:|---------:|:---------|:-----------|
+|trt:clinstatus_baseline_n |respiratory support_firth |      1.0000000| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
+|trt:age                   |age                       |      1.0504721| 0.9508741|   1.180266|      0.0531186| 0.3539392|Ghazaeian |Tofacitinib |
+|trt:comorb_cat            |comorbidity               |      1.9139158| 0.3278192|  16.486883|      0.9500040| 0.4944083|Ghazaeian |Tofacitinib |
+|trt:comed_cat             |comedication_firth        |      0.9943421| 0.0007150|   7.837039|      0.0341823| 0.9508452|Ghazaeian |Tofacitinib |
+|trt:sympdur               |symptom duration          |      1.1956574| 0.6406956|   2.362071|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
+|trt:crp                   |crp                       |      0.9966468| 0.9552354|   1.034729|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
+|trt                       |respiratory support_firth |      0.8225652| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
 
 ```r
 # Save
 saveRDS(interaction_df, file = "int_effects_ghazaeian.RData")
 ```
 Discussion points
-1. Adjustments across all models. Firth?
+

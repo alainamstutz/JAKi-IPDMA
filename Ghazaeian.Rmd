@@ -92,6 +92,10 @@ df <- score_transform(df, clinstatus_7, df$clinstatus_7)
 df <- score_transform(df, clinstatus_14, df$clinstatus_14)
 df <- score_transform(df, clinstatus_28, df$`clinstatus-28`)
 
+df <- df %>% 
+  mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
+                                clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
+
 # Co-medication at baseline
 class(df$"Comed-Dexa")
 df <- df %>% 
@@ -324,7 +328,7 @@ df <- df %>%
   select(id_pat, trt, sex, age, ethn, trial, JAKi, 
          country, icu, sympdur, 
          #vacc, 
-         clinstatus_baseline,
+         clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -680,7 +684,7 @@ Discussion points
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
 # table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 3 included
-# table(df$clinstatus_baseline, df$mort_28, df$trt, useNA = "always") # 0 in 2x2 table
+# table(df$vbaseline, df$mort_28, useNA = "always") # 0 in 2x2 table
 # class(df$clinstatus_baseline)
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
@@ -695,15 +699,23 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 mort.28.vent.firth <- df %>% 
   logistf(mort_28 ~ trt*clinstatus_baseline_n
       + age 
-      + clinstatus_baseline 
+      #+ clinstatus_baseline 
       #+ comed_dexa + comed_rdv + comed_toci
       , data=.)
 summary(mort.28.vent.firth)
+
+# vbaseline
+# mort.28.vent.vb.firth <- df %>% 
+#   logistf(mort_28 ~ trt*vbaseline
+#       + age 
+#       #+ clinstatus_baseline 
+#       #+ comed_dexa + comed_rdv + comed_toci
+#       , data=.)
+# summary(mort.28.vent.vb.firth)
+
 ```
 Discussion points
-1. How to apply rare event correction to interaction estimation?
-2. Firth regression?
-3. numeric or factor?
+1. Firth regression works for clinstatus_baseline but not for vbaseline
 
 # Subgroup analysis: Age on primary endpoint
 ```{r warning=FALSE}
@@ -770,21 +782,18 @@ mort.28.comed <- df %>%
       #+ comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# comedication as ordinal factor
-# df$comed_cat_f <- factor(df$comed_cat, levels = 1:4)
-# table(df$comed_cat_f, df$mort_28, useNA = "always") 
-# mort.28.comed.f <- df %>%
-#   glm(mort_28 ~ trt*comed_cat_f 
-#       + age 
-#       + clinstatus_baseline 
-#       # + comed_dexa 
-#       + comed_rdv 
-#       # + comed_toci
-#       , family = "binomial", data=.)
-# summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# Firth regression
+mort.28.comed.firth <- df %>%
+  logistf(mort_28 ~ trt*comed_cat
+      + age
+      + clinstatus_baseline
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.comed.firth)
 ```
 Discussion points
-1. Only Category 3 available => not possible / all (intervention + control) also had dexa and rdv. No-one had toci.
+1. Only Category 3 available. All (intervention + control) also had dexa and rdv. No-one had toci.
 
 # Subgroup analysis: Vaccination on adverse events
 ```{r warning=FALSE}
@@ -817,7 +826,6 @@ mort.28.crp <- df %>%
 summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1. Truncated or not? How to standardize across studies (see Barisolidact)
 
 # SENS Subgroup analysis: Variant on primary endpoint
 ```{r warning=FALSE}
@@ -863,7 +871,7 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     hazard_odds_ratio <- exp(trt_coef)
     ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
     se <- sqrt(diag(vcov(model)))["trt"]
-    p_value <- NA # how to extract directly from the object?
+    p_value <- model$prob["trt"]
   } else {
     stop("Unsupported model class")
   }
@@ -947,7 +955,6 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_ghazaeian.RData")
 ```
 Discussion points
-1. Adjustments across all models.
 
 # Collect all interaction estimates (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -960,13 +967,24 @@ interaction_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
+
 # Extract and format results for the interaction term
 extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "glm") || inherits(model, "clm")) {
       trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
       log_odds_ratio <- exp(trt_coef)
       ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
       se <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Std. Error"]
       p_value <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Pr(>|z|)"]
+  } else if (inherits(model, "logistf")) {
+      trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
+      log_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
+      se <- sqrt(diag(vcov(model)))[grep("^trt:", names(coef(model)))]
+      p_value <- model$prob[grep("^trt:", names(coef(model)))]
+  } else {
+    stop("Unsupported model class")
+  }
       # capture the results
       result <- data.frame(
         variable = variable_name,
@@ -982,13 +1000,14 @@ extract_interaction <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-# result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
+result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth") # adj: age, clinstatus
+# result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation") # adj: age, clinstatus // not possible
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") # not possible
-# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+result_list[[5]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
+# result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
+result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
 # result_list[[x]] <- extract_interaction(mort.28.var, "variant") # not available
 
 # Filter out NULL results and bind the results into a single data frame
@@ -1026,4 +1045,4 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_ghazaeian.RData")
 ```
 Discussion points
-1. Adjustments across all models. Firth?
+
