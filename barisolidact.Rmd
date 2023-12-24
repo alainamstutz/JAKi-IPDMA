@@ -31,6 +31,8 @@ library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
 library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
+library(logistf) # Firth regression in case of rare events
+
 ```
 
 # Load Data
@@ -88,6 +90,10 @@ df <- df %>% ## no missing data // publication: 139 bari vs 136 placebo. In this
                                          whoscore_D1 == 10 ~ 6))
 df$clinstatus_baseline <- factor(df$clinstatus_baseline, levels = 1:6) ## no missing data
 addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always"))
+
+df <- df %>% 
+  mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
+                                clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
 
 # Co-medication at baseline
 df <- df %>% 
@@ -407,7 +413,7 @@ df_all <- df
 df <- df %>% 
   select(id_pat, trt, sex, age, trial, JAKi, 
          # ethn, 
-         country, icu, sympdur, vacc, clinstatus_baseline,
+         country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -785,9 +791,17 @@ mort.28.vent <- df %>%
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# table(df$vbaseline, df$mort_28, useNA = "always") # only 1 level!
+mort.28.vent.vb.firth <- df %>% 
+  logistf(mort_28 ~ trt*vbaseline
+      + age 
+      #+ clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+tab_model(mort.28.vent.vb.firth)
 ```
 Discussion points
-1. numeric or factor?
 
 # Subgroup analysis: Age on primary endpoint
 ```{r warning=FALSE}
@@ -803,8 +817,9 @@ Discussion points
 
 # Subgroup analysis: Comorbidities on primary endpoint
 ```{r warning=FALSE}
-# 4 comorbidity categories as numeric/continuous, i.e., linear interaction
-# table(df$comorb_cat, df$mort_28, useNA = "always") 
+# 4 comorbidity categories
+table(df$comorb_cat, df$mort_28, useNA = "always") 
+# Assume linearity
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
       + age 
@@ -812,8 +827,8 @@ mort.28.comorb <- df %>%
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# 4 comorbidity categories as factor
-df$comorb_cat_f <- as.factor(df$comorb_cat)
+# 4 comorbidity categories as ordinal factor
+df$comorb_cat_f <- factor(df$comorb_cat, levels = 1:4)
 # table(df$comorb_cat_f, df$mort_28, useNA = "always") 
 mort.28.comorb.f <- df %>% 
   glm(mort_28 ~ trt*comorb_cat_f 
@@ -849,7 +864,7 @@ mort.28.comed <- df %>%
       + age 
       + clinstatus_baseline 
       # + comed_dexa 
-      #+ comed_rdv 
+      # + comed_rdv 
       # + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -867,7 +882,6 @@ mort.28.comed.f <- df %>%
 summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1. Numeric or factor?
 
 # Subgroup analysis: Vaccination on adverse events
 ```{r warning=FALSE}
@@ -879,6 +893,7 @@ Discussion points
 # summ(X, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
+1. To be done
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 ```{r warning=FALSE}
@@ -903,20 +918,19 @@ mort.28.crp <- df %>%
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# truncate outliers > 500
-df <- df %>% 
-  mutate(crp_trunc = case_when(crp > 500 ~ 500,
-                               TRUE ~ crp))
-mort.28.crp.trunc <- df %>% 
-  glm(mort_28 ~ trt*crp_trunc
-      + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
-      , family = "binomial", data=.)
-summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# # truncate outliers > 500
+# df <- df %>% 
+#   mutate(crp_trunc = case_when(crp > 500 ~ 500,
+#                                TRUE ~ crp))
+# mort.28.crp.trunc <- df %>% 
+#   glm(mort_28 ~ trt*crp_trunc
+#       + age 
+#       + clinstatus_baseline 
+#       #+ comed_dexa + comed_rdv + comed_toci
+#       , family = "binomial", data=.)
+# summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1. Truncated or not?
 
 # SENS Subgroup analysis: Variant on primary endpoint
 ```{r warning=FALSE}
@@ -1042,13 +1056,24 @@ interaction_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
-# Extract and format results for the interaction term
+
+# Extract and format results for the interaction term, from different model types (glm, clm, and logistf)
 extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "glm") || inherits(model, "clm")) {
       trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
       log_odds_ratio <- exp(trt_coef)
       ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
       se <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Std. Error"]
       p_value <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Pr(>|z|)"]
+  } else if (inherits(model, "logistf")) {
+      trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
+      log_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
+      se <- sqrt(diag(vcov(model)))[grep("^trt:", names(coef(model)))]
+      p_value <- model$prob[grep("^trt:", names(coef(model)))]
+  } else {
+    stop("Unsupported model class")
+  }
       # capture the results
       result <- data.frame(
         variable = variable_name,
@@ -1064,13 +1089,14 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # adj: age, clinstatus
-result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
-result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[4]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # still to come
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[7]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
+result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation") # adj: age, clinstatus
+result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
+result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
+result_list[[5]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+# result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # still to come
+result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[9]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -1087,3 +1113,4 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
+1. Firth regression for zero event analyses

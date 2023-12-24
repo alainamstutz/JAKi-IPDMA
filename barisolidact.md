@@ -32,6 +32,7 @@ library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
 library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
+library(logistf) # Firth regression in case of rare events
 ```
 
 # Load Data
@@ -112,6 +113,10 @@ addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always"))
 ```
 
 ```r
+df <- df %>% 
+  mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
+                                clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
+
 # Co-medication at baseline
 df <- df %>% 
   mutate(comed_dexa = case_when(corticoid_yn == 1 | dexa_yn == 1 ~ 1,
@@ -433,7 +438,7 @@ df_all <- df
 df <- df %>% 
   select(id_pat, trt, sex, age, trial, JAKi, 
          # ethn, 
-         country, icu, sympdur, vacc, clinstatus_baseline,
+         country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -1692,8 +1697,70 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# table(df$vbaseline, df$mort_28, useNA = "always") # only 1 level!
+mort.28.vent.vb.firth <- df %>% 
+  logistf(mort_28 ~ trt*vbaseline
+      + age 
+      #+ clinstatus_baseline 
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+tab_model(mort.28.vent.vb.firth)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">&nbsp;</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">mort 28</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">Predictors</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">Odds Ratios</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">CI</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">p</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">(Intercept)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.16</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.09&nbsp;&ndash;&nbsp;0.25</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.000</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.90</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.40&nbsp;&ndash;&nbsp;2.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.000</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">vbaseline</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;1.07</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.000</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Age(years)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00&nbsp;&ndash;&nbsp;1.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trt:vbaseline</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.78</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.68&nbsp;&ndash;&nbsp;0.90</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.249</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">289</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">R<sup>2</sup></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.009</td>
+</tr>
+
+</table>
 Discussion points
-1. numeric or factor?
 
 # Subgroup analysis: Age on primary endpoint
 
@@ -1791,8 +1858,22 @@ Discussion points
 # Subgroup analysis: Comorbidities on primary endpoint
 
 ```r
-# 4 comorbidity categories as numeric/continuous, i.e., linear interaction
-# table(df$comorb_cat, df$mort_28, useNA = "always") 
+# 4 comorbidity categories
+table(df$comorb_cat, df$mort_28, useNA = "always") 
+```
+
+```
+##       
+##          0   1 <NA>
+##   1    102   4    0
+##   2     64   9    0
+##   3     80  19    0
+##   4      7   4    0
+##   <NA>   0   0    0
+```
+
+```r
+# Assume linearity
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
       + age 
@@ -1891,8 +1972,8 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
 </table>
 
 ```r
-# 4 comorbidity categories as factor
-df$comorb_cat_f <- as.factor(df$comorb_cat)
+# 4 comorbidity categories as ordinal factor
+df$comorb_cat_f <- factor(df$comorb_cat, levels = 1:4)
 # table(df$comorb_cat_f, df$mort_28, useNA = "always") 
 mort.28.comorb.f <- df %>% 
   glm(mort_28 ~ trt*comorb_cat_f 
@@ -2140,7 +2221,7 @@ mort.28.comed <- df %>%
       + age 
       + clinstatus_baseline 
       # + comed_dexa 
-      #+ comed_rdv 
+      # + comed_rdv 
       # + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
@@ -2353,7 +2434,6 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1. Numeric or factor?
 
 # Subgroup analysis: Vaccination on adverse events
 
@@ -2366,6 +2446,7 @@ Discussion points
 # summ(X, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
+1. To be done
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 
@@ -2571,108 +2652,19 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 </table>
 
 ```r
-# truncate outliers > 500
-df <- df %>% 
-  mutate(crp_trunc = case_when(crp > 500 ~ 500,
-                               TRUE ~ crp))
-mort.28.crp.trunc <- df %>% 
-  glm(mort_28 ~ trt*crp_trunc
-      + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
-      , family = "binomial", data=.)
-summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# # truncate outliers > 500
+# df <- df %>% 
+#   mutate(crp_trunc = case_when(crp > 500 ~ 500,
+#                                TRUE ~ crp))
+# mort.28.crp.trunc <- df %>% 
+#   glm(mort_28 ~ trt*crp_trunc
+#       + age 
+#       + clinstatus_baseline 
+#       #+ comed_dexa + comed_rdv + comed_toci
+#       , family = "binomial", data=.)
+# summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
-
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 281 (8 missing obs. deleted) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> mort_28 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> Generalized linear model </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Family </td>
-   <td style="text-align:right;"> binomial </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Link </td>
-   <td style="text-align:right;"> logit </td>
-  </tr>
-</tbody>
-</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> exp(Est.) </th>
-   <th style="text-align:right;"> 2.5% </th>
-   <th style="text-align:right;"> 97.5% </th>
-   <th style="text-align:right;"> z val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -5.86 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.57 </td>
-   <td style="text-align:right;"> 0.17 </td>
-   <td style="text-align:right;"> 1.96 </td>
-   <td style="text-align:right;"> -0.89 </td>
-   <td style="text-align:right;"> 0.37 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> crp_trunc </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> 0.34 </td>
-   <td style="text-align:right;"> 0.74 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 1.05 </td>
-   <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> 4.70 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.53 </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 6.38 </td>
-   <td style="text-align:right;"> 1.97 </td>
-   <td style="text-align:right;"> 0.05 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:crp_trunc </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 0.99 </td>
-   <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> 0.44 </td>
-   <td style="text-align:right;"> 0.66 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: MLE</td></tr></tfoot>
-</table>
 Discussion points
-1. Truncated or not?
 
 # SENS Subgroup analysis: Variant on primary endpoint
 
@@ -2925,13 +2917,24 @@ interaction_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
-# Extract and format results for the interaction term
+
+# Extract and format results for the interaction term, from different model types (glm, clm, and logistf)
 extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "glm") || inherits(model, "clm")) {
       trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
       log_odds_ratio <- exp(trt_coef)
       ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
       se <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Std. Error"]
       p_value <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Pr(>|z|)"]
+  } else if (inherits(model, "logistf")) {
+      trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
+      log_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
+      se <- sqrt(diag(vcov(model)))[grep("^trt:", names(coef(model)))]
+      p_value <- model$prob[grep("^trt:", names(coef(model)))]
+  } else {
+    stop("Unsupported model class")
+  }
       # capture the results
       result <- data.frame(
         variable = variable_name,
@@ -2947,13 +2950,14 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # adj: age, clinstatus
-result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
-result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[4]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # still to come
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[7]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
+result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation") # adj: age, clinstatus
+result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
+result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
+result_list[[5]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+# result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # still to come
+result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[9]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2972,6 +2976,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |                          |variable            | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial         |JAKi        |
 |:-------------------------|:-------------------|--------------:|---------:|------------:|--------------:|---------:|:-------------|:-----------|
 |trt:clinstatus_baseline_n |respiratory support |      0.2198457| 0.0225244| 1.543288e+00|      1.0497840| 0.1490229|Bari-SolidAct |Baricitinib |
+|trt:vbaseline             |ventilation         |      0.7784754| 0.0000000| 1.647844e+00|      0.0712176| 0.2493525|Bari-SolidAct |Baricitinib |
 |trt:age                   |age                 |      1.0258295| 0.9535344| 1.107081e+00|      0.0376553| 0.4982553|Bari-SolidAct |Baricitinib |
 |trt:comorb_cat            |comorbidity         |      1.2572910| 0.5076667| 3.256851e+00|      0.4678926| 0.6245997|Bari-SolidAct |Baricitinib |
 |trt:comed_cat             |comedication        |   2193.9262050| 0.0000000| 5.698795e+91|    674.6507931| 0.9909014|Bari-SolidAct |Baricitinib |
@@ -2983,3 +2988,4 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
+1. Firth regression for zero event analyses
