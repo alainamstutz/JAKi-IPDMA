@@ -2950,7 +2950,7 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # adj: age, clinstatus
-result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation") # adj: age, clinstatus
+result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # adj: age, clinstatus
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
 result_list[[5]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
@@ -2976,7 +2976,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |                          |variable            | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial         |JAKi        |
 |:-------------------------|:-------------------|--------------:|---------:|------------:|--------------:|---------:|:-------------|:-----------|
 |trt:clinstatus_baseline_n |respiratory support |      0.2198457| 0.0225244| 1.543288e+00|      1.0497840| 0.1490229|Bari-SolidAct |Baricitinib |
-|trt:vbaseline             |ventilation         |      0.7784754| 0.0000000| 1.647844e+00|      0.0712176| 0.2493525|Bari-SolidAct |Baricitinib |
+|trt:vbaseline             |ventilation_firth   |      0.7784754| 0.0000000| 1.647844e+00|      0.0712176| 0.2493525|Bari-SolidAct |Baricitinib |
 |trt:age                   |age                 |      1.0258295| 0.9535344| 1.107081e+00|      0.0376553| 0.4982553|Bari-SolidAct |Baricitinib |
 |trt:comorb_cat            |comorbidity         |      1.2572910| 0.5076667| 3.256851e+00|      0.4678926| 0.6245997|Bari-SolidAct |Baricitinib |
 |trt:comed_cat             |comedication        |   2193.9262050| 0.0000000| 5.698795e+91|    674.6507931| 0.9909014|Bari-SolidAct |Baricitinib |
