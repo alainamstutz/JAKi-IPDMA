@@ -41,34 +41,158 @@ df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 
 ```
 
-# Reshape dataframes
+# Reshape dataframes for all treatment effect estimates
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
 list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier) # add all trials
 
-
 ## Mortality at day 28
-outcome <- "death at day 28"
-outcome2 <- "death at day 28_firth" # depends on which estimates to include
+outcomes <- "death at day 28"
+outcomes.firth <- "death at day 28_firth" # depends on which estimates to include
 # Initialize an empty data frame to store the selected rows
 df_mort28 <- data.frame()
 # Loop through the list of data frames
 for (df in list_df) {
-  selected_rows <- df %>% filter(variable == outcome | variable == outcome2)
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
   df_mort28 <- rbind(df_mort28, selected_rows)
 }
-# Reset row names
-rownames(df_mort28) <- NULL
 
 ## Mortality at day 60
-outcome <- "death at day 60"
-outcome2 <- "death at day 60_firth"
+outcomes <- "death at day 60"
+outcomes.firth <- "death at day 60_firth"
 df_mort60 <- data.frame()
 for (df in list_df) {
-  selected_rows <- df %>% filter(variable == outcome | variable == outcome2)
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
   df_mort60 <- rbind(df_mort60, selected_rows)
 }
-rownames(df_mort60) <- NULL
+
+## Death within fup
+outcomes <- "death within fup"
+outcomes.firth <- "death within fup_firth"
+df_ttdeath <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_ttdeath <- rbind(df_ttdeath, selected_rows)
+}
+
+## new MV within 28d
+outcomes <- "new MV within 28d"
+outcomes.firth <- "new MV within 28d_firth"
+df_new_mv28 <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_new_mv28 <- rbind(df_new_mv28, selected_rows)
+}
+
+## new MV or death within 28d
+outcomes <- "new MV or death within 28d"
+outcomes.firth <- "new MV or death within 28d_firth"
+df_new_mvd28 <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_new_mvd28 <- rbind(df_new_mvd28, selected_rows)
+}
+
+## new MV or death within 28d
+outcomes <- "new MV or death within 28d"
+outcomes.firth <- "new MV or death within 28d_firth"
+df_new_mvd28 <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_new_mvd28 <- rbind(df_new_mvd28, selected_rows)
+}
+
+## clinical status at day 28
+outcomes <- "clinical status at day 28"
+outcomes.firth <- "clinical status at day 28_firth"
+df_clin28 <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_clin28 <- rbind(df_clin28, selected_rows)
+}
+
+## discharge within 28 days
+outcomes <- "discharge within 28 days"
+outcomes.firth <- "discharge within 28 days_firth"
+df_ttdischarge <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_ttdischarge <- rbind(df_ttdischarge, selected_rows)
+}
+
+## discharge within 28 days, death=comp.event
+outcomes <- "discharge within 28 days, death=comp.event"
+outcomes.firth <- "discharge within 28 days, death=comp.event_firth"
+df_ttdischarge_comp <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_ttdischarge_comp <- rbind(df_ttdischarge_comp, selected_rows)
+}
+
+## discharge within 28 days, death=hypo.event
+outcomes <- "discharge within 28 days, death=hypo.event"
+outcomes.firth <- "discharge within 28 days, death=hypo.event_firth"
+df_ttdischarge_hypo <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_ttdischarge_hypo <- rbind(df_ttdischarge_hypo, selected_rows)
+}
+
+## sustained discharge within 28 days
+outcomes <- "sustained discharge within 28 days"
+outcomes.firth <- "sustained discharge within 28 days_firth"
+df_ttdischarge_sus <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_ttdischarge_sus <- rbind(df_ttdischarge_sus, selected_rows)
+}
+
+## viral clearance until day 5
+outcomes <- "viral clearance until day 5"
+outcomes.firth <- "viral clearance until day 5_firth"
+df_vir_clear_5 <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_vir_clear_5 <- rbind(df_vir_clear_5, selected_rows)
+}
+
+## viral clearance until day 10
+outcomes <- "viral clearance until day 10"
+outcomes.firth <- "viral clearance until day 10_firth"
+df_vir_clear_10 <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_vir_clear_10 <- rbind(df_vir_clear_10, selected_rows)
+}
+
+## viral clearance until day 15
+outcomes <- "viral clearance until day 15"
+outcomes.firth <- "viral clearance until day 15_firth"
+df_vir_clear_15 <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_vir_clear_15 <- rbind(df_vir_clear_15, selected_rows)
+}
+
+## Any AE grade 3,4 within 28 days
+outcomes <- "Any AE grade 3,4 within 28 days"
+outcomes2 <- "any AE grade 3,4 within 28 days"
+outcomes.firth <- "Any AE grade 3,4 within 28 days_firth"
+outcomes.firth2 <- "any AE grade 3,4 within 28 days_firth"
+df_ae28 <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes2 | variable == outcomes.firth | variable == outcomes.firth2)
+  df_ae28 <- rbind(df_ae28, selected_rows)
+}
+
+## AEs grade 3,4 within 28 days
+outcomes <- "AEs grade 3,4 within 28 days"
+outcomes.firth <- "AEs grade 3,4 within 28 days_firth"
+df_ae28sev <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_ae28sev <- rbind(df_ae28sev, selected_rows)
+}
 
 ```
 
@@ -90,7 +214,7 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - mortality 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "COVINIB") # include in forestplot but exclude from analysis
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
                       )
 summary(mort28)
 forest.meta(mort28,
@@ -114,12 +238,593 @@ forest.meta(mort28,
 # dev.off()
 
 ```
-Discussion:
+Discussion points:
 1. REML or ML ? -> Give the exact same result, but the one-stage uses ML (including centering) due to rare events. REML is preferred (see notes), but to correspond with one-stage, a sens-analysis with ML is probably worth it. The choice of estimator might have the biggest influence on the 95%CI, larger than other model parameter choices.
 
-
 # (ii) Mortality at day 60
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_mort60)
+mort60 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort60,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - mortality 60 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(mort60)
+forest.meta(mort60,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - mortality 60 days", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (iii) Time to death within max. follow-up time
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_ttdeath)
+ttdeath <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_ttdeath,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - time to death",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(ttdeath)
+forest.meta(ttdeath,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - time to death", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (iv) New mechanical ventilation or death within 28 days
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_new_mvd28)
+new.mvd28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_new_mvd28,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - New MV or death within 28 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(new.mvd28)
+forest.meta(new.mvd28,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - New MV or death within 28 days", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (iv.i) New mechanical ventilation among survivors within 28 days
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_new_mv28)
+new.mv28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_new_mv28,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - New MV among survivors within 28 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(new.mv28)
+forest.meta(new.mv28,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - New MV among survivors within 28 days", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (v) Clinical status at day 28
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_clin28)
+clin28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_clin28,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - Clinical status at day 28",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(clin28)
+forest.meta(clin28,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - Clinical status at day 28", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_ttdischarge_comp)
+ttdischarge.comp <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_ttdischarge_comp,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - Time to discharge within 28 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(ttdischarge.comp)
+forest.meta(ttdischarge.comp,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - Time to discharge within 28 days", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_ttdischarge_hypo)
+ttdischarge.hypo <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_ttdischarge_hypo,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - Time to discharge within 28 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(ttdischarge.hypo)
+forest.meta(ttdischarge.hypo,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - Time to discharge within 28 days", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_ttdischarge)
+ttdischarge.cens <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_ttdischarge,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - Time to discharge within 28 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(ttdischarge.cens)
+forest.meta(ttdischarge.cens,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - Time to discharge within 28 days", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (vi.iii) Time to SUSTAINED discharge or reaching discharge criteria up to day 28. Death = Censored
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_ttdischarge_sus)
+ttdischarge.sus <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_ttdischarge_sus,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - Time to sustained discharge within 28 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(ttdischarge.sus)
+forest.meta(ttdischarge.sus,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - Time to sustained discharge within 28 days", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (vii) Viral clearance up to day 5
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_vir_clear_5)
+vir.clear5 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_vir_clear_5,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - Viral clearance up to day 5",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(vir.clear5)
+forest.meta(vir.clear5,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - Viral clearance up to day 5", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (viii) Viral clearance up to day 10
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_vir_clear_10)
+vir.clear10 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_vir_clear_10,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - Viral clearance up to day 10",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(vir.clear10)
+forest.meta(vir.clear10,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - Viral clearance up to day 10", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (ix) Viral clearance up to day 15
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_vir_clear_15)
+vir.clear15 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_vir_clear_15,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - Viral clearance up to day 15",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(vir.clear15)
+forest.meta(vir.clear15,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - Viral clearance up to day 15", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_ae28)
+ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_ae28,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - dverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(ae28)
+forest.meta(ae28,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - dverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+# (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
+```{r warning=FALSE, fig.width=12, fig.height=4}
+str(df_ae28sev)
+ae28sev <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_ae28sev,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = F,
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(ae28sev)
+forest.meta(ae28sev,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL", # get the title into the figure
+            # xlim = c(0.15,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+
+```
+Discussion points
+
+
+# Load treatment-covariate interaction estimates from all trials
+```{r echo=TRUE}
+df_int_barisolidact <- readRDS("int_effects_barisolidact.RData")
+df_int_actt2 <- readRDS("int_effects_actt2.RData")
+df_int_ghazaeian <- readRDS("int_effects_ghazaeian.RData")
+df_int_tofacov <- readRDS("int_effects_tofacov.RData")
+df_int_covinib <- readRDS("int_effects_covinib.RData")
+df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
+# df_int_murugesan <- readRDS("int_effects_murugesan.RData")
+
+```
+
+# Reshape dataframes for all treatment-covariate interaction estimates
 ```{r warning=FALSE}
+### Create a list of all data frames / trials
+list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier) # add all trials
+
+## Respiratory support on Mortality at day 28
+outcomes <- "respiratory support"
+outcomes.firth <- "respiratory support_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_rs_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_rs_mort28 <- rbind(df_rs_mort28, selected_rows)
+}
+
+## Ventilation on Mortality at day 28
+outcomes <- "ventilation"
+outcomes.firth <- "ventilation_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_vb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_vb_mort28 <- rbind(df_vb_mort28, selected_rows)
+}
+
+## Age on Mortality at day 28
+outcomes <- "age"
+outcomes.firth <- "age_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_age_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_age_mort28 <- rbind(df_age_mort28, selected_rows)
+}
+
+## Comorbidity on Mortality at day 28
+outcomes <- "comorbidity"
+outcomes.firth <- "comorbidity_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_comorb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_comorb_mort28 <- rbind(df_comorb_mort28, selected_rows)
+}
+
+## Comedication on Mortality at day 28
+outcomes <- "comedication"
+outcomes.firth <- "comedication_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_comed_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_comed_mort28 <- rbind(df_comed_mort28, selected_rows)
+}
+
+## Symptom duration on Mortality at day 28
+outcomes <- "symptom duration"
+outcomes.firth <- "symptom duration_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_symp_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_symp_mort28 <- rbind(df_symp_mort28, selected_rows)
+}
+
+## CRP on Mortality at day 28
+outcomes <- "crp"
+outcomes.firth <- "crp_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_crp_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_crp_mort28 <- rbind(df_crp_mort28, selected_rows)
+}
 
 ```
 
