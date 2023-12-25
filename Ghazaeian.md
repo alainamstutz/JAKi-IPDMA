@@ -2461,7 +2461,7 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth") # adj: age, clinstatus
-# result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation") # adj: age, clinstatus // not possible
+# result_list[[x]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
 result_list[[5]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
@@ -2476,26 +2476,6 @@ interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 # Add the trial name and JAKi
 interaction_df$trial <- "Ghazaeian"
 interaction_df$JAKi <- "Tofacitinib"
-
-### Add the rare event results
-## Add the results from the firth regressions
-# mort.28.vent.firth
-# summary(mort.28.vent.firth)
-log_odds_ratio <- exp(coef(mort.28.vent.firth)["trt"])
-ci_lower <- exp(confint(mort.28.vent.firth)[grep("^trt:", names(coef(mort.28.vent.firth))), ])[1]
-ci_upper <- exp(confint(mort.28.vent.firth)[grep("^trt:", names(coef(mort.28.vent.firth))), ])[2]
-standard_error <- c(0.03278866) # how to extract directly from the object?
-p_value <- c(0.9999994) # how to extract directly from the object?
-new_row <- data.frame(
-    variable = "respiratory support_firth",
-    log_odds_ratio = log_odds_ratio,
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    standard_error = standard_error,
-    p_value = p_value,
-    trial = "Ghazaeian",
-    JAKi = "Tofacitinib")
-interaction_df <- rbind(interaction_df, new_row) # adj: age, clinstatus
 
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
@@ -2512,7 +2492,6 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:comed_cat             |comedication_firth        |      0.9943421| 0.0007150|   7.837039|      0.0341823| 0.9508452|Ghazaeian |Tofacitinib |
 |trt:sympdur               |symptom duration          |      1.1956574| 0.6406956|   2.362071|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
 |trt:crp                   |crp                       |      0.9966468| 0.9552354|   1.034729|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
-|trt                       |respiratory support_firth |      0.8225652| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
 
 ```r
 # Save

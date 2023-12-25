@@ -1017,26 +1017,6 @@ interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 interaction_df$trial <- "Ghazaeian"
 interaction_df$JAKi <- "Tofacitinib"
 
-### Add the rare event results
-## Add the results from the firth regressions
-# mort.28.vent.firth
-# summary(mort.28.vent.firth)
-log_odds_ratio <- exp(coef(mort.28.vent.firth)["trt"])
-ci_lower <- exp(confint(mort.28.vent.firth)[grep("^trt:", names(coef(mort.28.vent.firth))), ])[1]
-ci_upper <- exp(confint(mort.28.vent.firth)[grep("^trt:", names(coef(mort.28.vent.firth))), ])[2]
-standard_error <- c(0.03278866) # how to extract directly from the object?
-p_value <- c(0.9999994) # how to extract directly from the object?
-new_row <- data.frame(
-    variable = "respiratory support_firth",
-    log_odds_ratio = log_odds_ratio,
-    ci_lower = ci_lower,
-    ci_upper = ci_upper,
-    standard_error = standard_error,
-    p_value = p_value,
-    trial = "Ghazaeian",
-    JAKi = "Tofacitinib")
-interaction_df <- rbind(interaction_df, new_row) # adj: age, clinstatus
-
 # Nicely formatted table
 kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
