@@ -91,6 +91,10 @@ df$clinstatus_5 <- factor(df$clinstat_day_5, levels = 1:6)
 df$clinstatus_7 <- factor(df$clinstat_day_7, levels = 1:6)
 df$clinstatus_discharge <- factor(df$clinstat_day_discharge, levels = 1:6)
 
+df <- df %>% 
+  mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
+                                clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
+
 # Co-medication at baseline
 df <- df %>% 
   mutate(comed_dexa = case_when(grepl("D", `Concomitant therapy`) | grepl("M", `Concomitant therapy`) ~ 1,
@@ -277,7 +281,7 @@ df <- df %>%
   select(id_pat, trt, sex, age, ethn, trial, JAKi, 
          country, icu, sympdur, 
          vacc, 
-         clinstatus_baseline,
+         clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -580,7 +584,7 @@ Discussion points:
 #   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 Discussion points
-1. No events
+1. All discharged by day 28 and exact day of discharge NA
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
 ```{r warning=FALSE}
