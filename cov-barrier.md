@@ -135,6 +135,9 @@ df <- score_transform(df, clinstatus_baseline, BNIAIDN)
 # addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always")) # 7 missing
 # addmargins(table(df$clinstatus_baseline, df$trt, df$subtrial, useNA = "always")) # 7 missing in COV-BARRIER main, no missing in COV-BARRIER 2 // # corresponds to publications
 
+df <- df %>% 
+  mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
+                                clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
 
 ### Co-medication at baseline
 # table(df$BLSTRFN, df$trt, df$subtrial, useNA = "always") # corresponds to publications
@@ -567,7 +570,7 @@ df <- df %>%
          ethn, 
          country, icu, sympdur, 
          # vacc, 
-         clinstatus_baseline,
+         clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -759,6 +762,7 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+Discussion points
 
 # (ii) Mortality at day 60
 
@@ -870,6 +874,7 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+Discussion points
 
 # (iii) Time to death within max. follow-up time
 
@@ -958,7 +963,7 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |4                   |0.41   |0.30, 0.57 |<0.001      |
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
-
+Discussion points
 
 # (iv) New mechanical ventilation among survivors within 28 days
 
@@ -1179,7 +1184,6 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 Discussion points
 1. Double-check coding for new MV in Endpoints using the NIAID set
 
-
 # (v) Clinical status at day 28
 
 ```r
@@ -1237,7 +1241,7 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |clinstatus_baseline3 |clinstatus_baseline3 |   2.0755519|   1.1979315|    3.596129|
 |clinstatus_baseline4 |clinstatus_baseline4 |   8.9699380|   5.1210106|   15.711701|
 |clinstatus_baseline5 |clinstatus_baseline5 |  29.0081419|  15.1267743|   55.628006|
-
+Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 
@@ -1525,7 +1529,6 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 |6                   |NA     |NA         |NA          |
 Discussion points
 1. Use F&G for sens-analysis (sustained discharge)?
-
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
 
@@ -1858,12 +1861,12 @@ summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+Discussion points
 
 # (viii) Quality of life at day 28 
 
 Discussion points
 1. Not available in cov-barrier
-
 
 # (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 
@@ -2063,11 +2066,39 @@ summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+Discussion points
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
 ```r
-# table(df$clinstatus_baseline, df$mort_28, useNA = "always")
+table(df$clinstatus_baseline, df$mort_28, useNA = "always")
+```
+
+```
+##       
+##          0   1 <NA>
+##   1      0   0    0
+##   2    181   5    0
+##   3    892  70    0
+##   4    283  87    0
+##   5     52  49    0
+##   6      0   0    0
+##   <NA>   7   0    0
+```
+
+```r
+table(df$vbaseline, df$mort_28, useNA = "always")
+```
+
+```
+##       
+##           0    1 <NA>
+##   0    1073   75    0
+##   1     335  136    0
+##   <NA>    7    0    0
+```
+
+```r
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
@@ -2158,9 +2189,99 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
-1. numeric or factor?
 
+```r
+mort.28.vent.vb <- df %>% 
+  glm(mort_28 ~ trt*vbaseline
+      + age 
+     # + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.vent.vb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 1619 (7 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> -13.21 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 0.37 </td>
+   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> -2.06 </td>
+   <td style="text-align:right;"> 0.04 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> vbaseline </td>
+   <td style="text-align:right;"> 6.33 </td>
+   <td style="text-align:right;"> 4.15 </td>
+   <td style="text-align:right;"> 9.67 </td>
+   <td style="text-align:right;"> 8.56 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.06 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 9.06 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:vbaseline </td>
+   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 0.42 </td>
+   <td style="text-align:right;"> 1.55 </td>
+   <td style="text-align:right;"> -0.64 </td>
+   <td style="text-align:right;"> 0.52 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+Discussion points
 
 # Subgroup analysis: Age on primary endpoint
 
@@ -2270,7 +2391,7 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-
+Discussion points
 
 # Subgroup analysis: Comorbidities on primary endpoint
 
@@ -2656,9 +2777,7 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1. Numeric or factor or count?
-2. Double-check comorb_cat again in Baseline chunk. Immunosuppressed only in control?!
-
+1. Double-check comorb_cat again in Baseline chunk. Immunosuppressed only in control?!
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 
@@ -2904,8 +3023,6 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1. Numeric or factor?
-
 
 # Subgroup analysis: Vaccination on adverse events
 
@@ -2921,7 +3038,6 @@ Discussion points
 ```
 Discussion points
 1. Vacc not available in cov-barrier
-
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 
@@ -3039,7 +3155,7 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-
+Discussion points
 
 # SENS Subgroup analysis: CRP on primary endpoint
 
@@ -3276,8 +3392,6 @@ summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, dig
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1. Truncated or not?
-
 
 # SENS Subgroup analysis: Variant on primary endpoint
 
@@ -3293,7 +3407,6 @@ Discussion points
 ```
 Discussion points
 1. variant not available in cov-barrier
-
 
 # Collect all treatment effect estimates across endpoints (stage one)
 
@@ -3432,11 +3545,21 @@ interaction_df <- data.frame(
 )
 # Extract and format results for the interaction term
 extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "glm") || inherits(model, "clm")) {
       trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
       log_odds_ratio <- exp(trt_coef)
       ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
       se <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Std. Error"]
       p_value <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Pr(>|z|)"]
+  } else if (inherits(model, "logistf")) {
+      trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
+      log_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
+      se <- sqrt(diag(vcov(model)))[grep("^trt:", names(coef(model)))]
+      p_value <- model$prob[grep("^trt:", names(coef(model)))]
+  } else {
+    stop("Unsupported model class")
+  }
       # capture the results
       result <- data.frame(
         variable = variable_name,
@@ -3452,13 +3575,14 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # adj: age, clinstatus
-result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
-result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[4]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+result_list[[2]] <- extract_interaction(mort.28.vent.vb, "ventilation") # adj: age, clinstatus
+result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
+result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
+result_list[[5]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
 # result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # vacc not available
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[7]] <- extract_interaction(mort.28.var, "variant") # variant not available
+result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[x]] <- extract_interaction(mort.28.var, "variant") # variant not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -3477,6 +3601,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |                          |variable            | log_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial       |JAKi        |
 |:-------------------------|:-------------------|--------------:|---------:|--------:|--------------:|---------:|:-----------|:-----------|
 |trt:clinstatus_baseline_n |respiratory support |      0.8989399| 0.5799324| 1.393538|      0.2233361| 0.6333376|COV-BARRIER |Baricitinib |
+|trt:vbaseline             |ventilation         |      0.8090499| 0.4222968| 1.556292|      0.3322137| 0.5235865|COV-BARRIER |Baricitinib |
 |trt:age                   |age                 |      1.0230780| 0.9953569| 1.052166|      0.0141356| 0.1065138|COV-BARRIER |Baricitinib |
 |trt:comorb_cat            |comorbidity         |      0.8760702| 0.5532644| 1.397840|      0.2358566| 0.5748165|COV-BARRIER |Baricitinib |
 |trt:comed_cat             |comedication        |      1.2158570| 0.7626556| 1.992092|      0.2431147| 0.4214327|COV-BARRIER |Baricitinib |

@@ -180,6 +180,9 @@ df <- score_transform(df, clinstatus_baseline, BNIAIDN)
 # addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always")) # 7 missing
 # addmargins(table(df$clinstatus_baseline, df$trt, df$subtrial, useNA = "always")) # 7 missing in COV-BARRIER main, no missing in COV-BARRIER 2 // # corresponds to publications
 
+df <- df %>% 
+  mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
+                                clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
 
 ### Co-medication at baseline
 # table(df$BLSTRFN, df$trt, df$subtrial, useNA = "always") # corresponds to publications
@@ -611,7 +614,7 @@ df <- df %>%
          ethn, 
          country, icu, sympdur, 
          # vacc, 
-         clinstatus_baseline,
+         clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -684,6 +687,7 @@ mort.28 <- df %>%
       , family = "binomial", data=.)
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
+Discussion points
 
 # (ii) Mortality at day 60
 ```{r warning=FALSE}
@@ -695,6 +699,7 @@ mort.60 <- df %>%
       , family = "binomial", data=.)
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
+Discussion points
 
 # (iii) Time to death within max. follow-up time
 ```{r warning=FALSE}
@@ -754,7 +759,7 @@ ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
 kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
-
+Discussion points
 
 # (iv) New mechanical ventilation among survivors within 28 days
 ```{r warning=FALSE}
@@ -776,11 +781,9 @@ new.mvd.28 <- df %>%
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-
 ```
 Discussion points
 1. Double-check coding for new MV in Endpoints using the NIAID set
-
 
 # (v) Clinical status at day 28
 ```{r warning=FALSE}
@@ -808,7 +811,7 @@ clin.28_tbl <- data.frame(
 kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
-
+Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 ```{r warning=FALSE}
@@ -952,7 +955,6 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 Discussion points
 1. Use F&G for sens-analysis (sustained discharge)?
 
-
 # (vii) Viral clearance up to day 5, day 10, and day 15
 ```{r warning=FALSE}
 table(df$vir_clear_5, df$trt, useNA = "always") #  (Viral load value <LOQ and/or undectectable)
@@ -982,6 +984,7 @@ vir.clear.15 <- df %>%
       , family = "binomial", data=.)
 summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
+Discussion points
 
 # (viii) Quality of life at day 28 
 ```{r warning=FALSE}
@@ -989,7 +992,6 @@ summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits =
 ```
 Discussion points
 1. Not available in cov-barrier
-
 
 # (ix) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28
 ```{r warning=FALSE}
@@ -1009,12 +1011,13 @@ ae.28.sev <- df %>%
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "poisson", data=.)
 summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-
 ```
+Discussion points
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
-# table(df$clinstatus_baseline, df$mort_28, useNA = "always")
+table(df$clinstatus_baseline, df$mort_28, useNA = "always")
+table(df$vbaseline, df$mort_28, useNA = "always")
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
 mort.28.vent <- df %>% 
@@ -1024,10 +1027,17 @@ mort.28.vent <- df %>%
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+mort.28.vent.vb <- df %>% 
+  glm(mort_28 ~ trt*vbaseline
+      + age 
+     # + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.vent.vb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1. numeric or factor?
-
 
 # Subgroup analysis: Age on primary endpoint
 ```{r warning=FALSE}
@@ -1040,7 +1050,7 @@ mort.28.age <- df %>%
       , family = "binomial", data=.)
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
-
+Discussion points
 
 # Subgroup analysis: Comorbidities on primary endpoint
 ```{r warning=FALSE}
@@ -1075,9 +1085,7 @@ mort.28.comorb.count <- df %>%
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1. Numeric or factor or count?
-2. Double-check comorb_cat again in Baseline chunk. Immunosuppressed only in control?!
-
+1. Double-check comorb_cat again in Baseline chunk. Immunosuppressed only in control?!
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 ```{r warning=FALSE}
@@ -1111,8 +1119,6 @@ mort.28.comed.f <- df %>%
 summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1. Numeric or factor?
-
 
 # Subgroup analysis: Vaccination on adverse events
 ```{r warning=FALSE}
@@ -1128,7 +1134,6 @@ Discussion points
 Discussion points
 1. Vacc not available in cov-barrier
 
-
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 ```{r warning=FALSE}
 # table(df$sympdur, df$mort_28, useNA = "always")
@@ -1140,7 +1145,7 @@ mort.28.symp <- df %>%
       , family = "binomial", data=.)
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
-
+Discussion points
 
 # SENS Subgroup analysis: CRP on primary endpoint
 ```{r warning=FALSE}
@@ -1165,8 +1170,6 @@ mort.28.crp.trunc <- df %>%
 summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1. Truncated or not?
-
 
 # SENS Subgroup analysis: Variant on primary endpoint
 ```{r warning=FALSE}
@@ -1181,7 +1184,6 @@ Discussion points
 ```
 Discussion points
 1. variant not available in cov-barrier
-
 
 # Collect all treatment effect estimates across endpoints (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -1296,11 +1298,21 @@ interaction_df <- data.frame(
 )
 # Extract and format results for the interaction term
 extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "glm") || inherits(model, "clm")) {
       trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
       log_odds_ratio <- exp(trt_coef)
       ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
       se <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Std. Error"]
       p_value <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Pr(>|z|)"]
+  } else if (inherits(model, "logistf")) {
+      trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
+      log_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
+      se <- sqrt(diag(vcov(model)))[grep("^trt:", names(coef(model)))]
+      p_value <- model$prob[grep("^trt:", names(coef(model)))]
+  } else {
+    stop("Unsupported model class")
+  }
       # capture the results
       result <- data.frame(
         variable = variable_name,
@@ -1316,13 +1328,14 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # adj: age, clinstatus
-result_list[[2]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
-result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[4]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+result_list[[2]] <- extract_interaction(mort.28.vent.vb, "ventilation") # adj: age, clinstatus
+result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
+result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
+result_list[[5]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
 # result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # vacc not available
-result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[7]] <- extract_interaction(mort.28.var, "variant") # variant not available
+result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[x]] <- extract_interaction(mort.28.var, "variant") # variant not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
