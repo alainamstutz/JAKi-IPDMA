@@ -97,6 +97,10 @@ addmargins(table(df$clinstatus_baseline, df$trt, useNA = "always"))
 ```
 
 ```r
+df <- df %>% 
+  mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
+                                clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
+
 # Co-medication at baseline
 df$comed_toci <- 0 # see publication: "It is noteworthy that no patients have received tocilizumab. Concomitant use of tofacitinib and tocilizumab was prohibited by protocol"
 df$comed_interferon <- 0 # no interferon used
@@ -281,7 +285,7 @@ Discussion points
 df_all <- df
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, trial,
+  select(id_pat, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline, trial,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -1632,7 +1636,7 @@ Discussion points
 
 ```r
 # table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 2 - 3 included
-# table(df$clinstatus_baseline, df$mort_28, df$trt, useNA = "always") # 0 in 2x2 table
+# table(df$vbaseline, df$mort_28, useNA = "always")
 # class(df$clinstatus_baseline)
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
@@ -1760,9 +1764,19 @@ summary(mort.28.vent.firth)
 ## Likelihood ratio test=0.7666195 on 4 df, p=0.9428663, n=116
 ## Wald test = 38.97522 on 4 df, p = 7.049024e-08
 ```
+
+```r
+# vbaseline
+# mort.28.vent.vb.firth <- df %>%
+#   logistf(mort_28 ~ trt*vbaseline
+#       + age
+#       #+ clinstatus_baseline
+#       #+ comed_dexa + comed_rdv + comed_toci
+#       , data=.)
+# summary(mort.28.vent.vb.firth)
+```
 Discussion points
-1. Does any interaction estimation make sense?
-2. Firth regression?
+1. Firth regression works for clinstatus_baseline but not for vbaseline
 
 # Subgroup analysis: Age on primary endpoint
 
@@ -1899,19 +1913,7 @@ Discussion points
 
 ```r
 # 4 comorbidity categories as numeric/continuous, i.e., linear interaction
-table(df$comorb_cat, df$mort_28, useNA = "always") 
-```
-
-```
-##       
-##         0  1 <NA>
-##   1    44  0    0
-##   2    45  1    0
-##   3    26  0    0
-##   <NA>  0  0    0
-```
-
-```r
+# table(df$comorb_cat, df$mort_28, useNA = "always") 
 # class(df$comorb_cat)
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
@@ -2004,6 +2006,44 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
 
 ```r
 # table(df$comorb_cat, df$mort_28, df$trt, useNA = "always") ### too few events!
+# Firth
+mort.28.comorb.firth <- df %>%
+  logistf(mort_28 ~ trt*comorb_cat
+      + age
+      + clinstatus_baseline
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.comorb.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * comorb_cat + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                            coef   se(coef)  lower 0.95 upper 0.95      Chisq
+## (Intercept)          -6.1974901 3.49236230 -19.9340044  3.5482353 1.67096948
+## trt                   1.4830285 2.87658210  -5.9881297 14.2610283 0.17285131
+## comorb_cat            0.2153509 1.14765131  -4.4769398  4.9130028 0.01890664
+## age                   0.0372507 0.05209276  -0.1092691  0.2442125 0.22601062
+## clinstatus_baseline3 -0.1832448 1.32740121  -3.5803501  4.8597758 0.01110141
+## trt:comorb_cat       -0.5006967 1.38110092  -5.2101194  4.4804300 0.07993648
+##                              p method
+## (Intercept)          0.1961287      2
+## trt                  0.6775901      2
+## comorb_cat           0.8906345      2
+## age                  0.6344978      2
+## clinstatus_baseline3 0.9160876      2
+## trt:comorb_cat       0.7773835      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.5279316 on 5 df, p=0.9910648, n=116
+## Wald test = 41.79501 on 5 df, p = 6.480676e-08
+```
+
+```r
 # 4 comorbidity categories as factor
 df$comorb_cat_f <- as.factor(df$comorb_cat)
 # table(df$comorb_cat_f, df$mort_28, useNA = "always") 
@@ -2220,8 +2260,6 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1. Does any interaction estimation make sense?
-2. Firth regression?
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 
@@ -2331,25 +2369,50 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# Firth
+mort.28.comed.firth <- df %>%
+  logistf(mort_28 ~ trt*comed_cat
+      + age
+      + clinstatus_baseline
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.comed.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * comed_cat + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95 upper 0.95      Chisq
+## (Intercept)          -1.60512654 3.00671616 -11.0277742  5.4374772 0.18985456
+## trt                  -0.98945898 3.07941058  -9.1692740  7.1568883 0.08856816
+## comed_cat            -1.38035432 0.97809272  -4.3041481  1.3237059 1.34888544
+## age                   0.03107433 0.05417469  -0.1156687  0.2132648 0.15745193
+## clinstatus_baseline3 -0.48180484 1.30095050  -3.8744734  4.5918258 0.07032683
+## trt:comed_cat         0.64248212 1.21411262  -2.3499887  3.8816662 0.22387336
+##                              p method
+## (Intercept)          0.6630377      2
+## trt                  0.7660054      2
+## comed_cat            0.2454731      2
+## age                  0.6915134      2
+## clinstatus_baseline3 0.7908615      2
+## trt:comed_cat        0.6361043      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=2.103473 on 5 df, p=0.8346502, n=116
+## Wald test = 38.22587 on 5 df, p = 3.398847e-07
+```
 Discussion points
-1. Does any interaction estimation make sense?
-2. Firth regression?
 
 # Subgroup analysis: Vaccination on adverse events
 
 ```r
-table(df$vacc, df$ae_28, useNA = "always") # none of the vaccinated had an adverse event
-```
-
-```
-##       
-##         0  1 <NA>
-##   0    91 22    0
-##   1     3  0    0
-##   <NA>  0  0    0
-```
-
-```r
+# table(df$vacc, df$ae_28, useNA = "always") # none of the vaccinated had an adverse event
 ae.28.vacc <- df %>% 
   glm(ae_28 ~ trt*vacc
       #+ age 
@@ -2438,6 +2501,45 @@ summ(ae.28.vacc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# Firth
+ae.28.vacc.firth <- df %>%
+  logistf(ae_28 ~ trt*vacc
+      + age
+      + clinstatus_baseline
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(ae.28.vacc.firth)
+```
+
+```
+## logistf(formula = ae_28 ~ trt * vacc + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef  se(coef) lower 0.95  upper 0.95       Chisq
+## (Intercept)           2.22032271 1.3262247 -0.4395627  4.96842208  2.69338691
+## trt                  -0.37497723 0.5073212 -1.4038036  0.63471059  0.53296720
+## vacc                 -0.26886437 1.5790037 -5.2341283  2.39822020  0.02967295
+## age                  -0.08294611 0.0244643 -0.1367367 -0.03719186 13.77015021
+## clinstatus_baseline3  1.45723708 0.7376331  0.1119267  3.19834398  4.57722442
+## trt:vacc              0.97453524 2.3583074 -4.6350838  6.64015421  0.16593938
+##                                 p method
+## (Intercept)          0.1007654228      2
+## trt                  0.4653620521      2
+## vacc                 0.8632343981      2
+## age                  0.0002065928      2
+## clinstatus_baseline3 0.0323996551      2
+## trt:vacc             0.6837461136      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=17.2353 on 5 df, p=0.004074501, n=116
+## Wald test = 35.88648 on 5 df, p = 1.000787e-06
+```
+Discussion points
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 
@@ -2531,9 +2633,45 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# Firth
+mort.28.symp.firth <- df %>%
+  logistf(mort_28 ~ trt*sympdur
+      + age
+      + clinstatus_baseline
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.symp.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * sympdur + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95 upper 0.95      Chisq
+## (Intercept)          -7.44323179 3.51002730 -21.8530906  3.1955865 1.92485515
+## trt                   2.43423415 2.69136020  -6.2170932 14.4827201 0.34570583
+## sympdur               0.15671013 0.17114449  -1.2970134  0.8156939 0.27037458
+## age                   0.03996805 0.04874731  -0.1059485  0.2155475 0.27853858
+## clinstatus_baseline3 -0.35154990 1.32350743  -3.9144765  4.7136145 0.03844599
+## trt:sympdur          -0.19411530 0.25898343  -0.9460954  1.3192837 0.22423499
+##                              p method
+## (Intercept)          0.1653224      2
+## trt                  0.5565541      2
+## sympdur              0.6030806      2
+## age                  0.5976607      2
+## clinstatus_baseline3 0.8445503      2
+## trt:sympdur          0.6358318      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.9314626 on 5 df, p=0.9679022, n=116
+## Wald test = 39.23802 on 5 df, p = 2.126747e-07
+```
 Discussion points
-1. Does any interaction estimation make sense?
-2. Firth regression?
 
 # SENS Subgroup analysis: CRP on primary endpoint
 
@@ -2627,9 +2765,45 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# Firth
+mort.28.crp.firth <- df %>%
+  logistf(mort_28 ~ trt*crp
+      + age
+      + clinstatus_baseline
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.crp.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * crp + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)   lower 0.95 upper 0.95      Chisq
+## (Intercept)          -5.71046757 3.28473303 -23.99612919 1.50377342 2.32781159
+## trt                   1.02536779 1.42716321  -2.09636826 6.42200694 0.39761356
+## crp                   0.02310643 0.01463668  -0.02601088 0.08459481 1.35409973
+## age                   0.02418354 0.04574737  -0.10191592 0.21472325 0.15723871
+## clinstatus_baseline3 -0.18957281 1.37119905  -3.91530452 7.05445805 0.01094041
+## trt:crp              -0.01077639 0.02456728  -0.72766666 0.04539572 0.15331441
+##                              p method
+## (Intercept)          0.1270804      2
+## trt                  0.5283243      2
+## crp                  0.2445627      2
+## age                  0.6917116      2
+## clinstatus_baseline3 0.9166961      2
+## trt:crp              0.6953879      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=2.551362 on 5 df, p=0.7687408, n=115
+## Wald test = 37.40883 on 5 df, p = 4.959046e-07
+```
 Discussion points
-1. Does any interaction estimation make sense?
-2. Firth regression?
 
 # SENS Subgroup analysis: Variant on primary endpoint
 
@@ -2674,7 +2848,7 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     hazard_odds_ratio <- exp(trt_coef)
     ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
     se <- sqrt(diag(vcov(model)))["trt"]
-    p_value <- NA # how to extract directly from the object?
+    p_value <- model$prob["trt"]
   } else {
     stop("Unsupported model class")
   }
@@ -2801,9 +2975,9 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |JAKi        |
 |:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:-------|:-----------|
-|trt   |death at day 28_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138|        NA|             58|        58|TOFACOV |Tofacitinib |
-|trt1  |death at day 60_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138|        NA|             58|        58|TOFACOV |Tofacitinib |
-|trt2  |new MV within 28d_firth                    |         0.2174501| 0.0015447|   2.877308|      1.3853829|        NA|             57|        58|TOFACOV |Tofacitinib |
+|trt   |death at day 28_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
+|trt1  |death at day 60_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
+|trt2  |new MV within 28d_firth                    |         0.2174501| 0.0015447|   2.877308|      1.3853829| 0.2687398|             57|        58|TOFACOV |Tofacitinib |
 |trt3  |new MV or death within 28d                 |         0.5033582| 0.0222146|   5.794909|      1.2708458| 0.5890904|             58|        58|TOFACOV |Tofacitinib |
 |trt4  |clinical status at day 28                  |         0.5089991| 0.0666734|   2.843006|      0.9065891| 0.4563383|             58|        58|TOFACOV |Tofacitinib |
 |trt5  |discharge within 28 days                   |         1.2836003| 0.8804226|   1.871408|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
@@ -2821,7 +2995,6 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_tofacov.RData")
 ```
 Discussion points
-1. Adjustments across all models
 
 # Collect all interaction estimates (stage one)
 
@@ -2837,11 +3010,21 @@ interaction_df <- data.frame(
 )
 # Extract and format results for the interaction term
 extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "glm") || inherits(model, "clm")) {
       trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
       log_odds_ratio <- exp(trt_coef)
       ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
       se <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Std. Error"]
       p_value <- summary(model)$coefficients[grep("^trt:", names(coef(model))), "Pr(>|z|)"]
+  } else if (inherits(model, "logistf")) {
+      trt_coef <- coef(model)[grep("^trt:", names(coef(model)))]
+      log_odds_ratio <- exp(trt_coef)
+      ci <- exp(confint(model)[grep("^trt:", names(coef(model))), ])
+      se <- sqrt(diag(vcov(model)))[grep("^trt:", names(coef(model)))]
+      p_value <- model$prob[grep("^trt:", names(coef(model)))]
+  } else {
+    stop("Unsupported model class")
+  }
       # capture the results
       result <- data.frame(
         variable = variable_name,
@@ -2856,13 +3039,14 @@ extract_interaction <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
-result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
-# result_list[[2]] <- extract_interaction(mort.28.age, "age")
-# result_list[[3]] <- extract_interaction(mort.28.comorb, "comorbidity")
-# result_list[[4]] <- extract_interaction(mort.28.comed, "comedication")
-# result_list[[5]] <- extract_interaction(ae.28.vacc, "vaccination on AEs")
-# result_list[[6]] <- extract_interaction(mort.28.symp, "symptom duration")
-# result_list[[7]] <- extract_interaction(mort.28.crp, "crp")
+result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth")
+# result_list[[x]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
+result_list[[2]] <- extract_interaction(mort.28.age.firth, "age_firth")
+result_list[[3]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
+result_list[[4]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
+result_list[[5]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
+result_list[[6]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
+result_list[[7]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2878,14 +3062,19 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                          |variable            | log_odds_ratio| ci_lower| ci_upper| standard_error|   p_value|trial   |JAKi        |
-|:-------------------------|:-------------------|--------------:|--------:|--------:|--------------:|---------:|:-------|:-----------|
-|trt:clinstatus_baseline_n |respiratory support |       85316601|        0|      Inf|       21023.07| 0.9993069|TOFACOV |Tofacitinib |
+|                          |variable                  | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial   |JAKi        |
+|:-------------------------|:-------------------------|--------------:|---------:|----------:|--------------:|---------:|:-------|:-----------|
+|trt:clinstatus_baseline_n |respiratory support_firth |      1.1883509| 0.0031529| 689.752137|      2.4621311| 0.9487548|TOFACOV |Tofacitinib |
+|trt:age                   |age_firth                 |      1.0470785| 0.6614695|   1.665865|      0.0973369| 0.7745284|TOFACOV |Tofacitinib |
+|trt:comorb_cat            |comorbidity_firth         |      0.6061082| 0.0054610|  88.272626|      1.3811009| 0.7773835|TOFACOV |Tofacitinib |
+|trt:comed_cat             |comedication_firth        |      1.9011940| 0.0953702|  48.504965|      1.2141126| 0.6361043|TOFACOV |Tofacitinib |
+|trt:vacc                  |vaccination on AEs_firth  |      2.6499354| 0.0097053| 765.212989|      2.3583074| 0.6837461|TOFACOV |Tofacitinib |
+|trt:sympdur               |symptom duration_firth    |      0.8235629| 0.3882541|   3.740741|      0.2589834| 0.6358318|TOFACOV |Tofacitinib |
+|trt:crp                   |crp_firth                 |      0.9892815| 0.4830348|   1.046442|      0.0245673| 0.6953879|TOFACOV |Tofacitinib |
 
 ```r
 # Save
 saveRDS(interaction_df, file = "int_effects_tofacov.RData")
 ```
 Discussion points
-1. Can we really use ANY interaction estimates from TOFACOV?
-2. Firth regression?
+
