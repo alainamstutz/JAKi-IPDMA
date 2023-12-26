@@ -789,14 +789,14 @@ tab_model(ttdischarge.hypo)
 ## Censoring the deaths => Cause-specific hazards, i.e., represents the rate per unit of time of the event among those not having failed from other events. Instantaneous rate of occurrence of the given type of event in individuals who are currently event‐free. But by simply censoring the competing event, we bias in favour of comparator (if treatment leads to less deaths)
 
 # Cox proportional hazards model adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
-ttdischarge <- coxme(Surv(discharge_time, discharge_reached) ~ trt_centered_n
+ttdischarge.cens <- coxme(Surv(discharge_time, discharge_reached) ~ trt_centered_n
                   + trial_f
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
-tab_model(ttdischarge)
+tab_model(ttdischarge.cens)
 ```
 
 # (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -1040,7 +1040,7 @@ result_list[[8]] <- extract_trt_results(ttdischarge.hypo, "discharge within 28 d
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
-result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days, death=censored",
+result_list[[9]] <- extract_trt_results(ttdischarge.cens, "discharge within 28 days, death=censored",
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
@@ -1125,3 +1125,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
   coord_flip()  # Flip axes to show longer variable names
 
 ```
+
+
+# TREATMENT-COVARIATE INTERACTIONS
+
