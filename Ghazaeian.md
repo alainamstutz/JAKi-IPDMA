@@ -1332,8 +1332,33 @@ Discussion points
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
 ```r
-# table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 3 included
-# table(df$vbaseline, df$mort_28, useNA = "always") # 0 in 2x2 table
+table(df$clinstatus_baseline, df$mort_28, useNA = "always") # 2 - 3 included
+```
+
+```
+##       
+##         0  1 <NA>
+##   1     0  0    0
+##   2     2  0    0
+##   3    88  7    0
+##   4     0  0    0
+##   5     0  0    0
+##   6     0  0    0
+##   <NA>  0  0    0
+```
+
+```r
+table(df$vbaseline, df$mort_28, useNA = "always") # 0 in 2x2 table
+```
+
+```
+##       
+##         0  1 <NA>
+##   0    90  7    0
+##   <NA>  0  0    0
+```
+
+```r
 # class(df$clinstatus_baseline)
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
