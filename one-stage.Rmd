@@ -24,11 +24,16 @@ library(kableExtra)
 library(jtools) # for summ() and plot_summs
 library(sjPlot) # for tab_model
 library(ggplot2) # survival/TTE analyses and other graphs
+library(ggsurvfit) # survival/TTE analyses
+library(survival) # survival/TTE analyses
+library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
 library(lme4) # glmer / clmm
 library(sjPlot) # for tab_model
 library(glmmTMB) # to specify estimation method explicitly -> i.e. ML
-
+library(coxme) # for mixed-effects cox model
+library(ordinal) # for ordinal regression, clm (fixed effects) & clmm (mixed effects)
+library(tidycmprsk) # competing risk analysis
 ```
 
 # Load standardized dataset of all trials
@@ -36,7 +41,7 @@ library(glmmTMB) # to specify estimation method explicitly -> i.e. ML
 ## barisolidact
 df_barisolidact <- readRDS("df_os_barisolidact.RData")
 df_barisolidact <- df_barisolidact %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -51,7 +56,7 @@ df_barisolidact <- df_barisolidact %>%
 ## actt2
 df_actt2 <- readRDS("df_os_actt2.RData")
 df_actt2 <- df_actt2 %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -66,7 +71,7 @@ df_actt2 <- df_actt2 %>%
 ## ghazaeian
 df_ghazaeian <- readRDS("df_os_ghazaeian.RData")
 df_ghazaeian <- df_ghazaeian %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -81,7 +86,7 @@ df_ghazaeian <- df_ghazaeian %>%
 ## tofacov
 df_tofacov <- readRDS("df_os_tofacov.RData")
 df_tofacov <- df_tofacov %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -96,7 +101,7 @@ df_tofacov <- df_tofacov %>%
 ## covinib
 df_covinib <- readRDS("df_os_covinib.RData")
 df_covinib <- df_covinib %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -111,7 +116,7 @@ df_covinib <- df_covinib %>%
 ## COV-BARRIER
 df_covbarrier <- readRDS("df_os_cov-barrier.RData")
 df_covbarrier <- df_covbarrier %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -126,7 +131,7 @@ df_covbarrier <- df_covbarrier %>%
 ## Murugesan
 df_murugesan <- readRDS("df_os_murugesan.RData")
 df_murugesan <- df_murugesan %>% 
-    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline,
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
@@ -143,6 +148,10 @@ df_murugesan <- df_murugesan %>%
 df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier)
 df_tot_Muru <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_murugesan)
 
+# Save
+saveRDS(df_tot, file = "df_tot.RData")
+saveRDS(df_tot_Muru, file = "df_tot_Muru.RData")
+
 ```
 
 
@@ -153,19 +162,11 @@ addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt, useNA = "always"))
 # table(df_tot_Muru$age, df_tot_Muru$trt, useNA = "always")
 table(df_tot_Muru$clinstatus_baseline, df_tot_Muru$trt, useNA = "always")
 table(df_tot_Muru$clinstatus_baseline, df_tot_Muru$trial, useNA = "always")
-# table(df_tot_Muru$comed_dexa, df_tot_Muru$trt, useNA = "always")
-# table(df_tot_Muru$comed_rdv, df_tot_Muru$trt, useNA = "always")
-# table(df_tot_Muru$comed_toci, df_tot_Muru$trt, useNA = "always")
+table(df_tot_Muru$vbaseline, df_tot_Muru$trial, useNA = "always")
 
 # reformatting
 df_tot$trt_f <- as.factor(df_tot$trt)
 df_tot$trial_f <- as.factor(df_tot$trial)
-
-df_tot <- df_tot %>% 
-  mutate(vbaseline = case_when(clinstatus_baseline == "2" | clinstatus_baseline == "3" ~ 0,
-                                clinstatus_baseline == "4" | clinstatus_baseline == "5" ~ 1))
-# table(df_tot$vbaseline, df_tot$trial, useNA = "always")
-
 df_tot$clinstatus_baseline_n <- as.numeric(df_tot$clinstatus_baseline)
 df_tot <- df_tot %>%
   mutate(trial_n = case_when(trial == "Bari-Solidact" ~ 1,
@@ -528,25 +529,411 @@ mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline
                   , data = df_tot, family = binomial)
 tab_model(mort28)
-
 ```
 
-
-
-# new MV or death
+# (ii) Mortality at day 60
 ```{r warning=FALSE}
-addmargins(table(df_tot$trial, df_tot$new_mvd_28, useNA = "always"))
-# addmargins(table(df_tot$mort_28, df_tot$trt, useNA = "always"))
-# table(df_tot$age, df_tot$trt, useNA = "always")
-# table(df_tot$clinstatus_baseline, df_tot$trt, useNA = "always")
-# table(df_tot$comed_dexa, df_tot$trt, useNA = "always")
-# table(df_tot$comed_rdv, df_tot$trt, useNA = "always")
-# table(df_tot$comed_toci, df_tot$trt, useNA = "always")
+addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trial, useNA = "always"))
 
-# new.mvd.28.os <- glmer(new_mvd_28 ~ (1|trial) + trt + age + clinstatus_baseline
-#                    + comed_dexa + comed_rdv + comed_toci, 
-#                    data = df_tot, family = binomial)
-# tab_model(new.mvd.28.os)
+mort60 <- glmmTMB(mort_60 ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot, family = binomial)
+tab_model(mort60)
+```
+
+# (iii) Time to death within max. follow-up time
+```{r warning=FALSE}
+# table(df_tot$death_reached, df_tot$death_time, useNA = "always")
+# table(df_tot$death_reached, df_tot$mort_60, useNA = "always") # 1 death after day 60 in Bari-Solidact
+
+# df_tot %>%
+#   drop_na(death_time) %>%
+#   filter(death_reached == 1) %>%
+#   group_by(trt) %>%
+#   summarise(median = median(death_time),
+#             IQR = IQR(death_time),
+#             Q1 = quantile(death_time, probs = 0.25),
+#             Q3 = quantile(death_time, probs = 0.75))
+
+# cap at 60 days // always censor first the censoring variable..
+df_tot <- df_tot %>%
+  mutate(death_reached_60 = case_when(death_time >60 ~ 0,
+                                   TRUE ~ c(death_reached)))
+df_tot <- df_tot %>%
+  mutate(death_time_60 = case_when(death_time >60 ~ 60,
+                                TRUE ~ c(death_time)))
+
+## time to death, by group. Kaplan-Meier estimate of conditional survival probability.
+# km.ttdeath.check <- with(df_tot, Surv(death_time, death_reached))
+# head(km.ttdeath.check, 100)
+km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df_tot)
+# summary(km.ttdeath_trt, times = 28)
+ttdeath_28d_tbl <- km.ttdeath_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d survival (95% CI)**"
+  )
+# Nicely formatted table
+kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+autoplot(km.ttdeath_trt)
+survfit2(Surv(death_time, death_reached) ~ trt, data=df_tot) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall survival probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+
+# autoplot by trial with max. 60d fup
+km.ttdeath_trial <- survfit(Surv(death_time_60, death_reached_60) ~ trial, data=df_tot)
+autoplot(km.ttdeath_trial)
+
+# Assessing proportional hazards // check the KM curve: OK
+
+# Cox proportional hazards model adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
+ttdeath <- coxme(Surv(death_time, death_reached) ~ trt_centered_n
+                  + trial_f
+                  + (trt_centered_n -1 | trial_f) -1
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot)
+tab_model(ttdeath)
+```
+
+# (iv) New mechanical ventilation or death within 28 days
+```{r warning=FALSE}
+addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trial, useNA = "always"))
+
+new.mvd28 <- glmmTMB(new_mvd_28 ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot, family = binomial)
+tab_model(new.mvd28)
+```
+
+# (iv.i) New mechanical ventilation among survivors within 28 days
+```{r warning=FALSE}
+addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trial, useNA = "always"))
+
+new.mv28 <- glmmTMB(new_mv_28 ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot, family = binomial)
+tab_model(new.mv28)
+# (1) common treatment effect, random trial intercept, common prognostic factors, ML
+# new.mv28.ctreat.rtrial.ml <- glmmTMB(new_mv_28 ~ trt + (1|trial)
+#                               + age + clinstatus_baseline
+#                               , data = df_tot, family = binomial)
+# tab_model(new.mv28.ctreat.rtrial.ml)
+```
+
+# (v) Clinical status at day 28
+```{r warning=FALSE}
+addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trial, useNA = "always"))
+
+# Ordinal regression model adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
+clin28 <- df_tot %>% 
+    clmm(clinstatus_28_imp ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 
+                  + age_cent_trial_2
+                  + age_cent_trial_3
+                  + age_cent_trial_4
+                  + age_cent_trial_5
+                  + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f)
+      , link= c("logit"), data=.)
+tab_model(clin28)
+```
+
+# (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
+```{r warning=FALSE}
+# table(df_tot$discharge_reached, df_tot$discharge_time, useNA = "always")
+# table(df_tot$discharge_reached, df_tot$trial, useNA = "always")
+# table(df_tot$discharge_time, df_tot$trial, useNA = "always")
+# 
+# df_tot %>%
+#   drop_na(discharge_time) %>%
+#   filter(discharge_reached == 1) %>%
+#   group_by(trt) %>%
+#   summarise(median = median(discharge_time),
+#             IQR = IQR(discharge_time),
+#             Q1 = quantile(discharge_time, probs = 0.25),
+#             Q3 = quantile(discharge_time, probs = 0.75))
+
+# Kaplan-Meier estimate of conditional discharge probability
+km.ttdischarge.check <- with(df_tot, Surv(discharge_time, discharge_reached))
+# head(km.ttdischarge.check, 100)
+km.ttdischarge_trt <- survfit(Surv(discharge_time, discharge_reached) ~ trt, data=df_tot)
+# summary(km.ttdischarge_trt, times = 28)
+ttdischarge_28d_tbl <- km.ttdischarge_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d hospitalization (95% CI)**"
+  )
+# Nicely formatted table
+kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+# KM graph
+survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df_tot) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall hospitalization probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+
+# Assessing proportional hazards (using default discharge_time and discharge_reached) -> see KM plots, after the point when the curves really stqrt diverging, it does not cross over again: OK
+ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt
+                , data = df_tot)
+cz <- cox.zph(ph.check)
+print(cz)
+plot(cz)
+
+## Sub-distribution hazards, i.e., represents the rate per unit of time of the event as well as the influence of competing events. Instantaneous rate of occurrence of the given type of event in subjects who have not yet experienced an event of that type.
+df_tot <- df_tot %>% # cuminc needs a factor variable with censored patients coded as 0, the event as 1 and the competing event as 2.
+  mutate(discharge_reached_comp = case_when (discharge_reached == 0 & (mort_28 == 0 | is.na(mort_28)) ~ 0,
+                                             discharge_reached == 1 & (mort_28 == 0 | is.na(mort_28)) ~ 1,
+                                             mort_28 == 1 ~ 2))
+df_tot$discharge_reached_comp <- as.factor(df_tot$discharge_reached_comp) 
+# Cumulative incidence for the event=discharge (1) and the competing event=death (2)
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ 1, data = df_tot)
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_tot) %>% 
+  ggcuminc(outcome = c("1", "2")) +
+  ylim(c(0, 1)) + 
+  labs(
+    x = "Days"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+# in int only
+df_int <- df_tot %>% 
+  filter(trt == 1)
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_int) %>% 
+  ggcuminc(outcome = c("1", "2")) +
+  #ylim(c(0, 1)) + 
+  labs(
+    x = "Days"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+# in cont only
+df_cont <- df_tot %>% 
+  filter(trt == 0)
+cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_cont) %>% 
+  ggcuminc(outcome = c("1", "2")) +
+  #ylim(c(0, 1)) + 
+  labs(
+    x = "Days"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+
+# Fine-Gray regression model (Competing Risk regression), adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
+## problem: How to incorporate clustering and random effects?
+### crr has a clustering function - however, cannot add random effects. Probably would need multistate models: https://cran.r-project.org/web/packages/survival/vignettes/compete.pdf
+ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt_centered_n
+                  + cluster(trial_f)
+                  # + (trt_centered_n -1 | trial_f) -1
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6
+                  + clinstatus_baseline_n
+                  # + (clinstatus_baseline_n -1 | trial_f)
+                  ,data = df_tot)
+ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge.comp, exp = TRUE)
+# Nicely formatted table
+kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
+Discussion points:
+1. crr has a clustering function - however, cannot add random effects. coxme cannot deal with competing risks. Needs a multistate model? https://cran.r-project.org/web/packages/survival/vignettes/compete.pdf
+
+# (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
+```{r warning=FALSE}
+# Censoring and assigned worst outcome (28d) to competing event (death) // hypothetical estimand where no-one died. (Another option could be, but we don't do it, is to exclude the deaths entirely, i.e. discharge among those that survived (but that might bias in favour of those in control that died more, i.e. healthier comparator))
+
+# Cox proportional hazards model adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
+ttdischarge.hypo <- coxme(Surv(discharge_time_sens, discharge_reached) ~ trt_centered_n
+                  + trial_f
+                  + (trt_centered_n -1 | trial_f) -1
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot)
+tab_model(ttdischarge.hypo)
+```
+
+# (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
+```{r warning=FALSE}
+## Censoring the deaths => Cause-specific hazards, i.e., represents the rate per unit of time of the event among those not having failed from other events. Instantaneous rate of occurrence of the given type of event in individuals who are currently event‐free. But by simply censoring the competing event, we bias in favour of comparator (if treatment leads to less deaths)
+
+# Cox proportional hazards model adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
+ttdischarge <- coxme(Surv(discharge_time, discharge_reached) ~ trt_centered_n
+                  + trial_f
+                  + (trt_centered_n -1 | trial_f) -1
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot)
+tab_model(ttdischarge)
+```
+
+# (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
+```{r warning=FALSE}
+# Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
+# Use cause-specific hazards
+# table(df_tot$discharge_reached_sus, df_tot$discharge_time_sus, useNA = "always")
+# table(df_tot$discharge_reached_sus, df_tot$trial, useNA = "always")
+# table(df_tot$discharge_time_sus, df_tot$trial, useNA = "always")
+
+# Kaplan-Meier estimate of conditional discharge probability
+km.ttdischarge.sus.check <- with(df_tot, Surv(discharge_time_sus, discharge_reached_sus))
+# head(km.ttdischarge.sus.check, 100)
+km.ttdischarge_sus_trt <- survfit(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df_tot)
+# summary(km.ttdischarge_trt, times = 28)
+ttdischarge_sus_28d_tbl <- km.ttdischarge_sus_trt %>% 
+  tbl_survfit(
+    times = 28,
+    label_header = "**28-d sustained hospitalization (95% CI)**"
+  )
+# Nicely formatted table
+kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+# KM graph
+survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df_tot) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Days",
+    y = "Overall sustained hospitalization probability"
+  ) + 
+  add_confidence_interval() +
+  add_risktable()
+
+# Cox proportional hazards model adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
+ttdischarge.sus <- coxme(Surv(discharge_time_sus, discharge_reached_sus) ~ trt_centered_n
+                  + trial_f
+                  + (trt_centered_n -1 | trial_f) -1
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot)
+tab_model(ttdischarge.sus)
+```
+
+# (vii) Viral clearance up to day 5
+```{r warning=FALSE}
+addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trial, useNA = "always"))
+
+vir.clear5 <- glmmTMB(vir_clear_5 ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 
+                  + age_cent_trial_2
+                  + age_cent_trial_3
+                  + age_cent_trial_4
+                  + age_cent_trial_5
+                  + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot, family = binomial)
+tab_model(vir.clear5)
+```
+
+# (viii) Viral clearance up to day 10
+```{r warning=FALSE}
+addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trial, useNA = "always"))
+
+vir.clear10 <- glmmTMB(vir_clear_10 ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 
+                  + age_cent_trial_2
+                  + age_cent_trial_3
+                  + age_cent_trial_4
+                  + age_cent_trial_5
+                  + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot, family = binomial)
+tab_model(vir.clear10)
+```
+
+# (ix) Viral clearance up to day 15
+```{r warning=FALSE}
+addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trial, useNA = "always"))
+
+vir.clear15 <- glmmTMB(vir_clear_15 ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 
+                  + age_cent_trial_2
+                  + age_cent_trial_3
+                  + age_cent_trial_4
+                  + age_cent_trial_5
+                  + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot, family = binomial)
+tab_model(vir.clear15)
+```
+
+# (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
+```{r warning=FALSE}
+addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trial, useNA = "always"))
+
+ae28 <- glmmTMB(ae_28 ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 
+                  + age_cent_trial_2
+                  + age_cent_trial_3
+                  + age_cent_trial_4
+                  + age_cent_trial_5
+                  + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot, family = binomial)
+tab_model(ae28)
+```
+
+# (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
+```{r warning=FALSE}
+addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt, useNA = "always"))
+addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trial, useNA = "always"))
+
+ae28sev <- glmmTMB(ae_28_sev ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 
+                  + age_cent_trial_2
+                  + age_cent_trial_3
+                  + age_cent_trial_4
+                  + age_cent_trial_5
+                  + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot, family = poisson) # double-check !
+tab_model(ae28sev)
+```
+
 
