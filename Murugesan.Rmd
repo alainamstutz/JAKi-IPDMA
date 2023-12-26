@@ -809,6 +809,7 @@ Discussion points
 # interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
 # 
 # # Add the trial name and JAKi
+
 # interaction_df$trial <- "Murugesan"
 # interaction_df$JAKi <- "Tofacitinib"
 # 
