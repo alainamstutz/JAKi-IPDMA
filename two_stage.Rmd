@@ -30,6 +30,12 @@ library(forestplot)
 
 ```
 
+# Load entire dataset (from one-stage.Rmd) for descriptive purpose - make sure to run one-stage before
+```{r echo=TRUE}
+df_tot <- readRDS("df_tot.RData") # without Murugesan
+df_tot_Muru <- readRDS("df_tot_Muru.RData") # with Murugesan
+```
+
 # Load treatment effect estimates from all trials
 ```{r echo=TRUE}
 df_barisolidact <- readRDS("trt_effects_barisolidact.RData")
@@ -39,6 +45,7 @@ df_tofacov <- readRDS("trt_effects_tofacov.RData")
 df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 # df_murugesan <- readRDS("trt_effects_murugesan.RData")
+
 
 ```
 
@@ -522,7 +529,7 @@ forest.meta(ttdischarge.cens,
 ```
 Discussion points
 
-# (vi.iii) Time to SUSTAINED discharge or reaching discharge criteria up to day 28. Death = Censored
+# (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
 ```{r warning=FALSE, fig.width=12, fig.height=4}
 str(df_ttdischarge_sus)
 ttdischarge.sus <- metagen(TE = log(hazard_odds_ratio),
@@ -732,9 +739,182 @@ forest.meta(ae28sev,
 ```
 Discussion points
 
+# Collect all treatment effect estimates across endpoints
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+result_df <- data.frame(
+  variable = character(),
+  hazard_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric(),
+  n_intervention = numeric(),
+  n_intervention_tot = numeric(),
+  n_control = numeric(),
+  n_control_tot = numeric()
+)
+
+# Function to extract treatment results from different model types
+extract_trt_results <- function(model, variable_name, n_int, n_int_tot, n_cont, n_cont_tot) {
+  if (inherits(model, "metagen")) {
+    hazard_odds_ratio <- exp(summary(model)$TE.random)
+    ci.lower <- exp(summary(model)$lower.random)
+    ci.upper <- exp(summary(model)$upper.random)
+    se <- summary(model)$seTE.random
+    p_value <- summary(model)$pval.random
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci.lower,
+    ci_upper = ci.upper,
+    standard_error = se,
+    p_value = p_value,
+    n_intervention = n_int,
+    n_intervention_tot = n_int_tot,
+    n_control = n_cont,
+    n_control_tot = n_cont_tot
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_trt_results(mort28, "death at day 28",
+                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[3,1])
+result_list[[2]] <- extract_trt_results(mort60, "death at day 60",
+                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[3,1])
+result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
+                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[3,1])
+result_list[[4]] <- extract_trt_results(new.mvd28, "new MV or death within 28d",
+                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[3,1])
+result_list[[5]] <- extract_trt_results(new.mv28, "new MV within 28d",
+                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[3,1])
+result_list[[6]] <- extract_trt_results(clin28, "clinical status at day 28",
+                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,2], 
+                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,2],
+                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,1],
+                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,1])
+result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+result_list[[8]] <- extract_trt_results(ttdischarge.hypo, "discharge within 28 days, death=hypo.event",
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+result_list[[9]] <- extract_trt_results(ttdischarge.cens, "discharge within 28 days, death=censored",
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[3,1])
+result_list[[11]] <- extract_trt_results(vir.clear5, "viral clearance until day 5",
+                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[3,1])
+result_list[[12]] <- extract_trt_results(vir.clear10, "viral clearance until day 10",
+                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[3,1])
+result_list[[13]] <- extract_trt_results(vir.clear15, "viral clearance until day 15",
+                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[3,1])
+result_list[[14]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days",
+                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[3,1])
+result_list[[15]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
+                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,2], 
+                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,2],
+                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,1],
+                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,1])
+
+# Filter out NULL results and bind the results into a single data frame
+result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the analysis approach
+result_df$approach <- "two-stage"
+
+# Nicely formatted table
+kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+saveRDS(result_df, file = "overall_results_two-stage.RData")
+```
+Discussion points
+
+# Plot all treatment effect estimates across endpoints
+```{r}
+# Order
+result_df$variable <- factor(result_df$variable, 
+                             levels = c("AEs grade 3,4 within 28 days",
+                                        "Any AE grade 3,4 within 28 days",
+                                        "viral clearance until day 15",
+                                        "viral clearance until day 10",
+                                        "viral clearance until day 5",
+                                        "sustained discharge within 28 days",
+                                        "discharge within 28 days, death=censored",
+                                        "discharge within 28 days, death=hypo.event",
+                                        "discharge within 28 days, death=comp.event",
+                                        "clinical status at day 28",
+                                        "new MV within 28d",
+                                        "new MV or death within 28d",
+                                        "death within fup",
+                                        "death at day 60",
+                                        "death at day 28"))
+
+# Plotting
+result_df$truncated <- ifelse(result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
+ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
+  geom_segment(data = subset(result_df, truncated), 
+               aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
+               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
+  labs(title = "All endpoint results - two-stage",
+       x = "Endpoints",
+       y = "aOR/aHR/aIRR") +
+  theme_minimal() +
+  coord_flip()
+
+```
 
 
-
+# TREATMENT-COVARIATE INTERACTIONS
 # Load treatment-covariate interaction estimates from all trials (on primary endpoint)
 ```{r echo=TRUE}
 df_int_barisolidact <- readRDS("int_effects_barisolidact.RData")
@@ -745,15 +925,15 @@ df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 # df_int_murugesan <- readRDS("int_effects_murugesan.RData")
 
+
 ```
 
-# Load subgroup effects from all trials (on primary endpoint) ((and entire dataset (from one-stage.Rmd) - make sure to run one-stage before - needed))
+# Load subgroup effects from all trials (on primary endpoint)
 ```{r echo=TRUE}
-df_tot <- readRDS("df_tot.RData")
-df_tot_Muru <- readRDS("df_tot_Muru.RData")
-
 df_subgroup_actt2 <- readRDS("subgroup_effects_ACTT2.RData")
 df_subgroup_covbarrier <- readRDS("subgroup_effects_cov-barrier.RData")
+
+
 ```
 
 # Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint)

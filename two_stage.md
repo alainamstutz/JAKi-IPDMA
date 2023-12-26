@@ -30,6 +30,13 @@ library(meta)
 library(forestplot)
 ```
 
+# Load entire dataset (from one-stage.Rmd) for descriptive purpose - make sure to run one-stage before
+
+```r
+df_tot <- readRDS("df_tot.RData") # without Murugesan
+df_tot_Muru <- readRDS("df_tot_Muru.RData") # with Murugesan
+```
+
 # Load treatment effect estimates from all trials
 
 ```r
@@ -283,7 +290,7 @@ forest.meta(mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ```r
 # Open a pdf file
@@ -383,7 +390,7 @@ forest.meta(mort60,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 Discussion points
 
 # (iii) Time to death within max. follow-up time
@@ -470,7 +477,7 @@ forest.meta(ttdeath,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 Discussion points
 
 # (iv) New mechanical ventilation or death within 28 days
@@ -559,7 +566,7 @@ forest.meta(new.mvd28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 Discussion points
 
 # (iv.i) New mechanical ventilation among survivors within 28 days
@@ -647,7 +654,7 @@ forest.meta(new.mv28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 Discussion points
 
 # (v) Clinical status at day 28
@@ -736,7 +743,7 @@ forest.meta(clin28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
@@ -825,7 +832,7 @@ forest.meta(ttdischarge.comp,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 Discussion points
 
 # (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
@@ -914,7 +921,7 @@ forest.meta(ttdischarge.hypo,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 Discussion points
 
 # (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -1003,10 +1010,10 @@ forest.meta(ttdischarge.cens,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 Discussion points
 
-# (vi.iii) Time to SUSTAINED discharge or reaching discharge criteria up to day 28. Death = Censored
+# (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
 
 ```r
 str(df_ttdischarge_sus)
@@ -1092,7 +1099,7 @@ forest.meta(ttdischarge.sus,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 Discussion points
 
 # (vii) Viral clearance up to day 5
@@ -1175,7 +1182,7 @@ forest.meta(vir.clear5,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 Discussion points
 
 # (viii) Viral clearance up to day 10
@@ -1258,7 +1265,7 @@ forest.meta(vir.clear10,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 Discussion points
 
 # (ix) Viral clearance up to day 15
@@ -1341,7 +1348,7 @@ forest.meta(vir.clear15,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 Discussion points
 
 # (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
@@ -1428,7 +1435,7 @@ forest.meta(ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 Discussion points
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
@@ -1515,12 +1522,218 @@ forest.meta(ae28sev,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 Discussion points
 
+# Collect all treatment effect estimates across endpoints
+
+```r
+# Empty data frame to store the results
+result_df <- data.frame(
+  variable = character(),
+  hazard_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric(),
+  n_intervention = numeric(),
+  n_intervention_tot = numeric(),
+  n_control = numeric(),
+  n_control_tot = numeric()
+)
+
+# Function to extract treatment results from different model types
+extract_trt_results <- function(model, variable_name, n_int, n_int_tot, n_cont, n_cont_tot) {
+  if (inherits(model, "metagen")) {
+    hazard_odds_ratio <- exp(summary(model)$TE.random)
+    ci.lower <- exp(summary(model)$lower.random)
+    ci.upper <- exp(summary(model)$upper.random)
+    se <- summary(model)$seTE.random
+    p_value <- summary(model)$pval.random
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci.lower,
+    ci_upper = ci.upper,
+    standard_error = se,
+    p_value = p_value,
+    n_intervention = n_int,
+    n_intervention_tot = n_int_tot,
+    n_control = n_cont,
+    n_control_tot = n_cont_tot
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_trt_results(mort28, "death at day 28",
+                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[3,1])
+result_list[[2]] <- extract_trt_results(mort60, "death at day 60",
+                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[3,1])
+result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
+                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[3,1])
+result_list[[4]] <- extract_trt_results(new.mvd28, "new MV or death within 28d",
+                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[3,1])
+result_list[[5]] <- extract_trt_results(new.mv28, "new MV within 28d",
+                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[3,1])
+result_list[[6]] <- extract_trt_results(clin28, "clinical status at day 28",
+                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,2], 
+                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,2],
+                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,1],
+                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,1])
+result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+result_list[[8]] <- extract_trt_results(ttdischarge.hypo, "discharge within 28 days, death=hypo.event",
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+result_list[[9]] <- extract_trt_results(ttdischarge.cens, "discharge within 28 days, death=censored",
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[3,1])
+result_list[[11]] <- extract_trt_results(vir.clear5, "viral clearance until day 5",
+                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[3,1])
+result_list[[12]] <- extract_trt_results(vir.clear10, "viral clearance until day 10",
+                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[3,1])
+result_list[[13]] <- extract_trt_results(vir.clear15, "viral clearance until day 15",
+                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[3,1])
+result_list[[14]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days",
+                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[2,2], 
+                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[3,2],
+                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[2,1],
+                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[3,1])
+result_list[[15]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
+                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,2], 
+                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,2],
+                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,1],
+                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,1])
+
+# Filter out NULL results and bind the results into a single data frame
+result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the analysis approach
+result_df$approach <- "two-stage"
+
+# Nicely formatted table
+kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
 
 
 
+|variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
+|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
+|death at day 28                            |         0.5795133| 0.4113851|  0.8163535|      0.1333001| 0.0094212|            125|               1684|       193|          1687|two-stage |
+|death at day 60                            |         0.6429778| 0.4646233|  0.8897972|      0.1263851| 0.0173876|            152|               1684|       214|          1687|two-stage |
+|death within fup                           |         0.6560949| 0.4668262|  0.9221001|      0.1069455| 0.0291212|            153|               1684|       214|          1687|two-stage |
+|new MV or death within 28d                 |         0.7618224| 0.5880279|  0.9869827|      0.1007317| 0.0427504|            268|               1684|       333|          1687|two-stage |
+|new MV within 28d                          |         0.9306486| 0.4684692|  1.8488021|      0.2472267| 0.7857166|            143|               1470|       140|          1413|two-stage |
+|clinical status at day 28                  |         0.8089203| 0.6349042|  1.0306312|      0.0942301| 0.0742403|           1684|               1684|      1687|          1687|two-stage |
+|discharge within 28 days, death=comp.event |         1.1337880| 1.0104104|  1.2722308|      0.0448177| 0.0379191|           1350|               1684|      1305|          1687|two-stage |
+|discharge within 28 days, death=hypo.event |         1.1568680| 1.0325273|  1.2961823|      0.0442339| 0.0216126|           1350|               1684|      1305|          1687|two-stage |
+|discharge within 28 days, death=censored   |         1.1325994| 0.9565386|  1.3410660|      0.0657242| 0.1166822|           1350|               1684|      1305|          1687|two-stage |
+|sustained discharge within 28 days         |         1.1275720| 0.9435417|  1.3474959|      0.0693156| 0.1437881|           1342|               1684|      1303|          1687|two-stage |
+|viral clearance until day 5                |         0.9819506| 0.0836518| 11.5266782|      0.1938327| 0.9403527|            136|                554|       138|           545|two-stage |
+|viral clearance until day 10               |         1.0008751| 0.2153709|  4.6512825|      0.1209069| 0.9953944|            236|                604|       228|           583|two-stage |
+|viral clearance until day 15               |         0.9751177| 0.2214836|  4.2931147|      0.1166524| 0.8645700|            292|                618|       291|           606|two-stage |
+|Any AE grade 3,4 within 28 days            |         1.1158432| 0.6462771|  1.9265822|      0.1716092| 0.5684263|             89|                943|        75|           896|two-stage |
+|AEs grade 3,4 within 28 days               |         0.9174720| 0.3803375|  2.2131788|      0.2766938| 0.7759547|            943|                943|       896|           896|two-stage |
+
+```r
+# Save
+saveRDS(result_df, file = "overall_results_two-stage.RData")
+```
+Discussion points
+
+# Plot all treatment effect estimates across endpoints
+
+```r
+# Order
+result_df$variable <- factor(result_df$variable, 
+                             levels = c("AEs grade 3,4 within 28 days",
+                                        "Any AE grade 3,4 within 28 days",
+                                        "viral clearance until day 15",
+                                        "viral clearance until day 10",
+                                        "viral clearance until day 5",
+                                        "sustained discharge within 28 days",
+                                        "discharge within 28 days, death=censored",
+                                        "discharge within 28 days, death=hypo.event",
+                                        "discharge within 28 days, death=comp.event",
+                                        "clinical status at day 28",
+                                        "new MV within 28d",
+                                        "new MV or death within 28d",
+                                        "death within fup",
+                                        "death at day 60",
+                                        "death at day 28"))
+
+# Plotting
+result_df$truncated <- ifelse(result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
+ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
+  geom_segment(data = subset(result_df, truncated), 
+               aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
+               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
+  labs(title = "All endpoint results - two-stage",
+       x = "Endpoints",
+       y = "aOR/aHR/aIRR") +
+  theme_minimal() +
+  coord_flip()
+```
+
+```
+## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+
+
+# TREATMENT-COVARIATE INTERACTIONS
 # Load treatment-covariate interaction estimates from all trials (on primary endpoint)
 
 ```r
@@ -1533,12 +1746,9 @@ df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 # df_int_murugesan <- readRDS("int_effects_murugesan.RData")
 ```
 
-# Load subgroup effects and entire dataset (from one-stage.Rmd) for forestplots - make sure to run one-stage before!
+# Load subgroup effects from all trials (on primary endpoint)
 
 ```r
-df_tot <- readRDS("df_tot.RData")
-df_tot_Muru <- readRDS("df_tot_Muru.RData")
-
 df_subgroup_actt2 <- readRDS("subgroup_effects_ACTT2.RData")
 df_subgroup_covbarrier <- readRDS("subgroup_effects_cov-barrier.RData")
 ```
@@ -1752,7 +1962,7 @@ forest.meta(rs.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 Discussion points
 
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
@@ -1836,7 +2046,7 @@ forest.meta(vb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -1883,7 +2093,7 @@ vb_mort28_fp %>%
              )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -1974,7 +2184,7 @@ forest.meta(age.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
 Discussion points
 
 # Interaction: Comorbidity on primary endpoint
@@ -2061,7 +2271,7 @@ forest.meta(comorb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 Discussion points
 
 # Interaction: Comedication on primary endpoint
@@ -2147,7 +2357,7 @@ forest.meta(comed.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
 Discussion points
 
 # Interaction: Symptom onset on primary endpoint
@@ -2235,7 +2445,7 @@ forest.meta(symp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
 Discussion points
 
 # Interaction: CRP on primary endpoint
@@ -2322,7 +2532,7 @@ forest.meta(crp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
 Discussion points
 
 # Interactions: Multivariate IPD Meta-Analysis for Summarising Non-linear Interactions
