@@ -2927,7 +2927,7 @@ result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth")
 # result_list[[x]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
-result_list[[2]] <- extract_interaction(mort.28.age, "age_firth")
+result_list[[2]] <- extract_interaction(mort.28.age.firth, "age_firth")
 result_list[[3]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
 result_list[[4]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
 result_list[[5]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth") # still to come -> firth
@@ -2951,7 +2951,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |                          |variable                  | log_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value|trial   |JAKi        |
 |:-------------------------|:-------------------------|--------------:|---------:|-------------:|--------------:|---------:|:-------|:-----------|
 |trt:clinstatus_baseline_n |respiratory support_firth |      0.2536829| 0.0005021|  8.068519e+01|      2.4394313| 0.5912665|COVINIB |Baricitinib |
-|trt:age                   |age_firth                 |      0.8841548| 0.0000000|  2.013236e+23|    626.6708548| 0.9998432|COVINIB |Baricitinib |
+|trt:age                   |age_firth                 |      0.8693817| 0.5509537|  1.544251e+00|      0.1064336| 0.4222890|COVINIB |Baricitinib |
 |trt:comorb_cat            |comorbidity_firth         |      1.4993758| 0.0242156|  6.641843e+03|      1.2605593| 0.7890303|COVINIB |Baricitinib |
 |trt:comed_cat             |comedication_firth        |      1.3612128| 0.0739669|  3.144253e+01|      1.2146440| 0.8126010|COVINIB |Baricitinib |
 |trt:vacc                  |vaccination on AEs_firth  |      1.0000000| 0.0000000| 1.774721e+204|      2.3995390| 0.9999999|COVINIB |Baricitinib |
