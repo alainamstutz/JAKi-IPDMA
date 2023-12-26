@@ -520,6 +520,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 4. Prognostic factor 'clinical status': As a random parameter by trial. Not all trials have all levels, hard to estimate a stratified clinstatus_baseline by trial => Random effect as sensible alternative (see guidance above)
 5. Trial-specific centering of the treatment variable and age (to improve estimation of the between-study variance). 
 
+# (i) Mortality at day 28
 ```{r}
 mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
                   + trial_f # stratified intercept
@@ -1128,4 +1129,276 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 
 
 # TREATMENT-COVARIATE INTERACTIONS
+
+# Interaction: Respiratory support (proxy for disease severity) on primary endpoint
+```{r}
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_rs_cent = trt*clinstatus_baseline_centered)
+# df_tot <- df_tot %>% 
+#   mutate(ws_interaction_rs = trt*clinstatus_baseline_n)
+
+rs.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_rs_cent # interaction term (common effect)
+                  , data = df_tot, family = binomial)
+summary(rs.mort28)
+
+```
+Discussion points:
+1. See notes and https://www.ipdma.co.uk/treatment-covariate-interactions for further explanation
+2. Common or random interaction effect?
+
+# Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
+```{r}
+# calculate the proportion ventilated by trial
+# table(df_tot$vbaseline, df_tot$trial)
+proportions <- df_tot %>%
+  group_by(trial) %>%
+  summarize(proportion_ventilated = sum(vbaseline, na.rm = TRUE) / sum(!is.na(vbaseline)))
+df_tot <- left_join(df_tot, proportions[, c("proportion_ventilated", "trial")], by = join_by(trial == trial))
+# create the centered vbaseline variable
+df_tot$vbaseline_centered_n <- df_tot$vbaseline - df_tot$proportion_ventilated
+
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_vb_cent = trt*vbaseline_centered_n)
+# df_tot <- df_tot %>% 
+#   mutate(ws_interaction_vb = trt*vbaseline)
+
+vb.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_vb_cent # interaction term (common effect)
+                  , data = df_tot, family = binomial)
+summary(vb.mort28)
+
+```
+Discussion points
+
+# Interaction: Age on primary endpoint
+```{r}
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_age_cent = trt*age_centered)
+
+age.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_age_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+summary(age.mort28)
+
+```
+
+# Interaction: Comorbidity on primary endpoint
+```{r}
+# Calculate the mean values of (continuous) comorb variable
+# class(df_tot$comorb_cat)
+comorb_means <- df_tot %>%
+  group_by(trial) %>%
+  summarize(mean_comorb = mean(comorb_cat, na.rm = TRUE))
+# Merge back
+df_tot <- df_tot %>% left_join(comorb_means, by = "trial")
+# Center comorb variables
+df_tot <- df_tot %>%
+  mutate(comorb_centered = comorb_cat - mean_comorb)
+
+# interaction term
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_comorb_cent = trt*comorb_centered)
+
+comorb.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_comorb_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+summary(comorb.mort28)
+# (1) common treatment effect, random trial intercept, common prognostic factors, ML
+# comorb.mort28.trad <- glmer(mort_28 ~ (1|trial) + trt*comorb_centered
+#                               + age + clinstatus_baseline_n
+#                               , data = df_tot, family = binomial)
+# tab_model(comorb.mort28.trad) # glmmTMB & no centering yields ~the same, 
+```
+
+# Interaction: Comedication on primary endpoint
+```{r}
+# Calculate the mean values of (continuous) comed variable
+# class(df_tot$comed_cat)
+comed_means <- df_tot %>%
+  group_by(trial) %>%
+  summarize(mean_comed = mean(comed_cat, na.rm = TRUE))
+# Merge back
+df_tot <- df_tot %>% left_join(comed_means, by = "trial")
+# Center comed variables
+df_tot <- df_tot %>%
+  mutate(comed_centered = comed_cat - mean_comed)
+
+# interaction term
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_comed_cent = trt*comed_centered)
+
+comed.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_comed_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+summary(comed.mort28)
+```
+
+# Interaction: Vaccination on AEs
+```{r}
+# calculate the proportion vaccinated by trial
+table(df_tot$vacc, df_tot$trial)
+proportions <- df_tot %>%
+  group_by(trial) %>%
+  summarize(proportion_vacc = sum(vacc, na.rm = TRUE) / sum(!is.na(vacc)))
+df_tot <- left_join(df_tot, proportions[, c("proportion_vacc", "trial")], by = join_by(trial == trial))
+# create the centered vacc variable
+df_tot$vacc_centered_n <- df_tot$vacc - df_tot$proportion_vacc
+
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_vacc_cent = trt*vacc_centered_n)
+
+vacc.ae28 <- glmmTMB(ae_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_vacc_cent # interaction term (common effect)
+                  , data = df_tot, family = binomial)
+summary(vacc.ae28)
+
+```
+
+# Interaction: Symptom onset on primary endpoint
+```{r}
+# Calculate the mean values of (continuous) symp variable
+# class(df_tot$sympdur)
+sympdur_means <- df_tot %>%
+  group_by(trial) %>%
+  summarize(mean_sympdur = mean(sympdur, na.rm = TRUE))
+# Merge back
+df_tot <- df_tot %>% left_join(sympdur_means, by = "trial")
+# Center comed variables
+df_tot <- df_tot %>%
+  mutate(sympdur_centered = sympdur - mean_sympdur)
+
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_sympdur_cent = trt*sympdur_centered)
+
+symp.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_sympdur_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+summary(symp.mort28)
+
+```
+
+# Interaction: CRP on primary endpoint
+```{r}
+# Calculate the mean values of (continuous) symp variable
+# class(df_tot$crp)
+crp_means <- df_tot %>%
+  group_by(trial) %>%
+  summarize(mean_crp = mean(crp, na.rm = TRUE))
+# Merge back
+df_tot <- df_tot %>% left_join(crp_means, by = "trial")
+# Center comed variables
+df_tot <- df_tot %>%
+  mutate(crp_centered = crp - mean_crp)
+
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_crp_cent = trt*crp_centered)
+
+crp.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_crp_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+summary(crp.mort28)
+
+```
+
+# Collect all interaction effect estimates
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+interaction_df <- data.frame(
+  variable = character(),
+  log_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric())
+
+# Extract and format results for the interaction term
+extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "glmmTMB")) {
+    trt_coef <- fixef(model)$cond[grep("^ws_interaction_", names(fixef(model)$cond))]
+    log_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)[grep("^ws_interaction_", rownames(confint(model))), ])
+    se <- summary(model)$coefficients$cond[grep("^ws_interaction_", rownames(summary(model)$coefficients$cond)), "Std. Error"]
+    p_value <- summary(model)$coefficients$cond[grep("^ws_interaction_", rownames(summary(model)$coefficients$cond)), "Pr(>|z|)"]
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    log_odds_ratio = round(log_odds_ratio,3),
+    ci_lower = round(ci[1],3),
+    ci_upper = round(ci[2],3),
+    standard_error = round(se,3),
+    p_value = round(p_value,3)
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_interaction(rs.mort28, "respiratory support") 
+result_list[[2]] <- extract_interaction(vb.mort28, "ventilation") 
+result_list[[3]] <- extract_interaction(age.mort28, "age")
+result_list[[4]] <- extract_interaction(comorb.mort28, "comorbidity") 
+result_list[[5]] <- extract_interaction(comed.mort28, "comedication")
+result_list[[6]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
+result_list[[7]] <- extract_interaction(symp.mort28, "symptom duration") 
+result_list[[8]] <- extract_interaction(crp.mort28, "crp") 
+
+# Filter out NULL results and bind the results into a single data frame
+interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the analysis approach
+interaction_df$approach <- "one-stage"
+
+# Nicely formatted table
+kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+saveRDS(interaction_df, file = "int_effects_one-stage.RData")
+```
+
 

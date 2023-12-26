@@ -670,6 +670,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 4. Prognostic factor 'clinical status': As a random parameter by trial. Not all trials have all levels, hard to estimate a stratified clinstatus_baseline by trial => Random effect as sensible alternative (see guidance above)
 5. Trial-specific centering of the treatment variable and age (to improve estimation of the between-study variance). 
 
+# (i) Mortality at day 28
 
 ```r
 mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
@@ -2110,14 +2111,14 @@ tab_model(ttdischarge.hypo)
 ## Censoring the deaths => Cause-specific hazards, i.e., represents the rate per unit of time of the event among those not having failed from other events. Instantaneous rate of occurrence of the given type of event in individuals who are currently event‐free. But by simply censoring the competing event, we bias in favour of comparator (if treatment leads to less deaths)
 
 # Cox proportional hazards model adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
-ttdischarge <- coxme(Surv(discharge_time, discharge_reached) ~ trt_centered_n
+ttdischarge.cens <- coxme(Surv(discharge_time, discharge_reached) ~ trt_centered_n
                   + trial_f
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
-tab_model(ttdischarge)
+tab_model(ttdischarge.cens)
 ```
 
 <table style="border-collapse:collapse; border:none;">
@@ -3289,7 +3290,7 @@ result_list[[8]] <- extract_trt_results(ttdischarge.hypo, "discharge within 28 d
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
-result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days, death=censored",
+result_list[[9]] <- extract_trt_results(ttdischarge.cens, "discharge within 28 days, death=censored",
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
                                         addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
@@ -3406,3 +3407,645 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 ```
 
 ![](one-stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+
+
+# TREATMENT-COVARIATE INTERACTIONS
+
+# Interaction: Respiratory support (proxy for disease severity) on primary endpoint
+
+```r
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_rs_cent = trt*clinstatus_baseline_centered)
+# df_tot <- df_tot %>% 
+#   mutate(ws_interaction_rs = trt*clinstatus_baseline_n)
+
+rs.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_rs_cent # interaction term (common effect)
+                  , data = df_tot, family = binomial)
+summary(rs.mort28)
+```
+
+```
+##  Family: binomial  ( logit )
+## Formula:          
+## mort_28 ~ trt_centered_n + trial_f + (trt_centered_n - 1 | trial_f) -  
+##     1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 +  
+##     age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 +  
+##     (clinstatus_baseline_n - 1 | trial_f) + ws_interaction_rs_cent
+## Data: df_tot
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##   1673.1   1770.6   -820.6   1641.1     3248 
+## 
+## Random effects:
+## 
+## Conditional model:
+##  Groups    Name                  Variance  Std.Dev. 
+##  trial_f   trt_centered_n        3.912e-09 6.254e-05
+##  trial_f.1 clinstatus_baseline_n 5.488e-01 7.408e-01
+## Number of obs: 3264, groups:  trial_f, 6
+## 
+## Conditional model:
+##                         Estimate Std. Error z value Pr(>|z|)    
+## trt_centered_n         -0.611350   0.154727  -3.951 7.78e-05 ***
+## trial_fACTT2           -7.121453   0.723285  -9.846  < 2e-16 ***
+## trial_fBari-Solidact   -5.059731   1.821204  -2.778  0.00547 ** 
+## trial_fCOV-BARRIER     -6.487912   0.494457 -13.121  < 2e-16 ***
+## trial_fCOVINIB         -5.272646   2.297679  -2.295  0.02175 *  
+## trial_fGhazaeian       -2.999933   2.171907  -1.381  0.16720    
+## trial_fTOFACOV         -5.719477   2.477093  -2.309  0.02095 *  
+## age_cent_trial_1        0.088850   0.018496   4.804 1.56e-06 ***
+## age_cent_trial_2        0.052720   0.010419   5.060 4.19e-07 ***
+## age_cent_trial_3        0.027577   0.025180   1.095  0.27344    
+## age_cent_trial_4        0.069665   0.095600   0.729  0.46618    
+## age_cent_trial_5        0.121685   0.090544   1.344  0.17897    
+## age_cent_trial_6        0.063976   0.006895   9.278  < 2e-16 ***
+## ws_interaction_rs_cent  0.133642   0.177707   0.752  0.45203    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+Discussion points:
+1. See notes and https://www.ipdma.co.uk/treatment-covariate-interactions for further explanation
+2. Common or random interaction effect?
+
+# Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
+
+```r
+# calculate the proportion ventilated by trial
+# table(df_tot$vbaseline, df_tot$trial)
+proportions <- df_tot %>%
+  group_by(trial) %>%
+  summarize(proportion_ventilated = sum(vbaseline, na.rm = TRUE) / sum(!is.na(vbaseline)))
+df_tot <- left_join(df_tot, proportions[, c("proportion_ventilated", "trial")], by = join_by(trial == trial))
+# create the centered vbaseline variable
+df_tot$vbaseline_centered_n <- df_tot$vbaseline - df_tot$proportion_ventilated
+
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_vb_cent = trt*vbaseline_centered_n)
+# df_tot <- df_tot %>% 
+#   mutate(ws_interaction_vb = trt*vbaseline)
+
+vb.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_vb_cent # interaction term (common effect)
+                  , data = df_tot, family = binomial)
+summary(vb.mort28)
+```
+
+```
+##  Family: binomial  ( logit )
+## Formula:          
+## mort_28 ~ trt_centered_n + trial_f + (trt_centered_n - 1 | trial_f) -  
+##     1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 +  
+##     age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 +  
+##     (clinstatus_baseline_n - 1 | trial_f) + ws_interaction_vb_cent
+## Data: df_tot
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##   1673.6   1771.1   -820.8   1641.6     3248 
+## 
+## Random effects:
+## 
+## Conditional model:
+##  Groups    Name                  Variance  Std.Dev. 
+##  trial_f   trt_centered_n        6.150e-09 7.842e-05
+##  trial_f.1 clinstatus_baseline_n 5.978e-01 7.732e-01
+## Number of obs: 3264, groups:  trial_f, 6
+## 
+## Conditional model:
+##                         Estimate Std. Error z value Pr(>|z|)    
+## trt_centered_n         -0.565845   0.148091  -3.821 0.000133 ***
+## trial_fACTT2           -7.257087   0.707274 -10.261  < 2e-16 ***
+## trial_fBari-Solidact   -5.279366   1.819518  -2.902 0.003714 ** 
+## trial_fCOV-BARRIER     -6.636240   0.480581 -13.809  < 2e-16 ***
+## trial_fCOVINIB         -5.310395   2.358616  -2.251 0.024355 *  
+## trial_fGhazaeian       -3.011435   2.258004  -1.334 0.182312    
+## trial_fTOFACOV         -5.733984   2.544836  -2.253 0.024248 *  
+## age_cent_trial_1        0.088790   0.018487   4.803 1.56e-06 ***
+## age_cent_trial_2        0.052389   0.010413   5.031 4.87e-07 ***
+## age_cent_trial_3        0.027558   0.025162   1.095 0.273404    
+## age_cent_trial_4        0.069818   0.095620   0.730 0.465290    
+## age_cent_trial_5        0.122131   0.090740   1.346 0.178323    
+## age_cent_trial_6        0.063869   0.006894   9.264  < 2e-16 ***
+## ws_interaction_vb_cent  0.052929   0.270774   0.195 0.845023    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+Discussion points
+
+# Interaction: Age on primary endpoint
+
+```r
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_age_cent = trt*age_centered)
+
+age.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_age_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+summary(age.mort28)
+```
+
+```
+##  Family: binomial  ( logit )
+## Formula:          
+## mort_28 ~ trt_centered_n + trial_f + (trt_centered_n - 1 | trial_f) -  
+##     1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 +  
+##     age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 +  
+##     (clinstatus_baseline_n - 1 | trial_f) + ws_interaction_age_cent
+## Data: df_tot
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##   1671.5   1768.9   -819.7   1639.5     3248 
+## 
+## Random effects:
+## 
+## Conditional model:
+##  Groups    Name                  Variance  Std.Dev. 
+##  trial_f   trt_centered_n        1.117e-08 0.0001057
+##  trial_f.1 clinstatus_baseline_n 6.138e-01 0.7834759
+## Number of obs: 3264, groups:  trial_f, 6
+## 
+## Conditional model:
+##                          Estimate Std. Error z value Pr(>|z|)    
+## trt_centered_n          -0.682728   0.161462  -4.228 2.35e-05 ***
+## trial_fACTT2            -7.348288   0.691714 -10.623  < 2e-16 ***
+## trial_fBari-Solidact    -5.292401   1.821618  -2.905  0.00367 ** 
+## trial_fCOV-BARRIER      -6.713339   0.428180 -15.679  < 2e-16 ***
+## trial_fCOVINIB          -5.344729   2.381620  -2.244  0.02482 *  
+## trial_fGhazaeian        -3.045377   2.283711  -1.334  0.18236    
+## trial_fTOFACOV          -5.763917   2.566558  -2.246  0.02472 *  
+## age_cent_trial_1         0.081791   0.018924   4.322 1.55e-05 ***
+## age_cent_trial_2         0.046552   0.011067   4.207 2.59e-05 ***
+## age_cent_trial_3         0.021826   0.025417   0.859  0.39049    
+## age_cent_trial_4         0.063981   0.095124   0.673  0.50120    
+## age_cent_trial_5         0.117441   0.091232   1.287  0.19799    
+## age_cent_trial_6         0.057168   0.008153   7.012 2.35e-12 ***
+## ws_interaction_age_cent  0.015968   0.010827   1.475  0.14025    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+# Interaction: Comorbidity on primary endpoint
+
+```r
+# Calculate the mean values of (continuous) comorb variable
+# class(df_tot$comorb_cat)
+comorb_means <- df_tot %>%
+  group_by(trial) %>%
+  summarize(mean_comorb = mean(comorb_cat, na.rm = TRUE))
+# Merge back
+df_tot <- df_tot %>% left_join(comorb_means, by = "trial")
+# Center comorb variables
+df_tot <- df_tot %>%
+  mutate(comorb_centered = comorb_cat - mean_comorb)
+
+# interaction term
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_comorb_cent = trt*comorb_centered)
+
+comorb.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_comorb_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+summary(comorb.mort28)
+```
+
+```
+##  Family: binomial  ( logit )
+## Formula:          
+## mort_28 ~ trt_centered_n + trial_f + (trt_centered_n - 1 | trial_f) -  
+##     1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 +  
+##     age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 +  
+##     (clinstatus_baseline_n - 1 | trial_f) + ws_interaction_comorb_cent
+## Data: df_tot
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##   1665.0   1762.3   -816.5   1633.0     3230 
+## 
+## Random effects:
+## 
+## Conditional model:
+##  Groups    Name                  Variance  Std.Dev. 
+##  trial_f   trt_centered_n        4.409e-09 0.0000664
+##  trial_f.1 clinstatus_baseline_n 6.030e-01 0.7764991
+## Number of obs: 3246, groups:  trial_f, 6
+## 
+## Conditional model:
+##                             Estimate Std. Error z value Pr(>|z|)    
+## trt_centered_n             -0.633550   0.140200  -4.519 6.22e-06 ***
+## trial_fACTT2               -7.327605   0.693497 -10.566  < 2e-16 ***
+## trial_fBari-Solidact       -5.218786   1.817544  -2.871  0.00409 ** 
+## trial_fCOV-BARRIER         -6.673291   0.427186 -15.621  < 2e-16 ***
+## trial_fCOVINIB             -5.350736   2.361993  -2.265  0.02349 *  
+## trial_fGhazaeian           -3.043488   2.266971  -1.343  0.17942    
+## trial_fTOFACOV             -5.759373   2.560205  -2.250  0.02448 *  
+## age_cent_trial_1            0.084516   0.018565   4.552 5.30e-06 ***
+## age_cent_trial_2            0.051943   0.010552   4.923 8.54e-07 ***
+## age_cent_trial_3            0.025168   0.024901   1.011  0.31215    
+## age_cent_trial_4            0.065537   0.095601   0.686  0.49301    
+## age_cent_trial_5            0.121402   0.091181   1.331  0.18304    
+## age_cent_trial_6            0.062563   0.006945   9.008  < 2e-16 ***
+## ws_interaction_comorb_cent  0.324072   0.141922   2.283  0.02240 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+# (1) common treatment effect, random trial intercept, common prognostic factors, ML
+# comorb.mort28.trad <- glmer(mort_28 ~ (1|trial) + trt*comorb_centered
+#                               + age + clinstatus_baseline_n
+#                               , data = df_tot, family = binomial)
+# tab_model(comorb.mort28.trad) # glmmTMB & no centering yields ~the same, 
+```
+
+# Interaction: Comedication on primary endpoint
+
+```r
+# Calculate the mean values of (continuous) comed variable
+# class(df_tot$comed_cat)
+comed_means <- df_tot %>%
+  group_by(trial) %>%
+  summarize(mean_comed = mean(comed_cat, na.rm = TRUE))
+# Merge back
+df_tot <- df_tot %>% left_join(comed_means, by = "trial")
+# Center comed variables
+df_tot <- df_tot %>%
+  mutate(comed_centered = comed_cat - mean_comed)
+
+# interaction term
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_comed_cent = trt*comed_centered)
+
+comed.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_comed_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+```
+
+```
+## dropping columns from rank-deficient conditional model: age_cent_trial_2
+```
+
+```r
+summary(comed.mort28)
+```
+
+```
+##  Family: binomial  ( logit )
+## Formula:          
+## mort_28 ~ trt_centered_n + trial_f + (trt_centered_n - 1 | trial_f) -  
+##     1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 +  
+##     age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 +  
+##     (clinstatus_baseline_n - 1 | trial_f) + ws_interaction_comed_cent
+## Data: df_tot
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##   1284.1   1364.0   -628.0   1256.1     2217 
+## 
+## Random effects:
+## 
+## Conditional model:
+##  Groups    Name                  Variance  Std.Dev. 
+##  trial_f   trt_centered_n        4.567e-09 6.758e-05
+##  trial_f.1 clinstatus_baseline_n 4.297e-01 6.555e-01
+## Number of obs: 2231, groups:  trial_f, 5
+## 
+## Conditional model:
+##                            Estimate Std. Error z value Pr(>|z|)    
+## trt_centered_n            -0.645581   0.152925  -4.222 2.43e-05 ***
+## trial_fBari-Solidact      -4.947818   1.782157  -2.776   0.0055 ** 
+## trial_fCOV-BARRIER        -6.627931   0.433285 -15.297  < 2e-16 ***
+## trial_fCOVINIB            -5.222110   2.122341  -2.461   0.0139 *  
+## trial_fGhazaeian          -2.952385   1.945756  -1.517   0.1292    
+## trial_fTOFACOV            -5.667237   2.290187  -2.475   0.0133 *  
+## age_cent_trial_1           0.089812   0.018529   4.847 1.25e-06 ***
+## age_cent_trial_2                 NA         NA      NA       NA    
+## age_cent_trial_3           0.027595   0.025198   1.095   0.2735    
+## age_cent_trial_4           0.069494   0.095593   0.727   0.4672    
+## age_cent_trial_5           0.124649   0.090455   1.378   0.1682    
+## age_cent_trial_6           0.064522   0.006929   9.312  < 2e-16 ***
+## ws_interaction_comed_cent  0.307245   0.186581   1.647   0.0996 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+# Interaction: Vaccination on AEs
+
+```r
+# calculate the proportion vaccinated by trial
+table(df_tot$vacc, df_tot$trial)
+```
+
+```
+##    
+##     ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian TOFACOV
+##   0  1033           182           0     108         0     113
+##   1     0           102           0       2         0       3
+```
+
+```r
+proportions <- df_tot %>%
+  group_by(trial) %>%
+  summarize(proportion_vacc = sum(vacc, na.rm = TRUE) / sum(!is.na(vacc)))
+df_tot <- left_join(df_tot, proportions[, c("proportion_vacc", "trial")], by = join_by(trial == trial))
+# create the centered vacc variable
+df_tot$vacc_centered_n <- df_tot$vacc - df_tot$proportion_vacc
+
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_vacc_cent = trt*vacc_centered_n)
+
+vacc.ae28 <- glmmTMB(ae_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_vacc_cent # interaction term (common effect)
+                  , data = df_tot, family = binomial)
+```
+
+```
+## dropping columns from rank-deficient conditional model: age_cent_trial_1, age_cent_trial_2, age_cent_trial_3, age_cent_trial_6
+```
+
+```r
+summary(vacc.ae28)
+```
+
+```
+##  Family: binomial  ( logit )
+## Formula:          
+## ae_28 ~ trt_centered_n + trial_f + (trt_centered_n - 1 | trial_f) -  
+##     1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 +  
+##     age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 +  
+##     (clinstatus_baseline_n - 1 | trial_f) + ws_interaction_vacc_cent
+## Data: df_tot
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##    224.5    251.8   -104.2    208.5      216 
+## 
+## Random effects:
+## 
+## Conditional model:
+##  Groups    Name                  Variance  Std.Dev. 
+##  trial_f   trt_centered_n        1.202e-12 1.096e-06
+##  trial_f.1 clinstatus_baseline_n 7.277e-11 8.531e-06
+## Number of obs: 224, groups:  trial_f, 2
+## 
+## Conditional model:
+##                          Estimate Std. Error z value Pr(>|z|)    
+## trt_centered_n           -0.33709    0.61097  -0.552  0.58114    
+## trial_fCOVINIB           -1.36290    0.32045  -4.253 2.11e-05 ***
+## trial_fTOFACOV           -1.75070    0.40948  -4.275 1.91e-05 ***
+## age_cent_trial_1               NA         NA      NA       NA    
+## age_cent_trial_2               NA         NA      NA       NA    
+## age_cent_trial_3               NA         NA      NA       NA    
+## age_cent_trial_4         -0.07688    0.02398  -3.207  0.00134 ** 
+## age_cent_trial_5          0.03155    0.02368   1.332  0.18272    
+## age_cent_trial_6               NA         NA      NA       NA    
+## ws_interaction_vacc_cent -6.52241   23.16219  -0.282  0.77825    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+# Interaction: Symptom onset on primary endpoint
+
+```r
+# Calculate the mean values of (continuous) symp variable
+# class(df_tot$sympdur)
+sympdur_means <- df_tot %>%
+  group_by(trial) %>%
+  summarize(mean_sympdur = mean(sympdur, na.rm = TRUE))
+# Merge back
+df_tot <- df_tot %>% left_join(sympdur_means, by = "trial")
+# Center comed variables
+df_tot <- df_tot %>%
+  mutate(sympdur_centered = sympdur - mean_sympdur)
+
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_sympdur_cent = trt*sympdur_centered)
+
+symp.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_sympdur_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+summary(symp.mort28)
+```
+
+```
+##  Family: binomial  ( logit )
+## Formula:          
+## mort_28 ~ trt_centered_n + trial_f + (trt_centered_n - 1 | trial_f) -  
+##     1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 +  
+##     age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 +  
+##     (clinstatus_baseline_n - 1 | trial_f) + ws_interaction_sympdur_cent
+## Data: df_tot
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##   1663.1   1760.5   -815.6   1631.1     3228 
+## 
+## Random effects:
+## 
+## Conditional model:
+##  Groups    Name                  Variance  Std.Dev. 
+##  trial_f   trt_centered_n        3.694e-09 6.078e-05
+##  trial_f.1 clinstatus_baseline_n 6.318e-01 7.949e-01
+## Number of obs: 3244, groups:  trial_f, 6
+## 
+## Conditional model:
+##                              Estimate Std. Error z value Pr(>|z|)    
+## trt_centered_n              -0.554702   0.133709  -4.149 3.35e-05 ***
+## trial_fACTT2                -7.377451   0.696505 -10.592  < 2e-16 ***
+## trial_fBari-Solidact        -5.342241   1.828200  -2.922  0.00348 ** 
+## trial_fCOV-BARRIER          -6.756797   0.437284 -15.452  < 2e-16 ***
+## trial_fCOVINIB              -5.332936   2.403235  -2.219  0.02648 *  
+## trial_fGhazaeian            -3.025943   2.315336  -1.307  0.19124    
+## trial_fTOFACOV              -5.747779   2.589790  -2.219  0.02646 *  
+## age_cent_trial_1             0.088380   0.018474   4.784 1.72e-06 ***
+## age_cent_trial_2             0.053323   0.010524   5.067 4.05e-07 ***
+## age_cent_trial_3             0.027276   0.025104   1.087  0.27725    
+## age_cent_trial_4             0.069415   0.095369   0.728  0.46670    
+## age_cent_trial_5             0.121928   0.090799   1.343  0.17933    
+## age_cent_trial_6             0.064816   0.006943   9.336  < 2e-16 ***
+## ws_interaction_sympdur_cent -0.021244   0.022497  -0.944  0.34502    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+# Interaction: CRP on primary endpoint
+
+```r
+# Calculate the mean values of (continuous) symp variable
+# class(df_tot$crp)
+crp_means <- df_tot %>%
+  group_by(trial) %>%
+  summarize(mean_crp = mean(crp, na.rm = TRUE))
+# Merge back
+df_tot <- df_tot %>% left_join(crp_means, by = "trial")
+# Center comed variables
+df_tot <- df_tot %>%
+  mutate(crp_centered = crp - mean_crp)
+
+df_tot <- df_tot %>% 
+  mutate(ws_interaction_crp_cent = trt*crp_centered)
+
+crp.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + ws_interaction_crp_cent # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+```
+
+```
+## dropping columns from rank-deficient conditional model: age_cent_trial_2
+```
+
+```r
+summary(crp.mort28)
+```
+
+```
+##  Family: binomial  ( logit )
+## Formula:          
+## mort_28 ~ trt_centered_n + trial_f + (trt_centered_n - 1 | trial_f) -  
+##     1 + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 +  
+##     age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 +  
+##     (clinstatus_baseline_n - 1 | trial_f) + ws_interaction_crp_cent
+## Data: df_tot
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##   1115.7   1193.5   -543.9   1087.7     1897 
+## 
+## Random effects:
+## 
+## Conditional model:
+##  Groups    Name                  Variance  Std.Dev. 
+##  trial_f   trt_centered_n        4.641e-09 6.812e-05
+##  trial_f.1 clinstatus_baseline_n 4.011e-01 6.333e-01
+## Number of obs: 1911, groups:  trial_f, 5
+## 
+## Conditional model:
+##                           Estimate Std. Error z value Pr(>|z|)    
+## trt_centered_n          -0.5462979  0.1616063  -3.380 0.000724 ***
+## trial_fBari-Solidact    -4.9051336  1.7850714  -2.748 0.005998 ** 
+## trial_fCOV-BARRIER      -6.3856731  0.4687046 -13.624  < 2e-16 ***
+## trial_fCOVINIB          -5.1820323  2.0678915  -2.506 0.012212 *  
+## trial_fGhazaeian        -2.9026784  1.8869662  -1.538 0.123981    
+## trial_fTOFACOV          -5.6233238  2.2468902  -2.503 0.012325 *  
+## age_cent_trial_1         0.0884781  0.0184059   4.807 1.53e-06 ***
+## age_cent_trial_2                NA         NA      NA       NA    
+## age_cent_trial_3         0.0272007  0.0252806   1.076 0.281950    
+## age_cent_trial_4         0.0692929  0.0958227   0.723 0.469596    
+## age_cent_trial_5         0.1227077  0.0906204   1.354 0.175709    
+## age_cent_trial_6         0.0654005  0.0076924   8.502  < 2e-16 ***
+## ws_interaction_crp_cent  0.0004590  0.0008587   0.535 0.592941    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+# Collect all interaction effect estimates
+
+```r
+# Empty data frame to store the results
+interaction_df <- data.frame(
+  variable = character(),
+  log_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric())
+
+# Extract and format results for the interaction term
+extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "glmmTMB")) {
+    trt_coef <- fixef(model)$cond[grep("^ws_interaction_", names(fixef(model)$cond))]
+    log_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)[grep("^ws_interaction_", rownames(confint(model))), ])
+    se <- summary(model)$coefficients$cond[grep("^ws_interaction_", rownames(summary(model)$coefficients$cond)), "Std. Error"]
+    p_value <- summary(model)$coefficients$cond[grep("^ws_interaction_", rownames(summary(model)$coefficients$cond)), "Pr(>|z|)"]
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    log_odds_ratio = round(log_odds_ratio,3),
+    ci_lower = round(ci[1],3),
+    ci_upper = round(ci[2],3),
+    standard_error = round(se,3),
+    p_value = round(p_value,3)
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_interaction(rs.mort28, "respiratory support") 
+result_list[[2]] <- extract_interaction(vb.mort28, "ventilation") 
+result_list[[3]] <- extract_interaction(age.mort28, "age")
+result_list[[4]] <- extract_interaction(comorb.mort28, "comorbidity") 
+result_list[[5]] <- extract_interaction(comed.mort28, "comedication")
+result_list[[6]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
+result_list[[7]] <- extract_interaction(symp.mort28, "symptom duration") 
+result_list[[8]] <- extract_interaction(crp.mort28, "crp") 
+
+# Filter out NULL results and bind the results into a single data frame
+interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the analysis approach
+interaction_df$approach <- "one-stage"
+
+# Nicely formatted table
+kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|                            |variable            | log_odds_ratio| ci_lower|     ci_upper| standard_error| p_value|approach  |
+|:---------------------------|:-------------------|--------------:|--------:|------------:|--------------:|-------:|:---------|
+|ws_interaction_rs_cent      |respiratory support |          1.143|    0.807| 1.619000e+00|          0.178|   0.452|one-stage |
+|ws_interaction_vb_cent      |ventilation         |          1.054|    0.620| 1.793000e+00|          0.271|   0.845|one-stage |
+|ws_interaction_age_cent     |age                 |          1.016|    0.995| 1.038000e+00|          0.011|   0.140|one-stage |
+|ws_interaction_comorb_cent  |comorbidity         |          1.383|    1.047| 1.826000e+00|          0.142|   0.022|one-stage |
+|ws_interaction_comed_cent   |comedication        |          1.360|    0.943| 1.960000e+00|          0.187|   0.100|one-stage |
+|ws_interaction_vacc_cent    |vaccination on AEs  |          0.001|    0.000| 7.639185e+16|         23.162|   0.778|one-stage |
+|ws_interaction_sympdur_cent |symptom duration    |          0.979|    0.937| 1.023000e+00|          0.022|   0.345|one-stage |
+|ws_interaction_crp_cent     |crp                 |          1.000|    0.999| 1.002000e+00|          0.001|   0.593|one-stage |
+
+```r
+# Save
+saveRDS(interaction_df, file = "int_effects_one-stage.RData")
+```
+
+
