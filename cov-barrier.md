@@ -2281,6 +2281,177 @@ summ(mort.28.vent.vb, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# effect by subgroup
+mort.28.vent.vb.yes <- df %>% 
+  filter(vbaseline == 1) %>% # ventilated
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.vent.vb.yes, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 471 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> -7.31 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.46 </td>
+   <td style="text-align:right;"> 0.30 </td>
+   <td style="text-align:right;"> 0.72 </td>
+   <td style="text-align:right;"> -3.41 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.06 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 6.27 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 3.98 </td>
+   <td style="text-align:right;"> 2.40 </td>
+   <td style="text-align:right;"> 6.61 </td>
+   <td style="text-align:right;"> 5.34 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+mort.28.vent.vb.no <- df %>% 
+  filter(vbaseline == 0) %>% # not ventilated
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.vent.vb.no, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 1148 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> -9.26 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.59 </td>
+   <td style="text-align:right;"> 0.36 </td>
+   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> -2.11 </td>
+   <td style="text-align:right;"> 0.04 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> 1.10 </td>
+   <td style="text-align:right;"> 6.92 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 2.75 </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 7.02 </td>
+   <td style="text-align:right;"> 2.12 </td>
+   <td style="text-align:right;"> 0.03 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
 Discussion points
 
 # Subgroup analysis: Age on primary endpoint
@@ -3613,3 +3784,95 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_cov-barrier.RData")
 ```
 Discussion points
+
+# Collect all subgroup treatment effect estimates (on primary endpoint)
+
+```r
+# Empty data frame to store the results
+subgroup_df <- data.frame(
+  variable = character(),
+  hazard_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric()
+)
+
+# Function to extract treatment results from different model types (glm, clm, coxph and crr)
+extract_subgroup_results <- function(model, variable_name, n_int, n_int_tot, n_cont, n_cont_tot) {
+  if (inherits(model, "glm") || inherits(model, "clm")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "coxph")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "se(coef)"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "tidycrr")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
+    se <- model$tidy$std.error[1]
+    p_value <- model$tidy$p.value[1]
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci[1],
+    ci_upper = ci[2],
+    standard_error = se,
+    p_value = p_value,
+    n_intervention = n_int,
+    n_intervention_tot = n_int_tot,
+    n_control = n_cont,
+    n_control_tot = n_cont_tot
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_subgroup_results(mort.28.vent.vb.yes, "High-flow or non-invasive, mechanical, or ECMO",
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[2,2,2], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[3,2,2], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[2,2,1], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[3,2,1]) 
+result_list[[2]] <- extract_subgroup_results(mort.28.vent.vb.no, "None or low-flow oxygen",
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,2,2], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[3,2,2], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,2,1], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[3,2,1]) 
+
+# Filter out NULL results and bind the results into a single data frame
+subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the trial name and JAKi
+subgroup_df$trial <- "COV-BARRIER"
+subgroup_df$JAKi <- "Baricitinib"
+
+# Nicely formatted table
+kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|     |variable                                       | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial       |JAKi        |
+|:----|:----------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-----------|:-----------|
+|trt  |High-flow or non-invasive, mechanical, or ECMO |         0.4615675| 0.2940769| 0.7167597|      0.2268717| 0.0006550|             52|                 82|        84|           129|COV-BARRIER |Baricitinib |
+|trt1 |None or low-flow oxygen                        |         0.5877400| 0.3554976| 0.9585827|      0.2521304| 0.0350379|             30|                 82|        45|           129|COV-BARRIER |Baricitinib |
+
+```r
+# Save
+saveRDS(subgroup_df, file = "subgroup_effects_cov-barrier.RData")
+```
+Discussion points
+

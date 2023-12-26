@@ -1036,6 +1036,29 @@ mort.28.vent.vb <- df %>%
      # + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.vent.vb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# effect by subgroup
+mort.28.vent.vb.yes <- df %>% 
+  filter(vbaseline == 1) %>% # ventilated
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.vent.vb.yes, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.vent.vb.no <- df %>% 
+  filter(vbaseline == 0) %>% # not ventilated
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , family = "binomial", data=.)
+summ(mort.28.vent.vb.no, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
 
@@ -1352,3 +1375,85 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_cov-barrier.RData")
 ```
 Discussion points
+
+# Collect all subgroup treatment effect estimates (on primary endpoint)
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+subgroup_df <- data.frame(
+  variable = character(),
+  hazard_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric()
+)
+
+# Function to extract treatment results from different model types (glm, clm, coxph and crr)
+extract_subgroup_results <- function(model, variable_name, n_int, n_int_tot, n_cont, n_cont_tot) {
+  if (inherits(model, "glm") || inherits(model, "clm")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "coxph")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "se(coef)"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "tidycrr")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
+    se <- model$tidy$std.error[1]
+    p_value <- model$tidy$p.value[1]
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci[1],
+    ci_upper = ci[2],
+    standard_error = se,
+    p_value = p_value,
+    n_intervention = n_int,
+    n_intervention_tot = n_int_tot,
+    n_control = n_cont,
+    n_control_tot = n_cont_tot
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_subgroup_results(mort.28.vent.vb.yes, "High-flow or non-invasive, mechanical, or ECMO",
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[2,2,2], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[3,2,2], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[2,2,1], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[3,2,1]) 
+result_list[[2]] <- extract_subgroup_results(mort.28.vent.vb.no, "None or low-flow oxygen",
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,2,2], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[3,2,2], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,2,1], 
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[3,2,1]) 
+
+# Filter out NULL results and bind the results into a single data frame
+subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the trial name and JAKi
+subgroup_df$trial <- "COV-BARRIER"
+subgroup_df$JAKi <- "Baricitinib"
+
+# Nicely formatted table
+kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+saveRDS(subgroup_df, file = "subgroup_effects_cov-barrier.RData")
+```
+Discussion points
+
