@@ -1138,7 +1138,11 @@ subgroup_df <- data.frame(
   ci_lower = numeric(),
   ci_upper = numeric(),
   standard_error = numeric(),
-  p_value = numeric()
+  p_value = numeric(),
+  n_intervention = numeric(),
+  n_intervention_tot = numeric(),
+  n_control = numeric(),
+  n_control_tot = numeric()
 )
 
 # Function to extract treatment results from different model types (glm, clm, coxph and crr)
