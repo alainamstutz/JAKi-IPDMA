@@ -782,7 +782,9 @@ Discussion points
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
-# table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 4 and 5 included
+table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 4 and 5 included
+table(df$vbaseline, df$mort_28, useNA = "always")
+
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 mort.28.vent <- df %>% 
   glm(mort_28 ~ trt*clinstatus_baseline_n
@@ -868,6 +870,14 @@ mort.28.comed <- df %>%
       # + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# Firth
+mort.28.comed.firth <- df %>%
+  logistf(mort_28 ~ trt*comed_cat
+      + age
+      + clinstatus_baseline
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.comed.firth)
 # comedication as ordinal factor
 df$comed_cat_f <- factor(df$comed_cat, levels = 1:4)
 # table(df$comed_cat_f, df$mort_28, useNA = "always") 
@@ -1092,7 +1102,7 @@ result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # a
 result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # adj: age, clinstatus
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[5]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+result_list[[5]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
 # result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # still to come
 result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus

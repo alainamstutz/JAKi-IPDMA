@@ -1607,7 +1607,33 @@ Discussion points
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
 ```r
-# table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 4 and 5 included
+table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 4 and 5 included
+```
+
+```
+##       
+##          0   1 <NA>
+##   1      0   0    0
+##   2      0   0    0
+##   3      0   0    0
+##   4    222  27    0
+##   5     31   9    0
+##   6      0   0    0
+##   <NA>   0   0    0
+```
+
+```r
+table(df$vbaseline, df$mort_28, useNA = "always")
+```
+
+```
+##       
+##          0   1 <NA>
+##   1    253  36    0
+##   <NA>   0   0    0
+```
+
+```r
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 mort.28.vent <- df %>% 
   glm(mort_28 ~ trt*clinstatus_baseline_n
@@ -2316,6 +2342,44 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 </table>
 
 ```r
+# Firth
+mort.28.comed.firth <- df %>%
+  logistf(mort_28 ~ trt*comed_cat
+      + age
+      + clinstatus_baseline
+      #+ comed_dexa + comed_rdv + comed_toci
+      , data=.)
+summary(mort.28.comed.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * comed_cat + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)   lower 0.95 upper 0.95      Chisq
+## (Intercept)          -8.03389586 1.81190322 -12.16243444 -4.7308720 27.7643794
+## trt                  -1.98558721 2.60869597  -9.61163075  2.7794021  0.6467954
+## comed_cat             0.19341057 0.46745237  -0.62407403  1.3529773  0.1790575
+## age                   0.08813984 0.01792797   0.05417469  0.1263499 30.2227522
+## clinstatus_baseline5  0.90742514 0.45182257  -0.02021358  1.7908552  3.6826511
+## trt:comed_cat         0.53945053 0.88792621  -1.08680267  3.0976215  0.4018535
+##                                 p method
+## (Intercept)          1.370259e-07      2
+## trt                  4.212608e-01      2
+## comed_cat            6.721845e-01      2
+## age                  3.851645e-08      2
+## clinstatus_baseline5 5.498136e-02      2
+## trt:comed_cat        5.261336e-01      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=35.50093 on 5 df, p=1.19511e-06, n=289
+## Wald test = 94.26796 on 5 df, p = 0
+```
+
+```r
 # comedication as ordinal factor
 df$comed_cat_f <- factor(df$comed_cat, levels = 1:4)
 # table(df$comed_cat_f, df$mort_28, useNA = "always") 
@@ -2953,7 +3017,7 @@ result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # a
 result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # adj: age, clinstatus
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[5]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+result_list[[5]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
 # result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # still to come
 result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
@@ -2973,15 +3037,15 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                          |variable            | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial         |JAKi        |
-|:-------------------------|:-------------------|--------------:|---------:|------------:|--------------:|---------:|:-------------|:-----------|
-|trt:clinstatus_baseline_n |respiratory support |      0.2198457| 0.0225244| 1.543288e+00|      1.0497840| 0.1490229|Bari-SolidAct |Baricitinib |
-|trt:vbaseline             |ventilation_firth   |      0.7784754| 0.0000000| 1.647844e+00|      0.0712176| 0.2493525|Bari-SolidAct |Baricitinib |
-|trt:age                   |age                 |      1.0258295| 0.9535344| 1.107081e+00|      0.0376553| 0.4982553|Bari-SolidAct |Baricitinib |
-|trt:comorb_cat            |comorbidity         |      1.2572910| 0.5076667| 3.256851e+00|      0.4678926| 0.6245997|Bari-SolidAct |Baricitinib |
-|trt:comed_cat             |comedication        |   2193.9262050| 0.0000000| 5.698795e+91|    674.6507931| 0.9909014|Bari-SolidAct |Baricitinib |
-|trt:sympdur               |symptom duration    |      0.7963554| 0.6279183| 1.000851e+00|      0.1177187| 0.0530695|Bari-SolidAct |Baricitinib |
-|trt:crp                   |crp                 |      1.0000528| 0.9945230| 1.002979e+00|      0.0016193| 0.9739716|Bari-SolidAct |Baricitinib |
+|                          |variable            | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:-------------------------|:-------------------|--------------:|---------:|---------:|--------------:|---------:|:-------------|:-----------|
+|trt:clinstatus_baseline_n |respiratory support |      0.2198457| 0.0225244|  1.543288|      1.0497840| 0.1490229|Bari-SolidAct |Baricitinib |
+|trt:vbaseline             |ventilation_firth   |      0.7784754| 0.0000000|  1.647844|      0.0712176| 0.2493525|Bari-SolidAct |Baricitinib |
+|trt:age                   |age                 |      1.0258295| 0.9535344|  1.107081|      0.0376553| 0.4982553|Bari-SolidAct |Baricitinib |
+|trt:comorb_cat            |comorbidity         |      1.2572910| 0.5076667|  3.256851|      0.4678926| 0.6245997|Bari-SolidAct |Baricitinib |
+|trt:comed_cat             |comedication_firth  |      1.7150642| 0.3372932| 22.145215|      0.8879262| 0.5261336|Bari-SolidAct |Baricitinib |
+|trt:sympdur               |symptom duration    |      0.7963554| 0.6279183|  1.000851|      0.1177187| 0.0530695|Bari-SolidAct |Baricitinib |
+|trt:crp                   |crp                 |      1.0000528| 0.9945230|  1.002979|      0.0016193| 0.9739716|Bari-SolidAct |Baricitinib |
 
 ```r
 # Save
