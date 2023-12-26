@@ -656,8 +656,8 @@ Discussion points
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
-# table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 2 - 3 included
-# table(df$vbaseline, df$mort_28, useNA = "always")
+table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 2 - 3 included
+table(df$vbaseline, df$mort_28, useNA = "always")
 # class(df$clinstatus_baseline)
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 
@@ -1082,4 +1082,3 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_tofacov.RData")
 ```
 Discussion points
-
