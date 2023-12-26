@@ -27,6 +27,7 @@ library(sjPlot) # for tab_model
 library(ggplot2) # survival/TTE analyses and other graphs
 library(ggfortify) # autoplot
 library(meta)
+library(forestplot)
 ```
 
 # Load treatment effect estimates from all trials
@@ -1519,3 +1520,809 @@ Discussion points
 
 
 
+
+# Load treatment-covariate interaction estimates from all trials (on primary endpoint)
+
+```r
+df_int_barisolidact <- readRDS("int_effects_barisolidact.RData")
+df_int_actt2 <- readRDS("int_effects_actt2.RData")
+df_int_ghazaeian <- readRDS("int_effects_ghazaeian.RData")
+df_int_tofacov <- readRDS("int_effects_tofacov.RData")
+df_int_covinib <- readRDS("int_effects_covinib.RData")
+df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
+# df_int_murugesan <- readRDS("int_effects_murugesan.RData")
+```
+
+# Load subgroup effects and entire dataset (from one-stage.Rmd) for forestplots - make sure to run one-stage before!
+
+```r
+df_tot <- readRDS("df_tot.RData")
+df_tot_Muru <- readRDS("df_tot_Muru.RData")
+
+df_subgroup_actt2 <- readRDS("subgroup_effects_ACTT2.RData")
+df_subgroup_covbarrier <- readRDS("subgroup_effects_cov-barrier.RData")
+```
+
+# Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint)
+
+```r
+### Create a list of all data frames / trials
+list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier) # add all trials
+
+## Respiratory support on Mortality at day 28
+outcomes <- "respiratory support"
+outcomes.firth <- "respiratory support_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_rs_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_rs_mort28 <- rbind(df_rs_mort28, selected_rows)
+}
+
+## Ventilation on Mortality at day 28
+outcomes <- "ventilation"
+outcomes.firth <- "ventilation_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_vb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_vb_mort28 <- rbind(df_vb_mort28, selected_rows)
+}
+
+## Age on Mortality at day 28
+outcomes <- "age"
+outcomes.firth <- "age_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_age_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_age_mort28 <- rbind(df_age_mort28, selected_rows)
+}
+
+## Comorbidity on Mortality at day 28
+outcomes <- "comorbidity"
+outcomes.firth <- "comorbidity_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_comorb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_comorb_mort28 <- rbind(df_comorb_mort28, selected_rows)
+}
+
+## Comedication on Mortality at day 28
+outcomes <- "comedication"
+outcomes.firth <- "comedication_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_comed_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_comed_mort28 <- rbind(df_comed_mort28, selected_rows)
+}
+
+## Symptom duration on Mortality at day 28
+outcomes <- "symptom duration"
+outcomes.firth <- "symptom duration_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_symp_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_symp_mort28 <- rbind(df_symp_mort28, selected_rows)
+}
+
+## CRP on Mortality at day 28
+outcomes <- "crp"
+outcomes.firth <- "crp_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_crp_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_crp_mort28 <- rbind(df_crp_mort28, selected_rows)
+}
+```
+
+# Reshape dataframes for all subgroup estimates (on primary endpoint) // if needed
+
+```r
+# start a data frame to save interaction estimates
+df_subgroup_actt2_title <- data.frame(variable = c("ACTT2"))
+df_subgroup_actt2_title$hazard_odds_ratio <- NA
+df_subgroup_actt2_title$ci_lower <- NA
+df_subgroup_actt2_title$ci_upper <- NA
+df_subgroup_actt2_title$standard_error <- NA
+df_subgroup_actt2_title$p_value <- NA
+df_subgroup_actt2_title$n_intervention <- NA
+df_subgroup_actt2_title$n_intervention_tot <- NA
+df_subgroup_actt2_title$n_control <- NA
+df_subgroup_actt2_title$n_control_tot <- NA
+df_subgroup_actt2_title$trial <- NA
+df_subgroup_actt2_title$JAKi <- NA
+df_subgroup_covbarrier_title <- data.frame(variable = c("COV-BARRIER"))
+df_subgroup_covbarrier_title$hazard_odds_ratio <- NA
+df_subgroup_covbarrier_title$ci_lower <- NA
+df_subgroup_covbarrier_title$ci_upper <- NA
+df_subgroup_covbarrier_title$standard_error <- NA
+df_subgroup_covbarrier_title$p_value <- NA
+df_subgroup_covbarrier_title$n_intervention <- NA
+df_subgroup_covbarrier_title$n_intervention_tot <- NA
+df_subgroup_covbarrier_title$n_control <- NA
+df_subgroup_covbarrier_title$n_control_tot <- NA
+df_subgroup_covbarrier_title$trial <- NA
+df_subgroup_covbarrier_title$JAKi <- NA
+
+df_subgroup_tot <- rbind(df_subgroup_actt2_title, df_subgroup_actt2, df_subgroup_covbarrier_title, df_subgroup_covbarrier)
+
+# ## Ventilation on Mortality at day 28
+# outcomes <- "ventilation"
+# outcomes.firth <- "ventilation_firth" # depends on which estimates to include
+# # Initialize an empty data frame to store the selected rows
+# df_vb_mort28 <- data.frame()
+# # Loop through the list of data frames
+# for (df in list_subgroup_df) {
+#   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+#   df_vb_mort28 <- rbind(df_vb_mort28, selected_rows)
+# }
+```
+
+# Interaction: Respiratory support (proxy for disease severity) on primary endpoint
+
+```r
+str(df_rs_mort28)
+```
+
+```
+## 'data.frame':	6 obs. of  8 variables:
+##  $ variable      : chr  "respiratory support" "respiratory support" "respiratory support_firth" "respiratory support_firth" ...
+##  $ log_odds_ratio: num  0.22 1.859 1 1.188 0.254 ...
+##  $ ci_lower      : num  0.022524 0.956064 0.001618 0.003153 0.000502 ...
+##  $ ci_upper      : num  1.54 3.73 617.98 689.75 80.69 ...
+##  $ standard_error: num  1.0498 0.3453 0.0328 2.4621 2.4394 ...
+##  $ p_value       : num  0.149 0.0726 1 0.9488 0.5913 ...
+##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
+```
+
+```r
+## "TOFACOV", "COVINIB", "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
+rs.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_rs_mort28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = T, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(rs.mort28)
+```
+
+```
+## Review:     Treatment-covariate interaction on primary endpoint: Respiratory ...
+## 
+##               log(Ratio of OR)            95%-CI %W(common) %W(random)
+## Bari-SolidAct          -1.5148 [-3.5724; 0.5427]        3.1       11.2
+## ACTT-2                  0.6198 [-0.0569; 1.2965]       28.6       40.0
+## COV-BARRIER            -0.1065 [-0.5443; 0.3312]       68.3       48.8
+## 
+## Number of studies: k = 3
+## 
+##                              log(Ratio of OR)            95%-CI  z|t p-value
+## Common effect model                    0.0576 [-0.3042; 0.4194] 0.31  0.7552
+## Random effects model (HK-SE)           0.0256 [-1.9374; 1.9886] 0.06  0.9603
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.2650 [0.0000; 45.8270]; tau = 0.5147 [0.0000; 6.7696]
+##  I^2 = 63.2% [0.0%; 89.5%]; H = 1.65 [1.00; 3.08]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  5.44    2  0.0660
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 2)
+```
+
+```r
+forest.meta(rs.mort28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+Discussion points
+
+# Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
+
+```r
+str(df_vb_mort28)
+```
+
+```
+## 'data.frame':	3 obs. of  8 variables:
+##  $ variable      : chr  "ventilation_firth" "ventilation" "ventilation"
+##  $ log_odds_ratio: num  0.778 2.437 0.809
+##  $ ci_lower      : num  8.81e-13 7.21e-01 4.22e-01
+##  $ ci_upper      : num  1.65 9.16 1.56
+##  $ standard_error: num  0.0712 0.6395 0.3322
+##  $ p_value       : num  0.249 0.164 0.524
+##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "COV-BARRIER"
+##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Baricitinib"
+```
+
+```r
+## "TOFACOV", "COVINIB", "Ghazaeian" and "Bari-SolidAct" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
+vb.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_vb_mort28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = T, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(vb.mort28)
+```
+
+```
+## Review:     Treatment-covariate interaction on primary endpoint: Ventilation ...
+## 
+##             log(Ratio of OR)            95%-CI %W(common) %W(random)
+## ACTT-2                0.8907 [-0.3627; 2.1442]       21.3       37.7
+## COV-BARRIER          -0.2119 [-0.8630; 0.4392]       78.7       62.3
+## 
+## Number of studies: k = 2
+## 
+##                              log(Ratio of OR)            95%-CI  z|t p-value
+## Common effect model                    0.0224 [-0.5554; 0.6002] 0.08  0.9393
+## Random effects model (HK-SE)           0.2040 [-6.5866; 6.9947] 0.38  0.7678
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.3482; tau = 0.5901; I^2 = 57.3% [0.0%; 89.8%]; H = 1.53 [1.00; 3.13]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  2.34    1  0.1260
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Hartung-Knapp adjustment for random effects model (df = 1)
+```
+
+```r
+# Open a pdf file
+# pdf("vb_mort28.pdf", width=11, height=4)
+forest.meta(vb.mort28,
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
+            xlab = "more effect: ventilated <-> more effect: not ventilated",
+            xlab.pos = 0.7,
+            fs.xlab = 11
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
+
+```r
+# dev.off()
+```
+Discussion points
+
+# Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint
+
+```r
+base_data <- tibble(mean = df_subgroup_tot$hazard_odds_ratio, 
+                    lower = df_subgroup_tot$ci_lower,
+                    upper = df_subgroup_tot$ci_upper,
+                    subgroup = df_subgroup_tot$variable)
+header <- tibble(subgroup = c("Treatment effects by trial and subgroup (ventilation)"),
+                 summary = TRUE)
+vb_mort28_fp <- bind_rows(header,base_data)
+font <- "sans"
+
+# Open a pdf file
+# pdf("vb_mort28_fp.pdf", width=10, height=4)
+vb_mort28_fp %>% 
+  forestplot(labeltext = c(subgroup),
+             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+                              ticks = gpar(cex=1),
+                              xlab = gpar(cex=1)),
+             is.summary = summary,
+             graph.pos = 2,
+             clip = c(0.1, 2), 
+             hrzl_lines = list("2" = gpar(lty = 2), 
+                               "3" = gpar(lty = 2),
+                               "5" = gpar(lty = 2), 
+                               "6" = gpar(lty = 2)),
+             xlog = FALSE,
+             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5,1.75,2),
+             boxsize = 0.22,
+             lty.ci = c(1),
+             col = fpColors(box = "maroon4",
+                            line = "maroon1",
+                            hrz_lines = "gray63"),
+             vertices = TRUE,
+             xlab = "     Favours JAKi <-> Favours No JAKi",
+             zero = 1,
+             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+             )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+
+```r
+# dev.off()
+```
+Discussion points
+
+# Interaction: Age on primary endpoint
+
+```r
+str(df_age_mort28)
+```
+
+```
+## 'data.frame':	6 obs. of  8 variables:
+##  $ variable      : chr  "age" "age" "age" "age_firth" ...
+##  $ log_odds_ratio: num  1.026 0.993 1.05 1.047 0.869 ...
+##  $ ci_lower      : num  0.954 0.952 0.951 0.661 0.551 ...
+##  $ ci_upper      : num  1.11 1.04 1.18 1.67 1.54 ...
+##  $ standard_error: num  0.0377 0.0212 0.0531 0.0973 0.1064 ...
+##  $ p_value       : num  0.498 0.732 0.354 0.775 0.422 ...
+##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
+```
+
+```r
+age.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_age_mort28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = T, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on primary endpoint: Age",
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(age.mort28)
+```
+
+```
+## Review:     Treatment-covariate interaction on primary endpoint: Age
+## 
+##               log(Ratio of OR)            95%-CI %W(common) %W(random)
+## Bari-SolidAct           0.0255 [-0.0483; 0.0993]        8.3        8.4
+## ACTT-2                 -0.0073 [-0.0488; 0.0343]       26.2       26.3
+## Ghazaeian               0.0492 [-0.0549; 0.1534]        4.2        4.2
+## TOFACOV                 0.0460 [-0.1448; 0.2368]        1.2        1.3
+## COVINIB                -0.1400 [-0.3486; 0.0686]        1.0        1.1
+## COV-BARRIER             0.0228 [-0.0049; 0.0505]       59.0       58.7
+## 
+## Number of studies: k = 6
+## 
+##                              log(Ratio of OR)            95%-CI  z|t p-value
+## Common effect model                    0.0149 [-0.0064; 0.0361] 1.37  0.1713
+## Random effects model (HK-SE)           0.0148 [-0.0133; 0.0429] 1.36  0.2331
+## 
+## Quantifying heterogeneity:
+##  tau^2 < 0.0001 [0.0000; 0.0209]; tau = 0.0019 [0.0000; 0.1445]
+##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  4.12    5  0.5321
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 5)
+```
+
+```r
+forest.meta(age.mort28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on primary endpoint: Age",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+Discussion points
+
+# Interaction: Comorbidity on primary endpoint
+
+```r
+str(df_comorb_mort28)
+```
+
+```
+## 'data.frame':	6 obs. of  8 variables:
+##  $ variable      : chr  "comorbidity" "comorbidity" "comorbidity" "comorbidity_firth" ...
+##  $ log_odds_ratio: num  1.257 0.818 1.914 0.606 1.499 ...
+##  $ ci_lower      : num  0.50767 0.34036 0.32782 0.00546 0.02422 ...
+##  $ ci_upper      : num  3.26 1.96 16.49 88.27 6641.84 ...
+##  $ standard_error: num  0.468 0.444 0.95 1.381 1.261 ...
+##  $ p_value       : num  0.625 0.65 0.494 0.777 0.789 ...
+##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
+```
+
+```r
+comorb.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_comorb_mort28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = T, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(comorb.mort28)
+```
+
+```
+## Review:     Treatment-covariate interaction on primary endpoint: Comorbidity
+## 
+##               log(Ratio of OR)            95%-CI %W(common) %W(random)
+## Bari-SolidAct           0.2290 [-0.6881; 1.1460]       15.3       15.3
+## ACTT-2                 -0.2010 [-1.0703; 0.6683]       17.0       17.0
+## Ghazaeian               0.6492 [-1.2128; 2.5111]        3.7        3.7
+## TOFACOV                -0.5007 [-3.2076; 2.2062]        1.8        1.8
+## COVINIB                 0.4050 [-2.0656; 2.8757]        2.1        2.1
+## COV-BARRIER            -0.1323 [-0.5946; 0.3300]       60.1       60.1
+## 
+## Number of studies: k = 6
+## 
+##                              log(Ratio of OR)            95%-CI   z|t p-value
+## Common effect model                   -0.0550 [-0.4135; 0.3035] -0.30  0.7638
+## Random effects model (HK-SE)          -0.0550 [-0.5251; 0.4152] -0.30  0.7759
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.2470]; tau = 0 [0.0000; 0.4970]
+##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  1.37    5  0.9275
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 5)
+```
+
+```r
+forest.meta(comorb.mort28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+Discussion points
+
+# Interaction: Comedication on primary endpoint
+
+```r
+str(df_comed_mort28)
+```
+
+```
+## 'data.frame':	5 obs. of  8 variables:
+##  $ variable      : chr  "comedication_firth" "comedication_firth" "comedication_firth" "comedication_firth" ...
+##  $ log_odds_ratio: num  1.715 0.994 1.901 1.361 1.216
+##  $ ci_lower      : num  0.337293 0.000715 0.09537 0.073967 0.762656
+##  $ ci_upper      : num  22.15 7.84 48.5 31.44 1.99
+##  $ standard_error: num  0.8879 0.0342 1.2141 1.2146 0.2431
+##  $ p_value       : num  0.526 0.951 0.636 0.813 0.421
+##  $ trial         : chr  "Bari-SolidAct" "Ghazaeian" "TOFACOV" "COVINIB" ...
+##  $ JAKi          : chr  "Baricitinib" "Tofacitinib" "Tofacitinib" "Baricitinib" ...
+```
+
+```r
+## "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
+comed.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_comed_mort28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = T, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on primary endpoint: Comedication",
+                      subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(comed.mort28)
+```
+
+```
+## Review:     Treatment-covariate interaction on primary endpoint: Comedication
+## 
+##               log(Ratio of OR)            95%-CI %W(common) %W(random)
+## Bari-SolidAct           0.5395 [-1.2009; 2.2798]        6.5        6.5
+## TOFACOV                 0.6425 [-1.7371; 3.0221]        3.5        3.5
+## COVINIB                 0.3084 [-2.0723; 2.6890]        3.5        3.5
+## COV-BARRIER             0.1954 [-0.2810; 0.6719]       86.6       86.6
+## 
+## Number of studies: k = 4
+## 
+##                              log(Ratio of OR)            95%-CI  z|t p-value
+## Common effect model                    0.2372 [-0.2061; 0.6806] 1.05  0.2943
+## Random effects model (HK-SE)           0.2372 [-0.4827; 0.9571] 1.05  0.3714
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.0755]; tau = 0 [0.0000; 0.2747]
+##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  0.26    3  0.9673
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 3)
+```
+
+```r
+forest.meta(comed.mort28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on primary endpoint: Comedication",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+Discussion points
+
+# Interaction: Symptom onset on primary endpoint
+
+```r
+str(df_symp_mort28)
+```
+
+```
+## 'data.frame':	6 obs. of  8 variables:
+##  $ variable      : chr  "symptom duration" "symptom duration" "symptom duration" "symptom duration_firth" ...
+##  $ log_odds_ratio: num  0.796 0.949 1.196 0.824 1.286 ...
+##  $ ci_lower      : num  0.6279 0.8225 0.6407 0.3883 0.0609 ...
+##  $ ci_upper      : num  1 1.08 2.36 3.74 41.95 ...
+##  $ standard_error: num  0.1177 0.0703 0.3233 0.259 0.5147 ...
+##  $ p_value       : num  0.0531 0.4544 0.5804 0.6358 0.7423 ...
+##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
+```
+
+```r
+## "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
+symp.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_symp_mort28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = T, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on primary endpoint: Symptom duration",
+                      # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(symp.mort28)
+```
+
+```
+## Review:     Treatment-covariate interaction on primary endpoint: Symptom dur ...
+## 
+##               log(Ratio of OR)            95%-CI %W(common) %W(random)
+## Bari-SolidAct          -0.2277 [-0.4584; 0.0030]        6.1       17.2
+## ACTT-2                 -0.0526 [-0.1903; 0.0852]       17.1       29.9
+## Ghazaeian               0.1787 [-0.4549; 0.8123]        0.8        3.2
+## TOFACOV                -0.1941 [-0.7017; 0.3135]        1.3        4.9
+## COVINIB                 0.2516 [-0.7571; 1.2604]        0.3        1.3
+## COV-BARRIER             0.0457 [-0.0205; 0.1118]       74.4       43.5
+## 
+## Number of studies: k = 6
+## 
+##                              log(Ratio of OR)            95%-CI   z|t p-value
+## Common effect model                    0.0108 [-0.0462; 0.0679]  0.37  0.7092
+## Random effects model (HK-SE)          -0.0353 [-0.1897; 0.1192] -0.59  0.5828
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0071 [0.0000; 0.1325]; tau = 0.0846 [0.0000; 0.3639]
+##  I^2 = 29.6% [0.0%; 71.2%]; H = 1.19 [1.00; 1.86]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  7.10    5  0.2132
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 5)
+```
+
+```r
+forest.meta(symp.mort28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on primary endpoint: Symptom duration",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+Discussion points
+
+# Interaction: CRP on primary endpoint
+
+```r
+str(df_crp_mort28)
+```
+
+```
+## 'data.frame':	5 obs. of  8 variables:
+##  $ variable      : chr  "crp" "crp" "crp_firth" "crp_firth" ...
+##  $ log_odds_ratio: num  1 0.997 0.989 1.02 1.001
+##  $ ci_lower      : num  0.995 0.955 0.483 0.907 0.998
+##  $ ci_upper      : num  1 1.03 1.05 1.11 1
+##  $ standard_error: num  0.00162 0.01962 0.02457 0.01563 0.00157
+##  $ p_value       : num  0.974 0.864 0.695 0.394 0.604
+##  $ trial         : chr  "Bari-SolidAct" "Ghazaeian" "TOFACOV" "COVINIB" ...
+##  $ JAKi          : chr  "Baricitinib" "Tofacitinib" "Tofacitinib" "Baricitinib" ...
+```
+
+```r
+## "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
+crp.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_crp_mort28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = T, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on primary endpoint: CRP",
+                      # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(crp.mort28)
+```
+
+```
+## Review:     Treatment-covariate interaction on primary endpoint: CRP
+## 
+##               log(Ratio of OR)            95%-CI %W(common) %W(random)
+## Bari-SolidAct           0.0001 [-0.0031; 0.0032]       47.9       47.9
+## Ghazaeian              -0.0034 [-0.0418; 0.0351]        0.3        0.3
+## TOFACOV                -0.0108 [-0.0589; 0.0374]        0.2        0.2
+## COVINIB                 0.0202 [-0.0104; 0.0508]        0.5        0.5
+## COV-BARRIER             0.0008 [-0.0023; 0.0039]       51.0       51.0
+## 
+## Number of studies: k = 5
+## 
+##                              log(Ratio of OR)            95%-CI  z|t p-value
+## Common effect model                    0.0005 [-0.0017; 0.0027] 0.46  0.6487
+## Random effects model (HK-SE)           0.0005 [-0.0026; 0.0036] 0.46  0.6723
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.0008]; tau = 0 [0.0000; 0.0276]
+##  I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  1.96    4  0.7438
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 4)
+```
+
+```r
+forest.meta(crp.mort28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on primary endpoint: CRP",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+Discussion points
+
+# Interactions: Multivariate IPD Meta-Analysis for Summarising Non-linear Interactions
