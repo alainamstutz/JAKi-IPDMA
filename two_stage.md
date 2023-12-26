@@ -1734,7 +1734,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 
 
 # TREATMENT-COVARIATE INTERACTIONS
-# Load treatment-covariate interaction estimates from all trials (on primary endpoint)
+# Load treatment-covariate interaction estimates from all trials (on primary endpoint - and vacc.ae)
 
 ```r
 df_int_barisolidact <- readRDS("int_effects_barisolidact.RData")
@@ -1746,14 +1746,14 @@ df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 # df_int_murugesan <- readRDS("int_effects_murugesan.RData")
 ```
 
-# Load subgroup effects from all trials (on primary endpoint)
+# Load subgroup effects from all trials (on primary endpoint - and vacc.ae)
 
 ```r
 df_subgroup_actt2 <- readRDS("subgroup_effects_ACTT2.RData")
 df_subgroup_covbarrier <- readRDS("subgroup_effects_cov-barrier.RData")
 ```
 
-# Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint)
+# Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint - and vacc.ae)
 
 ```r
 ### Create a list of all data frames / trials
@@ -1812,6 +1812,17 @@ df_comed_mort28 <- data.frame()
 for (df in list_int_df) {
   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
   df_comed_mort28 <- rbind(df_comed_mort28, selected_rows)
+}
+
+## Vacc on AEs
+outcomes <- "vaccination on AEs"
+outcomes.firth <- "vaccination on AEs_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_vacc_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_vacc_ae28 <- rbind(df_vacc_ae28, selected_rows)
 }
 
 ## Symptom duration on Mortality at day 28
@@ -2360,6 +2371,87 @@ forest.meta(comed.mort28,
 ![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
 Discussion points
 
+# Interaction: Vaccination on AEs
+
+```r
+str(df_vacc_ae28)
+```
+
+```
+## 'data.frame':	2 obs. of  8 variables:
+##  $ variable      : chr  "vaccination on AEs_firth" "vaccination on AEs_firth"
+##  $ log_odds_ratio: num  2.65 1
+##  $ ci_lower      : num  9.71e-03 5.63e-205
+##  $ ci_upper      : num  7.65e+02 1.77e+204
+##  $ standard_error: num  2.36 2.4
+##  $ p_value       : num  0.684 1
+##  $ trial         : chr  "TOFACOV" "COVINIB"
+##  $ JAKi          : chr  "Tofacitinib" "Baricitinib"
+```
+
+```r
+vacc.ae28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_vacc_ae28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = T, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on AEs: vaccination",
+                      # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(vacc.ae28)
+```
+
+```
+## Review:     Treatment-covariate interaction on AEs: vaccination
+## 
+##         log(Ratio of OR)            95%-CI %W(common) %W(random)
+## TOFACOV           0.9745 [-3.6477; 5.5967]       50.9       50.9
+## COVINIB           0.0000 [-4.7030; 4.7030]       49.1       49.1
+## 
+## Number of studies: k = 2
+## 
+##                              log(Ratio of OR)              95%-CI  z|t p-value
+## Common effect model                    0.4957 [ -2.8009;  3.7923] 0.29  0.7682
+## Random effects model (HK-SE)           0.4957 [-20.8757; 21.8671] 0.29  0.8175
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0; tau = 0; I^2 = 0.0%; H = 1.00
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  0.08    1  0.7721
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Hartung-Knapp adjustment for random effects model (df = 1)
+```
+
+```r
+forest.meta(vacc.ae28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on AEs: vaccination",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+Discussion points
+
 # Interaction: Symptom onset on primary endpoint
 
 ```r
@@ -2445,7 +2537,7 @@ forest.meta(symp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
 Discussion points
 
 # Interaction: CRP on primary endpoint
@@ -2532,7 +2624,84 @@ forest.meta(crp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
 Discussion points
+
+# Collect all interaction effect estimates
+
+```r
+# Empty data frame to store the results
+interaction_df <- data.frame(
+  variable = character(),
+  log_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric()
+)
+
+# Function to extract treatment results from different model types
+extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "metagen")) {
+    log_odds_ratio <- exp(summary(model)$TE.random)
+    ci.lower <- exp(summary(model)$lower.random)
+    ci.upper <- exp(summary(model)$upper.random)
+    se <- summary(model)$seTE.random
+    p_value <- summary(model)$pval.random
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    log_odds_ratio = round(log_odds_ratio,3),
+    ci_lower = round(ci.lower,3),
+    ci_upper = round(ci.upper,3),
+    standard_error = round(se,3),
+    p_value = round(p_value,3)
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_interaction(rs.mort28, "respiratory support") 
+result_list[[2]] <- extract_interaction(vb.mort28, "ventilation") 
+result_list[[3]] <- extract_interaction(age.mort28, "age")
+result_list[[4]] <- extract_interaction(comorb.mort28, "comorbidity") 
+result_list[[5]] <- extract_interaction(comed.mort28, "comedication")
+result_list[[6]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
+result_list[[7]] <- extract_interaction(symp.mort28, "symptom duration") 
+result_list[[8]] <- extract_interaction(crp.mort28, "crp") 
+
+# Filter out NULL results and bind the results into a single data frame
+interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the analysis approach
+interaction_df$approach <- "two-stage"
+
+# Nicely formatted table
+kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|variable            | log_odds_ratio| ci_lower|     ci_upper| standard_error| p_value|approach  |
+|:-------------------|--------------:|--------:|------------:|--------------:|-------:|:---------|
+|respiratory support |          1.026|    0.144| 7.306000e+00|          0.456|   0.960|two-stage |
+|ventilation         |          1.226|    0.001| 1.090810e+03|          0.534|   0.768|two-stage |
+|age                 |          1.015|    0.987| 1.044000e+00|          0.011|   0.233|two-stage |
+|comorbidity         |          0.947|    0.591| 1.515000e+00|          0.183|   0.776|two-stage |
+|comedication        |          1.268|    0.617| 2.604000e+00|          0.226|   0.371|two-stage |
+|vaccination on AEs  |          1.642|    0.000| 3.138722e+09|          1.682|   0.818|two-stage |
+|symptom duration    |          0.965|    0.827| 1.127000e+00|          0.060|   0.583|two-stage |
+|crp                 |          1.001|    0.997| 1.004000e+00|          0.001|   0.672|two-stage |
+
+```r
+# Save
+saveRDS(interaction_df, file = "int_effects_two-stage.RData")
+```
 
 # Interactions: Multivariate IPD Meta-Analysis for Summarising Non-linear Interactions

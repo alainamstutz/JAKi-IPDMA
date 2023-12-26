@@ -915,7 +915,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 
 
 # TREATMENT-COVARIATE INTERACTIONS
-# Load treatment-covariate interaction estimates from all trials (on primary endpoint)
+# Load treatment-covariate interaction estimates from all trials (on primary endpoint - and vacc.ae)
 ```{r echo=TRUE}
 df_int_barisolidact <- readRDS("int_effects_barisolidact.RData")
 df_int_actt2 <- readRDS("int_effects_actt2.RData")
@@ -928,7 +928,7 @@ df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 
 ```
 
-# Load subgroup effects from all trials (on primary endpoint)
+# Load subgroup effects from all trials (on primary endpoint - and vacc.ae)
 ```{r echo=TRUE}
 df_subgroup_actt2 <- readRDS("subgroup_effects_ACTT2.RData")
 df_subgroup_covbarrier <- readRDS("subgroup_effects_cov-barrier.RData")
@@ -936,7 +936,7 @@ df_subgroup_covbarrier <- readRDS("subgroup_effects_cov-barrier.RData")
 
 ```
 
-# Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint)
+# Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint - and vacc.ae)
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
 list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier) # add all trials
@@ -994,6 +994,17 @@ df_comed_mort28 <- data.frame()
 for (df in list_int_df) {
   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
   df_comed_mort28 <- rbind(df_comed_mort28, selected_rows)
+}
+
+## Vacc on AEs
+outcomes <- "vaccination on AEs"
+outcomes.firth <- "vaccination on AEs_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_vacc_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_vacc_ae28 <- rbind(df_vacc_ae28, selected_rows)
 }
 
 ## Symptom duration on Mortality at day 28
@@ -1286,6 +1297,41 @@ forest.meta(comed.mort28,
 ```
 Discussion points
 
+# Interaction: Vaccination on AEs
+```{r warning=FALSE, fig.width=14, fig.height=4}
+str(df_vacc_ae28)
+vacc.ae28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_vacc_ae28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = T, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on AEs: vaccination",
+                      # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(vacc.ae28)
+forest.meta(vacc.ae28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on AEs: vaccination",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+
+```
+Discussion points
+
 # Interaction: Symptom onset on primary endpoint
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 str(df_symp_mort28)
@@ -1357,5 +1403,66 @@ forest.meta(crp.mort28,
 
 ```
 Discussion points
+
+# Collect all interaction effect estimates
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+interaction_df <- data.frame(
+  variable = character(),
+  log_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric()
+)
+
+# Function to extract treatment results from different model types
+extract_interaction <- function(model, variable_name) {
+  if (inherits(model, "metagen")) {
+    log_odds_ratio <- exp(summary(model)$TE.random)
+    ci.lower <- exp(summary(model)$lower.random)
+    ci.upper <- exp(summary(model)$upper.random)
+    se <- summary(model)$seTE.random
+    p_value <- summary(model)$pval.random
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    log_odds_ratio = round(log_odds_ratio,3),
+    ci_lower = round(ci.lower,3),
+    ci_upper = round(ci.upper,3),
+    standard_error = round(se,3),
+    p_value = round(p_value,3)
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_interaction(rs.mort28, "respiratory support") 
+result_list[[2]] <- extract_interaction(vb.mort28, "ventilation") 
+result_list[[3]] <- extract_interaction(age.mort28, "age")
+result_list[[4]] <- extract_interaction(comorb.mort28, "comorbidity") 
+result_list[[5]] <- extract_interaction(comed.mort28, "comedication")
+result_list[[6]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
+result_list[[7]] <- extract_interaction(symp.mort28, "symptom duration") 
+result_list[[8]] <- extract_interaction(crp.mort28, "crp") 
+
+# Filter out NULL results and bind the results into a single data frame
+interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the analysis approach
+interaction_df$approach <- "two-stage"
+
+# Nicely formatted table
+kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+saveRDS(interaction_df, file = "int_effects_two-stage.RData")
+```
 
 # Interactions: Multivariate IPD Meta-Analysis for Summarising Non-linear Interactions
