@@ -1124,7 +1124,6 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
   theme_minimal() +
   scale_y_continuous(limits = c(0.4, 1.6), breaks = seq(0.4, 1.6, 0.1)) +
   coord_flip()  # Flip axes to show longer variable names
-
 ```
 
 
