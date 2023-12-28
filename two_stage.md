@@ -28,6 +28,7 @@ library(ggplot2) # survival/TTE analyses and other graphs
 library(ggfortify) # autoplot
 library(meta)
 library(forestplot)
+library(metafor) #forest()
 ```
 
 # Load entire dataset (from one-stage.Rmd) for descriptive purpose - make sure to run one-stage before
@@ -1746,13 +1747,6 @@ df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 # df_int_murugesan <- readRDS("int_effects_murugesan.RData")
 ```
 
-# Load subgroup effects from all trials (on primary endpoint - and vacc.ae)
-
-```r
-df_subgroup_actt2 <- readRDS("subgroup_effects_ACTT2.RData")
-df_subgroup_covbarrier <- readRDS("subgroup_effects_cov-barrier.RData")
-```
-
 # Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint - and vacc.ae)
 
 ```r
@@ -1848,47 +1842,156 @@ for (df in list_int_df) {
 }
 ```
 
-# Reshape dataframes for all subgroup estimates (on primary endpoint) // if needed
+# Load subgroup effects from all trials (on primary endpoint - and vacc.ae)
 
 ```r
-# start a data frame to save interaction estimates
-df_subgroup_actt2_title <- data.frame(variable = c("ACTT2"))
-df_subgroup_actt2_title$hazard_odds_ratio <- NA
-df_subgroup_actt2_title$ci_lower <- NA
-df_subgroup_actt2_title$ci_upper <- NA
-df_subgroup_actt2_title$standard_error <- NA
-df_subgroup_actt2_title$p_value <- NA
-df_subgroup_actt2_title$n_intervention <- NA
-df_subgroup_actt2_title$n_intervention_tot <- NA
-df_subgroup_actt2_title$n_control <- NA
-df_subgroup_actt2_title$n_control_tot <- NA
-df_subgroup_actt2_title$trial <- NA
-df_subgroup_actt2_title$JAKi <- NA
-df_subgroup_covbarrier_title <- data.frame(variable = c("COV-BARRIER"))
-df_subgroup_covbarrier_title$hazard_odds_ratio <- NA
-df_subgroup_covbarrier_title$ci_lower <- NA
-df_subgroup_covbarrier_title$ci_upper <- NA
-df_subgroup_covbarrier_title$standard_error <- NA
-df_subgroup_covbarrier_title$p_value <- NA
-df_subgroup_covbarrier_title$n_intervention <- NA
-df_subgroup_covbarrier_title$n_intervention_tot <- NA
-df_subgroup_covbarrier_title$n_control <- NA
-df_subgroup_covbarrier_title$n_control_tot <- NA
-df_subgroup_covbarrier_title$trial <- NA
-df_subgroup_covbarrier_title$JAKi <- NA
+df_subgroup_actt2 <- readRDS("subgroup_effects_ACTT2.RData")
+df_subgroup_covbarrier <- readRDS("subgroup_effects_cov-barrier.RData")
+df_subgroup_barisolidact <- readRDS("subgroup_effects_barisolidact.RData")
+df_subgroup_covinib <- readRDS("subgroup_effects_covinib.RData")
+df_subgroup_tofacov <- readRDS("subgroup_effects_tofacov.RData")
+df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
+```
 
-df_subgroup_tot <- rbind(df_subgroup_actt2_title, df_subgroup_actt2, df_subgroup_covbarrier_title, df_subgroup_covbarrier)
+# Reshape dataframes for all subgroup estimates
 
-# ## Ventilation on Mortality at day 28
-# outcomes <- "ventilation"
-# outcomes.firth <- "ventilation_firth" # depends on which estimates to include
-# # Initialize an empty data frame to store the selected rows
-# df_vb_mort28 <- data.frame()
-# # Loop through the list of data frames
-# for (df in list_subgroup_df) {
-#   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
-#   df_vb_mort28 <- rbind(df_vb_mort28, selected_rows)
-# }
+```r
+### Create a list of all data frames / trials
+list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian) # add all trials
+
+## Respiratory support
+outcomes1 <- "No oxygen"
+outcomes1.firth <- "No oxygen_firth"
+outcomes2 <- "low-flow oxygen"
+outcomes2.firth <- "low-flow oxygen_firth"
+outcomes3 <- "high-flow oxygen / NIV"
+outcomes3.firth <- "high-flow oxygen / NIV_firth"
+outcomes4 <- "Mechanical ventilation / ECMO"
+outcomes4.firth <- "Mechanical ventilation / ECMO_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_rs_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth
+                                 | variable == outcomes3 | variable == outcomes3.firth
+                                 | variable == outcomes4 | variable == outcomes4.firth)
+  df_sg_rs_mort28 <- rbind(df_sg_rs_mort28, selected_rows)
+}
+
+## Ventilation
+outcomes1 <- "None or low-flow oxygen"
+outcomes1.firth <- "None or low-flow oxygen_firth"
+outcomes2 <- "High-flow or non-invasive, mechanical, or ECMO"
+outcomes2.firth <- "High-flow or non-invasive, mechanical, or ECMO_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_vb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth)
+  df_sg_vb_mort28 <- rbind(df_sg_vb_mort28, selected_rows)
+}
+
+## Age
+outcomes1 <- "70 years and above"
+outcomes1.firth <- "70 years and above_firth"
+outcomes2 <- "below 70 years"
+outcomes2.firth <- "below 70 years_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_age_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth)
+  df_sg_age_mort28 <- rbind(df_sg_age_mort28, selected_rows)
+}
+
+## Comorbidity
+outcomes1 <- "No comorbidity"
+outcomes1.firth <- "No comorbidity_firth"
+outcomes2 <- "One comorbidity"
+outcomes2.firth <- "One comorbidity_firth"
+outcomes3 <- "Multiple comorbidities"
+outcomes3.firth <- "Multiple comorbidities_firth"
+outcomes4 <- "Immunocompromised"
+outcomes4.firth <- "Immunocompromised_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_comorb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth
+                                 | variable == outcomes3 | variable == outcomes3.firth
+                                 | variable == outcomes4 | variable == outcomes4.firth)
+  df_sg_comorb_mort28 <- rbind(df_sg_comorb_mort28, selected_rows)
+}
+
+## Comedication
+outcomes1 <- "No Dexa, no Tocilizumab"
+outcomes1.firth <- "No Dexa, no Tocilizumab_firth"
+# outcomes2 <- "xxx"
+# outcomes2.firth <- "xxx"
+outcomes3 <- "Dexa, but no Tocilizumab"
+outcomes3.firth <- "Dexa, but no Tocilizumab_firth"
+# outcomes4 <- "xxx"
+# outcomes4.firth <- "xxx"
+# Initialize an empty data frame to store the selected rows
+df_sg_comed_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 # | variable == outcomes2 | variable == outcomes2.firth
+                                 | variable == outcomes3 | variable == outcomes3.firth
+                                 # | variable == outcomes4 | variable == outcomes4.firth
+                                 )
+  df_sg_comed_mort28 <- rbind(df_sg_comed_mort28, selected_rows)
+}
+
+## Vaccination on AEs
+outcomes1 <- "vaccinated"
+outcomes1.firth <- "vaccinated_firth"
+outcomes2 <- "not vaccinated"
+outcomes2.firth <- "not vaccinated_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_vacc_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth)
+  df_sg_vacc_ae28 <- rbind(df_sg_vacc_ae28, selected_rows)
+}
+
+## Symptom onset
+outcomes1 <- "More than 10 days"
+outcomes1.firth <- "More than 10 days_firth"
+outcomes2 <- "Between 5-10 days"
+outcomes2.firth <- "Between 5-10 days_firth"
+outcomes3 <- "5 days and less"
+outcomes3.firth <- "5 days and less_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_symp_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth
+                                 | variable == outcomes3 | variable == outcomes3.firth)
+  df_sg_symp_mort28 <- rbind(df_sg_symp_mort28, selected_rows)
+}
+
+## CRP
+outcomes1 <- "CRP 75 and higher"
+outcomes1.firth <- "CRP 75 and higher_firth"
+outcomes2 <- "CRP below 75"
+outcomes2.firth <- "CRP below 75_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_crp_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth)
+  df_sg_crp_mort28 <- rbind(df_sg_crp_mort28, selected_rows)
+}
 ```
 
 # Interaction: Respiratory support (proxy for disease severity) on primary endpoint
@@ -1969,7 +2072,7 @@ forest.meta(rs.mort28,
             text.random = "Average interaction effect (random effect model)*",
             title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
             # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect"
+            xlab = "95% CI for interaction effect",
             )
 ```
 
@@ -2003,7 +2106,7 @@ vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       # n.e = n_intervention + n_control,
                       # n.c = n_control,
                       sm = "log(Ratio of OR)",
-                      fixed = T, # the true interaction is assumed the same in all trials 
+                      fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "REML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
@@ -2018,14 +2121,13 @@ summary(vb.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Ventilation ...
 ## 
-##             log(Ratio of OR)            95%-CI %W(common) %W(random)
-## ACTT-2                0.8907 [-0.3627; 2.1442]       21.3       37.7
-## COV-BARRIER          -0.2119 [-0.8630; 0.4392]       78.7       62.3
+##             log(Ratio of OR)            95%-CI %W(random)
+## ACTT-2                0.8907 [-0.3627; 2.1442]       37.7
+## COV-BARRIER          -0.2119 [-0.8630; 0.4392]       62.3
 ## 
 ## Number of studies: k = 2
 ## 
-##                              log(Ratio of OR)            95%-CI  z|t p-value
-## Common effect model                    0.0224 [-0.5554; 0.6002] 0.08  0.9393
+##                              log(Ratio of OR)            95%-CI    t p-value
 ## Random effects model (HK-SE)           0.2040 [-6.5866; 6.9947] 0.38  0.7678
 ## 
 ## Quantifying heterogeneity:
@@ -2048,7 +2150,7 @@ forest.meta(vb.mort28,
             hetstat = F,
             leftcols = c("studlab"),
             leftlabs = c("Trial"),
-            text.common = "Average interaction effect (common effect model)*",
+            # text.common = "Average interaction effect (common effect model)*",
             text.random = "Average interaction effect (random effect model)*",
             title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
             xlab = "more effect: ventilated <-> more effect: not ventilated",
@@ -2061,47 +2163,158 @@ forest.meta(vb.mort28,
 
 ```r
 # dev.off()
+# while (!is.null(dev.list()))  dev.off()
 ```
 Discussion points
 
 # Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint
 
 ```r
-base_data <- tibble(mean = df_subgroup_tot$hazard_odds_ratio, 
-                    lower = df_subgroup_tot$ci_lower,
-                    upper = df_subgroup_tot$ci_upper,
-                    subgroup = df_subgroup_tot$variable)
-header <- tibble(subgroup = c("Treatment effects by trial and subgroup (ventilation)"),
-                 summary = TRUE)
-vb_mort28_fp <- bind_rows(header,base_data)
-font <- "sans"
+# Calculate the inverse variance
+df_sg_vb_mort28$inverse_variance <- 1 / df_sg_vb_mort28$standard_error^2
 
-# Open a pdf file
-# pdf("vb_mort28_fp.pdf", width=10, height=4)
-vb_mort28_fp %>% 
-  forestplot(labeltext = c(subgroup),
-             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
-                              ticks = gpar(cex=1),
-                              xlab = gpar(cex=1)),
-             is.summary = summary,
-             graph.pos = 2,
-             clip = c(0.1, 2), 
-             hrzl_lines = list("2" = gpar(lty = 2), 
-                               "3" = gpar(lty = 2),
-                               "5" = gpar(lty = 2), 
-                               "6" = gpar(lty = 2)),
-             xlog = FALSE,
-             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5,1.75,2),
-             boxsize = 0.22,
-             lty.ci = c(1),
-             col = fpColors(box = "maroon4",
-                            line = "maroon1",
-                            hrz_lines = "gray63"),
-             vertices = TRUE,
-             xlab = "     Favours JAKi <-> Favours No JAKi",
-             zero = 1,
-             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-             )
+# Insert ACTT2 title
+empty_row <- data.frame(
+  variable = "ACTT2",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+df_sg_vb_mort28 <- rbind(empty_row, df_sg_vb_mort28)
+
+# Insert cov-barrier title
+empty_row <- data.frame(
+  variable = "COV-BARRIER",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vb_mort28[1:3, ]
+second_part <- df_sg_vb_mort28[4:nrow(df_sg_vb_mort28), ]
+# Insert the empty row before/after
+df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert bari-solidact title
+empty_row <- data.frame(
+  variable = "BARI-SOLIDACT",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vb_mort28[1:6, ]
+second_part <- df_sg_vb_mort28[7:nrow(df_sg_vb_mort28), ]
+# Insert the empty row before/after
+df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Covinib title
+empty_row <- data.frame(
+  variable = "COVINIB",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vb_mort28[1:8, ]
+second_part <- df_sg_vb_mort28[9:nrow(df_sg_vb_mort28), ]
+# Insert the empty row before/after
+df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TOFACOV title
+empty_row <- data.frame(
+  variable = "TOFACOV",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vb_mort28[1:10, ]
+second_part <- df_sg_vb_mort28[11:nrow(df_sg_vb_mort28), ]
+# Insert the empty row before/after
+df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Ghazaeian title
+empty_row <- data.frame(
+  variable = "GHAZAEIAN",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vb_mort28[1:12, ]
+second_part <- df_sg_vb_mort28[13:nrow(df_sg_vb_mort28), ]
+# Insert the empty row before/after
+df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# pdf("sg_vb_mort28.pdf")
+# Create a forest plot
+forest(df_sg_vb_mort28$hazard_odds_ratio,
+       ci.lb = df_sg_vb_mort28$ci_lower,
+       ci.ub = df_sg_vb_mort28$ci_upper,
+       slab = df_sg_vb_mort28$variable,
+       alim = c(0, 3),
+       xlab = "Odds Ratio",
+       cex = 0.8,
+       refline = 1,
+       annotate = F,
+       lwd.ci = 1,
+       psize = sqrt(df_sg_vb_mort28$inverse_variance),
+       )
 ```
 
 ![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
@@ -2110,6 +2323,74 @@ vb_mort28_fp %>%
 # dev.off()
 ```
 Discussion points
+
+
+```r
+# df_subgroup_actt2_title <- data.frame(variable = c("ACTT2"))
+# df_subgroup_actt2_title$hazard_odds_ratio <- NA
+# df_subgroup_actt2_title$ci_lower <- NA
+# df_subgroup_actt2_title$ci_upper <- NA
+# df_subgroup_actt2_title$standard_error <- NA
+# df_subgroup_actt2_title$p_value <- NA
+# df_subgroup_actt2_title$n_intervention <- NA
+# df_subgroup_actt2_title$n_intervention_tot <- NA
+# df_subgroup_actt2_title$n_control <- NA
+# df_subgroup_actt2_title$n_control_tot <- NA
+# df_subgroup_actt2_title$trial <- NA
+# df_subgroup_actt2_title$JAKi <- NA
+# df_subgroup_covbarrier_title <- data.frame(variable = c("COV-BARRIER"))
+# df_subgroup_covbarrier_title$hazard_odds_ratio <- NA
+# df_subgroup_covbarrier_title$ci_lower <- NA
+# df_subgroup_covbarrier_title$ci_upper <- NA
+# df_subgroup_covbarrier_title$standard_error <- NA
+# df_subgroup_covbarrier_title$p_value <- NA
+# df_subgroup_covbarrier_title$n_intervention <- NA
+# df_subgroup_covbarrier_title$n_intervention_tot <- NA
+# df_subgroup_covbarrier_title$n_control <- NA
+# df_subgroup_covbarrier_title$n_control_tot <- NA
+# df_subgroup_covbarrier_title$trial <- NA
+# df_subgroup_covbarrier_title$JAKi <- NA
+# 
+# df_subgroup_tot <- rbind(df_subgroup_actt2_title, df_subgroup_actt2, df_subgroup_covbarrier_title, df_subgroup_covbarrier)
+# 
+# 
+# base_data <- tibble(mean = df_subgroup_tot$hazard_odds_ratio, 
+#                     lower = df_subgroup_tot$ci_lower,
+#                     upper = df_subgroup_tot$ci_upper,
+#                     subgroup = df_subgroup_tot$variable)
+# header <- tibble(subgroup = c("Treatment effects by trial and subgroup (ventilation)"),
+#                  summary = TRUE)
+# vb_mort28_fp <- bind_rows(header,base_data)
+# font <- "sans"
+# 
+# # Open a pdf file
+# # pdf("vb_mort28_fp.pdf", width=10, height=4)
+# vb_mort28_fp %>% 
+#   forestplot(labeltext = c(subgroup),
+#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+#                               ticks = gpar(cex=1),
+#                               xlab = gpar(cex=1)),
+#              is.summary = summary,
+#              graph.pos = 2,
+#              clip = c(0.1, 2), 
+#              hrzl_lines = list("2" = gpar(lty = 2), 
+#                                "3" = gpar(lty = 2),
+#                                "5" = gpar(lty = 2), 
+#                                "6" = gpar(lty = 2)),
+#              xlog = FALSE,
+#              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5,1.75,2),
+#              boxsize = 0.22,
+#              lty.ci = c(1),
+#              col = fpColors(box = "maroon4",
+#                             line = "maroon1",
+#                             hrz_lines = "gray63"),
+#              vertices = TRUE,
+#              xlab = "     Favours JAKi <-> Favours No JAKi",
+#              zero = 1,
+#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+#              )
+# # dev.off()
+```
 
 # Interaction: Age on primary endpoint
 
@@ -2195,7 +2476,7 @@ forest.meta(age.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 Discussion points
 
 # Interaction: Comorbidity on primary endpoint
@@ -2282,7 +2563,7 @@ forest.meta(comorb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
 Discussion points
 
 # Interaction: Comedication on primary endpoint
@@ -2368,7 +2649,7 @@ forest.meta(comed.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
 Discussion points
 
 # Interaction: Vaccination on AEs
@@ -2449,7 +2730,7 @@ forest.meta(vacc.ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
 Discussion points
 
 # Interaction: Symptom onset on primary endpoint
@@ -2537,7 +2818,7 @@ forest.meta(symp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
 Discussion points
 
 # Interaction: CRP on primary endpoint
@@ -2624,7 +2905,7 @@ forest.meta(crp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
 Discussion points
 
 # Collect all interaction effect estimates

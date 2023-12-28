@@ -1233,10 +1233,8 @@ vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(vb.mort28)
-
 # Open a pdf file
 # pdf("vb_mort28.pdf", width=11, height=4)
-pdf("vb1_mort28.pdf")
 forest.meta(vb.mort28,
             hetstat = F,
             leftcols = c("studlab"),
@@ -1248,11 +1246,8 @@ forest.meta(vb.mort28,
             xlab.pos = 0.7,
             fs.xlab = 11
             )
-dev.off()
-
-# Save the forest plot as a PDF using ggsave
-forest_data <- metafor::forest(meta_results)
-ggsave("vb_mort28.pdf")
+# dev.off()
+# while (!is.null(dev.list()))  dev.off()
 
 ```
 Discussion points
@@ -1390,6 +1385,7 @@ second_part <- df_sg_vb_mort28[13:nrow(df_sg_vb_mort28), ]
 # Insert the empty row before/after
 df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
 
+# pdf("sg_vb_mort28.pdf")
 # Create a forest plot
 forest(df_sg_vb_mort28$hazard_odds_ratio,
        ci.lb = df_sg_vb_mort28$ci_lower,
@@ -1403,79 +1399,76 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
        lwd.ci = 1,
        psize = sqrt(df_sg_vb_mort28$inverse_variance),
        )
-
+# dev.off()
 ```
 Discussion points
 
 ```{r}
-
-df_subgroup_actt2_title <- data.frame(variable = c("ACTT2"))
-df_subgroup_actt2_title$hazard_odds_ratio <- NA
-df_subgroup_actt2_title$ci_lower <- NA
-df_subgroup_actt2_title$ci_upper <- NA
-df_subgroup_actt2_title$standard_error <- NA
-df_subgroup_actt2_title$p_value <- NA
-df_subgroup_actt2_title$n_intervention <- NA
-df_subgroup_actt2_title$n_intervention_tot <- NA
-df_subgroup_actt2_title$n_control <- NA
-df_subgroup_actt2_title$n_control_tot <- NA
-df_subgroup_actt2_title$trial <- NA
-df_subgroup_actt2_title$JAKi <- NA
-df_subgroup_covbarrier_title <- data.frame(variable = c("COV-BARRIER"))
-df_subgroup_covbarrier_title$hazard_odds_ratio <- NA
-df_subgroup_covbarrier_title$ci_lower <- NA
-df_subgroup_covbarrier_title$ci_upper <- NA
-df_subgroup_covbarrier_title$standard_error <- NA
-df_subgroup_covbarrier_title$p_value <- NA
-df_subgroup_covbarrier_title$n_intervention <- NA
-df_subgroup_covbarrier_title$n_intervention_tot <- NA
-df_subgroup_covbarrier_title$n_control <- NA
-df_subgroup_covbarrier_title$n_control_tot <- NA
-df_subgroup_covbarrier_title$trial <- NA
-df_subgroup_covbarrier_title$JAKi <- NA
-
-df_subgroup_tot <- rbind(df_subgroup_actt2_title, df_subgroup_actt2, df_subgroup_covbarrier_title, df_subgroup_covbarrier)
-
-
-base_data <- tibble(mean = df_subgroup_tot$hazard_odds_ratio, 
-                    lower = df_subgroup_tot$ci_lower,
-                    upper = df_subgroup_tot$ci_upper,
-                    subgroup = df_subgroup_tot$variable)
-header <- tibble(subgroup = c("Treatment effects by trial and subgroup (ventilation)"),
-                 summary = TRUE)
-vb_mort28_fp <- bind_rows(header,base_data)
-font <- "sans"
-
-# Open a pdf file
-# pdf("vb_mort28_fp.pdf", width=10, height=4)
-vb_mort28_fp %>% 
-  forestplot(labeltext = c(subgroup),
-             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
-                              ticks = gpar(cex=1),
-                              xlab = gpar(cex=1)),
-             is.summary = summary,
-             graph.pos = 2,
-             clip = c(0.1, 2), 
-             hrzl_lines = list("2" = gpar(lty = 2), 
-                               "3" = gpar(lty = 2),
-                               "5" = gpar(lty = 2), 
-                               "6" = gpar(lty = 2)),
-             xlog = FALSE,
-             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5,1.75,2),
-             boxsize = 0.22,
-             lty.ci = c(1),
-             col = fpColors(box = "maroon4",
-                            line = "maroon1",
-                            hrz_lines = "gray63"),
-             vertices = TRUE,
-             xlab = "     Favours JAKi <-> Favours No JAKi",
-             zero = 1,
-             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-             )
-# dev.off()
+# df_subgroup_actt2_title <- data.frame(variable = c("ACTT2"))
+# df_subgroup_actt2_title$hazard_odds_ratio <- NA
+# df_subgroup_actt2_title$ci_lower <- NA
+# df_subgroup_actt2_title$ci_upper <- NA
+# df_subgroup_actt2_title$standard_error <- NA
+# df_subgroup_actt2_title$p_value <- NA
+# df_subgroup_actt2_title$n_intervention <- NA
+# df_subgroup_actt2_title$n_intervention_tot <- NA
+# df_subgroup_actt2_title$n_control <- NA
+# df_subgroup_actt2_title$n_control_tot <- NA
+# df_subgroup_actt2_title$trial <- NA
+# df_subgroup_actt2_title$JAKi <- NA
+# df_subgroup_covbarrier_title <- data.frame(variable = c("COV-BARRIER"))
+# df_subgroup_covbarrier_title$hazard_odds_ratio <- NA
+# df_subgroup_covbarrier_title$ci_lower <- NA
+# df_subgroup_covbarrier_title$ci_upper <- NA
+# df_subgroup_covbarrier_title$standard_error <- NA
+# df_subgroup_covbarrier_title$p_value <- NA
+# df_subgroup_covbarrier_title$n_intervention <- NA
+# df_subgroup_covbarrier_title$n_intervention_tot <- NA
+# df_subgroup_covbarrier_title$n_control <- NA
+# df_subgroup_covbarrier_title$n_control_tot <- NA
+# df_subgroup_covbarrier_title$trial <- NA
+# df_subgroup_covbarrier_title$JAKi <- NA
+# 
+# df_subgroup_tot <- rbind(df_subgroup_actt2_title, df_subgroup_actt2, df_subgroup_covbarrier_title, df_subgroup_covbarrier)
+# 
+# 
+# base_data <- tibble(mean = df_subgroup_tot$hazard_odds_ratio, 
+#                     lower = df_subgroup_tot$ci_lower,
+#                     upper = df_subgroup_tot$ci_upper,
+#                     subgroup = df_subgroup_tot$variable)
+# header <- tibble(subgroup = c("Treatment effects by trial and subgroup (ventilation)"),
+#                  summary = TRUE)
+# vb_mort28_fp <- bind_rows(header,base_data)
+# font <- "sans"
+# 
+# # Open a pdf file
+# # pdf("vb_mort28_fp.pdf", width=10, height=4)
+# vb_mort28_fp %>% 
+#   forestplot(labeltext = c(subgroup),
+#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+#                               ticks = gpar(cex=1),
+#                               xlab = gpar(cex=1)),
+#              is.summary = summary,
+#              graph.pos = 2,
+#              clip = c(0.1, 2), 
+#              hrzl_lines = list("2" = gpar(lty = 2), 
+#                                "3" = gpar(lty = 2),
+#                                "5" = gpar(lty = 2), 
+#                                "6" = gpar(lty = 2)),
+#              xlog = FALSE,
+#              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5,1.75,2),
+#              boxsize = 0.22,
+#              lty.ci = c(1),
+#              col = fpColors(box = "maroon4",
+#                             line = "maroon1",
+#                             hrz_lines = "gray63"),
+#              vertices = TRUE,
+#              xlab = "     Favours JAKi <-> Favours No JAKi",
+#              zero = 1,
+#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+#              )
+# # dev.off()
 ```
-
-
 
 # Interaction: Age on primary endpoint
 ```{r warning=FALSE, fig.width=14, fig.height=4}
