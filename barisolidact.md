@@ -1867,38 +1867,8 @@ summ(mort.28.vent.vb.yes, exp = T, confint = T, model.info = T, model.fit = F, d
 </table>
 
 ```r
-# mort.28.vent.vb.no <- df %>% 
-#   filter(vbaseline == 0) %>% # not ventilated
-#   glm(mort_28 ~ trt
-#       + age 
-#      # + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , family = "binomial", data=.)
-# summ(mort.28.vent.vb.no, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-
 # class(df$clinstatus_baseline)
-# mort.28.vent.rs.2 <- df %>% 
-#   filter(clinstatus_baseline == "2") %>% # no oxygen
-#   glm(mort_28 ~ trt
-#       + age 
-#      # + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , family = "binomial", data=.)
-# summ(mort.28.vent.rs.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# mort.28.vent.rs.3 <- df %>% 
-#   filter(clinstatus_baseline == "3") %>% # LF oxygen
-#   glm(mort_28 ~ trt
-#       + age 
-#      # + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , family = "binomial", data=.)
-# summ(mort.28.vent.rs.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
 mort.28.vent.rs.4 <- df %>% 
   filter(clinstatus_baseline == "4") %>% # HF oxygen/NIV
   glm(mort_28 ~ trt
@@ -4521,7 +4491,7 @@ result_list[[14]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Toc
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,1])
-result_list[[15]] <- extract_subgroup_results(mort.28.sympdur.a10, "Above 10 days",
+result_list[[15]] <- extract_subgroup_results(mort.28.sympdur.a10, "More than 10 days",
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,3,2], 
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,1], 
@@ -4574,7 +4544,7 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt8  |Immunocompromised                              |         1.4162932| 0.1011385| 21.0225813|      1.3031862| 0.7894146|              2|                  5|         2|             6|Bari-SolidAct |Baricitinib |
 |trt9  |No Dexa, no Tocilizumab_firth                  |         0.3573984| 0.0021952| 10.3387584|      1.6430264| 0.5452310|              0|                  8|         1|            10|Bari-SolidAct |Baricitinib |
 |trt10 |Dexa, but no Tocilizumab                       |         0.6828072| 0.3088846|  1.4793112|      0.3968763| 0.3363690|              0|                  0|         0|             1|Bari-SolidAct |Baricitinib |
-|trt11 |Above 10 days                                  |         0.0711745| 0.0032584|  0.4973977|      1.1881628| 0.0261402|              1|                 42|        10|            57|Bari-SolidAct |Baricitinib |
+|trt11 |More than 10 days                              |         0.0711745| 0.0032584|  0.4973977|      1.1881628| 0.0261402|              1|                 42|        10|            57|Bari-SolidAct |Baricitinib |
 |trt12 |Between 5-10 days                              |         1.0124636| 0.3115737|  3.4040441|      0.5991231| 0.9835053|              8|                 86|         6|            72|Bari-SolidAct |Baricitinib |
 |trt13 |5 days and less                                |         1.6344455| 0.2916523| 10.5761399|      0.8920304| 0.5817913|              6|                 17|         5|            15|Bari-SolidAct |Baricitinib |
 |trt14 |CRP 75 and higher                              |         0.7776828| 0.2973829|  1.9620443|      0.4767600| 0.5979255|             10|                 73|        16|            90|Bari-SolidAct |Baricitinib |
