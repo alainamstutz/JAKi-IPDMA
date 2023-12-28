@@ -803,16 +803,16 @@ df <- df %>%
                             age > 69 ~ 1))
 table(df$age_70, useNA = "always")
 
-# mort.28.age.a70 <- df %>% 
-#   filter(age_70 == 1) %>% # 70 and above
-#   logistf(mort_28 ~ trt
-#       # + age 
-#       + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , data=.)
-# summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+mort.28.age.a70 <- df %>%
+  filter(age_70 == 1) %>% # 70 and above
+  logistf(mort_28 ~ trt
+     # + age
+     # + clinstatus_baseline
+     # + comed_dexa
+     # + comed_rdv
+     # + comed_toci
+      , data=.)
+summary(mort.28.age.a70)
 
 mort.28.age.b70 <- df %>% 
   filter(age_70 == 0) %>% # below 70
@@ -903,16 +903,16 @@ mort.28.comorb.3 <- df %>%
       , data=.)
 summary(mort.28.comorb.3)
 
-# mort.28.comorb.4 <- df %>% 
-#   filter(comorb_cat == 4) %>% # immunocompromised
-#   logistf(mort_28 ~ trt
-#       + age 
-#       + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , data=.)
-# summ(mort.28.comorb.4, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+mort.28.comorb.4 <- df %>%
+  filter(comorb_cat == 4) %>% # immunocompromised
+  logistf(mort_28 ~ trt
+      + age
+     # + clinstatus_baseline
+     # + comed_dexa
+     # + comed_rdv
+     # + comed_toci
+      , data=.)
+summary(mort.28.comorb.4)
 ```
 Discussion points
 
@@ -990,16 +990,16 @@ summary(ae.28.vacc.firth)
 
 # effect by subgroup
 # class(df$vacc)
-# ae.28.vacc.1 <- df %>% 
-#   filter(vacc == 1) %>% # vaccinated
-#   glm(ae_28 ~ trt
-#       + age 
-#       + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , family = "binomial", data=.)
-# summ(mort.28.vacc.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+ae.28.vacc.1 <- df %>%
+  filter(vacc == 1) %>% # vaccinated
+  logistf(ae_28 ~ trt
+      + age
+     # + clinstatus_baseline
+     # + comed_dexa
+     # + comed_rdv
+     # + comed_toci
+    , data=.)
+summary(ae.28.vacc.1)
 
 ae.28.vacc.0 <- df %>% 
   filter(vacc == 0) %>% # not vaccinated
@@ -1041,15 +1041,15 @@ df <- df %>%
                                  sympdur > 10 ~ 0))
 table(df$sympdur_cat, useNA = "always")
 # table(df$sympdur, useNA = "always")
-# mort.28.sympdur.a10 <- df %>% 
+# mort.28.sympdur.a10 <- df %>%
 #   filter(sympdur_cat == 0) %>% # more than 10 days
-#   glm(mort_28 ~ trt
-#       + age 
-#       + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
+#   logistf(mort_28 ~ trt
+#      # + age
+#      # + clinstatus_baseline
+#      # + comed_dexa
+#      # + comed_rdv
 #      # + comed_toci
-#       , family = "binomial", data=.)
+#       , data=.)
 # summ(mort.28.sympdur.a10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 mort.28.sympdur.510 <- df %>% 
@@ -1425,11 +1425,11 @@ result_list[[4]] <- extract_subgroup_results(mort.28.vent.rs.3, "low-flow oxygen
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,2], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,2,1], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,1]) 
-# result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above",
-#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,2], 
-#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,2], 
-#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,1], 
-#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,1]) 
+result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above_firth",
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,2],
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,2],
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,1],
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,1])
 result_list[[8]] <- extract_subgroup_results(mort.28.age.b70, "below 70 years_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,3,2], 
@@ -1450,11 +1450,11 @@ result_list[[11]] <- extract_subgroup_results(mort.28.comorb.3, "Multiple comorb
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,3,2], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,2,1], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,3,1])
-# result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromised",
-#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,2], 
-#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,2], 
-#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,1], 
-#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,1]) 
+result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromised_firth",
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,2],
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,2],
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,1],
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,1])
 result_list[[13]] <- extract_subgroup_results(mort.28.comed.1, "No Dexa, no Tocilizumab_firth",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,2],
@@ -1465,11 +1465,11 @@ result_list[[14]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Toc
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,1])
-# result_list[[15]] <- extract_subgroup_results(ae.28.vacc.1, "vaccinated",
-#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,2],
-#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,2],
-#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,1],
-#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,1])
+result_list[[15]] <- extract_subgroup_results(ae.28.vacc.1, "vaccinated_firth",
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,2],
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,2],
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,1],
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,1])
 result_list[[16]] <- extract_subgroup_results(ae.28.vacc.0, "not vaccinated",
                                              addmargins(table(df$vacc, df$mort_28, df$trt))[1,2,2],
                                              addmargins(table(df$vacc, df$mort_28, df$trt))[1,3,2],

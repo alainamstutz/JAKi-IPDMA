@@ -1898,17 +1898,37 @@ table(df$age_70, useNA = "always")
 ```
 
 ```r
-# mort.28.age.a70 <- df %>% 
-#   filter(age_70 == 1) %>% # 70 and above
-#   logistf(mort_28 ~ trt
-#       # + age 
-#       + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , data=.)
-# summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+mort.28.age.a70 <- df %>%
+  filter(age_70 == 1) %>% # 70 and above
+  logistf(mort_28 ~ trt
+     # + age
+     # + clinstatus_baseline
+     # + comed_dexa
+     # + comed_rdv
+     # + comed_toci
+      , data=.)
+summary(mort.28.age.a70)
+```
 
+```
+## logistf(formula = mort_28 ~ trt, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                   coef se(coef) lower 0.95 upper 0.95      Chisq         p
+## (Intercept) -1.6094379 1.549193  -6.536132  0.8993577 1.45551583 0.2276449
+## trt         -0.5877867 2.149934  -5.963790  4.7790885 0.07412559 0.7854220
+##             method
+## (Intercept)      2
+## trt              2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.07412559 on 1 df, p=0.785422, n=6
+## Wald test = 3.251804 on 1 df, p = 0.07134491
+```
+
+```r
 mort.28.age.b70 <- df %>% 
   filter(age_70 == 0) %>% # below 70
   logistf(mort_28 ~ trt
@@ -2427,16 +2447,32 @@ summary(mort.28.comorb.3)
 ```
 
 ```r
-# mort.28.comorb.4 <- df %>% 
-#   filter(comorb_cat == 4) %>% # immunocompromised
-#   logistf(mort_28 ~ trt
-#       + age 
-#       + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , data=.)
-# summ(mort.28.comorb.4, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+mort.28.comorb.4 <- df %>%
+  filter(comorb_cat == 4) %>% # immunocompromised
+  logistf(mort_28 ~ trt
+      + age
+     # + clinstatus_baseline
+     # + comed_dexa
+     # + comed_rdv
+     # + comed_toci
+      , data=.)
+summary(mort.28.comorb.4)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                      coef     se(coef) lower 0.95 upper 0.95 Chisq p method
+## (Intercept) -1.098612e+00 1.6332557468 -4.5218377  1.8177659     0 1      2
+## trt          6.128942e-17 2.3094100103 -5.2144198  4.2897163     0 1      2
+## age          6.620676e-24 0.0005143038 -0.1008017  0.1008017     0 1      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=-1.776357e-15 on 2 df, p=1, n=2
+## Wald test = 0.9052123 on 2 df, p = 0.6359686
 ```
 Discussion points
 
@@ -2809,17 +2845,35 @@ summary(ae.28.vacc.firth)
 ```r
 # effect by subgroup
 # class(df$vacc)
-# ae.28.vacc.1 <- df %>% 
-#   filter(vacc == 1) %>% # vaccinated
-#   glm(ae_28 ~ trt
-#       + age 
-#       + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , family = "binomial", data=.)
-# summ(mort.28.vacc.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+ae.28.vacc.1 <- df %>%
+  filter(vacc == 1) %>% # vaccinated
+  logistf(ae_28 ~ trt
+      + age
+     # + clinstatus_baseline
+     # + comed_dexa
+     # + comed_rdv
+     # + comed_toci
+    , data=.)
+summary(ae.28.vacc.1)
+```
 
+```
+## logistf(formula = ae_28 ~ trt + age, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                      coef     se(coef)   lower 0.95  upper 0.95 Chisq p method
+## (Intercept) -1.609283e+00 2.8561926684 -189.6067676 263.0182602     0 1      2
+## trt          9.801562e-05 2.3998850838 -470.3141053 470.4234892     0 1      2
+## age         -1.519622e-06 0.0005764796   -0.1141914   0.1117316     0 1      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=-1.410229e-07 on 2 df, p=1, n=2
+## Wald test = 1.079221 on 2 df, p = 0.5829752
+```
+
+```r
 ae.28.vacc.0 <- df %>% 
   filter(vacc == 0) %>% # not vaccinated
   glm(ae_28 ~ trt
@@ -3061,15 +3115,15 @@ table(df$sympdur_cat, useNA = "always")
 
 ```r
 # table(df$sympdur, useNA = "always")
-# mort.28.sympdur.a10 <- df %>% 
+# mort.28.sympdur.a10 <- df %>%
 #   filter(sympdur_cat == 0) %>% # more than 10 days
-#   glm(mort_28 ~ trt
-#       + age 
-#       + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
+#   logistf(mort_28 ~ trt
+#      # + age
+#      # + clinstatus_baseline
+#      # + comed_dexa
+#      # + comed_rdv
 #      # + comed_toci
-#       , family = "binomial", data=.)
+#       , data=.)
 # summ(mort.28.sympdur.a10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 mort.28.sympdur.510 <- df %>% 
@@ -3695,11 +3749,11 @@ result_list[[4]] <- extract_subgroup_results(mort.28.vent.rs.3, "low-flow oxygen
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,2], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,2,1], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,1]) 
-# result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above",
-#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,2], 
-#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,2], 
-#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,1], 
-#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,1]) 
+result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above_firth",
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,2],
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,2],
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,1],
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,1])
 result_list[[8]] <- extract_subgroup_results(mort.28.age.b70, "below 70 years_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,3,2], 
@@ -3720,11 +3774,11 @@ result_list[[11]] <- extract_subgroup_results(mort.28.comorb.3, "Multiple comorb
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,3,2], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,2,1], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,3,1])
-# result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromised",
-#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,2], 
-#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,2], 
-#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,1], 
-#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,1]) 
+result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromised_firth",
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,2],
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,2],
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,1],
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,1])
 result_list[[13]] <- extract_subgroup_results(mort.28.comed.1, "No Dexa, no Tocilizumab_firth",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,2],
@@ -3735,11 +3789,11 @@ result_list[[14]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Toc
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,1])
-# result_list[[15]] <- extract_subgroup_results(ae.28.vacc.1, "vaccinated",
-#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,2],
-#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,2],
-#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,1],
-#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,1])
+result_list[[15]] <- extract_subgroup_results(ae.28.vacc.1, "vaccinated_firth",
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,2],
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,2],
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,1],
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,1])
 result_list[[16]] <- extract_subgroup_results(ae.28.vacc.0, "not vaccinated",
                                              addmargins(table(df$vacc, df$mort_28, df$trt))[1,2,2],
                                              addmargins(table(df$vacc, df$mort_28, df$trt))[1,3,2],
@@ -3785,22 +3839,25 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                       | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial   |JAKi        |
-|:-----|:------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------|:-----------|
-|trt   |None or low-flow oxygen_firth  |         0.1713846| 0.0012269|   2.189138|      1.4774359| 0.1891848|              0|                 55|         2|            55|COVINIB |Baricitinib |
-|trt1  |No oxygen_firth                |         1.4516881| 0.0050949| 336.969322|      1.7562814| 0.8724571|              0|                 16|         0|            19|COVINIB |Baricitinib |
-|trt2  |low-flow oxygen_firth          |         0.1836593| 0.0013126|   2.361832|      1.4635004| 0.2102105|              0|                 39|         2|            36|COVINIB |Baricitinib |
-|trt3  |below 70 years_firth           |         0.1874516| 0.0013417|   2.392560|      1.4609525| 0.2150245|              0|                 51|         2|            53|COVINIB |Baricitinib |
-|trt4  |No comorbidity_firth           |         0.0746062| 0.0000024|   3.782748|      1.8583987| 0.2282802|              0|                 18|         1|            19|COVINIB |Baricitinib |
-|trt5  |One comorbidity_firth          |         0.8351792| 0.0035622| 686.384474|      1.4982055| 0.9239355|              0|                 21|         0|            19|COVINIB |Baricitinib |
-|trt6  |Multiple comorbidities_firth   |         0.3488323| 0.0022044|   7.130628|      1.4167142| 0.5056131|              0|                 15|         1|            16|COVINIB |Baricitinib |
-|trt7  |No Dexa, no Tocilizumab_firth  |         0.2030739| 0.0014605|   2.584762|      1.3600982| 0.2391093|              0|                 44|         2|            50|COVINIB |Baricitinib |
-|trt8  |Dexa, but no Tocilizumab_firth |         0.5684634| 0.0002373| 100.458870|      1.8624477| 0.7706755|              0|                 11|         0|             5|COVINIB |Baricitinib |
-|trt9  |not vaccinated                 |         0.8436332| 0.3258987|   2.160550|      0.4783483| 0.7222391|              0|                 53|         2|            55|COVINIB |Baricitinib |
-|trt10 |Between 5-10 days_firth        |         0.3212878| 0.0022404|   5.873824|      1.3644447| 0.4493570|              0|                 15|         1|            15|COVINIB |Baricitinib |
-|trt11 |5 days and less_firth          |         0.2792402| 0.0018768|   5.345121|      1.4061063| 0.4040744|              0|                 55|         2|            55|COVINIB |Baricitinib |
-|trt12 |CRP 75 and higher_firth        |         0.2585064| 0.0011666|   5.504564|      1.4087442| 0.3941911|              0|                 32|         1|            26|COVINIB |Baricitinib |
-|trt13 |CRP below 75_firth             |         0.2436989| 0.0000120|   5.526709|      1.4582197| 0.3923310|              0|                 23|         1|            29|COVINIB |Baricitinib |
+|      |variable                       | hazard_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial   |JAKi        |
+|:-----|:------------------------------|-----------------:|---------:|-------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------|:-----------|
+|trt   |None or low-flow oxygen_firth  |         0.1713846| 0.0012269|  2.189138e+00|      1.4774359| 0.1891848|              0|                 55|         2|            55|COVINIB |Baricitinib |
+|trt1  |No oxygen_firth                |         1.4516881| 0.0050949|  3.369693e+02|      1.7562814| 0.8724571|              0|                 16|         0|            19|COVINIB |Baricitinib |
+|trt2  |low-flow oxygen_firth          |         0.1836593| 0.0013126|  2.361832e+00|      1.4635004| 0.2102105|              0|                 39|         2|            36|COVINIB |Baricitinib |
+|trt3  |70 years and above_firth       |         0.5555556| 0.0025702|  1.189958e+02|      2.1499335| 0.7854220|              0|                  4|         0|             2|COVINIB |Baricitinib |
+|trt4  |below 70 years_firth           |         0.1874516| 0.0013417|  2.392560e+00|      1.4609525| 0.2150245|              0|                 51|         2|            53|COVINIB |Baricitinib |
+|trt5  |No comorbidity_firth           |         0.0746062| 0.0000024|  3.782748e+00|      1.8583987| 0.2282802|              0|                 18|         1|            19|COVINIB |Baricitinib |
+|trt6  |One comorbidity_firth          |         0.8351792| 0.0035622|  6.863845e+02|      1.4982055| 0.9239355|              0|                 21|         0|            19|COVINIB |Baricitinib |
+|trt7  |Multiple comorbidities_firth   |         0.3488323| 0.0022044|  7.130628e+00|      1.4167142| 0.5056131|              0|                 15|         1|            16|COVINIB |Baricitinib |
+|trt8  |Immunocompromised_firth        |         1.0000000| 0.0054376|  7.294577e+01|      2.3094100| 1.0000000|              0|                  1|         0|             1|COVINIB |Baricitinib |
+|trt9  |No Dexa, no Tocilizumab_firth  |         0.2030739| 0.0014605|  2.584762e+00|      1.3600982| 0.2391093|              0|                 44|         2|            50|COVINIB |Baricitinib |
+|trt10 |Dexa, but no Tocilizumab_firth |         0.5684634| 0.0002373|  1.004589e+02|      1.8624477| 0.7706755|              0|                 11|         0|             5|COVINIB |Baricitinib |
+|trt11 |vaccinated_firth               |         1.0000980| 0.0000000| 2.005975e+204|      2.3998851| 1.0000000|              0|                  2|         0|             0|COVINIB |Baricitinib |
+|trt12 |not vaccinated                 |         0.8436332| 0.3258987|  2.160550e+00|      0.4783483| 0.7222391|              0|                 53|         2|            55|COVINIB |Baricitinib |
+|trt13 |Between 5-10 days_firth        |         0.3212878| 0.0022404|  5.873824e+00|      1.3644447| 0.4493570|              0|                 15|         1|            15|COVINIB |Baricitinib |
+|trt14 |5 days and less_firth          |         0.2792402| 0.0018768|  5.345121e+00|      1.4061063| 0.4040744|              0|                 55|         2|            55|COVINIB |Baricitinib |
+|trt15 |CRP 75 and higher_firth        |         0.2585064| 0.0011666|  5.504564e+00|      1.4087442| 0.3941911|              0|                 32|         1|            26|COVINIB |Baricitinib |
+|trt16 |CRP below 75_firth             |         0.2436989| 0.0000120|  5.526709e+00|      1.4582197| 0.3923310|              0|                 23|         1|            29|COVINIB |Baricitinib |
 
 ```r
 # Save
