@@ -1359,17 +1359,18 @@ mort.28.crp <- df %>%
       #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# truncate outliers > 500
-df <- df %>% 
-  mutate(crp_trunc = case_when(crp > 500 ~ 500,
-                               TRUE ~ crp))
-mort.28.crp.trunc <- df %>% 
-  glm(mort_28 ~ trt*crp_trunc
-      + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
-      , family = "binomial", data=.)
-summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# # truncate outliers > 500
+# df <- df %>% 
+#   mutate(crp_trunc = case_when(crp > 500 ~ 500,
+#                                TRUE ~ crp))
+# mort.28.crp.trunc <- df %>% 
+#   glm(mort_28 ~ trt*crp_trunc
+#       + age 
+#       + clinstatus_baseline 
+#       #+ comed_dexa + comed_rdv + comed_toci
+#       , family = "binomial", data=.)
+# summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # effect by subgroup
 df <- df %>% 
@@ -1582,7 +1583,7 @@ saveRDS(interaction_df, file = "int_effects_cov-barrier.RData")
 ```
 Discussion points
 
-# Collect all subgroup treatment effect estimates (on primary endpoint)
+# Collect all subgroup treatment effect estimates
 ```{r message=FALSE, warning=FALSE}
 # Empty data frame to store the results
 subgroup_df <- data.frame(
@@ -1704,7 +1705,7 @@ result_list[[14]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Toc
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,1])
-result_list[[15]] <- extract_subgroup_results(mort.28.sympdur.a10, "Above 10 days",
+result_list[[15]] <- extract_subgroup_results(mort.28.sympdur.a10, "More than 10 days",
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,3,2], 
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,1], 
