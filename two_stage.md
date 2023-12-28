@@ -1712,7 +1712,7 @@ result_df$truncated <- ifelse(result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate
 ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
   geom_point() +
   geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
-  geom_segment(data = subset(result_df, truncated), 
+  geom_segment(data = subset(result_df, truncated),
                aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
                arrow = arrow(length = unit(0.3, "cm")), color = "black") +
   geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
@@ -2163,7 +2163,6 @@ forest.meta(vb.mort28,
 
 ```r
 # dev.off()
-# while (!is.null(dev.list()))  dev.off()
 ```
 Discussion points
 
@@ -2301,14 +2300,14 @@ second_part <- df_sg_vb_mort28[13:nrow(df_sg_vb_mort28), ]
 # Insert the empty row before/after
 df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
 
-# pdf("sg_vb_mort28.pdf")
 # Create a forest plot
+# pdf("sg_vb_mort28.pdf", width=10, height=8)
 forest(df_sg_vb_mort28$hazard_odds_ratio,
        ci.lb = df_sg_vb_mort28$ci_lower,
        ci.ub = df_sg_vb_mort28$ci_upper,
        slab = df_sg_vb_mort28$variable,
        alim = c(0, 3),
-       xlab = "Odds Ratio",
+       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
        cex = 0.8,
        refline = 1,
        annotate = F,
