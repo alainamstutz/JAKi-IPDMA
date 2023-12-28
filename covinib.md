@@ -1652,6 +1652,105 @@ summary(mort.28.vent.firth)
 #       #+ comed_dexa + comed_rdv + comed_toci
 #       , data=.)
 # summary(mort.28.vent.vb.firth)
+
+# effect by subgroup
+mort.28.vent.vb.no <- df %>%
+  filter(vbaseline == 0) %>% # not ventilated
+  logistf(mort_28 ~ trt
+      + age
+     # + clinstatus_baseline
+     # + comed_dexa
+     # + comed_rdv
+     # + comed_toci
+      , data=.)
+summary(mort.28.vent.vb.no)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                    coef   se(coef)   lower 0.95 upper 0.95    Chisq          p
+## (Intercept) -8.65902083 3.92481130 -20.15436139 -0.9003614 5.121395 0.02363261
+## trt         -1.76384535 1.47743586  -6.70323664  0.7835077 1.723955 0.18918480
+## age          0.09781723 0.06167522  -0.03709322  0.2674012 1.901655 0.16789315
+##             method
+## (Intercept)      2
+## trt              2
+## age              2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=3.454544 on 2 df, p=0.1777687, n=110
+## Wald test = 29.14187 on 2 df, p = 4.698113e-07
+```
+
+```r
+# class(df$clinstatus_baseline)
+mort.28.vent.rs.2 <- df %>%
+  filter(clinstatus_baseline == "2") %>% # no oxygen
+  logistf(mort_28 ~ trt
+      + age
+     # + clinstatus_baseline
+     # + comed_dexa
+     # + comed_rdv
+     # + comed_toci
+      , data=.)
+summary(mort.28.vent.rs.2)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                    coef   se(coef)  lower 0.95 upper 0.95      Chisq         p
+## (Intercept) -1.79772371 3.41399342 -29.2385797  8.3225136 0.14308133 0.7052368
+## trt          0.37272705 1.75628139  -5.2795174  5.8199919 0.02577254 0.8724571
+## age         -0.03381112 0.07744676  -0.3577235  0.4111449 0.05892427 0.8082043
+##             method
+## (Intercept)      2
+## trt              2
+## age              2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.05968913 on 2 df, p=0.9705964, n=35
+## Wald test = 14.23682 on 2 df, p = 0.0008100543
+```
+
+```r
+mort.28.vent.rs.3 <- df %>%
+  filter(clinstatus_baseline == "3") %>% # LF oxygen
+  logistf(mort_28 ~ trt
+      + age
+     # + clinstatus_baseline
+     # + comed_dexa
+     # + comed_rdv
+     # + comed_toci
+      , data=.)
+summary(mort.28.vent.rs.3)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                    coef   se(coef)   lower 0.95 upper 0.95    Chisq         p
+## (Intercept) -7.67480403 4.31393161 -19.55412381  1.4773279 2.602205 0.1067151
+## trt         -1.69467301 1.46350043  -6.63577378  0.8594375 1.569976 0.2102105
+## age          0.08515515 0.06725575  -0.06981569  0.2604173 1.140610 0.2855234
+##             method
+## (Intercept)      2
+## trt              2
+## age              2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=2.708191 on 2 df, p=0.2581807, n=75
+## Wald test = 23.83073 on 2 df, p = 6.686882e-06
 ```
 Discussion points
 1. Firth regression works for clinstatus_baseline but not for vbaseline
@@ -1782,6 +1881,64 @@ summary(mort.28.age.firth)
 ## 
 ## Likelihood ratio test=2.863354 on 4 df, p=0.580947, n=110
 ## Wald test = 36.38715 on 4 df, p = 2.408724e-07
+```
+
+```r
+# effect by subgroup
+df <- df %>% 
+  mutate(age_70 = case_when(age < 70 ~ 0,
+                            age > 69 ~ 1))
+table(df$age_70, useNA = "always")
+```
+
+```
+## 
+##    0    1 <NA> 
+##  104    6    0
+```
+
+```r
+# mort.28.age.a70 <- df %>% 
+#   filter(age_70 == 1) %>% # 70 and above
+#   logistf(mort_28 ~ trt
+#       # + age 
+#       + clinstatus_baseline 
+#      # + comed_dexa 
+#      # + comed_rdv 
+#      # + comed_toci
+#       , data=.)
+# summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.age.b70 <- df %>% 
+  filter(age_70 == 0) %>% # below 70
+  logistf(mort_28 ~ trt
+      # + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.age.b70)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + clinstatus_baseline, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                           coef se(coef) lower 0.95 upper 0.95      Chisq
+## (Intercept)          -3.670110 1.353187  -8.514147 -1.6884822 23.1746942
+## trt                  -1.674234 1.460953  -6.613798  0.8723639  1.5372705
+## clinstatus_baseline3  1.076696 1.468772  -1.487142  6.0217370  0.5753484
+##                                 p method
+## (Intercept)          1.479313e-06      2
+## trt                  2.150245e-01      2
+## clinstatus_baseline3 4.481414e-01      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.998919 on 2 df, p=0.3680784, n=104
+## Wald test = 32.81625 on 2 df, p = 7.482406e-08
 ```
 Discussion points
 
@@ -2159,6 +2316,128 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# effect by subgroup
+mort.28.comorb.1 <- df %>% 
+  filter(comorb_cat == 1) %>% # no comorbidity
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.comorb.1)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef  se(coef)   lower 0.95 upper 0.95     Chisq
+## (Intercept)          -12.8174690 6.9897991 -87.18146199   1.411220 2.8493744
+## trt                   -2.5955322 1.8583987 -12.93202943   1.330451 1.4515449
+## age                    0.1725042 0.1073242  -0.08140597   1.247104 1.5587873
+## clinstatus_baseline3   1.1992169 1.7064253  -2.36573486   8.679505 0.3672193
+##                              p method
+## (Intercept)          0.0914095      2
+## trt                  0.2282802      2
+## age                  0.2118429      2
+## clinstatus_baseline3 0.5445239      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=2.231857 on 3 df, p=0.5257008, n=37
+## Wald test = 10.15276 on 3 df, p = 0.01731126
+```
+
+```r
+mort.28.comorb.2 <- df %>% 
+  filter(comorb_cat == 2) %>% # 1 comorbidity
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.comorb.2)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef  se(coef)  lower 0.95 upper 0.95      Chisq
+## (Intercept)          -3.29644965 3.2868782 -24.5304576  6.5528472 0.44770009
+## trt                  -0.18010894 1.4982055  -5.6373630  6.5314379 0.00911597
+## age                   0.01324931 0.0693919  -0.2959312  0.3054433 0.01186648
+## clinstatus_baseline3 -0.56457657 1.5795133  -7.9207303  5.7152344 0.07239152
+##                              p method
+## (Intercept)          0.5034292      2
+## trt                  0.9239355      2
+## age                  0.9132553      2
+## clinstatus_baseline3 0.7878860      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.08749548 on 3 df, p=0.9932946, n=40
+## Wald test = 17.38674 on 3 df, p = 0.0005884065
+```
+
+```r
+mort.28.comorb.3 <- df %>% 
+  filter(comorb_cat == 3) %>% # multiple comorbidities
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.comorb.3)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95 upper 0.95      Chisq
+## (Intercept)          -3.01125159 5.02557051 -17.9831609  8.5670825 0.22833842
+## trt                  -1.05316386 1.41671422  -6.1172875  1.9643994 0.44313527
+## age                   0.02219662 0.09130887  -0.1999314  0.2796264 0.03462029
+## clinstatus_baseline3 -0.40684692 1.76050511  -5.3357098  4.9117891 0.03659437
+##                              p method
+## (Intercept)          0.6327586      2
+## trt                  0.5056131      2
+## age                  0.8523936      2
+## clinstatus_baseline3 0.8482933      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.4557184 on 3 df, p=0.9285064, n=31
+## Wald test = 14.47185 on 3 df, p = 0.002328422
+```
+
+```r
+# mort.28.comorb.4 <- df %>% 
+#   filter(comorb_cat == 4) %>% # immunocompromised
+#   logistf(mort_28 ~ trt
+#       + age 
+#       + clinstatus_baseline 
+#      # + comed_dexa 
+#      # + comed_rdv 
+#      # + comed_toci
+#       , data=.)
+# summ(mort.28.comorb.4, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
 Discussion points
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
@@ -2166,7 +2445,18 @@ Discussion points
 ```r
 # 4 comorbidity categories as numeric/continuous, i.e., linear interaction
 
-# table(df$comed_cat, df$trt, useNA = "always")
+table(df$comed_cat, df$trt, useNA = "always")
+```
+
+```
+##       
+##         0  1 <NA>
+##   1    50 44    0
+##   3     5 11    0
+##   <NA>  0  0    0
+```
+
+```r
 # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
 # 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
@@ -2299,12 +2589,96 @@ summary(mort.28.comed.firth)
 ## Likelihood ratio test=2.850711 on 5 df, p=0.7229886, n=110
 ## Wald test = 36.95939 on 5 df, p = 6.102807e-07
 ```
+
+```r
+# effect by subgroup
+mort.28.comed.1 <- df %>% 
+  filter(comed_cat == 1) %>% # without Dexamethasone nor Tocilizumab
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.comed.1)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                            coef   se(coef)   lower 0.95 upper 0.95      Chisq
+## (Intercept)          -7.2094326 3.51964723 -18.23118838 0.07136717 3.74666742
+## trt                  -1.5941851 1.36009822  -6.52900037 0.94963339 1.38583731
+## age                   0.0754323 0.06018938  -0.07188109 0.24500415 0.96504762
+## clinstatus_baseline3  0.1568785 1.42813947  -2.74571624 5.19356549 0.00892368
+##                               p method
+## (Intercept)          0.05291291      2
+## trt                  0.23910934      2
+## age                  0.32591840      2
+## clinstatus_baseline3 0.92473960      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=2.627097 on 3 df, p=0.4527588, n=94
+## Wald test = 29.99458 on 3 df, p = 1.383688e-06
+```
+
+```r
+mort.28.comed.3 <- df %>% 
+  filter(comed_cat == 3) %>% # with Dexamethasone but no Tocilizumab
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.comed.3)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                              coef  se(coef)  lower 0.95 upper 0.95        Chisq
+## (Intercept)          -1.731686093 4.7709735 -24.2478949 21.6127275 0.1022316708
+## trt                  -0.564818392 1.8624477  -8.3460502  4.6097484 0.0849672715
+## age                   0.002827212 0.1037378  -0.5328459  0.5188345 0.0005734334
+## clinstatus_baseline3 -0.347471320 2.4775875  -7.2104814  5.5884137 0.0182028188
+##                              p method
+## (Intercept)          0.7491678      2
+## trt                  0.7706755      2
+## age                  0.9808953      2
+## clinstatus_baseline3 0.8926768      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.2457288 on 3 df, p=0.9698899, n=16
+## Wald test = 8.418992 on 3 df, p = 0.03810139
+```
 Discussion points
 
 # Subgroup analysis: Vaccination on adverse events
 
 ```r
-# table(df$vacc, df$trt, useNA = "always") # only two vaccinated, both in intervention 
+table(df$vacc, df$trt, useNA = "always") # only two vaccinated, both in intervention 
+```
+
+```
+##       
+##         0  1 <NA>
+##   0    55 53    0
+##   1     0  2    0
+##   <NA>  0  0    0
+```
+
+```r
 ae.28.vacc <- df %>% 
   glm(ae_28 ~ trt*vacc
       + age 
@@ -2431,6 +2805,104 @@ summary(ae.28.vacc.firth)
 ## Likelihood ratio test=2.000844 on 5 df, p=0.8490283, n=108
 ## Wald test = 30.02017 on 5 df, p = 1.461436e-05
 ```
+
+```r
+# effect by subgroup
+# class(df$vacc)
+# ae.28.vacc.1 <- df %>% 
+#   filter(vacc == 1) %>% # vaccinated
+#   glm(ae_28 ~ trt
+#       + age 
+#       + clinstatus_baseline 
+#      # + comed_dexa 
+#      # + comed_rdv 
+#      # + comed_toci
+#       , family = "binomial", data=.)
+# summ(mort.28.vacc.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+ae.28.vacc.0 <- df %>% 
+  filter(vacc == 0) %>% # not vaccinated
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , family = "binomial", data=.)
+summ(ae.28.vacc.0, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 106 (2 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> -2.08 </td>
+   <td style="text-align:right;"> 0.04 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.84 </td>
+   <td style="text-align:right;"> 0.33 </td>
+   <td style="text-align:right;"> 2.15 </td>
+   <td style="text-align:right;"> -0.36 </td>
+   <td style="text-align:right;"> 0.72 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 0.97 </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 0.91 </td>
+   <td style="text-align:right;"> 0.37 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 1.70 </td>
+   <td style="text-align:right;"> 0.53 </td>
+   <td style="text-align:right;"> 5.43 </td>
+   <td style="text-align:right;"> 0.89 </td>
+   <td style="text-align:right;"> 0.37 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
 Discussion points
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
@@ -2571,6 +3043,105 @@ summary(mort.28.symp.firth)
 ## Likelihood ratio test=5.104107 on 5 df, p=0.4033075, n=110
 ## Wald test = 33.71823 on 5 df, p = 2.709161e-06
 ```
+
+```r
+# effect by subgroup
+df <- df %>% 
+  mutate(sympdur_cat = case_when(sympdur < 6 ~ 2,
+                                 sympdur > 5 & sympdur < 11 ~ 1,
+                                 sympdur > 10 ~ 0))
+table(df$sympdur_cat, useNA = "always")
+```
+
+```
+## 
+##    1    2 <NA> 
+##   80   30    0
+```
+
+```r
+# table(df$sympdur, useNA = "always")
+# mort.28.sympdur.a10 <- df %>% 
+#   filter(sympdur_cat == 0) %>% # more than 10 days
+#   glm(mort_28 ~ trt
+#       + age 
+#       + clinstatus_baseline 
+#      # + comed_dexa 
+#      # + comed_rdv 
+#      # + comed_toci
+#       , family = "binomial", data=.)
+# summ(mort.28.sympdur.a10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.sympdur.510 <- df %>% 
+  filter(sympdur_cat == 1) %>% # 5-10 days
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.sympdur.510)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95 upper 0.95     Chisq
+## (Intercept)          -7.02178769 3.75128723 -20.3830668  1.9471351 2.3039245
+## trt                  -1.13541799 1.36444473  -6.1010910  1.7705060 0.5722733
+## age                   0.07904815 0.06405209  -0.1122541  0.2775145 0.7862073
+## clinstatus_baseline3 -0.62510063 1.44424052  -3.8732486  4.4730110 0.1175551
+##                              p method
+## (Intercept)          0.1290476      2
+## trt                  0.4493570      2
+## age                  0.3752494      2
+## clinstatus_baseline3 0.7317015      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.286017 on 3 df, p=0.7324562, n=80
+## Wald test = 26.23784 on 3 df, p = 8.504044e-06
+```
+
+```r
+mort.28.sympdur.b5 <- df %>% 
+  filter(sympdur_cat == 2) %>% # 5d or less
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.sympdur.b5)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95 upper 0.95     Chisq
+## (Intercept)          -3.61806711 3.25603804 -22.3919492  2.2567105 1.1785199
+## trt                  -1.27568303 1.40610630  -6.2781640  1.6761841 0.6961678
+## age                   0.02431957 0.06199069  -0.1109461  0.3605902 0.1028309
+## clinstatus_baseline3  0.64947450 1.49214581  -3.2015685  5.7391381 0.1402952
+##                              p method
+## (Intercept)          0.2776575      2
+## trt                  0.4040744      2
+## age                  0.7484585      2
+## clinstatus_baseline3 0.7079878      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.9937635 on 3 df, p=0.802761, n=30
+## Wald test = 13.0871 on 3 df, p = 0.004451975
+```
 Discussion points
 
 # SENS Subgroup analysis: CRP on primary endpoint
@@ -2710,6 +3281,83 @@ summary(mort.28.crp.firth)
 ## 
 ## Likelihood ratio test=3.762878 on 5 df, p=0.5840352, n=110
 ## Wald test = 31.00425 on 5 df, p = 9.349181e-06
+```
+
+```r
+# effect by subgroup
+df <- df %>% 
+  mutate(crp_75 = case_when(crp < 75 ~ 1,
+                            crp > 74 ~ 0))
+# table(df$crp_75, useNA = "always")
+mort.28.crp.b75 <- df %>% 
+  filter(crp_75 == 1) %>% # below 75
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.crp.b75)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95 upper 0.95     Chisq
+## (Intercept)          -8.27462124 4.53419086 -71.1344686   1.227947 2.5629963
+## trt                  -1.41182181 1.45821970 -11.3334618   1.709593 0.7317052
+## age                   0.09723724 0.07843616  -0.1025901   1.014649 0.7266918
+## clinstatus_baseline3  0.69654318 1.38468540  -2.3455876   5.706936 0.1899785
+##                              p method
+## (Intercept)          0.1093911      2
+## trt                  0.3923310      2
+## age                  0.3939576      2
+## clinstatus_baseline3 0.6629345      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.756087 on 3 df, p=0.6245371, n=52
+## Wald test = 17.14614 on 3 df, p = 0.0006594775
+```
+
+```r
+mort.28.crp.a75 <- df %>% 
+  filter(crp_75 == 0) %>% # 75 and above
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+     # + comed_dexa 
+     # + comed_rdv 
+     # + comed_toci
+      , data=.)
+summary(mort.28.crp.a75)
+```
+
+```
+## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95 upper 0.95     Chisq
+## (Intercept)          -4.52026817 3.76903795 -18.3556767  3.8655369 0.9958003
+## trt                  -1.35283475 1.40874416  -6.7536486  1.7055775 0.7259746
+## age                   0.05929508 0.06990733  -0.1235702  0.2719583 0.4052166
+## clinstatus_baseline3 -1.72458403 1.76746588  -7.4201128  3.6180567 0.5983414
+##                              p method
+## (Intercept)          0.3183288      2
+## trt                  0.3941911      2
+## age                  0.5244074      2
+## clinstatus_baseline3 0.4392116      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.19467 on 3 df, p=0.7542829, n=58
+## Wald test = 21.25155 on 3 df, p = 9.334212e-05
 ```
 Discussion points
 
@@ -2961,5 +3609,201 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 ```r
 # Save
 saveRDS(interaction_df, file = "int_effects_covinib.RData")
+```
+Discussion points
+
+# Collect all subgroup treatment effect estimates
+
+```r
+# Empty data frame to store the results
+subgroup_df <- data.frame(
+  variable = character(),
+  hazard_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric(),
+  n_intervention = numeric(),
+  n_intervention_tot = numeric(),
+  n_control = numeric(),
+  n_control_tot = numeric()
+)
+
+# Function to extract subgroup treatment results
+extract_subgroup_results <- function(model, variable_name, n_int, n_int_tot, n_cont, n_cont_tot) {
+  if (inherits(model, "glm")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "logistf")) {
+    trt_coef <- coef(model)[grep("^trt", names(coef(model)))]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)[grep("^trt", names(coef(model))), ])
+    se <- sqrt(diag(vcov(model)))[grep("^trt", names(coef(model)))]
+    p_value <- model$prob[grep("^trt", names(coef(model)))]
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci[1],
+    ci_upper = ci[2],
+    standard_error = se,
+    p_value = p_value,
+    n_intervention = n_int,
+    n_intervention_tot = n_int_tot,
+    n_control = n_cont,
+    n_control_tot = n_cont_tot
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+# result_list[[1]] <- extract_subgroup_results(mort.28.vent.vb.yes, "High-flow or non-invasive, mechanical, or ECMO",
+#                                              addmargins(table(df$vbaseline, df$mort_28, df$trt))[2,2,2], 
+#                                              addmargins(table(df$vbaseline, df$mort_28, df$trt))[2,3,2], 
+#                                              addmargins(table(df$vbaseline, df$mort_28, df$trt))[2,2,1], 
+#                                              addmargins(table(df$vbaseline, df$mort_28, df$trt))[2,3,1]) 
+result_list[[2]] <- extract_subgroup_results(mort.28.vent.vb.no, "None or low-flow oxygen_firth",
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,2,2],
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,3,2],
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,2,1],
+                                             addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,3,1])
+result_list[[3]] <- extract_subgroup_results(mort.28.vent.rs.2, "No oxygen_firth",
+                                             addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[2,2,2],
+                                             addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[2,3,2],
+                                             addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[2,2,1],
+                                             addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[2,3,1])
+result_list[[4]] <- extract_subgroup_results(mort.28.vent.rs.3, "low-flow oxygen_firth",
+                                             addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[3,2,2],
+                                             addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[3,3,2],
+                                             addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[3,2,1],
+                                             addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[3,3,1])
+# result_list[[5]] <- extract_subgroup_results(mort.28.vent.rs.4, "high-flow oxygen / NIV",
+#                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[4,2,2], 
+#                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[4,3,2], 
+#                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[4,2,1], 
+#                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[4,3,1])
+# result_list[[6]] <- extract_subgroup_results(mort.28.vent.rs.5, "Mechanical ventilation / ECMO",
+#                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,2,2], 
+#                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,2], 
+#                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,2,1], 
+#                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,1]) 
+# result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above",
+#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,2], 
+#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,2], 
+#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,1], 
+#                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,1]) 
+result_list[[8]] <- extract_subgroup_results(mort.28.age.b70, "below 70 years_firth",
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,2], 
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[1,3,2], 
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,1], 
+                                             addmargins(table(df$age_70, df$mort_28, df$trt))[1,3,1]) 
+result_list[[9]] <- extract_subgroup_results(mort.28.comorb.1, "No comorbidity_firth",
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[1,2,2], 
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[1,3,2], 
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[1,2,1], 
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[1,3,1])
+result_list[[10]] <- extract_subgroup_results(mort.28.comorb.2, "One comorbidity_firth",
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[2,2,2], 
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[2,3,2], 
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[2,2,1], 
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[2,3,1])
+result_list[[11]] <- extract_subgroup_results(mort.28.comorb.3, "Multiple comorbidities_firth",
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,2,2], 
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,3,2], 
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,2,1], 
+                                             addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,3,1])
+# result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromised",
+#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,2], 
+#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,2], 
+#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,1], 
+#                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,1]) 
+result_list[[13]] <- extract_subgroup_results(mort.28.comed.1, "No Dexa, no Tocilizumab_firth",
+                                             addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,2],
+                                             addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,2],
+                                             addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,1],
+                                             addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,1])
+result_list[[14]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Tocilizumab_firth",
+                                             addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,2], 
+                                             addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2], 
+                                             addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1], 
+                                             addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,1])
+# result_list[[15]] <- extract_subgroup_results(ae.28.vacc.1, "vaccinated",
+#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,2],
+#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,2],
+#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,1],
+#                                              addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,1])
+result_list[[16]] <- extract_subgroup_results(ae.28.vacc.0, "not vaccinated",
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[1,2,2],
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[1,3,2],
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[1,2,1],
+                                             addmargins(table(df$vacc, df$mort_28, df$trt))[1,3,1])
+# result_list[[17]] <- extract_subgroup_results(mort.28.sympdur.a10, "More than 10 days",
+#                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,2], 
+#                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,3,2], 
+#                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,1], 
+#                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,3,1])
+result_list[[18]] <- extract_subgroup_results(mort.28.sympdur.510, "Between 5-10 days_firth",
+                                             addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[2,2,2], 
+                                             addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[2,3,2], 
+                                             addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[2,2,1], 
+                                             addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[2,3,1])
+result_list[[19]] <- extract_subgroup_results(mort.28.sympdur.b5, "5 days and less_firth",
+                                             addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[3,2,2], 
+                                             addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[3,3,2], 
+                                             addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[3,2,1], 
+                                             addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[3,3,1])
+result_list[[20]] <- extract_subgroup_results(mort.28.crp.a75, "CRP 75 and higher_firth",
+                                             addmargins(table(df$crp_75, df$mort_28, df$trt))[1,2,2], 
+                                             addmargins(table(df$crp_75, df$mort_28, df$trt))[1,3,2], 
+                                             addmargins(table(df$crp_75, df$mort_28, df$trt))[1,2,1], 
+                                             addmargins(table(df$crp_75, df$mort_28, df$trt))[1,3,1])
+result_list[[21]] <- extract_subgroup_results(mort.28.crp.b75, "CRP below 75_firth",
+                                             addmargins(table(df$crp_75, df$mort_28, df$trt))[2,2,2], 
+                                             addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,2], 
+                                             addmargins(table(df$crp_75, df$mort_28, df$trt))[2,2,1], 
+                                             addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,1])
+
+# Filter out NULL results and bind the results into a single data frame
+subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the trial name and JAKi
+subgroup_df$trial <- "COVINIB"
+subgroup_df$JAKi <- "Baricitinib"
+
+# Nicely formatted table
+kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|      |variable                       | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial   |JAKi        |
+|:-----|:------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------|:-----------|
+|trt   |None or low-flow oxygen_firth  |         0.1713846| 0.0012269|   2.189138|      1.4774359| 0.1891848|              0|                 55|         2|            55|COVINIB |Baricitinib |
+|trt1  |No oxygen_firth                |         1.4516881| 0.0050949| 336.969322|      1.7562814| 0.8724571|              0|                 16|         0|            19|COVINIB |Baricitinib |
+|trt2  |low-flow oxygen_firth          |         0.1836593| 0.0013126|   2.361832|      1.4635004| 0.2102105|              0|                 39|         2|            36|COVINIB |Baricitinib |
+|trt3  |below 70 years_firth           |         0.1874516| 0.0013417|   2.392560|      1.4609525| 0.2150245|              0|                 51|         2|            53|COVINIB |Baricitinib |
+|trt4  |No comorbidity_firth           |         0.0746062| 0.0000024|   3.782748|      1.8583987| 0.2282802|              0|                 18|         1|            19|COVINIB |Baricitinib |
+|trt5  |One comorbidity_firth          |         0.8351792| 0.0035622| 686.384474|      1.4982055| 0.9239355|              0|                 21|         0|            19|COVINIB |Baricitinib |
+|trt6  |Multiple comorbidities_firth   |         0.3488323| 0.0022044|   7.130628|      1.4167142| 0.5056131|              0|                 15|         1|            16|COVINIB |Baricitinib |
+|trt7  |No Dexa, no Tocilizumab_firth  |         0.2030739| 0.0014605|   2.584762|      1.3600982| 0.2391093|              0|                 44|         2|            50|COVINIB |Baricitinib |
+|trt8  |Dexa, but no Tocilizumab_firth |         0.5684634| 0.0002373| 100.458870|      1.8624477| 0.7706755|              0|                 11|         0|             5|COVINIB |Baricitinib |
+|trt9  |not vaccinated                 |         0.8436332| 0.3258987|   2.160550|      0.4783483| 0.7222391|              0|                 53|         2|            55|COVINIB |Baricitinib |
+|trt10 |Between 5-10 days_firth        |         0.3212878| 0.0022404|   5.873824|      1.3644447| 0.4493570|              0|                 15|         1|            15|COVINIB |Baricitinib |
+|trt11 |5 days and less_firth          |         0.2792402| 0.0018768|   5.345121|      1.4061063| 0.4040744|              0|                 55|         2|            55|COVINIB |Baricitinib |
+|trt12 |CRP 75 and higher_firth        |         0.2585064| 0.0011666|   5.504564|      1.4087442| 0.3941911|              0|                 32|         1|            26|COVINIB |Baricitinib |
+|trt13 |CRP below 75_firth             |         0.2436989| 0.0000120|   5.526709|      1.4582197| 0.3923310|              0|                 23|         1|            29|COVINIB |Baricitinib |
+
+```r
+# Save
+saveRDS(subgroup_df, file = "subgroup_effects_covinib.RData")
 ```
 Discussion points
