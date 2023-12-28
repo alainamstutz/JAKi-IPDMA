@@ -3801,7 +3801,7 @@ saveRDS(interaction_df, file = "int_effects_ACTT2.RData")
 ```
 Discussion points
 
-# Collect all subgroup treatment effect estimates (on primary endpoint)
+# Collect all subgroup treatment effect estimates
 
 ```r
 # Empty data frame to store the results
@@ -3864,7 +3864,7 @@ result_list[[2]] <- extract_subgroup_results(mort.28.vent.vb.no, "None or low-fl
                                              addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,3,2], 
                                              addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,2,1], 
                                              addmargins(table(df$vbaseline, df$mort_28, df$trt))[1,3,1]) 
-result_list[[3]] <- extract_subgroup_results(mort.28.vent.rs.2, "No oxygen",
+result_list[[3]] <- extract_subgroup_results(mort.28.vent.rs.2, "No oxygen_firth",
                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[2,2,2], 
                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[2,2,1], 
@@ -3909,12 +3909,12 @@ result_list[[11]] <- extract_subgroup_results(mort.28.comorb.3, "Multiple comorb
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,3,2], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,2,1], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[3,3,1])
-result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromised",
+result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromised_firth",
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,2], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,2], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,1], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,1]) 
-result_list[[13]] <- extract_subgroup_results(mort.28.sympdur.a10, "Above 10 days",
+result_list[[13]] <- extract_subgroup_results(mort.28.sympdur.a10, "More than 10 days",
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,3,2], 
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,1], 
@@ -3948,7 +3948,7 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |:-----|:----------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:------|:-----------|
 |trt   |High-flow or non-invasive, mechanical, or ECMO |         0.9347654| 0.4780283|   1.811187|      0.3379389| 0.8417770|             19|                157|        25|           170|ACTT-2 |Baricitinib |
 |trt1  |None or low-flow oxygen                        |         0.3840258| 0.1199972|   1.058909|      0.5431571| 0.0780685|              5|                358|        12|           348|ACTT-2 |Baricitinib |
-|trt2  |No oxygen                                      |         1.0801044| 0.0058525| 199.195807|      1.6569020| 0.9692678|              0|                 70|         0|            72|ACTT-2 |Baricitinib |
+|trt2  |No oxygen_firth                                |         1.0801044| 0.0058525| 199.195807|      1.6569020| 0.9692678|              0|                 70|         0|            72|ACTT-2 |Baricitinib |
 |trt3  |low-flow oxygen                                |         0.3981832| 0.1240694|   1.103500|      0.5451794| 0.0912072|              5|                288|        12|           276|ACTT-2 |Baricitinib |
 |trt4  |high-flow oxygen / NIV                         |         0.6116608| 0.2173112|   1.601269|      0.5018899| 0.3273564|              7|                103|        13|           113|ACTT-2 |Baricitinib |
 |trt5  |Mechanical ventilation / ECMO                  |         1.5316107| 0.5781027|   4.176257|      0.5001242| 0.3939766|             12|                 54|        12|            57|ACTT-2 |Baricitinib |
@@ -3957,8 +3957,8 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt8  |No comorbidity                                 |         1.7556487| 0.1317077|  43.396226|      1.3433323| 0.6752258|              2|                 64|         1|            87|ACTT-2 |Baricitinib |
 |trt9  |One comorbidity                                |         0.6980608| 0.2161402|   2.156780|      0.5756776| 0.5323694|              6|                157|         8|           131|ACTT-2 |Baricitinib |
 |trt10 |Multiple comorbidities                         |         0.5122614| 0.2405359|   1.044716|      0.3718139| 0.0720072|             13|                269|        28|           277|ACTT-2 |Baricitinib |
-|trt11 |Immunocompromised                              |         1.9732487| 0.0288015| 331.703203|      1.5649708| 0.6912312|              3|                 17|         0|            13|ACTT-2 |Baricitinib |
-|trt12 |Above 10 days                                  |         0.4758493| 0.0891578|   2.032024|      0.7718414| 0.3359567|              3|                120|        11|           133|ACTT-2 |Baricitinib |
+|trt11 |Immunocompromised_firth                        |         1.9732487| 0.0288015| 331.703203|      1.5649708| 0.6912312|              3|                 17|         0|            13|ACTT-2 |Baricitinib |
+|trt12 |More than 10 days                              |         0.4758493| 0.0891578|   2.032024|      0.7718414| 0.3359567|              3|                120|        11|           133|ACTT-2 |Baricitinib |
 |trt13 |Between 5-10 days                              |         0.7479261| 0.3408647|   1.618334|      0.3943116| 0.4613637|             15|                255|        17|           245|ACTT-2 |Baricitinib |
 |trt14 |5 days and less                                |         0.7325445| 0.2281733|   2.232456|      0.5712085| 0.5858468|              6|                134|         9|           130|ACTT-2 |Baricitinib |
 
