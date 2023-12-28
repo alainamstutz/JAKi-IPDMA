@@ -4819,124 +4819,18 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 </table>
 
 ```r
-# truncate outliers > 500
-df <- df %>% 
-  mutate(crp_trunc = case_when(crp > 500 ~ 500,
-                               TRUE ~ crp))
-mort.28.crp.trunc <- df %>% 
-  glm(mort_28 ~ trt*crp_trunc
-      + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
-      , family = "binomial", data=.)
-summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-```
+# # truncate outliers > 500
+# df <- df %>% 
+#   mutate(crp_trunc = case_when(crp > 500 ~ 500,
+#                                TRUE ~ crp))
+# mort.28.crp.trunc <- df %>% 
+#   glm(mort_28 ~ trt*crp_trunc
+#       + age 
+#       + clinstatus_baseline 
+#       #+ comed_dexa + comed_rdv + comed_toci
+#       , family = "binomial", data=.)
+# summ(mort.28.crp.trunc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 1310 (316 missing obs. deleted) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> mort_28 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> Generalized linear model </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Family </td>
-   <td style="text-align:right;"> binomial </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Link </td>
-   <td style="text-align:right;"> logit </td>
-  </tr>
-</tbody>
-</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> exp(Est.) </th>
-   <th style="text-align:right;"> 2.5% </th>
-   <th style="text-align:right;"> 97.5% </th>
-   <th style="text-align:right;"> z val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -10.38 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.53 </td>
-   <td style="text-align:right;"> 0.31 </td>
-   <td style="text-align:right;"> 0.92 </td>
-   <td style="text-align:right;"> -2.28 </td>
-   <td style="text-align:right;"> 0.02 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> crp_trunc </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 0.43 </td>
-   <td style="text-align:right;"> 0.67 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.07 </td>
-   <td style="text-align:right;"> 1.05 </td>
-   <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 8.49 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 2.34 </td>
-   <td style="text-align:right;"> 0.91 </td>
-   <td style="text-align:right;"> 6.04 </td>
-   <td style="text-align:right;"> 1.76 </td>
-   <td style="text-align:right;"> 0.08 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 8.18 </td>
-   <td style="text-align:right;"> 3.15 </td>
-   <td style="text-align:right;"> 21.24 </td>
-   <td style="text-align:right;"> 4.32 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 31.07 </td>
-   <td style="text-align:right;"> 11.04 </td>
-   <td style="text-align:right;"> 87.47 </td>
-   <td style="text-align:right;"> 6.51 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:crp_trunc </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 0.17 </td>
-   <td style="text-align:right;"> 0.86 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: MLE</td></tr></tfoot>
-</table>
-
-```r
 # effect by subgroup
 df <- df %>% 
   mutate(crp_75 = case_when(crp < 75 ~ 1,
@@ -5365,7 +5259,7 @@ saveRDS(interaction_df, file = "int_effects_cov-barrier.RData")
 ```
 Discussion points
 
-# Collect all subgroup treatment effect estimates (on primary endpoint)
+# Collect all subgroup treatment effect estimates
 
 ```r
 # Empty data frame to store the results
@@ -5488,7 +5382,7 @@ result_list[[14]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Toc
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,1])
-result_list[[15]] <- extract_subgroup_results(mort.28.sympdur.a10, "Above 10 days",
+result_list[[15]] <- extract_subgroup_results(mort.28.sympdur.a10, "More than 10 days",
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,3,2], 
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,1], 
@@ -5544,7 +5438,7 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt11 |Immunocompromised_firth                        |         1.1383792| 0.0029017| 177.5061249|      1.5479612| 0.9462462|              0|                  9|         0|             7|COV-BARRIER |Baricitinib |
 |trt12 |No Dexa, no Tocilizumab                        |         0.3611242| 0.1384418|   0.8626832|      0.4611800| 0.0272068|              9|                159|        21|           169|COV-BARRIER |Baricitinib |
 |trt13 |Dexa, but no Tocilizumab                       |         0.5396152| 0.3749514|   0.7713068|      0.1837410| 0.0007867|             73|                654|       108|           637|COV-BARRIER |Baricitinib |
-|trt14 |Above 10 days                                  |         0.4471218| 0.2729170|   0.7209429|      0.2471479| 0.0011265|             37|                389|        66|           382|COV-BARRIER |Baricitinib |
+|trt14 |More than 10 days                              |         0.4471218| 0.2729170|   0.7209429|      0.2471479| 0.0011265|             37|                389|        66|           382|COV-BARRIER |Baricitinib |
 |trt15 |Between 5-10 days                              |         0.5860886| 0.3460723|   0.9787831|      0.2644233| 0.0433249|             40|                335|        50|           343|COV-BARRIER |Baricitinib |
 |trt16 |5 days and less                                |         0.3328568| 0.0907239|   1.0732605|      0.6190439| 0.0755678|              5|                 89|        12|            79|COV-BARRIER |Baricitinib |
 |trt17 |CRP 75 and higher                              |         0.5421801| 0.3283255|   0.8846312|      0.2521887| 0.0152085|             40|                296|        53|           285|COV-BARRIER |Baricitinib |
