@@ -20,9 +20,8 @@ https://www.ipdma.co.uk/description
 # General
 1. Use F&G also for sens-analysis (sustained discharge)?
 2. Re QoL: Wait for more trials first. Find out more about the QoL measure used, besides bari-solidact.
-3. ACTT2:
-* For Country only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
-4. What to do with Murugesan
+3. ACTT2: For Country only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
+4. What to do with Murugesan?
 
 
 ## Adjustments across all endpoints and across all trials

@@ -20,8 +20,8 @@ https://www.ipdma.co.uk/description
 # General
 1. Use F&G also for sens-analysis (sustained discharge)?
 2. Re QoL: Wait for more trials first. Find out more about the QoL measure used, besides bari-solidact.
-3. ACTT2:
-* For Country only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
+3. ACTT2: For Country only Region -> Non-US Site n=148 and US Site n=885: "There were 67 trial sites in 8 countries: the United States (55 sites), Singapore (4), South Korea (2), Mexico (2), Japan (1), Spain (1), the United Kingdom (1), and Denmark (1)."
+4. What to do with Murugesan?
 
 
 ## Adjustments across all endpoints and across all trials
@@ -34,29 +34,31 @@ a) age
 b) clinical status 2-5:
 * Not all trials enrolled all stages
 * Numeric or factor?
-
 * *__Decision 01.11.23__*: Don't assume linearity (numeric), use it as a factor (incl. when centering in one-stage?)
+
 c) COVID comedication: toci, dexa, rdv
 * BariSolidact: Only 1 with toci, 8 with rdv, nearly all with dexa
 * ACTT2: Noone toci, Noone dexa, all in intervention also had rdv
 * Ghazaeian: Noone toci, all rdv, all dexa
 * Tofacov: Noone toci, nearly all rdv, nearly all dexa
 * Covinib: Noone toci, noone rdv, a few dexa
-
 * *__Decision 01.11.23__*: Drop this adjustment variable. Justification: consistency across trials/models; adjustment would not be by co-medication, but by trial; and collinearity in models. Unadjusted analyses as sens-analysis (if needed).
 
 
 ## Subgroup analyses
-1. Respiratory support & comedication & comorbidity: Numeric or factor? 
-* *__Decision 29.11.23__*: Respiratory support as a two-group variable according to previous IPDMA and due to clinical hypothesis and sparse/non-existent data in some categories
+1. Respiratory support 
+* *__Decision 29.11.23__*: Respiratory support as a two-group variable according to previous IPDMA and due to clinical hypothesis and sparse/non-existent data in some categories.
 
-2. CRP: truncated or not?
+2. Comedication & Comorbidity
+* *__Decision 29.11.23__*: See point 14 below: Assume linearity for interaction testing- for now.
+
+3. CRP: truncated or not?
 * *__Decision 29.11.23__*: Not.
 
-3. Rare event strategy? See e.g. firth regression in Ghazaeian, respiratory support, all 7 events only in clinstatus_baseline == 3
+4. Rare event strategy? See e.g. firth regression in Ghazaeian, respiratory support, all 7 events only in clinstatus_baseline == 3
 * *__Decision 29.11.23__*: Firth regression.
 
-4. Assumptions about linearity and common vs random effects?
+5. Assumptions about linearity and common vs random effects
 * *__Decision xx.01.24__*: ...
 
 *__Chapter7__* "Using IPD Meta-Analysis to Examine Interactions between Treatment Effect and Participant-level Covariates
@@ -75,7 +77,7 @@ c) COVID comedication: toci, dexa, rdv
 
 7. Treatment-covariate interactions may depend on the scale of analysis; for example, they may arise on the odds ratio scale, even when there is no interaction on the risk ratio scale.
 
-8. For example, Berlin et al. examined the effect of elevated panel reactive antibodies on the effective- ness of anti-lymphocyte antibody induction. Applying meta-regression model (7.2), and thus examining the association of a trial’s treatment effect (as derived using all participants) and the proportion of trial participants with elevated antibodies, they found no evidence of an association (difference in log odds ratio = 0.01, p = 0.68). However, when IPD were obtained and the treatment-covariate interaction investigated at the participant level using within-trial information, they found a substantial difference in the treatment effect (log odds ratio) between elevated and non-elevated participants (difference in log odds ratio = –1.33, p = 0.01).
+8. For example, Berlin et al. examined the effect of elevated panel reactive antibodies on the effectiveness of anti-lymphocyte antibody induction. Applying meta-regression model (7.2), and thus examining the association of a trial’s treatment effect (as derived using all participants) and the proportion of trial participants with elevated antibodies, they found no evidence of an association (difference in log odds ratio = 0.01, p = 0.68). However, when IPD were obtained and the treatment-covariate interaction investigated at the participant level using within-trial information, they found a substantial difference in the treatment effect (log odds ratio) between elevated and non-elevated participants (difference in log odds ratio = –1.33, p = 0.01).
 
 9. Aggregation bias / ecological bias / ecological fallacy: Observed across-trial associations do not properly reflect the participant-level relationships within trials. For example, meta-regression may identify that trials with a larger mean age have a larger treatment effect; however, those trials with a higher mean age might also have a higher intended dose of the treatment, and therefore the larger effect in such trials could be due to a higher dose rather than having older participants
 
@@ -87,7 +89,7 @@ c) COVID comedication: toci, dexa, rdv
 * For a continuous outcome modelled using the linear regression of model (7.3) in the first stage, γW represents a difference in mean difference; for a binary outcome modelled using the logistic regression of model (7.4) in the first stage, γW represents a difference in log odds ratios (i.e. exp γW gives a ratio of odds ratios); and for a time-to-event outcome modelled using Cox regression model (7.5) in the first stage, γW represents a difference in log hazard ratios (i.e. exp γW is a ratio of hazard ratios)."
 
 12. One-stage:
-* A one-stage IPD meta-analysis can also be used to summarise treatment-covariate interactions, by extending the framework introduced in Chapter 6. However, this is not straightforward. Simply including a treatment-covariate interaction term may introduce aggregation bias, as it allows across-trial information to contribute toward the summary interaction estimate, in combination with within-trial information. We do not recommend it, as the influence of the across-trial information may bias results, and lead to misleading conclusions about whether a particular treatment-covariate interaction truly exists at the participant-level. Unfortunately, many IPD meta-analysis researchers adopt this approach,148,257,258 often unknowingly.
+* A one-stage IPD meta-analysis can also be used to summarise treatment-covariate interactions, by extending the framework introduced in Chapter 6. However, this is not straightforward. *Simply including a treatment-covariate interaction term may introduce aggregation bias*, as it allows across-trial information to contribute toward the summary interaction estimate, in combination with within-trial information. We do not recommend it, as the influence of the across-trial information may bias results, and lead to misleading conclusions about whether a particular treatment-covariate interaction truly exists at the participant-level. Unfortunately, many IPD meta-analysis researchers adopt this approach,148,257,258 often unknowingly.
 * There are two main ways of preventing amalgamation of within-trial and across-trial information when estimating the treatment-covariate interaction in a one-stage IPD meta-analysis model:
 a) Center the covariate zij about its trial-specific mean, zi, and add an additional term which allows the covariate means (zi to explain between-trial heterogeneity in the treatment effect; or
 b) Stratify by trial each of the other parameters outside the interaction term, including the parameter representing the reference treatment effect (i.e. the treatment effect at the covariate’s reference value, typically zij = 0 or, if the covariate is centered, zij = zi).
