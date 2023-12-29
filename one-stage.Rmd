@@ -34,6 +34,12 @@ library(glmmTMB) # to specify estimation method explicitly -> i.e. ML
 library(coxme) # for mixed-effects cox model
 library(ordinal) # for ordinal regression, clm (fixed effects) & clmm (mixed effects)
 library(tidycmprsk) # competing risk analysis
+library(logistf) # Firth regression in case of rare events
+
+library(meta)
+library(forestplot)
+library(metafor) #forest()
+
 ```
 
 # Load standardized dataset of all trials
@@ -1146,6 +1152,40 @@ rs.mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   , data = df_tot, family = binomial)
 summary(rs.mort28)
 
+# effect by subgroup
+table(df_tot$clinstatus_baseline, df_tot$mort_28, useNA = "always")
+# class(df_tot$clinstatus_baseline)
+mort.28.vent.rs.2 <- df_tot %>% 
+  filter(clinstatus_baseline == "2") %>% # no oxygen
+  glm(mort_28 ~ trt
+      + age 
+     # + clinstatus_baseline
+      , family = "binomial", data=.)
+summ(mort.28.vent.rs.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.vent.rs.3 <- df_tot %>% 
+  filter(clinstatus_baseline == "3") %>% # LF oxygen
+  glm(mort_28 ~ trt
+      + age 
+     # + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.vent.rs.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.vent.rs.4 <- df_tot %>% 
+  filter(clinstatus_baseline == "4") %>% # HF oxygen/NIV
+  glm(mort_28 ~ trt
+      + age 
+     # + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.vent.rs.4, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.vent.rs.5 <- df_tot %>% 
+  filter(clinstatus_baseline == "5") %>% # ECMO
+  glm(mort_28 ~ trt
+      + age 
+     # + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.vent.rs.5, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points:
 1. See notes and https://www.ipdma.co.uk/treatment-covariate-interactions for further explanation
@@ -1154,7 +1194,7 @@ Discussion points:
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r}
 # calculate the proportion ventilated by trial
-# table(df_tot$vbaseline, df_tot$trial)
+table(df_tot$vbaseline, df_tot$trial)
 proportions <- df_tot %>%
   group_by(trial) %>%
   summarize(proportion_ventilated = sum(vbaseline, na.rm = TRUE) / sum(!is.na(vbaseline)))
@@ -1177,6 +1217,23 @@ vb.mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   , data = df_tot, family = binomial)
 summary(vb.mort28)
 
+table(df_tot$vbaseline, df_tot$mort_28)
+# effect by subgroup
+mort.28.vent.vb.yes <- df_tot %>% 
+  filter(vbaseline == 1) %>% # ventilated
+  glm(mort_28 ~ trt
+      + age 
+     # + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.vent.vb.yes, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.vent.vb.no <- df_tot %>% 
+  filter(vbaseline == 0) %>% # not ventilated
+  glm(mort_28 ~ trt
+      + age 
+     # + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.vent.vb.no, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
 
@@ -1194,6 +1251,28 @@ age.mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   + ws_interaction_age_cent # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(age.mort28)
+
+# effect by subgroup
+df_tot <- df_tot %>% 
+  mutate(age_70 = case_when(age < 70 ~ 0,
+                            age > 69 ~ 1))
+table(df_tot$age_70, useNA = "always")
+
+mort.28.age.a70 <- df_tot %>% 
+  filter(age_70 == 1) %>% # 70 and above
+  glm(mort_28 ~ trt
+      # + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.age.b70 <- df_tot %>% 
+  filter(age_70 == 0) %>% # below 70
+  glm(mort_28 ~ trt
+      # + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.age.b70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 ```
 
@@ -1228,6 +1307,40 @@ summary(comorb.mort28)
 #                               + age + clinstatus_baseline_n
 #                               , data = df_tot, family = binomial)
 # tab_model(comorb.mort28.trad) # glmmTMB & no centering yields ~the same, 
+
+# effect by subgroup
+table(df_tot$comorb_cat, df_tot$mort_28, useNA = "always") 
+mort.28.comorb.1 <- df_tot %>% 
+  filter(comorb_cat == 1) %>% # no comorbidity
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.comorb.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.comorb.2 <- df_tot %>% 
+  filter(comorb_cat == 2) %>% # 1 comorbidity
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.comorb.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.comorb.3 <- df_tot %>% 
+  filter(comorb_cat == 3) %>% # multiple comorbidities
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.comorb.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.comorb.4 <- df_tot %>% 
+  filter(comorb_cat == 4) %>% # immunocompromised
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.comorb.4, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 # Interaction: Comedication on primary endpoint
@@ -1256,6 +1369,38 @@ comed.mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   + ws_interaction_comed_cent # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(comed.mort28)
+
+# effect by subgroup
+table(df_tot$comed_cat, df_tot$trt, useNA = "always")
+# 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
+# 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
+# 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
+
+mort.28.comed.1 <- df_tot %>% 
+  filter(comed_cat == 1) %>% # without Dexamethasone nor Tocilizumab
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.comed.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# mort.28.comed.2 <- df_tot %>% 
+#   filter(comed_cat == 2) %>% # without Dexamethasone nor Tocilizumab
+#   glm(mort_28 ~ trt
+#       + age 
+#       # + clinstatus_baseline 
+#       , family = "binomial", data=.)
+# summ(mort.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.comed.3 <- df_tot %>% 
+  filter(comed_cat == 3) %>% # Dexamethasone but no Tocilizumab
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.comed.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
 ```
 
 # Interaction: Vaccination on AEs
@@ -1282,6 +1427,25 @@ vacc.ae28 <- glmmTMB(ae_28 ~ trt_centered_n
                   , data = df_tot, family = binomial)
 summary(vacc.ae28)
 
+
+# effect by subgroup
+table(df_tot$vacc, df_tot$trt, useNA = "always") 
+
+ae.28.vacc.1 <- df_tot %>%
+  filter(vacc == 1) %>% # vaccinated
+  logistf(ae_28 ~ trt
+      + age
+      + clinstatus_baseline
+    , family = "binomial", data=.)
+summary(ae.28.vacc.1)
+
+ae.28.vacc.0 <- df_tot %>% 
+  filter(vacc == 0) %>% # not vaccinated
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.vacc.0, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 # Interaction: Symptom onset on primary endpoint
@@ -1310,6 +1474,36 @@ symp.mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   , data = df_tot, family = binomial)
 summary(symp.mort28)
 
+# effect by subgroup
+df_tot <- df_tot %>% 
+  mutate(sympdur_cat = case_when(sympdur < 6 ~ 2,
+                                 sympdur > 5 & sympdur < 11 ~ 1,
+                                 sympdur > 10 ~ 0))
+table(df_tot$sympdur_cat, useNA = "always")
+# table(df_tot$sympdur, useNA = "always")
+mort.28.sympdur.a10 <- df_tot %>% 
+  filter(sympdur_cat == 0) %>% # more than 10 days
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.sympdur.a10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.sympdur.510 <- df_tot %>% 
+  filter(sympdur_cat == 1) %>% # 5-10 days
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.sympdur.510, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.sympdur.b5 <- df_tot %>% 
+  filter(sympdur_cat == 2) %>% # 5d or less
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.sympdur.b5, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 # Interaction: CRP on primary endpoint
@@ -1337,6 +1531,27 @@ crp.mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   + ws_interaction_crp_cent # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(crp.mort28)
+
+# effect by subgroup
+df_tot <- df_tot %>% 
+  mutate(crp_75 = case_when(crp < 75 ~ 1,
+                            crp > 74 ~ 0))
+table(df_tot$crp_75, useNA = "always")
+mort.28.crp.b75 <- df_tot %>% 
+  filter(crp_75 == 1) %>% # below 75
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.crp.b75, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+mort.28.crp.a75 <- df_tot %>% 
+  filter(crp_75 == 0) %>% # 75 and above
+  glm(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(mort.28.crp.a75, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 ```
 
@@ -1400,4 +1615,277 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_one-stage.RData")
 ```
 
+# Collect all subgroup treatment effect estimates
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+subgroup_df <- data.frame(
+  variable = character(),
+  hazard_odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  p_value = numeric(),
+  n_intervention = numeric(),
+  n_intervention_tot = numeric(),
+  n_control = numeric(),
+  n_control_tot = numeric()
+)
 
+# Function to extract subgroup treatment results
+extract_subgroup_results <- function(model, variable_name, n_int, n_int_tot, n_cont, n_cont_tot) {
+  if (inherits(model, "glm")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)["trt", ])
+    se <- summary(model)$coefficients["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "logistf")) {
+    trt_coef <- coef(model)[grep("^trt", names(coef(model)))]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- exp(confint(model)[grep("^trt", names(coef(model))), ])
+    se <- sqrt(diag(vcov(model)))[grep("^trt", names(coef(model)))]
+    p_value <- model$prob[grep("^trt", names(coef(model)))]
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    hazard_odds_ratio = hazard_odds_ratio,
+    ci_lower = ci[1],
+    ci_upper = ci[2],
+    standard_error = se,
+    p_value = p_value,
+    n_intervention = n_int,
+    n_intervention_tot = n_int_tot,
+    n_control = n_cont,
+    n_control_tot = n_cont_tot
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_subgroup_results(mort.28.vent.vb.yes, "High-flow or non-invasive, mechanical, or ECMO",
+                                             addmargins(table(df_tot$vbaseline, df_tot$mort_28, df_tot$trt))[2,2,2], 
+                                             addmargins(table(df_tot$vbaseline, df_tot$mort_28, df_tot$trt))[2,3,2], 
+                                             addmargins(table(df_tot$vbaseline, df_tot$mort_28, df_tot$trt))[2,2,1], 
+                                             addmargins(table(df_tot$vbaseline, df_tot$mort_28, df_tot$trt))[2,3,1]) 
+result_list[[2]] <- extract_subgroup_results(mort.28.vent.vb.no, "None or low-flow oxygen",
+                                             addmargins(table(df_tot$vbaseline, df_tot$mort_28, df_tot$trt))[1,2,2], 
+                                             addmargins(table(df_tot$vbaseline, df_tot$mort_28, df_tot$trt))[1,3,2], 
+                                             addmargins(table(df_tot$vbaseline, df_tot$mort_28, df_tot$trt))[1,2,1], 
+                                             addmargins(table(df_tot$vbaseline, df_tot$mort_28, df_tot$trt))[1,3,1]) 
+result_list[[3]] <- extract_subgroup_results(mort.28.vent.rs.2, "No oxygen",
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[2,2,2], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[2,3,2], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[2,2,1], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[2,3,1])
+result_list[[4]] <- extract_subgroup_results(mort.28.vent.rs.3, "low-flow oxygen",
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[3,2,2], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[3,3,2], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[3,2,1], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[3,3,1])
+result_list[[5]] <- extract_subgroup_results(mort.28.vent.rs.4, "high-flow oxygen / NIV",
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[4,2,2], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[4,3,2], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[4,2,1], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[4,3,1])
+result_list[[6]] <- extract_subgroup_results(mort.28.vent.rs.5, "Mechanical ventilation / ECMO",
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[5,2,2], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[5,3,2], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[5,2,1], 
+                                             addmargins(table(df_tot$clinstatus_baseline, df_tot$mort_28, df_tot$trt))[5,3,1]) 
+result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above",
+                                             addmargins(table(df_tot$age_70, df_tot$mort_28, df_tot$trt))[2,2,2], 
+                                             addmargins(table(df_tot$age_70, df_tot$mort_28, df_tot$trt))[2,3,2], 
+                                             addmargins(table(df_tot$age_70, df_tot$mort_28, df_tot$trt))[2,2,1], 
+                                             addmargins(table(df_tot$age_70, df_tot$mort_28, df_tot$trt))[2,3,1]) 
+result_list[[8]] <- extract_subgroup_results(mort.28.age.b70, "below 70 years",
+                                             addmargins(table(df_tot$age_70, df_tot$mort_28, df_tot$trt))[1,2,2], 
+                                             addmargins(table(df_tot$age_70, df_tot$mort_28, df_tot$trt))[1,3,2], 
+                                             addmargins(table(df_tot$age_70, df_tot$mort_28, df_tot$trt))[1,2,1], 
+                                             addmargins(table(df_tot$age_70, df_tot$mort_28, df_tot$trt))[1,3,1]) 
+result_list[[9]] <- extract_subgroup_results(mort.28.comorb.1, "No comorbidity",
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[1,2,2], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[1,3,2], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[1,2,1], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[1,3,1])
+result_list[[10]] <- extract_subgroup_results(mort.28.comorb.2, "One comorbidity",
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[2,2,2], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[2,3,2], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[2,2,1], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[2,3,1])
+result_list[[11]] <- extract_subgroup_results(mort.28.comorb.3, "Multiple comorbidities",
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[3,2,2], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[3,3,2], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[3,2,1], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[3,3,1])
+result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromised",
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[4,2,2], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[4,3,2], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[4,2,1], 
+                                             addmargins(table(df_tot$comorb_cat, df_tot$mort_28, df_tot$trt))[4,3,1]) 
+result_list[[13]] <- extract_subgroup_results(mort.28.comed.1, "No Dexa, no Tocilizumab",
+                                             addmargins(table(df_tot$comed_cat, df_tot$mort_28, df_tot$trt))[1,2,2],
+                                             addmargins(table(df_tot$comed_cat, df_tot$mort_28, df_tot$trt))[1,3,2],
+                                             addmargins(table(df_tot$comed_cat, df_tot$mort_28, df_tot$trt))[1,2,1],
+                                             addmargins(table(df_tot$comed_cat, df_tot$mort_28, df_tot$trt))[1,3,1])
+result_list[[14]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Tocilizumab",
+                                             addmargins(table(df_tot$comed_cat, df_tot$mort_28, df_tot$trt))[3,2,2], 
+                                             addmargins(table(df_tot$comed_cat, df_tot$mort_28, df_tot$trt))[3,3,2], 
+                                             addmargins(table(df_tot$comed_cat, df_tot$mort_28, df_tot$trt))[3,2,1], 
+                                             addmargins(table(df_tot$comed_cat, df_tot$mort_28, df_tot$trt))[3,3,1])
+result_list[[15]] <- extract_subgroup_results(ae.28.vacc.1, "vaccinated_firth",
+                                             addmargins(table(df_tot$vacc, df_tot$mort_28, df_tot$trt))[2,2,2],
+                                             addmargins(table(df_tot$vacc, df_tot$mort_28, df_tot$trt))[2,3,2],
+                                             addmargins(table(df_tot$vacc, df_tot$mort_28, df_tot$trt))[2,2,1],
+                                             addmargins(table(df_tot$vacc, df_tot$mort_28, df_tot$trt))[2,3,1])
+result_list[[16]] <- extract_subgroup_results(ae.28.vacc.0, "not vaccinated",
+                                             addmargins(table(df_tot$vacc, df_tot$mort_28, df_tot$trt))[1,2,2],
+                                             addmargins(table(df_tot$vacc, df_tot$mort_28, df_tot$trt))[1,3,2],
+                                             addmargins(table(df_tot$vacc, df_tot$mort_28, df_tot$trt))[1,2,1],
+                                             addmargins(table(df_tot$vacc, df_tot$mort_28, df_tot$trt))[1,3,1])
+result_list[[17]] <- extract_subgroup_results(mort.28.sympdur.a10, "More than 10 days",
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[1,2,2], 
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[1,3,2], 
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[1,2,1], 
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[1,3,1])
+result_list[[18]] <- extract_subgroup_results(mort.28.sympdur.510, "Between 5-10 days",
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[2,2,2], 
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[2,3,2], 
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[2,2,1], 
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[2,3,1])
+result_list[[19]] <- extract_subgroup_results(mort.28.sympdur.b5, "5 days and less",
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[3,2,2], 
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[3,3,2], 
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[3,2,1], 
+                                             addmargins(table(df_tot$sympdur_cat, df_tot$mort_28, df_tot$trt))[3,3,1])
+result_list[[20]] <- extract_subgroup_results(mort.28.crp.a75, "CRP 75 and higher",
+                                             addmargins(table(df_tot$crp_75, df_tot$mort_28, df_tot$trt))[1,2,2], 
+                                             addmargins(table(df_tot$crp_75, df_tot$mort_28, df_tot$trt))[1,3,2], 
+                                             addmargins(table(df_tot$crp_75, df_tot$mort_28, df_tot$trt))[1,2,1], 
+                                             addmargins(table(df_tot$crp_75, df_tot$mort_28, df_tot$trt))[1,3,1])
+result_list[[21]] <- extract_subgroup_results(mort.28.crp.b75, "CRP below 75",
+                                             addmargins(table(df_tot$crp_75, df_tot$mort_28, df_tot$trt))[2,2,2], 
+                                             addmargins(table(df_tot$crp_75, df_tot$mort_28, df_tot$trt))[2,3,2], 
+                                             addmargins(table(df_tot$crp_75, df_tot$mort_28, df_tot$trt))[2,2,1], 
+                                             addmargins(table(df_tot$crp_75, df_tot$mort_28, df_tot$trt))[2,3,1])
+
+# Filter out NULL results and bind the results into a single data frame
+subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Nicely formatted table
+kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+saveRDS(subgroup_df, file = "subgroup_effects_one-stage.RData")
+```
+Discussion points
+
+# Forestplot subgroup - on primary endpoint
+```{r, fig.width=16, fig.height=8}
+str(subgroup_df)
+# foresplot 
+df_subgroup_mort28 <- subgroup_df %>% 
+  filter(variable != "vaccinated_firth" & variable != "not vaccinated")
+
+df_subgroup_mort28$inverse_variance <- 1 / df_subgroup_mort28$standard_error^2
+events_i <- df_subgroup_mort28$n_intervention
+tot_i <- df_subgroup_mort28$n_intervention_tot
+events_c <- df_subgroup_mort28$n_control
+tot_c <- df_subgroup_mort28$n_control_tot
+p_int <- c("0.77", "", "0.76", "", "", "", "0.23", "", "0.78", "", "", "", "0.37", "", "0.58", "", "", "0.67","") # from the two-stage models
+
+base_data <- tibble(mean = df_subgroup_mort28$hazard_odds_ratio,
+                    lower = df_subgroup_mort28$ci_lower,
+                    upper = df_subgroup_mort28$ci_upper,
+                    subgroup = c("High-flow or non-invasive ventilation, mechanical ventilation, ECMO",
+                                 "No ventilation at baseline: No or only low-flow oxygen",
+                                 "No oxygen",
+                                 "Only low-flow oxygen",
+                                 "High-flow or non-invasive ventilation",
+                                 "Mechanical ventilation or ECMO",
+                                 "70 years of age or older",
+                                 "Below 70 years of age",
+                                 "No comorbidity",
+                                 "One comorbidity",
+                                 "Multiple comorbidities",
+                                 "Immunocompromised",
+                                 "No Dexamethasone, no Tocilizumab",
+                                 "Dexamethasone, but no Tocilizumab",
+                                 "Enrolment more than 10 days after symptom onset",
+                                 "Enrolment between 5 and 10 days after symptom onset",
+                                 "Enrolment 5 days or earlier after symptom onset",
+                                 "C-reactive protein 75mg/L or more",
+                                 "C-reactive protein less than 75mg/L"),
+                    events_i = as.character(events_i),
+                    tot_i = as.character(tot_i),
+                    events_c = as.character(events_c),
+                    tot_c = as.character(tot_c),
+                    p_int = as.character(p_int))
+summary <- tibble(mean  = 0.58,
+                  lower = 0.41,
+                  upper = 0.82,
+                  subgroup = "Overall treatment effect",
+                  summary = TRUE)
+header <- tibble(subgroup = c("Treatment effect on 28-day mortality, by subgroup"),
+                 events_i = c("Events int."),
+                 tot_i = c("No. int."),
+                 events_c = c("Events cont."),
+                 tot_c = c("No. cont."),
+                 p_int = c("p-int*"),
+                 summary = TRUE)
+mort28_fp <- bind_rows(header,base_data,summary)
+font <- "sans"
+
+# Open a pdf file
+# pdf("mort28_fp.pdf", width=16, height=8)
+mort28_fp %>%
+  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+                              ticks = gpar(cex=0.88),
+                              summary = gpar(cex=1),
+                              xlab = gpar(cex=0.88)),
+             # title = "Treatment effect on mortality at day 28 by subgroup",
+             is.summary = summary,
+             graph.pos = 6,
+             clip = c(0.1, 2),
+             hrzl_lines = list("2" = gpar(lty = 2),
+                               "4" = gpar(lty = 2),
+                               "8" = gpar(lty = 2),
+                               "10" = gpar(lty = 2),
+                               "14" = gpar(lty = 2),
+                               "16" = gpar(lty = 2),
+                               "19" = gpar(lty = 2),
+                               "21" = gpar(lty = 2)),
+             xlog = FALSE,
+             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
+             psize = sqrt(df_subgroup_mort28$inverse_variance),
+             lty.ci = c(1),
+             col = fpColors(box = "maroon4",
+                            line = "maroon1",
+                            summary = "magenta4",
+                            hrz_lines = "gray63"),
+             vertices = TRUE,
+             xlab = "     Favours JAKi <-> Favours No JAKi",
+             zero = 1,
+             grid = structure(c(0.58), gp = gpar(lty = 2, col = "gray63")),
+             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+             )
+
+# x <- unit(0.3, 'npc')
+# y <- unit(0.1, 'npc')
+# grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
+
+# dev.off()
+
+```
+* The p-values for the interaction were obtained using a two-stage IPDMA approach, i.e. solely based on within-trial interactions ("deft"): 
+First, to produce a treatment-covariate interaction estimate and its variance, a binomial regression was fitted in each trial separately, adjusted (where appropriate) for respiratory support and age, including the treatment and the treatment-covariate interaction, using restricted maximum likelihood estimation (with Firth penalisation correction in case of sparse data). 
+Second, the interaction estimates were combined across trials in a random-effect model (the true interactions are assumed random across trials), using restricted maximum likelihood estimation and the confidence interval for the summary interaction derived using the Hartung-Knapp Sidik-Jonkman approach. 
+Sizing of all squares are in proportion to the inverse of the variance of the estimates. 
+For continuous covariates (age, symptom duration, CRP), a cut-off was chosen for descriptive purpose, but they were included as a continuous treatment-covariate interaction, assuming linearity. 
+Similarly, ordinal covariates (detailed respiratory support, comorbidities) were included as a continuous treatment-covariate interaction, assuming linearity. 
