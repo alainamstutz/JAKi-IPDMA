@@ -1,0 +1,166 @@
+---
+title: "descriptive"
+author: "A.Amstutz"
+date: "2023-12-29"
+output:
+  html_document:
+    keep_md: yes
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+  pdf_document:
+    toc: yes
+---
+
+# Load packages
+```{r load packages, echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(tableone)
+library(data.table)
+library(here)
+library(kableExtra)
+```
+
+# Load entire dataset (from one-stage.Rmd)
+## Make sure to run one-stage before
+```{r echo=TRUE}
+df_tot <- readRDS("df_tot.RData") # without Murugesan
+df_tot_Muru <- readRDS("df_tot_Muru.RData") # with Murugesan
+```
+
+# Baseline characteristics, reformatting
+```{r message=FALSE, warning=FALSE}
+vars.list <- c("trt", "trial", "age", "sex", "ethn", "country", "vacc", "sympdur", "icu", "clinstatus_baseline", "comorb_cat", "comed_cat", "comed_rdv", "crp", "sero", "vl_baseline", "variant")
+
+df_baseline <- df_tot_Muru[,colnames(df_tot_Muru)%in%vars.list]
+df_baseline <- df_baseline[,match(vars.list,colnames(df_baseline))]
+
+colnames(df_baseline) <- vars.list <- c("ARM","Trial","Age, years", "Sex", "Ethnicity", "Country", "Vaccinated", "Time from symptom onset to randomisation, days", "Patients admitted to intensive care unit","Clinical status on ordinal scale", "Comorbidities", "Comedication", "Remdesivir","C-reactive protein concentration, mg/L", "Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])", "Patients with detectable viral load", "SARS CoV-2 variant")
+
+char_vars <- c("Trial","Sex", "Ethnicity", "Country", "Vaccinated","Patients admitted to intensive care unit","Clinical status on ordinal scale","Comorbidities", "Comedication", "Remdesivir","Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])", "Patients with detectable viral load", "SARS CoV-2 variant")
+
+# Convert character variables to factors
+df_baseline <- df_baseline %>%
+  mutate(across(all_of(char_vars), factor))
+
+# Sex
+df_baseline <- df_baseline %>%
+  mutate(Sex = case_when(Sex == "male" | Sex == "M" | Sex == "2" ~ "Male",
+                         Sex == "female" | Sex == "F" | Sex == "1" ~ "Female"))
+
+# Country
+# table(df_baseline$Country, useNA = "always")
+df_baseline <- df_baseline %>%
+  mutate(Country = case_when(Country == "NORWAY" ~ "Norway",
+                             Country == "FRANCE" ~ "France",
+                             Country == "ITA" | Country == "ITALY" ~ "Italy",
+                             Country == "GERMANY" | Country == "DEU" ~ "Germany",
+                             Country == "SPAIN" | Country == "ESP" ~ "Spain",
+                             Country == "BELGIUM" ~ "Belgium",
+                             Country == "PORTUGAL" ~ "Portugal",
+                             Country == "IRELAND" ~ "Ireland",
+                             Country == "LUXEMBOURG" ~ "Luxembourg",
+                             Country == "AUSTRIA" ~ "Austria",
+                             Country == "GBR" ~ "United Kingdom",
+                             Country == "PORTUGAL" ~ "Portugal",
+                             Country == "MEX" ~ "Mexico",
+                             Country == "ARG" ~ "Argentina",
+                             Country == "BRA" ~ "Brasil",
+                             Country == "RUS" ~ "Russia",
+                             Country == "JPN" ~ "Japan",
+                             Country == "KOR" ~ "South Korea",
+                             Country == "IND" ~ "India"
+                             ))
+
+# Vaccinated
+df_baseline <- df_baseline %>%
+  mutate(Vaccinated = case_when(Vaccinated == "1" ~ "Any SARS CoV-2 vaccine",
+                                Vaccinated == "0" ~ "No vaccine"))
+# ICU
+df_baseline <- df_baseline %>%
+  mutate(`Patients admitted to intensive care unit` = case_when(`Patients admitted to intensive care unit` == "1" ~ "Yes",
+                                                                `Patients admitted to intensive care unit` == "0" ~ "No"))
+# Comorbidities
+df_baseline <- df_baseline %>%
+  mutate(Comorbidities = case_when(Comorbidities == "1" ~ "No comorbidity",
+                                   Comorbidities == "2" ~ "One comorbidity",
+                                   Comorbidities == "3" ~ "Multiple comorbidities",
+                                   Comorbidities == "4" ~ "Immunocompromised"))
+# Comedication
+df_baseline <- df_baseline %>%
+  mutate(Comedication = case_when(Comedication == "1" ~ "No Dexamethasone, no Tocilizumab",
+                                   Comedication == "2" ~ "Dexamethasone and Tocilizumab",
+                                   Comedication == "3" ~ "Dexamethasone but no Tocilizumab"))
+# Remdesivir
+df_baseline <- df_baseline %>%
+  mutate(Remdesivir = case_when(Remdesivir == "1" ~ "Remdesivir",
+                                Remdesivir == "0" ~ "No Remdesivir"))
+# Seroconversion
+df_baseline <- df_baseline %>%
+  mutate(`Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])` = case_when(`Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])` == "1" ~ "Seroconverted",
+                                `Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])` == "0" ~ "Not seroconverted"))
+# Anticoagulation
+df_baseline <- df_baseline %>%
+  mutate(`Patients with detectable viral load` = case_when(`Patients with detectable viral load` == "1" ~ "Undetectable viral load",
+                                `Patients with detectable viral load` == "0" ~ "Detectable viral load"))
+
+# Replace the strata variable labels
+df_baseline$ARM <- ifelse(df_baseline$ARM == 0, "No JAK inhibitor", "JAK inhibitor")
+
+# Create ordinal factors
+# df_baseline$regcursat <- ordered(df_baseline$regcursat, 
+#                                   levels = c("Very dissatisfied", "Somewhat dissatisfied", 
+#                                              "Neutral", "Somewhat satisfied", "Very satisfied"))
+```
+
+## Baseline table, by treatment arm
+```{r message=FALSE, warning=FALSE}
+# all participants, by arm
+table_baseline <- CreateTableOne(data = df_baseline, vars = vars.list[!vars.list %in% c("ARM")], strata = "ARM", includeNA = T, test = F, addOverall = TRUE)
+capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = TRUE))
+# print
+kable(table_baseline, format = "markdown", table.attr = 'class="table"', caption = "Baseline characteristics, by arm") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+## Baseline table, by trial
+```{r message=FALSE, warning=FALSE}
+# all participants, by trial
+table_baseline_trial <- CreateTableOne(data = df_baseline, vars = vars.list[!vars.list %in% c("Trial", "ARM")], strata = "Trial", includeNA = T, test = F, addOverall = TRUE)
+capture.output(table_baseline_trial <- print(table_baseline_trial, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = TRUE))
+#print
+kable(table_baseline_trial, format = "markdown", table.attr = 'class="table"', caption = "Baseline characteristics, by trial") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+## Missing data table, by trial
+```{r message=FALSE, warning=FALSE}
+table(df_tot_Muru$mort_28,useNA = "always")
+
+vars.list <- c("trt", "trial", "age", "sex", "ethn", "country", "vacc", "sympdur", "icu", "clinstatus_baseline", "comorb_cat", "comed_cat", "comed_rdv", "crp", "sero", "vl_baseline", "variant",
+               "mort_28", "mort_60", "death_reached", "new_mv_28", "new_mvd_28", "clinstatus_28_imp", "discharge_reached",
+               "discharge_reached_sus" , "ae_28","ae_28_sev" ,"vir_clear_5" ,"vir_clear_10", "vir_clear_15")
+
+df_missing <- df_tot_Muru[,colnames(df_tot_Muru)%in%vars.list]
+df_missing <- df_missing[,match(vars.list,colnames(df_missing))]
+
+# colnames(df_missing) <- vars.list <- c("ARM","Trial","Age, years", "Sex", "Ethnicity", "Country", "Vaccinated", "Time from symptom onset to randomisation, days", "Patients admitted to intensive care unit","Clinical status on ordinal scale", "Comorbidities", "Comedication", "Remdesivir","C-reactive protein concentration, mg/L", "Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])", "Patients with detectable viral load", "SARS CoV-2 variant")
+
+char_vars <- c("trt", "trial", "sex", "ethn", "country", "vacc", "icu", "clinstatus_baseline", "comorb_cat", "comed_cat", "comed_rdv", "sero", "vl_baseline", "variant",
+               "mort_28", "mort_60", "death_reached", "new_mv_28", "new_mvd_28", "clinstatus_28_imp", "discharge_reached",
+               "discharge_reached_sus" , "ae_28","ae_28_sev" ,"vir_clear_5" ,"vir_clear_10", "vir_clear_15")
+
+# Convert character variables to factors
+df_missing <- df_missing %>%
+  mutate(across(all_of(char_vars), factor))
+
+# all missing data, by trial
+table_missing_trial <- CreateTableOne(data = df_missing, vars = vars.list[!vars.list %in% c("trt", "trial")], strata = "trial", includeNA = T, test = F, addOverall = TRUE)
+capture.output(table_missing_trial <- print(table_missing_trial, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = TRUE))
+#print
+kable(table_missing_trial, format = "markdown", table.attr = 'class="table"', caption = "Missing data, by trial") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
