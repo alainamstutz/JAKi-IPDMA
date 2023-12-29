@@ -2321,75 +2321,6 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
 ```r
 # dev.off()
 ```
-Discussion points
-
-
-```r
-# df_subgroup_actt2_title <- data.frame(variable = c("ACTT2"))
-# df_subgroup_actt2_title$hazard_odds_ratio <- NA
-# df_subgroup_actt2_title$ci_lower <- NA
-# df_subgroup_actt2_title$ci_upper <- NA
-# df_subgroup_actt2_title$standard_error <- NA
-# df_subgroup_actt2_title$p_value <- NA
-# df_subgroup_actt2_title$n_intervention <- NA
-# df_subgroup_actt2_title$n_intervention_tot <- NA
-# df_subgroup_actt2_title$n_control <- NA
-# df_subgroup_actt2_title$n_control_tot <- NA
-# df_subgroup_actt2_title$trial <- NA
-# df_subgroup_actt2_title$JAKi <- NA
-# df_subgroup_covbarrier_title <- data.frame(variable = c("COV-BARRIER"))
-# df_subgroup_covbarrier_title$hazard_odds_ratio <- NA
-# df_subgroup_covbarrier_title$ci_lower <- NA
-# df_subgroup_covbarrier_title$ci_upper <- NA
-# df_subgroup_covbarrier_title$standard_error <- NA
-# df_subgroup_covbarrier_title$p_value <- NA
-# df_subgroup_covbarrier_title$n_intervention <- NA
-# df_subgroup_covbarrier_title$n_intervention_tot <- NA
-# df_subgroup_covbarrier_title$n_control <- NA
-# df_subgroup_covbarrier_title$n_control_tot <- NA
-# df_subgroup_covbarrier_title$trial <- NA
-# df_subgroup_covbarrier_title$JAKi <- NA
-# 
-# df_subgroup_tot <- rbind(df_subgroup_actt2_title, df_subgroup_actt2, df_subgroup_covbarrier_title, df_subgroup_covbarrier)
-# 
-# 
-# base_data <- tibble(mean = df_subgroup_tot$hazard_odds_ratio, 
-#                     lower = df_subgroup_tot$ci_lower,
-#                     upper = df_subgroup_tot$ci_upper,
-#                     subgroup = df_subgroup_tot$variable)
-# header <- tibble(subgroup = c("Treatment effects by trial and subgroup (ventilation)"),
-#                  summary = TRUE)
-# vb_mort28_fp <- bind_rows(header,base_data)
-# font <- "sans"
-# 
-# # Open a pdf file
-# # pdf("vb_mort28_fp.pdf", width=10, height=4)
-# vb_mort28_fp %>% 
-#   forestplot(labeltext = c(subgroup),
-#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
-#                               ticks = gpar(cex=1),
-#                               xlab = gpar(cex=1)),
-#              is.summary = summary,
-#              graph.pos = 2,
-#              clip = c(0.1, 2), 
-#              hrzl_lines = list("2" = gpar(lty = 2), 
-#                                "3" = gpar(lty = 2),
-#                                "5" = gpar(lty = 2), 
-#                                "6" = gpar(lty = 2)),
-#              xlog = FALSE,
-#              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5,1.75,2),
-#              boxsize = 0.22,
-#              lty.ci = c(1),
-#              col = fpColors(box = "maroon4",
-#                             line = "maroon1",
-#                             hrz_lines = "gray63"),
-#              vertices = TRUE,
-#              xlab = "     Favours JAKi <-> Favours No JAKi",
-#              zero = 1,
-#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-#              )
-# # dev.off()
-```
 
 # Interaction: Age on primary endpoint
 
@@ -2417,7 +2348,7 @@ age.mort28 <- metagen(TE = log(log_odds_ratio),
                       # n.e = n_intervention + n_control,
                       # n.c = n_control,
                       sm = "log(Ratio of OR)",
-                      fixed = T, # the true interaction is assumed the same in all trials 
+                      fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "REML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
@@ -2432,18 +2363,17 @@ summary(age.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Age
 ## 
-##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct           0.0255 [-0.0483; 0.0993]        8.3        8.4
-## ACTT-2                 -0.0073 [-0.0488; 0.0343]       26.2       26.3
-## Ghazaeian               0.0492 [-0.0549; 0.1534]        4.2        4.2
-## TOFACOV                 0.0460 [-0.1448; 0.2368]        1.2        1.3
-## COVINIB                -0.1400 [-0.3486; 0.0686]        1.0        1.1
-## COV-BARRIER             0.0228 [-0.0049; 0.0505]       59.0       58.7
+##               log(Ratio of OR)            95%-CI %W(random)
+## Bari-SolidAct           0.0255 [-0.0483; 0.0993]        8.4
+## ACTT-2                 -0.0073 [-0.0488; 0.0343]       26.3
+## Ghazaeian               0.0492 [-0.0549; 0.1534]        4.2
+## TOFACOV                 0.0460 [-0.1448; 0.2368]        1.3
+## COVINIB                -0.1400 [-0.3486; 0.0686]        1.1
+## COV-BARRIER             0.0228 [-0.0049; 0.0505]       58.7
 ## 
 ## Number of studies: k = 6
 ## 
-##                              log(Ratio of OR)            95%-CI  z|t p-value
-## Common effect model                    0.0149 [-0.0064; 0.0361] 1.37  0.1713
+##                              log(Ratio of OR)            95%-CI    t p-value
 ## Random effects model (HK-SE)           0.0148 [-0.0133; 0.0429] 1.36  0.2331
 ## 
 ## Quantifying heterogeneity:
@@ -2462,21 +2392,183 @@ summary(age.mort28)
 ```
 
 ```r
+# pdf("age.mort28.pdf", width=11, height=4)
 forest.meta(age.mort28,
-            # hetstat = F,
+            hetstat = F,
             # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE"),
-            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
-            text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            # text.common = "Average interaction effect (common effect model)*",
+            text.random = "",
             title = "Treatment-covariate interaction on primary endpoint: Age",
-            # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect"
+            xlim = c(-0.2,0.2),
+            # xlab = "95% CI for interaction effect"
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+
+```r
+# dev.off()
+```
 Discussion points
+
+# Subgroups: Age on primary endpoint
+
+```r
+# Calculate the inverse variance
+df_sg_age_mort28$inverse_variance <- 1 / df_sg_age_mort28$standard_error^2
+
+# Insert ACTT2 title
+empty_row <- data.frame(
+  variable = "ACTT2",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+df_sg_age_mort28 <- rbind(empty_row, df_sg_age_mort28)
+
+# Insert cov-barrier title
+empty_row <- data.frame(
+  variable = "COV-BARRIER",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_age_mort28[1:3, ]
+second_part <- df_sg_age_mort28[4:nrow(df_sg_age_mort28), ]
+# Insert the empty row before/after
+df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert bari-solidact title
+empty_row <- data.frame(
+  variable = "BARI-SOLIDACT",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_age_mort28[1:6, ]
+second_part <- df_sg_age_mort28[7:nrow(df_sg_age_mort28), ]
+# Insert the empty row before/after
+df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Covinib title
+empty_row <- data.frame(
+  variable = "COVINIB",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_age_mort28[1:9, ]
+second_part <- df_sg_age_mort28[10:nrow(df_sg_age_mort28), ]
+# Insert the empty row before/after
+df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TOFACOV title
+empty_row <- data.frame(
+  variable = "TOFACOV",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_age_mort28[1:12, ]
+second_part <- df_sg_age_mort28[13:nrow(df_sg_age_mort28), ]
+# Insert the empty row before/after
+df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Ghazaeian title
+empty_row <- data.frame(
+  variable = "GHAZAEIAN",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_age_mort28[1:15, ]
+second_part <- df_sg_age_mort28[16:nrow(df_sg_age_mort28), ]
+# Insert the empty row before/after
+df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Create a forest plot
+# pdf("sg_age_mort28.pdf", width=10, height=8)
+forest(df_sg_age_mort28$hazard_odds_ratio,
+       ci.lb = df_sg_age_mort28$ci_lower,
+       ci.ub = df_sg_age_mort28$ci_upper,
+       slab = df_sg_age_mort28$variable,
+       alim = c(0, 3),
+       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
+       cex = 0.8,
+       refline = 1,
+       annotate = F,
+       lwd.ci = 1,
+       psize = sqrt(df_sg_age_mort28$inverse_variance),
+       )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+
+```r
+# dev.off()
+```
+
 
 # Interaction: Comorbidity on primary endpoint
 

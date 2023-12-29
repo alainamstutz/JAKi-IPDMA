@@ -1402,45 +1402,6 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
 
 ```
 
-```{r}
-# base_data <- tibble(mean = df_subgroup_tot$hazard_odds_ratio, 
-#                     lower = df_subgroup_tot$ci_lower,
-#                     upper = df_subgroup_tot$ci_upper,
-#                     subgroup = df_subgroup_tot$variable)
-# header <- tibble(subgroup = c("Treatment effects by trial and subgroup (ventilation)"),
-#                  summary = TRUE)
-# vb_mort28_fp <- bind_rows(header,base_data)
-# font <- "sans"
-# 
-# # Open a pdf file
-# # pdf("vb_mort28_fp.pdf", width=10, height=4)
-# vb_mort28_fp %>% 
-#   forestplot(labeltext = c(subgroup),
-#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
-#                               ticks = gpar(cex=1),
-#                               xlab = gpar(cex=1)),
-#              is.summary = summary,
-#              graph.pos = 2,
-#              clip = c(0.1, 2), 
-#              hrzl_lines = list("2" = gpar(lty = 2), 
-#                                "3" = gpar(lty = 2),
-#                                "5" = gpar(lty = 2), 
-#                                "6" = gpar(lty = 2)),
-#              xlog = FALSE,
-#              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5,1.75,2),
-#              boxsize = 0.22,
-#              lty.ci = c(1),
-#              col = fpColors(box = "maroon4",
-#                             line = "maroon1",
-#                             hrz_lines = "gray63"),
-#              vertices = TRUE,
-#              xlab = "     Favours JAKi <-> Favours No JAKi",
-#              zero = 1,
-#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-#              )
-# # dev.off()
-```
-
 # Interaction: Age on primary endpoint
 ```{r warning=FALSE, fig.width=11, fig.height=4}
 str(df_age_mort28)
