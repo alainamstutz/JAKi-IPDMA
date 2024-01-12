@@ -256,14 +256,15 @@ df <- whoscore_transform(df, clinstatus_discharge, whoscore_DISCH)
 df <- whoscore_transform(df, clinstatus_dropout, whoscore_DROP)
 
 # (i) Primary outcome: Mortality at day 28
-df <- df %>% # 12 have no outcome data and withdrew or were withdrawn, but have clinstatus_baseline and fup lcinstatus data -> see missing data rule: No transfer to hospice happened in bari-solidact -> assign "alive"
+df <- df %>% # 12 have no outcome data and withdrew or were withdrawn, but have clinstatus_baseline and fup clinstatus data 
   mutate(mort_28 = case_when(death_d <29 ~ 1,
                              discharge_d <29 ~ 0, # all discharged were discharged alive and not to hospice
                              clinstatus_28 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >28 ~ 0)) # discharged later, proof of still alive
-df <- df %>%
-  mutate(mort_28 = case_when(is.na(mort_28) ~ 0,
-                             TRUE ~ c(mort_28)))
+# -> see missing data rule: No transfer to hospice happened in bari-solidact -> assign "alive"
+# df <- df %>%
+#   mutate(mort_28 = case_when(is.na(mort_28) ~ 0,
+#                              TRUE ~ c(mort_28)))
 
 # (ii) Mortality at day 60
 df <- df %>% # same 12 that have no outcome data and withdrew or were withdrawn -> see above
@@ -271,9 +272,10 @@ df <- df %>% # same 12 that have no outcome data and withdrew or were withdrawn 
                              discharge_d <61 ~ 0, # all discharged were discharged alive and not to hospice
                              clinstatus_35 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >60 ~ 0)) # discharged later, proof of still alive
-df <- df %>%
-  mutate(mort_60 = case_when(is.na(mort_60) ~ 0,
-                             TRUE ~ c(mort_60)))
+# -> see missing data rule: No transfer to hospice happened in bari-solidact -> assign "alive"
+# df <- df %>%
+#   mutate(mort_60 = case_when(is.na(mort_60) ~ 0,
+#                              TRUE ~ c(mort_60)))
 
 # (iii) Time to death within max. follow-up time 
 df$death_reached <- df$death_yn # do not bother about missings in mort_28
@@ -409,6 +411,28 @@ Discussion points
 ```{r echo=TRUE}
 # keep the overall set
 df_all <- df
+# keep the core df
+df_core <- df_all %>% 
+    select(id_pat, trt, sex, age, trial, JAKi, 
+         country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
+         any_comorb, comorb_cat, comorb_count,
+         crp, 
+         sero, vl_baseline, variant,
+         clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28, 
+         clinstatus_28_imp,
+         mort_28, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         vir_clear_5, vir_clear_10, vir_clear_15
+         )
+# save
+saveRDS(df_core, file = "df_core_barisolidact.RData")
+write.csv(df_core, file = "df_core_barisolidact.csv")
+
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
   select(id_pat, trt, sex, age, trial, JAKi, 
@@ -444,6 +468,17 @@ saveRDS(df_os, file = "df_os_barisolidact.RData")
 # Create a bar plot to visualize missing values in each column
 original_order <- colnames(df_os)
 missing_plot <- df_os %>%
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data Visualization") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+original_order <- colnames(df_core)
+missing_plot <- df_core %>%
   summarise_all(~ mean(is.na(.))) %>%
   gather() %>%
   mutate(key = factor(key, levels = original_order)) %>%
