@@ -138,12 +138,16 @@ b) Stratify by trial each of the other parameters outside the interaction term, 
 a) BariSolidact:
 * vacc: 5 missing -> MICE for subgroup analysis?
 * mort_28: 12 missing
+
 b) ACTT2: 
 * sympdur & comorbities -> MICE for subgroup analysis?
 * mort_28 (& mort_60): 47 missing
 * new_mv_28 & new_mvd_28: 26 missing
+
 c) Covinib: 3-5 missings in mort_28/mort_60/new_mv_28/new_mvd_28
+
 d) Ghazaeian: No missing (besides 2 in CRP -> MICE for subgroup analysis?)
+
 e) Tofacov: No missing (besides 1 in CRP -> MICE for subgroup analysis?)
 
 * *__Decision 01.11.23__*: Do not use Complete Case, to keep ITT. Alternative imputation strategy (based on ACTT2 clinicalstatus day 15):
