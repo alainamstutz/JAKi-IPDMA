@@ -432,6 +432,7 @@ df_core <- df_all %>%
          )
 # save
 saveRDS(df_core, file = "df_core_actt2.RData")
+write.csv(df_core, file = "df_core_actt2.csv")
 
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
