@@ -262,7 +262,7 @@ df$discharge_d <- as.numeric(df$ttrecov0) # everyone with a value here, was disc
 
 
 # (i) Primary outcome: Mortality at day 28
-df <- df %>% # 47 have no outcome data, reason for censoring unclear (see below) -> multiple imputation; a few have info in daily score
+df <- df %>% # 47 have no outcome data, reason for censoring unclear (see below); a few have info in daily score
   mutate(mort_28 = case_when(death_d <29 ~ 1, # includes deaths after discharge
                              discharge_d <29 ~ 0, # discharge to hospiz before day 15 were coded as 7 and were very few
                              clinstatus_28 %in% c(2,3,4,5) ~ 0, # still at hospital but alive, clinstatus variables after 28d are all empty (see View below)
@@ -277,11 +277,13 @@ df <- df %>% # 47 have no outcome data, reason for censoring unclear (see below)
 #          clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28, clinstatus_29, clinstatus_30, clinstatus_31, clinstatus_32, clinstatus_33, clinstatus_34, clinstatus_36, clinstatus_37, clinstatus_45) %>%
 #   filter(is.na(mort_28)) %>%
 #   View()
+
 # Apply missing data rule; we use the same rules as ACTT2 => we can use clinstatus_15_imp
 df <- score_transform(df, clinstatus_15_imp, df$or15scor)
-df <- df %>% 
-  mutate(mort_28 = case_when(is.na(mort_28) & clinstatus_15_imp %in% c("1","2","3","4","5") ~ 0,
-                             TRUE ~ c(mort_28)))
+# Apply missing data rule
+# df <- df %>% 
+#   mutate(mort_28 = case_when(is.na(mort_28) & clinstatus_15_imp %in% c("1","2","3","4","5") ~ 0,
+#                              TRUE ~ c(mort_28)))
 
 
 # (ii) Mortality at day 60
@@ -409,8 +411,28 @@ Discussion points OUTCOME data:
 
 # Define final dataset, set references, summarize missing data and variables
 ```{r echo=TRUE}
-# keep the overall set
+# the overall set
 df_all <- df
+# keep the core df
+df_core <- df_all %>% 
+  select(id_pat, trt, sex, age, trial, JAKi, 
+         ethn,
+         sympdur, 
+         vacc, 
+         clinstatus_baseline, vbaseline,
+         comed_rdv, 
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         any_comorb, comorb_cat, comorb_count,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
+         clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, clinstatus_15_imp, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28,
+         clinstatus_28_imp,
+         mort_28, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         )
+# save
+saveRDS(df_core, file = "df_core_actt2.RData")
+
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
   select(id_pat, trt, sex, age, trial, JAKi, 
@@ -475,6 +497,20 @@ missing_plot <- df_os %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(0, 1)
 print(missing_plot)
+
+# Create a bar plot to visualize missing values in each column
+original_order <- colnames(df_core)
+missing_plot <- df_core %>%
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data Visualization") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+
 ```
 Discussion points
 1. Missing variables:
