@@ -63,7 +63,7 @@ df <- df %>% ## no missing data // no randdate // ARM == 1 includes remdesivir!
   rename(id_pat = USUBJID,
          sex = SEX,
          age = agec,
-         #country = REGION2
+         region = REGION2
          )
 df <- df %>%
   mutate(trt = case_when(ARM == "Baricitinib + Remdesivir" ~ 1,
@@ -338,7 +338,7 @@ df <- df %>% # no missing and those that were discharged and afterwards died hav
 
 
 # (iv) New mechanical ventilation among survivors within 28 days.
-df <- df %>% # allNAs are either dead or started with clinstatus_baseline == 5 (see View below)
+df <- df %>% # all NAs are either dead or started with clinstatus_baseline == 5 (see View below)
   mutate(new_mv_28 = case_when((clinstatus_baseline == 2 | clinstatus_baseline == 3 | clinstatus_baseline == 4) 
                                & (mort_28 == 0 | is.na(mort_28)) 
                                & (clinstatus_1 == 5 | clinstatus_2 == 5 | clinstatus_3 == 5 | clinstatus_4 == 5 |
@@ -438,17 +438,16 @@ df$discharge_time_sus <- df$discharge_time
 # # Save
 # saveRDS(df_ae, file = "df_ae_actt2.RData")
 ```
-Discussion points OUTCOME data:
-1. Get the (S)AE data
+Discussion points
 
-# Define final dataset, set references, summarize missing data and variables
+# Define final datasets
 
 ```r
 # the overall set
 df_all <- df
 # keep the core df
 df_core <- df_all %>% 
-  select(id_pat, trt, sex, age, trial, JAKi, 
+  select(id_pat, trt, sex, age, trial, JAKi, region,
          ethn,
          sympdur, 
          vacc, 
@@ -465,6 +464,7 @@ df_core <- df_all %>%
          )
 # save
 saveRDS(df_core, file = "df_core_actt2.RData")
+write.csv(df_core, file = "df_core_actt2.csv")
 
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
@@ -517,8 +517,12 @@ saveRDS(df_os, file = "df_os_actt2.RData")
 ## set references, re-level
 # df <- df %>% 
 #   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
+```
 
-# Create a bar plot to visualize missing values in each column
+# Explore missing data
+
+```r
+# Bar plot, missing data, each data point, standardized one-stage dataset
 original_order <- colnames(df_os)
 missing_plot <- df_os %>%
   summarise_all(~ mean(is.na(.))) %>%
@@ -526,16 +530,16 @@ missing_plot <- df_os %>%
   mutate(key = factor(key, levels = original_order)) %>%
   ggplot(aes(x = key, y = value)) +
   geom_bar(stat = "identity") +
-  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data Visualization") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - standardized one-stage dataset") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(0, 1)
 print(missing_plot)
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ```r
-# Create a bar plot to visualize missing values in each column
+# Bar plot, missing data, each data point, core dataset
 original_order <- colnames(df_core)
 missing_plot <- df_core %>%
   summarise_all(~ mean(is.na(.))) %>%
@@ -543,30 +547,696 @@ missing_plot <- df_core %>%
   mutate(key = factor(key, levels = original_order)) %>%
   ggplot(aes(x = key, y = value)) +
   geom_bar(stat = "identity") +
-  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data Visualization") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(0, 1)
 print(missing_plot)
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-5-2.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
+
+```r
+# Bar plot, missing data, each data point, core dataset, by arm
+df_core_int <- df_core %>% 
+  filter(trt == 1)
+original_order <- colnames(df_core_int)
+missing_plot <- df_core_int %>%
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, int only") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-6-3.png)<!-- -->
+
+```r
+df_core_cont <- df_core %>% 
+  filter(trt == 0)
+original_order <- colnames(df_core_cont)
+missing_plot <- df_core_cont %>%
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, cont only") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-6-4.png)<!-- -->
+
+```r
+# # create baseline table, by individuals with no missing data vs any missing data
+# df_core <- df_core %>% 
+#   mutate(missing = ifelse(rowSums(is.na(.)) > 0, 1, 0))
+# 
+# table(df_core$missing, useNA = "always")
+# 
+# # Convert character variables to factors
+# char_vars <- c("trt", "missing", "sex", "ethn", "region", "vacc", "clinstatus_baseline", "vbaseline", "comed_rdv", "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_15_imp", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28", "clinstatus_28_imp", "mort_28", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus")
+# df_core <- df_core %>%
+#   mutate(across(all_of(char_vars), factor))
+# 
+# # by missing data indicator
+# table_missing <- CreateTableOne(data = df_core, vars = vars.list[!vars.list %in% c("missing")], strata = "missing", includeNA = T, test = F, addOverall = TRUE)
+# capture.output(table_missing <- print(table_missing, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = TRUE))
+# #print
+# kable(table_missing, format = "markdown", table.attr = 'class="table"', caption = "By missing data indicator") %>%
+#   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
 Discussion points
 1. Missing variables:
 * Baseline:
-  - ICU at enrolment: Double-check with trial team
-  - CRP: Double-check with trial team
-  - Viremia: Double-check with trial team
-  - Variant: Double-check with trial team
-  - Serology: Double-check with trial team
-  - Co-medication at baseline: Double-check with trial team (except remdesivir (part of intervention))
+  - ICU at enrolment, Country, Variant, Serology
 * Outcomes:
-  - viral load: Double-check with trial team
-  - adverse events: Double-check with trial team
   - qol_28
 2. Missing data:
-- sympdur & comorbities -> MICE?
-- crp & vl_baseline & variant
+- sympdur & comorbities
+- mort_28 / mort_60 / clinstatus_28 / new_mv_28 / new_mvd_28
 
+# Multiple imputation
+
+```r
+df_imp <- df_core %>% 
+  select(# "id_pat"
+          "trt", "sex", "age", "ethn", "region", "sympdur"
+         # ,"vacc" , "trial", "JAKi",  # only 0
+         ,"clinstatus_baseline"
+         # , "vbaseline" # derived
+         , "comed_rdv" # but all 1 in int and 0 in cont
+         , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney" 
+         , "any_comorb", "comorb_cat", "comorb_count" # derived
+         ,"clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15"
+         # , "clinstatus_15_imp" # imputed via LOVCF
+         , "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28"
+         # , "clinstatus_28_imp" # imputed via LOVCF
+         , "mort_28"
+         # , "mort_60" # same as mort_28
+         , "death_reached", "death_time", "new_mv_28", "new_mvd_28", "discharge_reached", "discharge_time"
+         # , "discharge_reached_sus", "discharge_time_sus" # same as discharge
+         )
+
+df_imp <- df_imp %>% 
+  select("trt" # arm
+         ,"age" # in the substantive model (adjustment variable), no missing
+         ,"clinstatus_baseline" # in the substantive model (adjustment variable), no missing
+         , "mort_28" # primary outcome
+         , "death_reached", "death_time" # time-to-event secondary outcome
+         , "discharge_reached", "discharge_time" # time-to-event secondary outcome
+         , "clinstatus_28" # ordinal secondary outcome
+         , "new_mv_28" # binary secondary outcome
+         , "new_mvd_28" # binary secondary outcome
+      
+         , "sex", "ethn", "region", "sympdur"
+         , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney" 
+         , "any_comorb", "comorb_cat", "comorb_count" # derived from above
+         
+         ,"clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27"
+         )
+
+# don't forget to add nelsonaalen if TTE outcomes!
+# always work with dataframe when working with MICE !
+
+# and impute by treatment arm, still we expect interaction between outcome x trt over time
+df_imp_int <- df_imp %>% 
+  filter(trt == 1)
+df_imp_cont <- df_imp %>% 
+  filter(trt == 0)
+
+## intervention group 
+# First, let's see if the main variables are correlated with mort_28
+mod_mort28 <- glm(mort_28 ~ 
+            + age 
+            + clinstatus_baseline
+            ,family="binomial"
+            ,data=df_imp_int)
+summary(mod_mort28)
+```
+
+```
+## 
+## Call:
+## glm(formula = mort_28 ~ +age + clinstatus_baseline, family = "binomial", 
+##     data = df_imp_int)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -1.09893  -0.29067  -0.16970  -0.09809   2.85840  
+## 
+## Coefficients:
+##                        Estimate Std. Error z value Pr(>|z|)   
+## (Intercept)           -23.01231 1209.62749  -0.019  0.98482   
+## age                     0.05505    0.01771   3.109  0.00188 **
+## clinstatus_baseline3   15.69585 1209.62685   0.013  0.98965   
+## clinstatus_baseline4   17.08388 1209.62683   0.014  0.98873   
+## clinstatus_baseline5   18.69585 1209.62684   0.015  0.98767   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 191.99  on 493  degrees of freedom
+## Residual deviance: 145.78  on 489  degrees of freedom
+##   (21 observations deleted due to missingness)
+## AIC: 155.78
+## 
+## Number of Fisher Scoring iterations: 18
+```
+
+```r
+# Second, let's check if they are associated with missingness of mort_28:
+df_imp_int$resp<-ifelse(is.na(df_imp_int$mort_28), 0, 1)
+table(df_imp_int$resp, exclude=NULL)
+```
+
+```
+## 
+##   0   1 
+##  21 494
+```
+
+```r
+mod_mort28_resp <- glm(resp ~ 
+            + age 
+            + clinstatus_baseline
+            ,family="binomial"
+            ,data=df_imp_int)
+summary(mod_mort28_resp)
+```
+
+```
+## 
+## Call:
+## glm(formula = resp ~ +age + clinstatus_baseline, family = "binomial", 
+##     data = df_imp_int)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -3.0075   0.2365   0.2870   0.3241   0.4241  
+## 
+## Coefficients:
+##                      Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)           5.06793    1.33854   3.786 0.000153 ***
+## age                  -0.01464    0.01478  -0.991 0.321922    
+## clinstatus_baseline3 -1.26938    1.04427  -1.216 0.224151    
+## clinstatus_baseline4 -0.71457    1.16548  -0.613 0.539802    
+## clinstatus_baseline5 -1.42774    1.17082  -1.219 0.222679    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 175.52  on 514  degrees of freedom
+## Residual deviance: 171.78  on 510  degrees of freedom
+## AIC: 181.78
+## 
+## Number of Fisher Scoring iterations: 6
+```
+
+```r
+library(mice)
+```
+
+```
+## 
+## Attaching package: 'mice'
+```
+
+```
+## The following object is masked from 'package:ordinal':
+## 
+##     convergence
+```
+
+```
+## The following object is masked from 'package:stats':
+## 
+##     filter
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     cbind, rbind
+```
+
+```r
+md.pattern(df_imp_int[,c("mort_28", "age", "clinstatus_baseline")], rotate.names = T)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+```
+##     age clinstatus_baseline mort_28   
+## 494   1                   1       1  0
+## 21    1                   1       0  1
+##       0                   0      21 21
+```
+
+```r
+# check age
+summary(df_imp_int$age)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   18.00   43.00   55.00   54.96   66.00  101.00
+```
+
+```r
+hist(df_imp_int$age, breaks=50)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
+
+```r
+## Add auxiliary variables
+# check the formats
+str(df_imp_int)
+```
+
+```
+## tibble [515 × 57] (S3: tbl_df/tbl/data.frame)
+##  $ trt                : num [1:515] 1 1 1 1 1 1 1 1 1 1 ...
+##  $ age                : num [1:515] 67 55 51 55 65 68 42 76 70 27 ...
+##  $ clinstatus_baseline: Factor w/ 6 levels "1","2","3","4",..: 4 5 3 3 4 3 3 3 3 3 ...
+##  $ mort_28            : num [1:515] 0 0 0 0 0 0 0 NA 0 0 ...
+##  $ death_reached      : num [1:515] 0 0 0 0 0 0 0 0 0 0 ...
+##  $ death_time         : num [1:515] 28 28 28 27 28 28 11 1 28 28 ...
+##  $ discharge_reached  : num [1:515] 1 0 1 1 1 0 1 0 1 1 ...
+##  $ discharge_time     : num [1:515] 6 28 4 3 5 28 11 2 5 6 ...
+##  $ clinstatus_28      : Factor w/ 6 levels "1","2","3","4",..: 1 5 1 1 1 3 1 NA 1 1 ...
+##  $ new_mv_28          : num [1:515] 0 NA 0 0 0 0 0 NA 0 0 ...
+##  $ new_mvd_28         : num [1:515] 0 0 0 0 0 0 0 NA 0 0 ...
+##  $ sex                : chr [1:515] "F" "M" "M" "M" ...
+##   ..- attr(*, "label")= chr "Sex"
+##   ..- attr(*, "format.sas")= chr "$"
+##  $ ethn               : chr [1:515] "ASIAN" "WHITE" "WHITE" "WHITE" ...
+##  $ region             : chr [1:515] "North America" "North America" "North America" "North America" ...
+##   ..- attr(*, "label")= chr "Geographic Region 2"
+##   ..- attr(*, "format.sas")= chr "$"
+##  $ sympdur            : num [1:515] 4 4 8 8 4 9 8 NA 7 7 ...
+##   ..- attr(*, "label")= chr "Duration of Symptoms (days)"
+##  $ comorb_lung        : num [1:515] 0 0 0 0 0 0 0 0 1 0 ...
+##  $ comorb_liver       : num [1:515] 0 0 0 0 0 0 0 0 0 0 ...
+##  $ comorb_cvd         : num [1:515] 0 0 0 0 0 0 0 1 0 0 ...
+##  $ comorb_aht         : num [1:515] 1 0 1 1 0 0 1 1 1 0 ...
+##  $ comorb_dm          : num [1:515] 0 1 1 0 0 0 1 1 1 1 ...
+##  $ comorb_obese       : num [1:515] 0 1 1 1 0 0 0 0 1 1 ...
+##  $ comorb_smoker      : num [1:515] 0 NA 0 0 0 0 0 0 0 0 ...
+##  $ immunosupp         : num [1:515] 0 0 0 0 0 0 0 0 0 0 ...
+##  $ comorb_autoimm     : num [1:515] 0 0 0 0 0 0 0 0 0 0 ...
+##  $ comorb_cancer      : num [1:515] 0 0 0 0 0 1 0 1 1 0 ...
+##  $ comorb_kidney      : num [1:515] 0 0 0 0 0 0 0 1 0 0 ...
+##  $ any_comorb         : num [1:515] 1 1 1 1 0 1 1 1 1 1 ...
+##  $ comorb_cat         : num [1:515] 2 3 3 3 1 2 3 3 3 3 ...
+##  $ comorb_count       : num [1:515] 1 2 3 2 0 1 2 5 5 2 ...
+##  $ clinstatus_1       : Factor w/ 6 levels "1","2","3","4",..: 4 4 3 3 4 3 3 NA 3 3 ...
+##  $ clinstatus_2       : Factor w/ 6 levels "1","2","3","4",..: 4 5 3 3 4 4 3 NA 3 3 ...
+##  $ clinstatus_3       : Factor w/ 6 levels "1","2","3","4",..: 4 5 3 3 4 4 4 NA 3 3 ...
+##  $ clinstatus_4       : Factor w/ 6 levels "1","2","3","4",..: 4 5 3 3 4 4 4 NA 3 3 ...
+##  $ clinstatus_5       : Factor w/ 6 levels "1","2","3","4",..: 4 5 2 NA 4 4 4 NA 3 3 ...
+##  $ clinstatus_6       : Factor w/ 6 levels "1","2","3","4",..: 3 5 NA NA 1 4 3 NA 3 3 ...
+##  $ clinstatus_7       : Factor w/ 6 levels "1","2","3","4",..: 3 5 NA NA NA 4 3 NA NA 2 ...
+##  $ clinstatus_8       : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 4 3 NA NA NA ...
+##  $ clinstatus_9       : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 4 2 NA NA NA ...
+##  $ clinstatus_10      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 4 2 NA NA NA ...
+##  $ clinstatus_11      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 4 2 NA NA NA ...
+##  $ clinstatus_12      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA 1 4 NA NA NA NA ...
+##  $ clinstatus_13      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 4 NA NA 1 NA ...
+##  $ clinstatus_14      : Factor w/ 6 levels "1","2","3","4",..: 1 5 NA NA NA 4 NA NA NA NA ...
+##  $ clinstatus_15      : Factor w/ 6 levels "1","2","3","4",..: NA 5 1 NA NA 3 NA NA NA 1 ...
+##  $ clinstatus_16      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 3 NA NA NA NA ...
+##  $ clinstatus_17      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 3 NA NA NA NA ...
+##  $ clinstatus_18      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA 1 NA 4 NA NA NA NA ...
+##  $ clinstatus_19      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 4 NA NA NA NA ...
+##  $ clinstatus_20      : Factor w/ 6 levels "1","2","3","4",..: 1 5 NA NA NA 4 NA NA NA NA ...
+##  $ clinstatus_21      : Factor w/ 6 levels "1","2","3","4",..: NA 5 1 NA NA 3 NA NA NA 1 ...
+##  $ clinstatus_22      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 4 NA NA NA NA ...
+##  $ clinstatus_23      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 3 NA NA 1 NA ...
+##  $ clinstatus_24      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 3 NA NA NA NA ...
+##  $ clinstatus_25      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 4 NA NA NA NA ...
+##  $ clinstatus_26      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA NA NA 3 NA NA NA NA ...
+##  $ clinstatus_27      : Factor w/ 6 levels "1","2","3","4",..: NA 5 NA 1 NA 3 NA NA NA NA ...
+##  $ resp               : num [1:515] 1 1 1 1 1 1 1 0 1 1 ...
+```
+
+```r
+summary(df_imp_int)
+```
+
+```
+##       trt         age         clinstatus_baseline    mort_28       
+##  Min.   :1   Min.   : 18.00   1:  0               Min.   :0.00000  
+##  1st Qu.:1   1st Qu.: 43.00   2: 70               1st Qu.:0.00000  
+##  Median :1   Median : 55.00   3:288               Median :0.00000  
+##  Mean   :1   Mean   : 54.96   4:103               Mean   :0.04858  
+##  3rd Qu.:1   3rd Qu.: 66.00   5: 54               3rd Qu.:0.00000  
+##  Max.   :1   Max.   :101.00   6:  0               Max.   :1.00000  
+##                                                   NA's   :21       
+##  death_reached      death_time    discharge_reached discharge_time 
+##  Min.   :0.0000   Min.   : 0.00   Min.   :0.0000    Min.   : 0.00  
+##  1st Qu.:0.0000   1st Qu.:27.00   1st Qu.:1.0000    1st Qu.: 4.00  
+##  Median :0.0000   Median :28.00   Median :1.0000    Median : 7.00  
+##  Mean   :0.0466   Mean   :25.49   Mean   :0.8408    Mean   :10.09  
+##  3rd Qu.:0.0000   3rd Qu.:28.00   3rd Qu.:1.0000    3rd Qu.:13.00  
+##  Max.   :1.0000   Max.   :28.00   Max.   :1.0000    Max.   :28.00  
+##                                                                    
+##  clinstatus_28   new_mv_28         new_mvd_28        sex           
+##  1   :426      Min.   :0.00000   Min.   :0.000   Length:515        
+##  2   : 10      1st Qu.:0.00000   1st Qu.:0.000   Class :character  
+##  3   :  7      Median :0.00000   Median :0.000   Mode  :character  
+##  4   : 10      Mean   :0.08924   Mean   :0.126                     
+##  5   : 17      3rd Qu.:0.00000   3rd Qu.:0.000                     
+##  6   : 24      Max.   :1.00000   Max.   :1.000                     
+##  NA's: 21      NA's   :78        NA's   :15                        
+##      ethn              region             sympdur        comorb_lung    
+##  Length:515         Length:515         Min.   : 0.000   Min.   :0.0000  
+##  Class :character   Class :character   1st Qu.: 5.000   1st Qu.:0.0000  
+##  Mode  :character   Mode  :character   Median : 8.000   Median :0.0000  
+##                                        Mean   : 8.306   Mean   :0.1617  
+##                                        3rd Qu.:10.000   3rd Qu.:0.0000  
+##                                        Max.   :35.000   Max.   :1.0000  
+##                                        NA's   :6        NA's   :8       
+##   comorb_liver       comorb_cvd       comorb_aht      comorb_dm     
+##  Min.   :0.00000   Min.   :0.0000   Min.   :0.000   Min.   :0.0000  
+##  1st Qu.:0.00000   1st Qu.:0.0000   1st Qu.:0.000   1st Qu.:0.0000  
+##  Median :0.00000   Median :0.0000   Median :1.000   Median :0.0000  
+##  Mean   :0.02569   Mean   :0.1524   Mean   :0.515   Mean   :0.3953  
+##  3rd Qu.:0.00000   3rd Qu.:0.0000   3rd Qu.:1.000   3rd Qu.:1.0000  
+##  Max.   :1.00000   Max.   :1.0000   Max.   :1.000   Max.   :1.0000  
+##  NA's   :9         NA's   :23       NA's   :14      NA's   :9       
+##   comorb_obese   comorb_smoker       immunosupp      comorb_autoimm
+##  Min.   :0.000   Min.   :0.00000   Min.   :0.00000   Min.   :0     
+##  1st Qu.:0.000   1st Qu.:0.00000   1st Qu.:0.00000   1st Qu.:0     
+##  Median :1.000   Median :0.00000   Median :0.00000   Median :0     
+##  Mean   :0.583   Mean   :0.03543   Mean   :0.03347   Mean   :0     
+##  3rd Qu.:1.000   3rd Qu.:0.00000   3rd Qu.:0.00000   3rd Qu.:0     
+##  Max.   :1.000   Max.   :1.00000   Max.   :1.00000   Max.   :0     
+##  NA's   :9       NA's   :7         NA's   :7                       
+##  comorb_cancer     comorb_kidney       any_comorb       comorb_cat   
+##  Min.   :0.00000   Min.   :0.00000   Min.   :0.0000   Min.   :1.000  
+##  1st Qu.:0.00000   1st Qu.:0.00000   1st Qu.:1.0000   1st Qu.:2.000  
+##  Median :0.00000   Median :0.00000   Median :1.0000   Median :3.000  
+##  Mean   :0.03937   Mean   :0.06127   Mean   :0.8738   Mean   :2.471  
+##  3rd Qu.:0.00000   3rd Qu.:0.00000   3rd Qu.:1.0000   3rd Qu.:3.000  
+##  Max.   :1.00000   Max.   :1.00000   Max.   :1.0000   Max.   :4.000  
+##  NA's   :7         NA's   :9         NA's   :8        NA's   :8      
+##   comorb_count  clinstatus_1 clinstatus_2 clinstatus_3 clinstatus_4
+##  Min.   :0.00   1   :  1     1   :  1     1   :  3     1   :  7    
+##  1st Qu.:1.00   2   : 63     2   : 82     2   : 84     2   : 99    
+##  Median :2.00   3   :250     3   :234     3   :220     3   :182    
+##  Mean   :1.99   4   :109     4   :112     4   : 97     4   : 86    
+##  3rd Qu.:3.00   5   : 60     5   : 76     5   : 79     5   : 78    
+##  Max.   :6.00   6   :  0     6   :  2     6   :  1     6   :  1    
+##  NA's   :8      NA's: 32     NA's:  8     NA's: 31     NA's: 62    
+##  clinstatus_5 clinstatus_6 clinstatus_7 clinstatus_8 clinstatus_9 clinstatus_10
+##  1   :  4     1   :  6     1   :  8     1   : 10     1   :  8     1   :  7     
+##  2   : 98     2   : 68     2   : 64     2   : 50     2   : 48     2   : 43     
+##  3   :138     3   :114     3   : 95     3   : 80     3   : 71     3   : 63     
+##  4   : 72     4   : 65     4   : 56     4   : 49     4   : 39     4   : 33     
+##  5   : 80     5   : 74     5   : 69     5   : 65     5   : 61     5   : 58     
+##  6   :  3     6   :  0     6   :  1     6   :  4     6   :  0     6   :  1     
+##  NA's:120     NA's:188     NA's:222     NA's:257     NA's:288     NA's:310     
+##  clinstatus_11 clinstatus_12 clinstatus_13 clinstatus_14 clinstatus_15
+##  1   : 15      1   : 33      1   : 60      1   :118      1   : 78     
+##  2   : 36      2   : 33      2   : 31      2   : 26      2   : 25     
+##  3   : 51      3   : 39      3   : 39      3   : 37      3   : 32     
+##  4   : 32      4   : 29      4   : 25      4   : 16      4   : 17     
+##  5   : 53      5   : 50      5   : 44      5   : 43      5   : 43     
+##  6   :  5      6   :  0      6   :  1      6   :  5      6   :  8     
+##  NA's:323      NA's:331      NA's:315      NA's:270      NA's:312     
+##  clinstatus_16 clinstatus_17 clinstatus_18 clinstatus_19 clinstatus_20
+##  1   : 47      1   : 13      1   : 17      1   : 25      1   : 69     
+##  2   : 22      2   : 21      2   : 15      2   : 14      2   : 14     
+##  3   : 25      3   : 24      3   : 19      3   : 20      3   : 15     
+##  4   : 15      4   : 14      4   : 15      4   : 13      4   : 16     
+##  5   : 43      5   : 36      5   : 36      5   : 35      5   : 33     
+##  6   :  0      6   :  3      6   :  1      6   :  0      6   :  1     
+##  NA's:363      NA's:404      NA's:412      NA's:408      NA's:367     
+##  clinstatus_21 clinstatus_22 clinstatus_23 clinstatus_24 clinstatus_25
+##  1   :151      1   : 80      1   : 26      1   : 28      1   : 21     
+##  2   : 13      2   : 10      2   :  8      2   : 10      2   : 13     
+##  3   : 14      3   : 15      3   : 18      3   : 16      3   : 15     
+##  4   : 14      4   : 12      4   :  8      4   :  8      4   : 10     
+##  5   : 30      5   : 29      5   : 29      5   : 28      5   : 25     
+##  6   :  7      6   : 15      6   :  1      6   :  0      6   :  0     
+##  NA's:286      NA's:354      NA's:425      NA's:425      NA's:431     
+##  clinstatus_26 clinstatus_27      resp       
+##  1   : 35      1   : 64      Min.   :0.0000  
+##  2   : 11      2   :  9      1st Qu.:1.0000  
+##  3   : 14      3   : 12      Median :1.0000  
+##  4   :  7      4   :  8      Mean   :0.9592  
+##  5   : 23      5   : 23      3rd Qu.:1.0000  
+##  6   :  1      6   :  0      Max.   :1.0000  
+##  NA's:424      NA's:399
+```
+
+```r
+# First, let's see if the main variables are correlated with mort_28
+aux.mod.mort28.int <- glm(mort_28 ~ 
+            + age 
+            + clinstatus_baseline
+            + sex
+            + ethn
+            + region
+            + sympdur
+            + comorb_cat
+            ,family="binomial"
+            ,data=df_imp_int)
+```
+
+```
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+```
+
+```r
+summary(aux.mod.mort28.int)
+```
+
+```
+## 
+## Call:
+## glm(formula = mort_28 ~ +age + clinstatus_baseline + sex + ethn + 
+##     region + sympdur + comorb_cat, family = "binomial", data = df_imp_int)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -1.47428  -0.27213  -0.15636  -0.06195   3.03897  
+## 
+## Coefficients:
+##                                                 Estimate Std. Error z value
+## (Intercept)                                   -5.261e+01  1.118e+04  -0.005
+## age                                            4.507e-02  1.915e-02   2.354
+## clinstatus_baseline3                           1.658e+01  1.890e+03   0.009
+## clinstatus_baseline4                           1.810e+01  1.890e+03   0.010
+## clinstatus_baseline5                           1.968e+01  1.890e+03   0.010
+## sexM                                          -4.715e-01  4.807e-01  -0.981
+## ethnASIAN                                      1.276e+01  1.073e+04   0.001
+## ethnBLACK OR AFRICAN AMERICAN                  1.304e+01  1.073e+04   0.001
+## ethnHISPANIC OR LATINO                         1.269e+01  1.073e+04   0.001
+## ethnNATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER -2.634e+00  1.363e+04   0.000
+## ethnUNKNOWN                                    1.469e+01  1.073e+04   0.001
+## ethnWHITE                                      1.350e+01  1.073e+04   0.001
+## regionEurope                                  -1.872e-01  6.976e+03   0.000
+## regionNorth America                            1.660e+01  2.508e+03   0.007
+## sympdur                                       -8.536e-02  6.718e-02  -1.271
+## comorb_cat                                     1.577e-01  3.425e-01   0.460
+##                                               Pr(>|z|)  
+## (Intercept)                                     0.9962  
+## age                                             0.0186 *
+## clinstatus_baseline3                            0.9930  
+## clinstatus_baseline4                            0.9924  
+## clinstatus_baseline5                            0.9917  
+## sexM                                            0.3267  
+## ethnASIAN                                       0.9991  
+## ethnBLACK OR AFRICAN AMERICAN                   0.9990  
+## ethnHISPANIC OR LATINO                          0.9991  
+## ethnNATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER   0.9998  
+## ethnUNKNOWN                                     0.9989  
+## ethnWHITE                                       0.9990  
+## regionEurope                                    1.0000  
+## regionNorth America                             0.9947  
+## sympdur                                         0.2039  
+## comorb_cat                                      0.6453  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 191.59  on 489  degrees of freedom
+## Residual deviance: 136.30  on 474  degrees of freedom
+##   (25 observations deleted due to missingness)
+## AIC: 168.3
+## 
+## Number of Fisher Scoring iterations: 19
+```
+
+```r
+# table(df_imp_int$mort_28, df_imp_int$clinstatus_baseline, useNA = "always")
+
+# Second, let's check if they are associated with missingness of mort_28:
+aux.mod.mort28.int.resp <- glm(resp ~ 
+            + age 
+            + clinstatus_baseline
+            + sex
+            + ethn
+            + region
+            + sympdur
+            + comorb_cat
+            ,family="binomial"
+            ,data=df_imp_int)
+```
+
+```
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+```
+
+```r
+summary(aux.mod.mort28.int.resp)
+```
+
+```
+## 
+## Call:
+## glm(formula = resp ~ +age + clinstatus_baseline + sex + ethn + 
+##     region + sympdur + comorb_cat, family = "binomial", data = df_imp_int)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -3.0499   0.1492   0.2032   0.2973   0.6168  
+## 
+## Coefficients:
+##                                                 Estimate Std. Error z value
+## (Intercept)                                    5.374e+01  1.135e+04   0.005
+## age                                           -1.728e-02  1.849e-02  -0.934
+## clinstatus_baseline3                          -1.693e+01  1.992e+03  -0.008
+## clinstatus_baseline4                          -1.677e+01  1.992e+03  -0.008
+## clinstatus_baseline5                          -1.689e+01  1.992e+03  -0.008
+## sexM                                          -2.495e-01  5.715e-01  -0.437
+## ethnASIAN                                     -1.632e+01  1.082e+04  -0.002
+## ethnBLACK OR AFRICAN AMERICAN                 -1.485e+01  1.082e+04  -0.001
+## ethnHISPANIC OR LATINO                        -1.512e+01  1.082e+04  -0.001
+## ethnNATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER  1.016e+00  1.375e+04   0.000
+## ethnUNKNOWN                                   -1.725e+01  1.082e+04  -0.002
+## ethnWHITE                                     -1.601e+01  1.082e+04  -0.001
+## regionEurope                                   4.843e-01  7.216e+03   0.000
+## regionNorth America                           -1.691e+01  2.791e+03  -0.006
+## sympdur                                        3.378e-02  6.759e-02   0.500
+## comorb_cat                                    -1.347e-02  3.921e-01  -0.034
+##                                               Pr(>|z|)
+## (Intercept)                                      0.996
+## age                                              0.350
+## clinstatus_baseline3                             0.993
+## clinstatus_baseline4                             0.993
+## clinstatus_baseline5                             0.993
+## sexM                                             0.662
+## ethnASIAN                                        0.999
+## ethnBLACK OR AFRICAN AMERICAN                    0.999
+## ethnHISPANIC OR LATINO                           0.999
+## ethnNATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER    1.000
+## ethnUNKNOWN                                      0.999
+## ethnWHITE                                        0.999
+## regionEurope                                     1.000
+## regionNorth America                              0.995
+## sympdur                                          0.617
+## comorb_cat                                       0.973
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 135.05  on 504  degrees of freedom
+## Residual deviance: 122.49  on 489  degrees of freedom
+##   (10 observations deleted due to missingness)
+## AIC: 154.49
+## 
+## Number of Fisher Scoring iterations: 19
+```
+
+```r
+# check sympdur
+summary(df_imp_int$sympdur)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##   0.000   5.000   8.000   8.306  10.000  35.000       6
+```
+
+```r
+hist(df_imp_int$sympdur, breaks=50)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-3.png)<!-- -->
+
+```r
+df_imp_int$sqsympdur=sqrt(df_imp_int$sympdur)
+summary(df_imp_int$sqsympdur)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##   0.000   2.236   2.828   2.781   3.162   5.916       6
+```
+
+```r
+hist(df_imp_int$sqsympdur)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-4.png)<!-- -->
+
+```r
+# check the format
+# str(df_imp_int)
+# summary(df_imp_int)
+
+# define mice matrix and let mice inspect dataset
+# library(mice)
+# m0 <- mice(df_imp, maxit=0)
+# head(m0$loggedEvents, 11)
+# meth <- m0$method
+# pred <- m0$predictorMatrix
+# 
+# # exclude variables we don't want in the imputation model (but will still be imputed if any missings) -> set column and row to 0
+# # pred[, colnames(pred) %in% c("")] <- 0
+# # pred[7,]<-0
+# 
+# # define models of imputation for each variable to be imputed
+# m0$method
+# meth[c("mort_28")]="logreg" 
+# meth[c("clinstatus_28")]="polr"
+# meth[c("sympdur")]="pmm"
+# # meth[c("")]="" # skip variables from imputation (but include as predictor)
+# meth
+# 
+# df_imp_mort28<-mice(data=df_imp
+#                 ,m=5
+#                 ,method=meth
+#                 ,predictorMatrix=pred
+#                 ,seed=5278
+#                 ,maxit=1)
+# head(df_imp_mort28$loggedEvents, 100)
+# summary(complete(df_imp_mort28, 0)) # has missingness
+# summary(complete(df_imp_mort28, 1)) # no missingness
+# head(df_imp_mort28$imp$mort_28) 
+# head(df_imp_mort28$imp$sympdur) 
+# 
+# mi.mort28 <- df_imp_mort28 %>% 
+#   with(glm(mort_28 ~ trt 
+#            + age 
+#            + clinstatus_baseline
+#            , family = binomial)) %>% 
+#         pool() %>% 
+#         summary(conf.int = T, exponentiate = T)
+# 
+# table(df_imp$mort_28, df_imp$new_mv_28)
+```
 
 # (i) Primary outcome: Mortality at day 28
 
@@ -847,7 +1517,7 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 ```r
 # Assessing proportional hazards // also just check KM curve
@@ -867,7 +1537,7 @@ print(cz)
 plot(cz)
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-8-2.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-10-2.png)<!-- -->
 
 ```r
 # testing: simple log-rank
@@ -1217,7 +1887,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 ```r
 # testing: simple log-rank
@@ -1306,7 +1976,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
   add_risktable()
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-11-2.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
 
 ```r
 # in int only
@@ -1322,7 +1992,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_int) %>%
   add_risktable()
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-11-3.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-13-3.png)<!-- -->
 
 ```r
 # in cont only
@@ -1338,7 +2008,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_cont) %>%
   add_risktable()
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-11-4.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-13-4.png)<!-- -->
 
 ```r
 # testing: Gray's test (similar to Chi-squared test to compare 2 or more groups)
@@ -1380,7 +2050,7 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-11-5.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-13-5.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -1416,7 +2086,7 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 autoplot(km.ttdischarge_trt)
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-11-6.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-13-6.png)<!-- -->
 
 ```r
 ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt
@@ -1435,7 +2105,7 @@ print(cz)
 plot(cz)
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-11-7.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-13-7.png)<!-- -->
 
 ```r
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
@@ -1450,7 +2120,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-11-8.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-13-8.png)<!-- -->
 
 ```r
 # testing: cox ph
