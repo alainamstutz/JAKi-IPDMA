@@ -633,84 +633,108 @@ summary(mod_mort28_resp)
 
 library(mice)
 md.pattern(df_imp[,c("mort_28", "trt", "age", "clinstatus_baseline")], rotate.names = T)
-table(df_imp$trt, df_imp$resp)
 
+## auxiliary variables
+# First, let's see if the main variables are correlated with mort_28
+aux.mod.mort28 <- glm(mort_28 ~ trt
+            + age 
+            + clinstatus_baseline
+            + sex
+            + ethn
+            + region
+            + sympdur
+            + comorb_cat
+            ,family="binomial"
+            ,data=df_imp)
+summary(aux.mod.mort28)
+# table(df_imp_int$mort_28, df_imp_int$clinstatus_baseline, useNA = "always")
+# Second, let's check if they are associated with missingness of mort_28:
+aux.mod.mort28.resp <- glm(resp ~ trt
+            + age 
+            + clinstatus_baseline
+            + sex
+            + ethn
+            + region
+            + sympdur
+            + comorb_cat
+            ,family="binomial"
+            ,data=df_imp)
+summary(aux.mod.mort28.resp)
+md.pattern(df_imp[,c("mort_28", "trt", "age", "clinstatus_baseline", "sex", "ethn", "region", "sympdur", "comorb_cat")], rotate.names = T)
+
+# check age
+summary(df_imp$age)
+hist(df_imp$age, breaks=50)
+# check sympdur
+summary(df_imp$sympdur)
+hist(df_imp$sympdur, breaks=50)
+df_imp$sqsympdur=sqrt(df_imp$sympdur)
+summary(df_imp$sqsympdur)
+hist(df_imp$sqsympdur)
+
+
+# outcome as factor
 df_imp$mort_28 <- as.factor(df_imp$mort_28)
-table(df_imp$trt, df_imp$mort_28)
-class(df_imp$mort_28)
 
-# don't forget to add nelsonaalen if TTE outcomes!
-# always work with dataframe when working with MICE !
-
-# and impute by treatment arm, still we expect interaction between outcome x trt over time
+# impute separately by treatment arm, we expect interaction between outcome x trt over time
 df_imp_int <- df_imp %>% 
   filter(trt == 1)
 df_imp_cont <- df_imp %>% 
   filter(trt == 0)
 
-## intervention group 
-# First, let's see if the main variables are correlated with mort_28
-mod_mort28 <- glm(mort_28 ~ 
-            + age 
-            + clinstatus_baseline
-            ,family="binomial"
-            ,data=df_imp_int)
-summary(mod_mort28)
-# Second, let's check if they are associated with missingness of mort_28:
-df_imp_int$resp<-ifelse(is.na(df_imp_int$mort_28), 0, 1)
-table(df_imp_int$resp, exclude=NULL)
-
-mod_mort28_resp <- glm(resp ~ 
-            + age 
-            + clinstatus_baseline
-            ,family="binomial"
-            ,data=df_imp_int)
-summary(mod_mort28_resp)
-
-library(mice)
-md.pattern(df_imp_int[,c("mort_28", "age", "clinstatus_baseline")], rotate.names = T)
-# check age
-summary(df_imp_int$age)
-hist(df_imp_int$age, breaks=50)
-
-## Add auxiliary variables
-# check the formats
-str(df_imp_int)
-summary(df_imp_int)
-# First, let's see if the main variables are correlated with mort_28
-aux.mod.mort28.int <- glm(mort_28 ~ 
-            + age 
-            + clinstatus_baseline
-            + sex
-            + ethn
-            + region
-            + sympdur
-            + comorb_cat
-            ,family="binomial"
-            ,data=df_imp_int)
-summary(aux.mod.mort28.int)
-
-# table(df_imp_int$mort_28, df_imp_int$clinstatus_baseline, useNA = "always")
-
-# Second, let's check if they are associated with missingness of mort_28:
-aux.mod.mort28.int.resp <- glm(resp ~ 
-            + age 
-            + clinstatus_baseline
-            + sex
-            + ethn
-            + region
-            + sympdur
-            + comorb_cat
-            ,family="binomial"
-            ,data=df_imp_int)
-summary(aux.mod.mort28.int.resp)
-
-
-
-# Jomo
-library(jomo)
-library(mitools) 
-
+# don't forget to add nelsonaalen if TTE outcomes!
+# always work with dataframe when working with MICE !
+# 
+# 
+# 
+# 
+# ## intervention group 
+# # First, let's see if the main variables are correlated with mort_28
+# mod_mort28_int <- glm(mort_28 ~ 
+#             + age 
+#             + clinstatus_baseline
+#             ,family="binomial"
+#             ,data=df_imp_int)
+# summary(mod_mort28_int)
+# # Second, let's check if they are associated with missingness of mort_28:
+# df_imp_int$resp<-ifelse(is.na(df_imp_int$mort_28), 0, 1)
+# mod_mort28_resp <- glm(resp ~ 
+#             + age 
+#             + clinstatus_baseline
+#             ,family="binomial"
+#             ,data=df_imp_int)
+# summary(mod_mort28_resp)
+# md.pattern(df_imp_int[,c("mort_28", "age", "clinstatus_baseline")], rotate.names = T)
+# 
+# ## Add auxiliary variables
+# # check the formats
+# str(df_imp_int)
+# summary(df_imp_int)
+# # First, let's see if the main variables are correlated with mort_28
+# aux.mod.mort28.int <- glm(mort_28 ~ 
+#             + age 
+#             + clinstatus_baseline
+#             + sex
+#             + ethn
+#             + region
+#             + sympdur
+#             + comorb_cat
+#             ,family="binomial"
+#             ,data=df_imp_int)
+# summary(aux.mod.mort28.int)
+# # table(df_imp_int$mort_28, df_imp_int$clinstatus_baseline, useNA = "always")
+# # Second, let's check if they are associated with missingness of mort_28:
+# aux.mod.mort28.int.resp <- glm(resp ~ 
+#             + age 
+#             + clinstatus_baseline
+#             + sex
+#             + ethn
+#             + region
+#             + sympdur
+#             + comorb_cat
+#             ,family="binomial"
+#             ,data=df_imp_int)
+# summary(aux.mod.mort28.int.resp)
 
 
 # check sympdur
@@ -720,7 +744,6 @@ df_imp_int$sqsympdur=sqrt(df_imp_int$sympdur)
 summary(df_imp_int$sqsympdur)
 hist(df_imp_int$sqsympdur)
 #reorder
-names(df_imp_int)
 df_imp_int <- df_imp_int %>% 
   rename(clinicalstatus_baseline = clinstatus_baseline)
 df_imp_int <- df_imp_int %>% 
@@ -731,7 +754,6 @@ df_imp_int_long <- df_imp_int %>%
 # Convert time to numeric
 df_imp_int_long$time <- as.numeric(gsub("clinstatus_", "", df_imp_int_long$time))
 
-
 ## control group
 # check sympdur
 summary(df_imp_cont$sympdur)
@@ -740,7 +762,6 @@ df_imp_cont$sqsympdur=sqrt(df_imp_cont$sympdur)
 summary(df_imp_cont$sqsympdur)
 hist(df_imp_cont$sqsympdur)
 #reorder
-names(df_imp_cont)
 df_imp_cont <- df_imp_cont %>% 
   rename(clinicalstatus_baseline = clinstatus_baseline)
 df_imp_cont <- df_imp_cont %>% 
@@ -750,6 +771,7 @@ df_imp_cont_long <- df_imp_cont %>%
   pivot_longer(cols = starts_with("clinstatus"), names_to = "time", values_to = "clinstatus")
 # Convert time to numeric
 df_imp_cont_long$time <- as.numeric(gsub("clinstatus_", "", df_imp_cont_long$time))
+
 
 
 # Create a spaghetti plot using ggplot2 // intervention
@@ -775,11 +797,11 @@ plot_clinstat_cont <- ggplot(df_imp_cont_long, aes(x = time, y = clinstatus)) +
 print(plot_clinstat_cont)
 
 
+# Jomo
+library(jomo)
+library(mitools) 
 
 
-# 
-# 
-# 
 # attach(df_imp_int_long)
 # # Y <- df_imp_int_long %>%
 # #   select(mort_28)
