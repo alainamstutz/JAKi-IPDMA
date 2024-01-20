@@ -560,6 +560,7 @@ print(missing_plot)
 df_core_int <- df_core %>% 
   filter(trt == 1)
 original_order <- colnames(df_core_int)
+
 missing_plot <- df_core_int %>%
   summarise_all(~ mean(is.na(.))) %>%
   gather() %>%
@@ -625,8 +626,8 @@ Discussion points
 
 ```r
 df_imp <- df_core %>% 
-  select(# "id_pat"
-          "trt", "sex", "age", "ethn", "region", "sympdur"
+  select("id_pat"
+         , "trt", "sex", "age", "ethn", "region", "sympdur"
          # ,"vacc" , "trial", "JAKi",  # only 0
          ,"clinstatus_baseline"
          # , "vbaseline" # derived
@@ -644,7 +645,8 @@ df_imp <- df_core %>%
          )
 
 df_imp <- df_imp %>% 
-  select("trt" # arm
+  select("id_pat"
+         ,"trt" # arm
          ,"age" # in the substantive model (adjustment variable), no missing
          ,"clinstatus_baseline" # in the substantive model (adjustment variable), no missing
          , "mort_28" # primary outcome
@@ -658,9 +660,172 @@ df_imp <- df_imp %>%
          , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney" 
          , "any_comorb", "comorb_cat", "comorb_count" # derived from above
          
-         ,"clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27"
+         ,"clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28"
          )
 
+# First, let's see if the main variables are correlated with mort_28
+mod_mort28 <- glm(mort_28 ~ trt
+            + age 
+            + clinstatus_baseline
+            ,family="binomial"
+            ,data=df_imp)
+summary(mod_mort28)
+```
+
+```
+## 
+## Call:
+## glm(formula = mort_28 ~ trt + age + clinstatus_baseline, family = "binomial", 
+##     data = df_imp)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.3296  -0.3558  -0.2139  -0.1177   2.8297  
+## 
+## Coefficients:
+##                       Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)          -22.63979  862.31663  -0.026    0.979    
+## trt                   -0.35087    0.28903  -1.214    0.225    
+## age                    0.05467    0.01068   5.120 3.05e-07 ***
+## clinstatus_baseline3  16.03047  862.31632   0.019    0.985    
+## clinstatus_baseline4  17.22120  862.31631   0.020    0.984    
+## clinstatus_baseline5  18.34404  862.31632   0.021    0.983    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 457.65  on 985  degrees of freedom
+## Residual deviance: 361.06  on 980  degrees of freedom
+##   (47 observations deleted due to missingness)
+## AIC: 373.06
+## 
+## Number of Fisher Scoring iterations: 18
+```
+
+```r
+# Second, let's check if they are associated with missingness of mort_28:
+df_imp$resp<-ifelse(is.na(df_imp$mort_28), 0, 1)
+table(df_imp$resp, exclude=NULL)
+```
+
+```
+## 
+##   0   1 
+##  47 986
+```
+
+```r
+mod_mort28_resp <- glm(resp ~ trt
+            + age 
+            + clinstatus_baseline
+            ,family="binomial"
+            ,data=df_imp)
+summary(mod_mort28_resp)
+```
+
+```
+## 
+## Call:
+## glm(formula = resp ~ trt + age + clinstatus_baseline, family = "binomial", 
+##     data = df_imp)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.7996   0.2487   0.2869   0.3335   0.4885  
+## 
+## Coefficients:
+##                       Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)           4.287866   0.776800   5.520 3.39e-08 ***
+## trt                   0.185200   0.301740   0.614    0.539    
+## age                  -0.015109   0.009798  -1.542    0.123    
+## clinstatus_baseline3 -0.317641   0.552569  -0.575    0.565    
+## clinstatus_baseline4 -0.735293   0.583658  -1.260    0.208    
+## clinstatus_baseline5 -0.937979   0.627298  -1.495    0.135    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 382.30  on 1032  degrees of freedom
+## Residual deviance: 375.21  on 1027  degrees of freedom
+## AIC: 387.21
+## 
+## Number of Fisher Scoring iterations: 6
+```
+
+```r
+library(mice)
+```
+
+```
+## 
+## Attaching package: 'mice'
+```
+
+```
+## The following object is masked from 'package:ordinal':
+## 
+##     convergence
+```
+
+```
+## The following object is masked from 'package:stats':
+## 
+##     filter
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     cbind, rbind
+```
+
+```r
+md.pattern(df_imp[,c("mort_28", "trt", "age", "clinstatus_baseline")], rotate.names = T)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+```
+##     trt age clinstatus_baseline mort_28   
+## 986   1   1                   1       1  0
+## 47    1   1                   1       0  1
+##       0   0                   0      47 47
+```
+
+```r
+table(df_imp$trt, df_imp$resp)
+```
+
+```
+##    
+##       0   1
+##   0  26 492
+##   1  21 494
+```
+
+```r
+df_imp$mort_28 <- as.factor(df_imp$mort_28)
+table(df_imp$trt, df_imp$mort_28)
+```
+
+```
+##    
+##       0   1
+##   0 455  37
+##   1 470  24
+```
+
+```r
+class(df_imp$mort_28)
+```
+
+```
+## [1] "factor"
+```
+
+```r
 # don't forget to add nelsonaalen if TTE outcomes!
 # always work with dataframe when working with MICE !
 
@@ -762,36 +927,10 @@ summary(mod_mort28_resp)
 
 ```r
 library(mice)
-```
-
-```
-## 
-## Attaching package: 'mice'
-```
-
-```
-## The following object is masked from 'package:ordinal':
-## 
-##     convergence
-```
-
-```
-## The following object is masked from 'package:stats':
-## 
-##     filter
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     cbind, rbind
-```
-
-```r
 md.pattern(df_imp_int[,c("mort_28", "age", "clinstatus_baseline")], rotate.names = T)
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
 
 ```
 ##     age clinstatus_baseline mort_28   
@@ -814,7 +953,7 @@ summary(df_imp_int$age)
 hist(df_imp_int$age, breaks=50)
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-7-3.png)<!-- -->
 
 ```r
 ## Add auxiliary variables
@@ -823,11 +962,14 @@ str(df_imp_int)
 ```
 
 ```
-## tibble [515 × 57] (S3: tbl_df/tbl/data.frame)
+## tibble [515 × 58] (S3: tbl_df/tbl/data.frame)
+##  $ id_pat             : chr [1:515] "COV.01813" "COV.01814" "COV.01815" "COV.01816" ...
+##   ..- attr(*, "label")= chr "Unique Subject Identifier"
+##   ..- attr(*, "format.sas")= chr "$"
 ##  $ trt                : num [1:515] 1 1 1 1 1 1 1 1 1 1 ...
 ##  $ age                : num [1:515] 67 55 51 55 65 68 42 76 70 27 ...
 ##  $ clinstatus_baseline: Factor w/ 6 levels "1","2","3","4",..: 4 5 3 3 4 3 3 3 3 3 ...
-##  $ mort_28            : num [1:515] 0 0 0 0 0 0 0 NA 0 0 ...
+##  $ mort_28            : Factor w/ 2 levels "0","1": 1 1 1 1 1 1 1 NA 1 1 ...
 ##  $ death_reached      : num [1:515] 0 0 0 0 0 0 0 0 0 0 ...
 ##  $ death_time         : num [1:515] 28 28 28 27 28 28 11 1 28 28 ...
 ##  $ discharge_reached  : num [1:515] 1 0 1 1 1 0 1 0 1 1 ...
@@ -893,14 +1035,14 @@ summary(df_imp_int)
 ```
 
 ```
-##       trt         age         clinstatus_baseline    mort_28       
-##  Min.   :1   Min.   : 18.00   1:  0               Min.   :0.00000  
-##  1st Qu.:1   1st Qu.: 43.00   2: 70               1st Qu.:0.00000  
-##  Median :1   Median : 55.00   3:288               Median :0.00000  
-##  Mean   :1   Mean   : 54.96   4:103               Mean   :0.04858  
-##  3rd Qu.:1   3rd Qu.: 66.00   5: 54               3rd Qu.:0.00000  
-##  Max.   :1   Max.   :101.00   6:  0               Max.   :1.00000  
-##                                                   NA's   :21       
+##     id_pat               trt         age         clinstatus_baseline mort_28   
+##  Length:515         Min.   :1   Min.   : 18.00   1:  0               0   :470  
+##  Class :character   1st Qu.:1   1st Qu.: 43.00   2: 70               1   : 24  
+##  Mode  :character   Median :1   Median : 55.00   3:288               NA's: 21  
+##                     Mean   :1   Mean   : 54.96   4:103                         
+##                     3rd Qu.:1   3rd Qu.: 66.00   5: 54                         
+##                     Max.   :1   Max.   :101.00   6:  0                         
+##                                                                                
 ##  death_reached      death_time    discharge_reached discharge_time 
 ##  Min.   :0.0000   Min.   : 0.00   Min.   :0.0000    Min.   : 0.00  
 ##  1st Qu.:0.0000   1st Qu.:27.00   1st Qu.:1.0000    1st Qu.: 4.00  
@@ -1160,6 +1302,12 @@ summary(aux.mod.mort28.int.resp)
 ```
 
 ```r
+# Jomo
+library(jomo)
+library(mitools) 
+
+
+
 # check sympdur
 summary(df_imp_int$sympdur)
 ```
@@ -1173,7 +1321,7 @@ summary(df_imp_int$sympdur)
 hist(df_imp_int$sympdur, breaks=50)
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-7-3.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-7-4.png)<!-- -->
 
 ```r
 df_imp_int$sqsympdur=sqrt(df_imp_int$sympdur)
@@ -1189,9 +1337,248 @@ summary(df_imp_int$sqsympdur)
 hist(df_imp_int$sqsympdur)
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-7-4.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-7-5.png)<!-- -->
 
 ```r
+#reorder
+names(df_imp_int)
+```
+
+```
+##  [1] "id_pat"              "trt"                 "age"                
+##  [4] "clinstatus_baseline" "mort_28"             "death_reached"      
+##  [7] "death_time"          "discharge_reached"   "discharge_time"     
+## [10] "clinstatus_28"       "new_mv_28"           "new_mvd_28"         
+## [13] "sex"                 "ethn"                "region"             
+## [16] "sympdur"             "comorb_lung"         "comorb_liver"       
+## [19] "comorb_cvd"          "comorb_aht"          "comorb_dm"          
+## [22] "comorb_obese"        "comorb_smoker"       "immunosupp"         
+## [25] "comorb_autoimm"      "comorb_cancer"       "comorb_kidney"      
+## [28] "any_comorb"          "comorb_cat"          "comorb_count"       
+## [31] "clinstatus_1"        "clinstatus_2"        "clinstatus_3"       
+## [34] "clinstatus_4"        "clinstatus_5"        "clinstatus_6"       
+## [37] "clinstatus_7"        "clinstatus_8"        "clinstatus_9"       
+## [40] "clinstatus_10"       "clinstatus_11"       "clinstatus_12"      
+## [43] "clinstatus_13"       "clinstatus_14"       "clinstatus_15"      
+## [46] "clinstatus_16"       "clinstatus_17"       "clinstatus_18"      
+## [49] "clinstatus_19"       "clinstatus_20"       "clinstatus_21"      
+## [52] "clinstatus_22"       "clinstatus_23"       "clinstatus_24"      
+## [55] "clinstatus_25"       "clinstatus_26"       "clinstatus_27"      
+## [58] "resp"                "sqsympdur"
+```
+
+```r
+df_imp_int <- df_imp_int %>% 
+  rename(clinicalstatus_baseline = clinstatus_baseline)
+df_imp_int <- df_imp_int %>% 
+    select("clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28", everything())
+#reshape
+df_imp_int_long <- df_imp_int %>% 
+  pivot_longer(cols = starts_with("clinstatus"), names_to = "time", values_to = "clinstatus")
+# Convert time to numeric
+df_imp_int_long$time <- as.numeric(gsub("clinstatus_", "", df_imp_int_long$time))
+
+
+## control group
+# check sympdur
+summary(df_imp_cont$sympdur)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##   1.000   5.000   8.000   8.612  11.000  32.000      10
+```
+
+```r
+hist(df_imp_cont$sympdur, breaks=50)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-6.png)<!-- -->
+
+```r
+df_imp_cont$sqsympdur=sqrt(df_imp_cont$sympdur)
+summary(df_imp_cont$sqsympdur)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##   1.000   2.236   2.828   2.836   3.317   5.657      10
+```
+
+```r
+hist(df_imp_cont$sqsympdur)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-7.png)<!-- -->
+
+```r
+#reorder
+names(df_imp_cont)
+```
+
+```
+##  [1] "id_pat"              "trt"                 "age"                
+##  [4] "clinstatus_baseline" "mort_28"             "death_reached"      
+##  [7] "death_time"          "discharge_reached"   "discharge_time"     
+## [10] "clinstatus_28"       "new_mv_28"           "new_mvd_28"         
+## [13] "sex"                 "ethn"                "region"             
+## [16] "sympdur"             "comorb_lung"         "comorb_liver"       
+## [19] "comorb_cvd"          "comorb_aht"          "comorb_dm"          
+## [22] "comorb_obese"        "comorb_smoker"       "immunosupp"         
+## [25] "comorb_autoimm"      "comorb_cancer"       "comorb_kidney"      
+## [28] "any_comorb"          "comorb_cat"          "comorb_count"       
+## [31] "clinstatus_1"        "clinstatus_2"        "clinstatus_3"       
+## [34] "clinstatus_4"        "clinstatus_5"        "clinstatus_6"       
+## [37] "clinstatus_7"        "clinstatus_8"        "clinstatus_9"       
+## [40] "clinstatus_10"       "clinstatus_11"       "clinstatus_12"      
+## [43] "clinstatus_13"       "clinstatus_14"       "clinstatus_15"      
+## [46] "clinstatus_16"       "clinstatus_17"       "clinstatus_18"      
+## [49] "clinstatus_19"       "clinstatus_20"       "clinstatus_21"      
+## [52] "clinstatus_22"       "clinstatus_23"       "clinstatus_24"      
+## [55] "clinstatus_25"       "clinstatus_26"       "clinstatus_27"      
+## [58] "resp"                "sqsympdur"
+```
+
+```r
+df_imp_cont <- df_imp_cont %>% 
+  rename(clinicalstatus_baseline = clinstatus_baseline)
+df_imp_cont <- df_imp_cont %>% 
+    select("clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28", everything())
+#reshape
+df_imp_cont_long <- df_imp_cont %>% 
+  pivot_longer(cols = starts_with("clinstatus"), names_to = "time", values_to = "clinstatus")
+# Convert time to numeric
+df_imp_cont_long$time <- as.numeric(gsub("clinstatus_", "", df_imp_cont_long$time))
+
+
+# Create a spaghetti plot using ggplot2 // intervention
+df_imp_int_long$clinstatus <- as.numeric(df_imp_int_long$clinstatus)
+
+plot_clinstat_int <- ggplot(df_imp_int_long, aes(x = time, y = clinstatus)) +
+  geom_smooth(se = FALSE, color = "blue") +
+  labs(title = "Distribution of Clinical Status Over Time / intervention",
+       x = "Time",
+       y = "Clinical Status") +
+  theme_minimal()
+print(plot_clinstat_int)
+```
+
+```
+## `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
+```
+
+```
+## Warning: Removed 7788 rows containing non-finite values (`stat_smooth()`).
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-8.png)<!-- -->
+
+```r
+# Create a spaghetti plot using ggplot2 // control
+df_imp_cont_long$clinstatus <- as.numeric(df_imp_cont_long$clinstatus)
+
+plot_clinstat_cont <- ggplot(df_imp_cont_long, aes(x = time, y = clinstatus)) +
+  geom_smooth(se = FALSE, color = "blue") +
+  labs(title = "Distribution of Clinical Status Over Time / control",
+       x = "Time",
+       y = "Clinical Status") +
+  theme_minimal()
+print(plot_clinstat_cont)
+```
+
+```
+## `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
+```
+
+```
+## Warning: Removed 7571 rows containing non-finite values (`stat_smooth()`).
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-9.png)<!-- -->
+
+```r
+# 
+# 
+# 
+# attach(df_imp_int_long)
+# # Y <- df_imp_int_long %>%
+# #   select(mort_28)
+# # X <- df_imp_int_long %>%
+# #   select(trt, age,clinicalstatus_baseline,sex, ethn, region
+# #          # , sqsympdur
+# #          # , comorb_cat
+# #          )
+# # clus <- df_imp_int_long %>%
+# #   select(clinstatus_group)
+# 
+# Y<-data.frame(mort_28)
+# X<-data.frame(age 
+#             , clinicalstatus_baseline
+#             , sex
+#             , ethn
+#             , region
+#             , trt
+#             # , sqsympdur
+#             # , comorb_cat
+#             )
+# clus<-data.frame(clinstatus_group)
+# 
+# # run jomo
+# set.seed(1569)
+# imputed_int<-jomo(Y=Y , X=X , clus=clus , nburn=1000 , nbetween=1000 , nimp=2)
+# head(imputed_int)
+# 
+# # use mitools package to fit data and apply Rubin's rules
+# imp.list_int <- imputationList(split(imputed_int, imputed_int$Imputation)[-1]) # split imputations, and exclude original data (imputation "0")
+# 
+# 
+# 
+# 
+# ## control group
+# attach(df_imp_cont_long)
+# Y<-data.frame(mort_28)
+# X<-data.frame(age 
+#             , clinicalstatus_baseline
+#             , sex
+#             , ethn
+#             , region
+#             , trt
+#             # , sqsympdur
+#             # , comorb_cat
+#             )
+# clus<-data.frame(clinstatus_group)
+# 
+# # run jomo
+# set.seed(1569)
+# imputed_cont<-jomo(Y=Y , X=X , clus=clus , nburn=1000 , nbetween=1000 , nimp=2)
+# head(imputed_cont)
+# 
+# # use mitools package to fit data and apply Rubin's rules
+# imp.list_cont <- imputationList(split(imputed_cont, imputed_cont$Imputation)[-1]) # split imputations, and exclude original data (imputation "0")
+# 
+# 
+# # Combine dataframes
+# imputed_combined <- rbind(imputed_cont, imputed_int)
+# 
+# # use mitools package to fit data and apply Rubin's rules and exclude original data (imputation "0")
+# imp.list <- imputationList(split(imputed_combined, imputed_combined$Imputation)[-1])
+# 
+# # run the model
+# class(imp.list$mort_28)
+# imp.list$mort_28 <- as.numeric(as.character(imp.list$mort_28))
+# table(imputed_cont$mort_28)
+# 
+# mi.mort28 <- imp.list %>%
+#   with(glm(mort_28 ~ trt
+#            + age
+#            + clinicalstatus_baseline
+#            , family = binomial)) %>%
+#         pool() %>%
+#         summary(conf.int = T, exponentiate = T)
+# mi.mort28
+# 
+# fit.imp.ml <- with(data = imp.list, glm(mort_28 ~ trt + age + clinicalstatus_baseline, family = binomial))
+
 # check the format
 # str(df_imp_int)
 # summary(df_imp_int)
