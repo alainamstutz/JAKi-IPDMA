@@ -33,6 +33,10 @@ library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
 library(logistf) # Firth regression in case of rare events
 
+library(mice) # multiple imputation
+library(jomo) # multiple imputation
+library(mitools) # multiple imputation
+
 ```
 
 # Load Data
@@ -412,27 +416,6 @@ Discussion points
 ```{r echo=TRUE}
 # the overall set
 df_all <- df
-# keep the core df
-df_core <- df_all %>% 
-  select(id_pat, trt, sex, age, trial, JAKi, region,
-         ethn,
-         sympdur, 
-         vacc, 
-         clinstatus_baseline, vbaseline,
-         comed_rdv, 
-         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
-         any_comorb, comorb_cat, comorb_count,
-         comorb_autoimm, comorb_cancer, comorb_kidney,
-         clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, clinstatus_15_imp, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28,
-         clinstatus_28_imp,
-         mort_28, mort_60, death_reached, death_time,
-         new_mv_28, new_mvd_28,
-         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
-         )
-# save
-saveRDS(df_core, file = "df_core_actt2.RData")
-write.csv(df_core, file = "df_core_actt2.csv")
-
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
   select(id_pat, trt, sex, age, trial, JAKi, 
@@ -480,14 +463,9 @@ df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
 # Save
 saveRDS(df_os, file = "df_os_actt2.RData")
-
-## set references, re-level
-# df <- df %>% 
-#   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
-
 ```
 
-# Explore missing data
+# Missing data plot: One-stage dataset
 ```{r echo=TRUE}
 # Bar plot, missing data, each data point, standardized one-stage dataset
 original_order <- colnames(df_os)
@@ -501,6 +479,41 @@ missing_plot <- df_os %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(0, 1)
 print(missing_plot)
+```
+Discussion points
+1. Completely missing variables:
+* Baseline:
+  - ICU at enrolment, Country, Variant, Serology
+* Outcomes:
+  - qol_28
+2. Partially missing data:
+- sympdur & comorbities
+- mort_28 / mort_60 / clinstatus_28 / new_mv_28 / new_mvd_28
+
+# Missing data: Explore for MI
+```{r}
+# keep the core df
+df_core <- df_all %>% 
+  select(id_pat, trt, sex, age, trial, JAKi, region,
+         ethn,
+         sympdur, 
+         vacc, 
+         clinstatus_baseline, vbaseline,
+         comed_rdv, 
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         any_comorb, comorb_cat, comorb_count,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
+         clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_14, clinstatus_15, clinstatus_15_imp, clinstatus_16, clinstatus_17, clinstatus_18, clinstatus_19, clinstatus_20, clinstatus_21, clinstatus_22, clinstatus_23, clinstatus_24, clinstatus_25, clinstatus_26, clinstatus_27, clinstatus_28,
+         clinstatus_28_imp,
+         mort_28, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         )
+# str(df_core)
+# Convert character variables to factors
+char_vars <- c("id_pat", "sex", "trial", "JAKi", "region", "ethn", "vacc", "clinstatus_baseline", "vbaseline", "comed_rdv", "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_autoimm","comorb_cancer", "comorb_kidney", "clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_15_imp", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28", "clinstatus_28_imp", "mort_28", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus")
+df_core <- df_core %>%
+  mutate(across(all_of(char_vars), factor))
 
 # Bar plot, missing data, each data point, core dataset
 original_order <- colnames(df_core)
@@ -514,129 +527,92 @@ missing_plot <- df_core %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(0, 1)
 print(missing_plot)
-
 # Bar plot, missing data, each data point, core dataset, by arm
 df_core_int <- df_core %>% 
   filter(trt == 1)
 original_order <- colnames(df_core_int)
-
-missing_plot <- df_core_int %>%
+missing_plot <- df_core_int %>% # Intervention arm
   summarise_all(~ mean(is.na(.))) %>%
   gather() %>%
   mutate(key = factor(key, levels = original_order)) %>%
   ggplot(aes(x = key, y = value)) +
   geom_bar(stat = "identity") +
-  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, int only") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, intervention") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(0, 1)
 print(missing_plot)
-
 df_core_cont <- df_core %>% 
   filter(trt == 0)
 original_order <- colnames(df_core_cont)
-missing_plot <- df_core_cont %>%
+missing_plot <- df_core_cont %>% # Control arm
   summarise_all(~ mean(is.na(.))) %>%
   gather() %>%
   mutate(key = factor(key, levels = original_order)) %>%
   ggplot(aes(x = key, y = value)) +
   geom_bar(stat = "identity") +
-  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, cont only") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, control") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(0, 1)
 print(missing_plot)
 
-# # create baseline table, by individuals with no missing data vs any missing data
-# df_core <- df_core %>% 
-#   mutate(missing = ifelse(rowSums(is.na(.)) > 0, 1, 0))
-# 
-# table(df_core$missing, useNA = "always")
-# 
-# # Convert character variables to factors
-# char_vars <- c("trt", "missing", "sex", "ethn", "region", "vacc", "clinstatus_baseline", "vbaseline", "comed_rdv", "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_15_imp", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28", "clinstatus_28_imp", "mort_28", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus")
-# df_core <- df_core %>%
-#   mutate(across(all_of(char_vars), factor))
-# 
-# # by missing data indicator
-# table_missing <- CreateTableOne(data = df_core, vars = vars.list[!vars.list %in% c("missing")], strata = "missing", includeNA = T, test = F, addOverall = TRUE)
-# capture.output(table_missing <- print(table_missing, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = TRUE))
-# #print
-# kable(table_missing, format = "markdown", table.attr = 'class="table"', caption = "By missing data indicator") %>%
-#   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-```
-Discussion points
-1. Missing variables:
-* Baseline:
-  - ICU at enrolment, Country, Variant, Serology
-* Outcomes:
-  - qol_28
-2. Missing data:
-- sympdur & comorbities
-- mort_28 / mort_60 / clinstatus_28 / new_mv_28 / new_mvd_28
+### Baseline table, by individuals with no missing data vs any missing data (or only in mort_28)
+df_core <- df_core %>% mutate(complete = ifelse(rowSums(is.na(.)) > 0, 0, 1));table(df_core$complete) # ANY missing 
+df_core$resp<-ifelse(is.na(df_core$mort_28), 0, 1);table(df_core$resp) # only mort_28 missing 
 
-# Multiple imputation
-```{r}
+# Assign variable list
+vars.list <- c("complete", "resp", "age", "sympdur", "JAKi", "trial", "trt", "sex", "ethn", "region", "vacc", "clinstatus_baseline", "vbaseline", "comed_rdv", "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_15_imp", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28", "clinstatus_28_imp", "mort_28", "mort_60", "death_reached","death_time", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_time", "discharge_reached_sus", "discharge_time_sus")
+# By completeness (all variables)
+# table_complete <- CreateTableOne(data = df_core, vars = vars.list[!vars.list %in% c("complete")], strata = "complete", includeNA = T, test = T, addOverall = TRUE)
+# capture.output(table_complete <- print(table_complete, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = TRUE))
+# kable(table_complete, format = "markdown", table.attr = 'class="table"', caption = "By completeness (all variables)") %>%
+#   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# By completeness (only mort_28)
+table_resp <- CreateTableOne(data = df_core, vars = vars.list[!vars.list %in% c("resp")], strata = "resp", includeNA = T, test = T, addOverall = TRUE)
+# Print and display the table
+capture.output(
+  table_resp <- print(
+    table_resp, 
+    nonnormal = vars.list, 
+    catDigits = 1, 
+    SMD = TRUE, 
+    showAllLevels = TRUE, 
+    test = TRUE, 
+    printToggle = FALSE, 
+    missing = TRUE))
+kable(table_resp, format = "markdown", table.attr = 'class="table"', caption = "By completeness (only mort_28)") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+
+### Define variables to be included in imputation set
 df_imp <- df_core %>% 
   select("id_pat"
          , "trt", "sex", "age", "ethn", "region", "sympdur"
          # ,"vacc" , "trial", "JAKi",  # only 0
          ,"clinstatus_baseline"
          # , "vbaseline" # derived
-         , "comed_rdv" # but all 1 in int and 0 in cont
-         , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney" 
-         , "any_comorb", "comorb_cat", "comorb_count" # derived
-         ,"clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15"
-         # , "clinstatus_15_imp" # imputed via LOVCF
-         , "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28"
-         # , "clinstatus_28_imp" # imputed via LOVCF
+         # , "comed_rdv" # but all 1 in int and 0 in cont
+         # , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese",
+         # "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb",
+         # "comorb_count",  
+         ,"comorb_cat" # derived from above, contains most information, and needed as interaction term
+         ,"clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", 
+         "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", 
+         "clinstatus_15"
+         # , "clinstatus_15_imp" # imputed via LOVCF by trial team
+         , "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", 
+         "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28"
+         # , "clinstatus_28_imp" # imputed via LOVCF above
          , "mort_28"
-         # , "mort_60" # same as mort_28
+         # , "mort_60" # same as mort_28, does not contain any addition information
          , "death_reached", "death_time", "new_mv_28", "new_mvd_28", "discharge_reached", "discharge_time"
-         # , "discharge_reached_sus", "discharge_time_sus" # same as discharge
+         # , "discharge_reached_sus", "discharge_time_sus" # same as discharge, does not contain any addition information
          )
+str(df_imp)
 
-df_imp <- df_imp %>% 
-  select("id_pat"
-         ,"trt" # arm
-         ,"age" # in the substantive model (adjustment variable), no missing
-         ,"clinstatus_baseline" # in the substantive model (adjustment variable), no missing
-         , "mort_28" # primary outcome
-         , "death_reached", "death_time" # time-to-event secondary outcome
-         , "discharge_reached", "discharge_time" # time-to-event secondary outcome
-         , "clinstatus_28" # ordinal secondary outcome
-         , "new_mv_28" # binary secondary outcome
-         , "new_mvd_28" # binary secondary outcome
-      
-         , "sex", "ethn", "region", "sympdur"
-         , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney" 
-         , "any_comorb", "comorb_cat", "comorb_count" # derived from above
-         
-         ,"clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28"
-         )
-
-# First, let's see if the main variables are correlated with mort_28
-mod_mort28 <- glm(mort_28 ~ trt
-            + age 
-            + clinstatus_baseline
-            ,family="binomial"
-            ,data=df_imp)
-summary(mod_mort28)
-# Second, let's check if they are associated with missingness of mort_28:
-df_imp$resp<-ifelse(is.na(df_imp$mort_28), 0, 1)
-table(df_imp$resp, exclude=NULL)
-
-mod_mort28_resp <- glm(resp ~ trt
-            + age 
-            + clinstatus_baseline
-            ,family="binomial"
-            ,data=df_imp)
-summary(mod_mort28_resp)
-
-library(mice)
-md.pattern(df_imp[,c("mort_28", "trt", "age", "clinstatus_baseline")], rotate.names = T)
-
-## auxiliary variables
-# First, let's see if the main variables are correlated with mort_28
-aux.mod.mort28 <- glm(mort_28 ~ trt
+## Explore further
+# First, let's explore if the variables from my substantive model plus auxiliary variables are correlated with mort_28
+mort28.aux <- glm(mort_28 ~ trt
             + age 
             + clinstatus_baseline
             + sex
@@ -646,10 +622,10 @@ aux.mod.mort28 <- glm(mort_28 ~ trt
             + comorb_cat
             ,family="binomial"
             ,data=df_imp)
-summary(aux.mod.mort28)
-# table(df_imp_int$mort_28, df_imp_int$clinstatus_baseline, useNA = "always")
-# Second, let's check if they are associated with missingness of mort_28:
-aux.mod.mort28.resp <- glm(resp ~ trt
+summary(mort28.aux)
+# Second, let's explore if they are associated with missingness of mort_28:
+df_imp$resp<-ifelse(is.na(df_imp$mort_28), 0, 1);table(df_imp$resp) # only mort_28 missing 
+mort28.aux.resp <- glm(resp ~ trt
             + age 
             + clinstatus_baseline
             + sex
@@ -659,217 +635,194 @@ aux.mod.mort28.resp <- glm(resp ~ trt
             + comorb_cat
             ,family="binomial"
             ,data=df_imp)
-summary(aux.mod.mort28.resp)
+summary(mort28.aux.resp)
+# Third, let's explore the missingness patterns
 md.pattern(df_imp[,c("mort_28", "trt", "age", "clinstatus_baseline", "sex", "ethn", "region", "sympdur", "comorb_cat")], rotate.names = T)
-
-# check age
+# Fourth, check age
 summary(df_imp$age)
-hist(df_imp$age, breaks=50)
-# check sympdur
+hist(df_imp$age, breaks=50) # looks fine
+# Fifth, check sympdur
 summary(df_imp$sympdur)
-hist(df_imp$sympdur, breaks=50)
+hist(df_imp$sympdur, breaks=50) # skewed -> transform
 df_imp$sqsympdur=sqrt(df_imp$sympdur)
-summary(df_imp$sqsympdur)
-hist(df_imp$sqsympdur)
+hist(df_imp$sqsympdur) # looks fine
 
 
-# outcome as factor
-df_imp$mort_28 <- as.factor(df_imp$mort_28)
+### Reshape to long format
+# names(df_imp)
+# str(df_imp)
+df_imp <- df_imp %>% # rename to differentiate between baseline clinical status and follow-up clinical statuses
+  rename(clinicalstatus_baseline = clinstatus_baseline)
+# reshape
+df_imp_long <- df_imp %>% 
+  pivot_longer(cols = starts_with("clinstatus"), names_to = "time", values_to = "clinstatus")
+# names(df_imp_long)
+# Convert time to numeric
+df_imp_long$time <- as.numeric(gsub("clinstatus_", "", df_imp_long$time))
+# class(df_imp_long$time)
+# summary(df_imp_long$time)
+# have clinstatus as numeric
+df_imp_long$clinstatus_n <- as.numeric(df_imp_long$clinstatus)
 
-# impute separately by treatment arm, we expect interaction between outcome x trt over time
-df_imp_int <- df_imp %>% 
+
+### We will impute separately by treatment arm, since we have to expect an effect modification between outcome x trt over time
+df_imp_long_int <- df_imp_long %>% 
   filter(trt == 1)
-df_imp_cont <- df_imp %>% 
+df_imp_long_cont <- df_imp_long %>% 
   filter(trt == 0)
 
-# don't forget to add nelsonaalen if TTE outcomes!
-# always work with dataframe when working with MICE !
-# 
-# 
-# 
-# 
-# ## intervention group 
-# # First, let's see if the main variables are correlated with mort_28
-# mod_mort28_int <- glm(mort_28 ~ 
-#             + age 
-#             + clinstatus_baseline
-#             ,family="binomial"
-#             ,data=df_imp_int)
-# summary(mod_mort28_int)
-# # Second, let's check if they are associated with missingness of mort_28:
-# df_imp_int$resp<-ifelse(is.na(df_imp_int$mort_28), 0, 1)
-# mod_mort28_resp <- glm(resp ~ 
-#             + age 
-#             + clinstatus_baseline
-#             ,family="binomial"
-#             ,data=df_imp_int)
-# summary(mod_mort28_resp)
-# md.pattern(df_imp_int[,c("mort_28", "age", "clinstatus_baseline")], rotate.names = T)
-# 
-# ## Add auxiliary variables
-# # check the formats
-# str(df_imp_int)
-# summary(df_imp_int)
-# # First, let's see if the main variables are correlated with mort_28
-# aux.mod.mort28.int <- glm(mort_28 ~ 
-#             + age 
-#             + clinstatus_baseline
-#             + sex
-#             + ethn
-#             + region
-#             + sympdur
-#             + comorb_cat
-#             ,family="binomial"
-#             ,data=df_imp_int)
-# summary(aux.mod.mort28.int)
-# # table(df_imp_int$mort_28, df_imp_int$clinstatus_baseline, useNA = "always")
-# # Second, let's check if they are associated with missingness of mort_28:
-# aux.mod.mort28.int.resp <- glm(resp ~ 
-#             + age 
-#             + clinstatus_baseline
-#             + sex
-#             + ethn
-#             + region
-#             + sympdur
-#             + comorb_cat
-#             ,family="binomial"
-#             ,data=df_imp_int)
-# summary(aux.mod.mort28.int.resp)
-
-
-# check sympdur
-summary(df_imp_int$sympdur)
-hist(df_imp_int$sympdur, breaks=50)
-df_imp_int$sqsympdur=sqrt(df_imp_int$sympdur)
-summary(df_imp_int$sqsympdur)
-hist(df_imp_int$sqsympdur)
-#reorder
-df_imp_int <- df_imp_int %>% 
-  rename(clinicalstatus_baseline = clinstatus_baseline)
-df_imp_int <- df_imp_int %>% 
-    select("clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28", everything())
-#reshape
-df_imp_int_long <- df_imp_int %>% 
-  pivot_longer(cols = starts_with("clinstatus"), names_to = "time", values_to = "clinstatus")
-# Convert time to numeric
-df_imp_int_long$time <- as.numeric(gsub("clinstatus_", "", df_imp_int_long$time))
-
-## control group
-# check sympdur
-summary(df_imp_cont$sympdur)
-hist(df_imp_cont$sympdur, breaks=50)
-df_imp_cont$sqsympdur=sqrt(df_imp_cont$sympdur)
-summary(df_imp_cont$sqsympdur)
-hist(df_imp_cont$sqsympdur)
-#reorder
-df_imp_cont <- df_imp_cont %>% 
-  rename(clinicalstatus_baseline = clinstatus_baseline)
-df_imp_cont <- df_imp_cont %>% 
-    select("clinstatus_1", "clinstatus_2","clinstatus_3", "clinstatus_4", "clinstatus_5", "clinstatus_6", "clinstatus_7", "clinstatus_8", "clinstatus_9", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_14", "clinstatus_15", "clinstatus_16", "clinstatus_17", "clinstatus_18", "clinstatus_19", "clinstatus_20", "clinstatus_21", "clinstatus_22", "clinstatus_23", "clinstatus_24", "clinstatus_25", "clinstatus_26", "clinstatus_27", "clinstatus_28", everything())
-#reshape
-df_imp_cont_long <- df_imp_cont %>% 
-  pivot_longer(cols = starts_with("clinstatus"), names_to = "time", values_to = "clinstatus")
-# Convert time to numeric
-df_imp_cont_long$time <- as.numeric(gsub("clinstatus_", "", df_imp_cont_long$time))
-
-
-
-# Create a spaghetti plot using ggplot2 // intervention
-df_imp_int_long$clinstatus <- as.numeric(df_imp_int_long$clinstatus)
-
-plot_clinstat_int <- ggplot(df_imp_int_long, aes(x = time, y = clinstatus)) +
-  geom_smooth(se = FALSE, color = "blue") +
-  labs(title = "Distribution of Clinical Status Over Time / intervention",
+## Explore distribution of clinical status over time, by arm
+plot_clinstat_int <- ggplot(df_imp_long_int, aes(x = time, y = clinstatus_n)) +
+  stat_summary(fun = "mean", geom = "point", color = "blue", size = 3, na.rm = TRUE) +
+  geom_smooth(method = "loess", se = FALSE, color = "red", na.rm = TRUE) +
+  labs(title = "Distribution of Clinical Status Over Time / Intervention",
        x = "Time",
-       y = "Clinical Status") +
+       y = "Mean Clinical Status") +
   theme_minimal()
 print(plot_clinstat_int)
-
-# Create a spaghetti plot using ggplot2 // control
-df_imp_cont_long$clinstatus <- as.numeric(df_imp_cont_long$clinstatus)
-
-plot_clinstat_cont <- ggplot(df_imp_cont_long, aes(x = time, y = clinstatus)) +
-  geom_smooth(se = FALSE, color = "blue") +
-  labs(title = "Distribution of Clinical Status Over Time / control",
+plot_clinstat_cont <- ggplot(df_imp_long_cont, aes(x = time, y = clinstatus_n)) +
+  stat_summary(fun = "mean", geom = "point", color = "blue", size = 3, na.rm = TRUE) +
+  geom_smooth(method = "loess", se = FALSE, color = "red", na.rm = TRUE) +
+  labs(title = "Distribution of Clinical Status Over Time / Control",
        x = "Time",
-       y = "Clinical Status") +
+       y = "Mean Clinical Status") +
   theme_minimal()
 print(plot_clinstat_cont)
 
+```
 
-# Jomo
-library(jomo)
-library(mitools) 
+# Multiple imputation
+```{r eval = FALSE}
+#### INTERVENTION group
+## jomo only accepts numeric or factors, check and adapt
+# str(df_imp_long_int)
+df_imp_long_int$timesq <- sqrt(df_imp_long_int$time) # see X below
+attach(df_imp_long_int)
+Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
+                 , age
+                 , sex
+                 , ethn
+                 , region
+                 , sqsympdur
+                 , comorb_cat
+                 # , crp  # consider adding once crp data available
+                 )
+Y<-data.frame(clinstatus_n) # level 1 variable within clustering variable
+X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
+              , time
+              , timesq)
+clus<-data.frame(id_pat) # clustering variable (patient)
+Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
+colnames(Z)<-c("const", "time") 
+
+nimp<-50 # set number of iterations
+
+# run jomo
+set.seed(1569)
+imputed_int <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
+# nburn<-1000
+# imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=nburn)
+# plot(c(1:nburn),imputed_int_mcmc$collectbeta[1,1,1:nburn],type="l")
+# plot(c(1:nburn),imputed_int_mcmc$collectcovu[5,5,1:nburn],type="l")
+
+# convert to jomo object, split imputations, and exclude original data (imputation "0")
+imp.list_int <- imputationList(split(imputed_int, imputed_int$Imputation)[-1])
+
+# checks
+round(prop.table(table(imp.list_int[[1]]$`1`$mort_28, useNA = "always"))*100,1) # first imputed dataset
+round(prop.table(table(imp.list_int[[1]]$`2`$mort_28, useNA = "always"))*100,1) # second imputed dataset
+round(prop.table(table(df_imp_long_int$mort_28, useNA = "always"))*100,1) # original data
+summary(imp.list_int[[1]]$`1`$comorb_cat)
+summary(imp.list_int[[1]]$`2`$sqsympdur)
 
 
-# attach(df_imp_int_long)
-# # Y <- df_imp_int_long %>%
-# #   select(mort_28)
-# # X <- df_imp_int_long %>%
-# #   select(trt, age,clinicalstatus_baseline,sex, ethn, region
-# #          # , sqsympdur
-# #          # , comorb_cat
-# #          )
-# # clus <- df_imp_int_long %>%
-# #   select(clinstatus_group)
-# 
-# Y<-data.frame(mort_28)
-# X<-data.frame(age 
-#             , clinicalstatus_baseline
-#             , sex
-#             , ethn
-#             , region
-#             , trt
-#             # , sqsympdur
-#             # , comorb_cat
-#             )
-# clus<-data.frame(clinstatus_group)
-# 
-# # run jomo
-# set.seed(1569)
-# imputed_int<-jomo(Y=Y , X=X , clus=clus , nburn=1000 , nbetween=1000 , nimp=2)
-# head(imputed_int)
-# 
-# # use mitools package to fit data and apply Rubin's rules
-# imp.list_int <- imputationList(split(imputed_int, imputed_int$Imputation)[-1]) # split imputations, and exclude original data (imputation "0")
-# 
-# 
-# 
-# 
-# ## control group
-# attach(df_imp_cont_long)
-# Y<-data.frame(mort_28)
-# X<-data.frame(age 
-#             , clinicalstatus_baseline
-#             , sex
-#             , ethn
-#             , region
-#             , trt
-#             # , sqsympdur
-#             # , comorb_cat
-#             )
-# clus<-data.frame(clinstatus_group)
-# 
-# # run jomo
-# set.seed(1569)
-# imputed_cont<-jomo(Y=Y , X=X , clus=clus , nburn=1000 , nbetween=1000 , nimp=2)
-# head(imputed_cont)
-# 
-# # use mitools package to fit data and apply Rubin's rules
-# imp.list_cont <- imputationList(split(imputed_cont, imputed_cont$Imputation)[-1]) # split imputations, and exclude original data (imputation "0")
-# 
-# 
-# # Combine dataframes
-# imputed_combined <- rbind(imputed_cont, imputed_int)
-# 
-# # use mitools package to fit data and apply Rubin's rules and exclude original data (imputation "0")
-# imp.list <- imputationList(split(imputed_combined, imputed_combined$Imputation)[-1])
-# 
-# # run the model
-# class(imp.list$mort_28)
-# imp.list$mort_28 <- as.numeric(as.character(imp.list$mort_28))
-# table(imputed_cont$mort_28)
-# 
+#### CONTROL group
+## jomo only accepts numeric or factors, check and adapt
+# str(df_imp_long_cont)
+df_imp_long_cont$timesq <- sqrt(df_imp_long_cont$time) # see X below
+attach(df_imp_long_cont)
+Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
+                 , age
+                 , sex
+                 , ethn
+                 , region
+                 , sqsympdur
+                 , comorb_cat
+                 # , crp  # consider adding once crp data available
+                 )
+Y<-data.frame(clinstatus_n) # level 1 variable within clustering variable
+X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
+              , time
+              , timesq)
+clus<-data.frame(id_pat) # clustering variable (patient)
+Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
+colnames(Z)<-c("const", "time") 
+
+nimp<-50 # set number of iterations
+
+# run jomo
+set.seed(1569)
+imputed_cont <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
+# nburn<-1000
+# imputed_cont_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=nburn)
+# plot(c(1:nburn),imputed_cont_mcmc$collectbeta[1,1,1:nburn],type="l")
+# plot(c(1:nburn),imputed_cont_mcmc$collectcovu[5,5,1:nburn],type="l")
+
+# convert to jomo object, split imputations, and exclude original data (imputation "0")
+imp.list_cont <- imputationList(split(imputed_cont, imputed_cont$Imputation)[-1])
+
+# checks
+round(prop.table(table(imp.list_cont[[1]]$`1`$mort_28, useNA = "always"))*100,1) # first imputed dataset
+round(prop.table(table(imp.list_cont[[1]]$`2`$mort_28, useNA = "always"))*100,1) # second imputed dataset
+round(prop.table(table(df_imp_long_cont$mort_28, useNA = "always"))*100,1) # original data
+summary(imp.list_cont[[1]]$`1`$comorb_cat)
+summary(imp.list_cont[[1]]$`2`$sqsympdur)
+
+
+#### Add trt back, change from long to wide format, and finally combine the two data frames
+imputed_int$trt <- 1
+imputed_int_s <- imputed_int %>% # remove imputation variables, not needed anymore
+  select(trt, age, sqsympdur, mort_28, sex, ethn, region, comorb_cat, clinicalstatus_baseline, clus, Imputation)
+imputed_int_wide <- imputed_int_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
+  group_by(Imputation) %>%
+  distinct(clus, .keep_all = TRUE) # 515, correct
+
+imputed_cont$trt <- 0 # treatment variable
+imputed_cont_s <- imputed_cont %>% # remove imputation variables, not needed anymore
+  select(trt, age, sqsympdur, mort_28, sex, ethn, region, comorb_cat, clinicalstatus_baseline, clus, Imputation)
+imputed_cont_wide <- imputed_cont_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
+  group_by(Imputation) %>%
+  distinct(clus, .keep_all = TRUE) # 518, correct
+
+imputed_combined <- rbind(imputed_cont_wide, imputed_int_wide)
+
+
+#### Convert combined df to jomo object, split imputations, and exclude original data (imputation "0")
+imp.list <- imputationList(split(imputed_combined, imputed_combined$Imputation)[-1])
+
+
+### Checks
+round(prop.table(table(imp.list[[1]]$`1`$mort_28, imp.list[[1]]$`1`$trt, useNA = "always"),2)*100,1) # first imputed dataset
+round(prop.table(table(imp.list[[1]]$`2`$mort_28, imp.list[[1]]$`2`$trt, useNA = "always"),2)*100,1) # second imputed dataset
+round(prop.table(table(df_imp$mort_28, df_imp$trt, useNA = "always"),2)*100,1) # original data
+summary(imp.list[[1]]$`1`$comorb_cat)
+summary(imp.list[[1]]$`2`$sqsympdur)
+
+```
+
+# (i) Primary outcome: Mortality at day 28
+```{r}
+addmargins(table(df$mort_28, df$trt, useNA = "always"))
+df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
+
+# Complete records analysis, substantive model
+mort.28 <- df %>% 
+  glm(mort_28 ~ trt 
+      + age + clinstatus_baseline_n
+      , family = "binomial", data=.)
+summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
 # mi.mort28 <- imp.list %>%
 #   with(glm(mort_28 ~ trt
 #            + age
@@ -878,68 +831,6 @@ library(mitools)
 #         pool() %>%
 #         summary(conf.int = T, exponentiate = T)
 # mi.mort28
-# 
-# fit.imp.ml <- with(data = imp.list, glm(mort_28 ~ trt + age + clinicalstatus_baseline, family = binomial))
-
-# check the format
-# str(df_imp_int)
-# summary(df_imp_int)
-
-# define mice matrix and let mice inspect dataset
-# library(mice)
-# m0 <- mice(df_imp, maxit=0)
-# head(m0$loggedEvents, 11)
-# meth <- m0$method
-# pred <- m0$predictorMatrix
-# 
-# # exclude variables we don't want in the imputation model (but will still be imputed if any missings) -> set column and row to 0
-# # pred[, colnames(pred) %in% c("")] <- 0
-# # pred[7,]<-0
-# 
-# # define models of imputation for each variable to be imputed
-# m0$method
-# meth[c("mort_28")]="logreg" 
-# meth[c("clinstatus_28")]="polr"
-# meth[c("sympdur")]="pmm"
-# # meth[c("")]="" # skip variables from imputation (but include as predictor)
-# meth
-# 
-# df_imp_mort28<-mice(data=df_imp
-#                 ,m=5
-#                 ,method=meth
-#                 ,predictorMatrix=pred
-#                 ,seed=5278
-#                 ,maxit=1)
-# head(df_imp_mort28$loggedEvents, 100)
-# summary(complete(df_imp_mort28, 0)) # has missingness
-# summary(complete(df_imp_mort28, 1)) # no missingness
-# head(df_imp_mort28$imp$mort_28) 
-# head(df_imp_mort28$imp$sympdur) 
-# 
-# mi.mort28 <- df_imp_mort28 %>% 
-#   with(glm(mort_28 ~ trt 
-#            + age 
-#            + clinstatus_baseline
-#            , family = binomial)) %>% 
-#         pool() %>% 
-#         summary(conf.int = T, exponentiate = T)
-# 
-# table(df_imp$mort_28, df_imp$new_mv_28)
-
-```
-
-# (i) Primary outcome: Mortality at day 28
-```{r}
-# adjusted for baseline patient characteristics (age, respiratory support at baseline)
-addmargins(table(df$mort_28, df$trt, useNA = "always"))
-mort.28 <- df %>% 
-  glm(mort_28 ~ trt 
-      + age + clinstatus_baseline 
-      # + comed_dexa 
-      # + comed_rdv 
-      # + comed_toci
-      , family = "binomial", data=.)
-summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 # (ii) Mortality at day 60
