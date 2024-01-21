@@ -608,7 +608,7 @@ df_imp <- df_core %>%
          , "death_reached", "death_time", "new_mv_28", "new_mvd_28", "discharge_reached", "discharge_time"
          # , "discharge_reached_sus", "discharge_time_sus" # same as discharge, does not contain any addition information
          )
-str(df_imp)
+# str(df_imp)
 
 ## Explore further
 # First, let's explore if the variables from my substantive model plus auxiliary variables are correlated with mort_28
