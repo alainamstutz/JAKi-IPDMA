@@ -33,6 +33,7 @@ library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
 library(logistf) # Firth regression in case of rare events
 
+library(finalfit) # missing data exploration
 library(mice) # multiple imputation
 library(jomo) # multiple imputation
 library(mitools) # multiple imputation
@@ -491,7 +492,7 @@ Discussion points
 - mort_28 / mort_60 / clinstatus_28 / new_mv_28 / new_mvd_28
 
 # Missing data: Explore for MI
-```{r}
+```{r message=FALSE, warning=FALSE}
 # keep the core df
 df_core <- df_all %>% 
   select(id_pat, trt, sex, age, trial, JAKi, region,
@@ -610,8 +611,20 @@ df_imp <- df_core %>%
          )
 # str(df_imp)
 
-## Explore further
-# First, let's explore if the variables from my substantive model plus auxiliary variables are correlated with mort_28
+# First, table and visualize missing data in various ways
+# df_imp %>% 
+#   ff_glimpse() # from finalfit package
+df_imp %>%
+  missing_plot() # from finalfit package
+explanatory = c("trt", "age", 
+  "clinstatus_baseline", "sex",  
+  "ethn", "region", "sympdur", "comorb_cat")
+dependent = "mort_28"
+df_imp %>% # from finalfit package, missing plot
+  missing_pairs(dependent, explanatory, position = "fill", )
+# Second, let's explore the missingness patterns
+md.pattern(df_imp[,c("mort_28", "trt", "age", "clinstatus_baseline", "sex", "ethn", "region", "sympdur", "comorb_cat")], rotate.names = T)
+# Third, let's explore if the variables from my substantive model plus auxiliary variables are associated with mort_28
 mort28.aux <- glm(mort_28 ~ trt
             + age 
             + clinstatus_baseline
@@ -623,25 +636,26 @@ mort28.aux <- glm(mort_28 ~ trt
             ,family="binomial"
             ,data=df_imp)
 summary(mort28.aux)
-# Second, let's explore if they are associated with missingness of mort_28:
-df_imp$resp<-ifelse(is.na(df_imp$mort_28), 0, 1);table(df_imp$resp) # only mort_28 missing 
-mort28.aux.resp <- glm(resp ~ trt
-            + age 
-            + clinstatus_baseline
-            + sex
-            + ethn
-            + region
-            + sympdur
-            + comorb_cat
-            ,family="binomial"
-            ,data=df_imp)
-summary(mort28.aux.resp)
-# Third, let's explore the missingness patterns
-md.pattern(df_imp[,c("mort_28", "trt", "age", "clinstatus_baseline", "sex", "ethn", "region", "sympdur", "comorb_cat")], rotate.names = T)
-# Fourth, check age
+# Fourth, let's explore if they are associated with missingness of mort_28:
+# df_imp$resp<-ifelse(is.na(df_imp$mort_28), 0, 1);table(df_imp$resp) # only mort_28 missing 
+# mort28.aux.resp <- glm(resp ~ trt
+#             + age 
+#             + clinstatus_baseline
+#             + sex
+#             + ethn
+#             + region
+#             + sympdur
+#             + comorb_cat
+#             ,family="binomial"
+#             ,data=df_imp)
+# summary(mort28.aux.resp)
+df_imp %>% 
+  missing_compare(dependent, explanatory) %>%
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"))
+# Fifth, check age
 summary(df_imp$age)
 hist(df_imp$age, breaks=50) # looks fine
-# Fifth, check sympdur
+# Sixth, check sympdur
 summary(df_imp$sympdur)
 hist(df_imp$sympdur, breaks=50) # skewed -> transform
 df_imp$sqsympdur=sqrt(df_imp$sympdur)
@@ -717,7 +731,11 @@ colnames(Z)<-c("const", "time")
 
 nimp<-50 # set number of iterations
 
-# run jomo
+## run jomo
+# dry run
+imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=2)
+# plot(c(1:2),imputed_int_mcmc$collectbeta[1,1,1:2],type="l")
+# plot(c(1:2),imputed_int_mcmc$collectcovu[5,5,1:2],type="l")
 set.seed(1569)
 imputed_int <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
 # nburn<-1000
@@ -822,7 +840,7 @@ mort.28 <- df %>%
       , family = "binomial", data=.)
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
-# Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
+# # Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
 # mi.mort28 <- imp.list %>%
 #   with(glm(mort_28 ~ trt
 #            + age
@@ -831,6 +849,30 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 #         pool() %>%
 #         summary(conf.int = T, exponentiate = T)
 # mi.mort28
+
+# ## Passed to or_plot (see finalfit package above)
+# explanatory = c("trt", "age", 
+#   "clinicalstatus_baseline")
+# dependent = "mort_28"
+# imp.list %>% 
+#     or_plot(dependent, explanatory, glmfit = mi.mort28, table_text_size=4)
+# df_imp %>% 
+#     or_plot(dependent, explanatory, glmfit = mi.mort28, table_text_size=4)
+# # Summarise and put in table
+# fit_imputed = mi.mort28 %>%                                  
+#     fit2df(estimate_name = "OR (multiple imputation)", exp = TRUE)
+# # Use finalfit merge methods to create and compare results between complete case and multiple imputation
+# df %>% 
+#   summary_factorlist(dependent, explanatory, fit_id = TRUE)
+# df %>% 
+#   glmmulti(dependent, explanatory) %>% 
+#   fit2df(estimate_suffix = "OR (complete case)") -> fit_cc
+# summary1 %>% 
+#   ff_merge(fit_cc) %>% 
+#   ff_merge(fit_imputed) %>% 
+#   select(-fit_id, -index) %>% 
+#     knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r","r", "r", "r"))
+
 ```
 
 # (ii) Mortality at day 60

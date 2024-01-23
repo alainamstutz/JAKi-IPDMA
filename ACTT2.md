@@ -34,6 +34,7 @@ library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
 library(logistf) # Firth regression in case of rare events
 
+library(finalfit) # missing data exploration
 library(mice) # multiple imputation
 library(jomo) # multiple imputation
 library(mitools) # multiple imputation
@@ -659,12 +660,6 @@ kable(table_resp, format = "markdown", table.attr = 'class="table"', caption = "
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 
-```
-## Warning in kable_styling(., bootstrap_options = "striped", full_width = FALSE):
-## Please specify format in kable. kableExtra can customize either HTML or LaTeX
-## outputs. See https://haozhu233.github.io/kableExtra/ for details.
-```
-
 
 
 Table: By completeness (only mort_28)
@@ -994,8 +989,46 @@ df_imp <- df_core %>%
          )
 # str(df_imp)
 
-## Explore further
-# First, let's explore if the variables from my substantive model plus auxiliary variables are correlated with mort_28
+# First, table and visualize missing data in various ways
+# df_imp %>% 
+#   ff_glimpse() # from finalfit package
+df_imp %>%
+  missing_plot() # from finalfit package
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-4.png)<!-- -->
+
+```r
+explanatory = c("trt", "age", 
+  "clinstatus_baseline", "sex",  
+  "ethn", "region", "sympdur", "comorb_cat")
+dependent = "mort_28"
+df_imp %>% # from finalfit package, missing plot
+  missing_pairs(dependent, explanatory, position = "fill", )
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-5.png)<!-- -->
+
+```r
+# Second, let's explore the missingness patterns
+md.pattern(df_imp[,c("mort_28", "trt", "age", "clinstatus_baseline", "sex", "ethn", "region", "sympdur", "comorb_cat")], rotate.names = T)
+```
+
+![](ACTT2_files/figure-html/unnamed-chunk-7-6.png)<!-- -->
+
+```
+##     trt age clinstatus_baseline sex ethn region sympdur comorb_cat mort_28   
+## 978   1   1                   1   1    1      1       1          1       1  0
+## 32    1   1                   1   1    1      1       1          1       0  1
+## 7     1   1                   1   1    1      1       1          0       1  1
+## 1     1   1                   1   1    1      1       0          1       1  1
+## 4     1   1                   1   1    1      1       0          1       0  2
+## 11    1   1                   1   1    1      1       0          0       0  3
+##       0   0                   0   0    0      0      16         18      47 81
+```
+
+```r
+# Third, let's explore if the variables from my substantive model plus auxiliary variables are associated with mort_28
 mort28.aux <- glm(mort_28 ~ trt
             + age 
             + clinstatus_baseline
@@ -1006,13 +1039,6 @@ mort28.aux <- glm(mort_28 ~ trt
             + comorb_cat
             ,family="binomial"
             ,data=df_imp)
-```
-
-```
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-```
-
-```r
 summary(mort28.aux)
 ```
 
@@ -1082,120 +1108,208 @@ summary(mort28.aux)
 ```
 
 ```r
-# Second, let's explore if they are associated with missingness of mort_28:
-df_imp$resp<-ifelse(is.na(df_imp$mort_28), 0, 1);table(df_imp$resp) # only mort_28 missing 
+# Fourth, let's explore if they are associated with missingness of mort_28:
+# df_imp$resp<-ifelse(is.na(df_imp$mort_28), 0, 1);table(df_imp$resp) # only mort_28 missing 
+# mort28.aux.resp <- glm(resp ~ trt
+#             + age 
+#             + clinstatus_baseline
+#             + sex
+#             + ethn
+#             + region
+#             + sympdur
+#             + comorb_cat
+#             ,family="binomial"
+#             ,data=df_imp)
+# summary(mort28.aux.resp)
+df_imp %>% 
+  missing_compare(dependent, explanatory) %>%
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"))
 ```
 
-```
-## 
-##   0   1 
-##  47 986
-```
+<table>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Missing data analysis: mort_28 </th>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Not missing </th>
+   <th style="text-align:right;"> Missing </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> trt </td>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:right;"> 492 (95.0) </td>
+   <td style="text-align:right;"> 26 (5.0) </td>
+   <td style="text-align:right;"> 0.564 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:right;"> 494 (95.9) </td>
+   <td style="text-align:right;"> 21 (4.1) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> age </td>
+   <td style="text-align:left;"> Mean (SD) </td>
+   <td style="text-align:right;"> 55.2 (15.6) </td>
+   <td style="text-align:right;"> 59.2 (16.3) </td>
+   <td style="text-align:right;"> 0.087 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> clinstatus_baseline </td>
+   <td style="text-align:left;"> 2 </td>
+   <td style="text-align:right;"> 138 (97.2) </td>
+   <td style="text-align:right;"> 4 (2.8) </td>
+   <td style="text-align:right;"> 0.221 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 3 </td>
+   <td style="text-align:right;"> 542 (96.1) </td>
+   <td style="text-align:right;"> 22 (3.9) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 4 </td>
+   <td style="text-align:right;"> 203 (94.0) </td>
+   <td style="text-align:right;"> 13 (6.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 5 </td>
+   <td style="text-align:right;"> 103 (92.8) </td>
+   <td style="text-align:right;"> 8 (7.2) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sex </td>
+   <td style="text-align:left;"> F </td>
+   <td style="text-align:right;"> 363 (95.3) </td>
+   <td style="text-align:right;"> 18 (4.7) </td>
+   <td style="text-align:right;"> 0.959 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> M </td>
+   <td style="text-align:right;"> 623 (95.6) </td>
+   <td style="text-align:right;"> 29 (4.4) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> ethn </td>
+   <td style="text-align:left;"> AMERICAN INDIAN OR ALASKA NATIVE </td>
+   <td style="text-align:right;"> 10 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;"> 0.792 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> ASIAN </td>
+   <td style="text-align:right;"> 98 (97.0) </td>
+   <td style="text-align:right;"> 3 (3.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> BLACK OR AFRICAN AMERICAN </td>
+   <td style="text-align:right;"> 151 (96.8) </td>
+   <td style="text-align:right;"> 5 (3.2) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> HISPANIC OR LATINO </td>
+   <td style="text-align:right;"> 234 (95.1) </td>
+   <td style="text-align:right;"> 12 (4.9) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER </td>
+   <td style="text-align:right;"> 11 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> UNKNOWN </td>
+   <td style="text-align:right;"> 12 (92.3) </td>
+   <td style="text-align:right;"> 1 (7.7) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> WHITE </td>
+   <td style="text-align:right;"> 470 (94.8) </td>
+   <td style="text-align:right;"> 26 (5.2) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> region </td>
+   <td style="text-align:left;"> Asia </td>
+   <td style="text-align:right;"> 66 (98.5) </td>
+   <td style="text-align:right;"> 1 (1.5) </td>
+   <td style="text-align:right;"> 0.328 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> Europe </td>
+   <td style="text-align:right;"> 13 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> North America </td>
+   <td style="text-align:right;"> 907 (95.2) </td>
+   <td style="text-align:right;"> 46 (4.8) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Duration of Symptoms (days) </td>
+   <td style="text-align:left;"> Mean (SD) </td>
+   <td style="text-align:right;"> 8.5 (4.5) </td>
+   <td style="text-align:right;"> 8.3 (4.7) </td>
+   <td style="text-align:right;"> 0.821 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> comorb_cat </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:right;"> 146 (96.7) </td>
+   <td style="text-align:right;"> 5 (3.3) </td>
+   <td style="text-align:right;"> 0.826 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 2 </td>
+   <td style="text-align:right;"> 280 (97.2) </td>
+   <td style="text-align:right;"> 8 (2.8) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 3 </td>
+   <td style="text-align:right;"> 524 (96.0) </td>
+   <td style="text-align:right;"> 22 (4.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 4 </td>
+   <td style="text-align:right;"> 29 (96.7) </td>
+   <td style="text-align:right;"> 1 (3.3) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+</tbody>
+</table>
 
 ```r
-mort28.aux.resp <- glm(resp ~ trt
-            + age 
-            + clinstatus_baseline
-            + sex
-            + ethn
-            + region
-            + sympdur
-            + comorb_cat
-            ,family="binomial"
-            ,data=df_imp)
-```
-
-```
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-```
-
-```r
-summary(mort28.aux.resp)
-```
-
-```
-## 
-## Call:
-## glm(formula = resp ~ trt + age + clinstatus_baseline + sex + 
-##     ethn + region + sympdur + comorb_cat, family = "binomial", 
-##     data = df_imp)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -3.1459   0.1681   0.2289   0.2899   0.5227  
-## 
-## Coefficients:
-##                                                 Estimate Std. Error z value
-## (Intercept)                                     21.02749 1952.58078   0.011
-## trt                                              0.15406    0.36576   0.421
-## age                                             -0.01580    0.01250  -1.265
-## clinstatus_baseline3                            -0.59062    0.77264  -0.764
-## clinstatus_baseline4                            -1.29033    0.79403  -1.625
-## clinstatus_baseline5                            -0.80657    0.89482  -0.901
-## sexM                                            -0.11965    0.38833  -0.308
-## ethnASIAN                                      -15.52006 1952.58026  -0.008
-## ethnBLACK OR AFRICAN AMERICAN                  -13.87372 1952.58025  -0.007
-## ethnHISPANIC OR LATINO                         -14.56640 1952.58016  -0.007
-## ethnNATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER    0.35072 2746.15411   0.000
-## ethnUNKNOWN                                    -15.93128 1952.58040  -0.008
-## ethnWHITE                                      -15.07523 1952.58013  -0.008
-## regionEurope                                    13.98079 1740.98218   0.008
-## regionNorth America                             -1.34434    1.27569  -1.054
-## sympdur                                          0.01954    0.04204   0.465
-## comorb_cat2                                      0.17461    0.63745   0.274
-## comorb_cat3                                     -0.01515    0.58825  -0.026
-## comorb_cat4                                     -0.11747    1.16877  -0.101
-##                                               Pr(>|z|)
-## (Intercept)                                      0.991
-## trt                                              0.674
-## age                                              0.206
-## clinstatus_baseline3                             0.445
-## clinstatus_baseline4                             0.104
-## clinstatus_baseline5                             0.367
-## sexM                                             0.758
-## ethnASIAN                                        0.994
-## ethnBLACK OR AFRICAN AMERICAN                    0.994
-## ethnHISPANIC OR LATINO                           0.994
-## ethnNATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER    1.000
-## ethnUNKNOWN                                      0.993
-## ethnWHITE                                        0.994
-## regionEurope                                     0.994
-## regionNorth America                              0.292
-## sympdur                                          0.642
-## comorb_cat2                                      0.784
-## comorb_cat3                                      0.979
-## comorb_cat4                                      0.920
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 283.90  on 1009  degrees of freedom
-## Residual deviance: 268.54  on  991  degrees of freedom
-##   (23 observations deleted due to missingness)
-## AIC: 306.54
-## 
-## Number of Fisher Scoring iterations: 17
-```
-
-```r
-# Third, let's explore the missingness patterns
-md.pattern(df_imp[,c("mort_28", "trt", "age", "clinstatus_baseline", "sex", "ethn", "region", "sympdur", "comorb_cat")], rotate.names = T)
-```
-
-![](ACTT2_files/figure-html/unnamed-chunk-7-4.png)<!-- -->
-
-```
-##     trt age clinstatus_baseline sex ethn region sympdur comorb_cat mort_28   
-## 978   1   1                   1   1    1      1       1          1       1  0
-## 32    1   1                   1   1    1      1       1          1       0  1
-## 7     1   1                   1   1    1      1       1          0       1  1
-## 1     1   1                   1   1    1      1       0          1       1  1
-## 4     1   1                   1   1    1      1       0          1       0  2
-## 11    1   1                   1   1    1      1       0          0       0  3
-##       0   0                   0   0    0      0      16         18      47 81
-```
-
-```r
-# Fourth, check age
+# Fifth, check age
 summary(df_imp$age)
 ```
 
@@ -1208,10 +1322,10 @@ summary(df_imp$age)
 hist(df_imp$age, breaks=50) # looks fine
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-7-5.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-7-7.png)<!-- -->
 
 ```r
-# Fifth, check sympdur
+# Sixth, check sympdur
 summary(df_imp$sympdur)
 ```
 
@@ -1224,14 +1338,14 @@ summary(df_imp$sympdur)
 hist(df_imp$sympdur, breaks=50) # skewed -> transform
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-7-6.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-7-8.png)<!-- -->
 
 ```r
 df_imp$sqsympdur=sqrt(df_imp$sympdur)
 hist(df_imp$sqsympdur) # looks fine
 ```
 
-![](ACTT2_files/figure-html/unnamed-chunk-7-7.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-7-9.png)<!-- -->
 
 ```r
 ### Reshape to long format
@@ -1268,11 +1382,7 @@ plot_clinstat_int <- ggplot(df_imp_long_int, aes(x = time, y = clinstatus_n)) +
 print(plot_clinstat_int)
 ```
 
-```
-## `geom_smooth()` using formula = 'y ~ x'
-```
-
-![](ACTT2_files/figure-html/unnamed-chunk-7-8.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-7-10.png)<!-- -->
 
 ```r
 plot_clinstat_cont <- ggplot(df_imp_long_cont, aes(x = time, y = clinstatus_n)) +
@@ -1285,11 +1395,7 @@ plot_clinstat_cont <- ggplot(df_imp_long_cont, aes(x = time, y = clinstatus_n)) 
 print(plot_clinstat_cont)
 ```
 
-```
-## `geom_smooth()` using formula = 'y ~ x'
-```
-
-![](ACTT2_files/figure-html/unnamed-chunk-7-9.png)<!-- -->
+![](ACTT2_files/figure-html/unnamed-chunk-7-11.png)<!-- -->
 
 # Multiple imputation
 
@@ -1318,7 +1424,11 @@ colnames(Z)<-c("const", "time")
 
 nimp<-50 # set number of iterations
 
-# run jomo
+## run jomo
+# dry run
+imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=2)
+# plot(c(1:2),imputed_int_mcmc$collectbeta[1,1,1:2],type="l")
+# plot(c(1:2),imputed_int_mcmc$collectcovu[5,5,1:2],type="l")
 set.seed(1569)
 imputed_int <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
 # nburn<-1000
@@ -1509,7 +1619,7 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 </table>
 
 ```r
-# Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
+# # Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
 # mi.mort28 <- imp.list %>%
 #   with(glm(mort_28 ~ trt
 #            + age
@@ -1518,6 +1628,29 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 #         pool() %>%
 #         summary(conf.int = T, exponentiate = T)
 # mi.mort28
+
+# ## Passed to or_plot (see finalfit package above)
+# explanatory = c("trt", "age", 
+#   "clinicalstatus_baseline")
+# dependent = "mort_28"
+# imp.list %>% 
+#     or_plot(dependent, explanatory, glmfit = mi.mort28, table_text_size=4)
+# df_imp %>% 
+#     or_plot(dependent, explanatory, glmfit = mi.mort28, table_text_size=4)
+# # Summarise and put in table
+# fit_imputed = mi.mort28 %>%                                  
+#     fit2df(estimate_name = "OR (multiple imputation)", exp = TRUE)
+# # Use finalfit merge methods to create and compare results between complete case and multiple imputation
+# df %>% 
+#   summary_factorlist(dependent, explanatory, fit_id = TRUE)
+# df %>% 
+#   glmmulti(dependent, explanatory) %>% 
+#   fit2df(estimate_suffix = "OR (complete case)") -> fit_cc
+# summary1 %>% 
+#   ff_merge(fit_cc) %>% 
+#   ff_merge(fit_imputed) %>% 
+#   select(-fit_id, -index) %>% 
+#     knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r","r", "r", "r"))
 ```
 
 # (ii) Mortality at day 60
