@@ -19,6 +19,7 @@ library(tidyverse)
 library(readxl)
 library(writexl)
 library(tableone)
+library(haven) # Read sas files
 library(here)
 library(kableExtra)
 
@@ -31,8 +32,13 @@ library(gtsummary) # survival/TTE analyses
 library(ggfortify) # autoplot
 library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
-library(mosaic) # Odds Ratio for 0.5-corrected 2x2 table in case of rare events
+library(mosaic) # OR for 0.5-corrected 2x2 table in case of rare events
 library(logistf) # Firth regression in case of rare events
+
+library(finalfit) # missing data exploration
+library(mice) # multiple imputation
+library(jomo) # multiple imputation
+library(mitools) # multiple imputation
 ```
 
 # Load Data
@@ -214,13 +220,28 @@ df <- df %>% # corresponds to publication. 3 LTFU before day 28 => multiple impu
                              Clinstatus_28 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >28 ~ 0)) # discharged later, proof of still alive
 
-# table(df$mort_28, useNA = "always") # no transfer to hospice in covinib! => apply our rules for missing data in mort_28 (see NOTES)
+table(df$mort_28, useNA = "always") # no transfer to hospice in covinib! 
+```
+
+```
+## 
+##    0    1 <NA> 
+##  105    2    3
+```
+
+```r
 # df %>%
 #   select(mort_28, death_d, discharge_d, Clinstatus_28, clinstatus_baseline, everything()) %>%
 #   filter(is.na(mort_28)) %>%
 #   View()
-df <- df %>% 
-  mutate(mort_28 = case_when(is.na(mort_28) ~ 0,
+
+# First, keep mort_28 as complete case
+
+# Second, use multiple imputation (see below)
+
+# Third, apply a deterministic imputation (see notes): see rules in NOTES; no transfer to hospice in covinib! -> assign "alive"
+df <- df %>%
+  mutate(mort_28_dimp = case_when(is.na(mort_28) ~ 0,
                              TRUE ~ c(mort_28)))
 
 
@@ -230,10 +251,6 @@ df <- df %>% # max fup time in COVINIB was +/- 70 days! No further deaths after 
                              discharge_d <61 & (is.na(ltfu_d) | ltfu_d >60) ~ 0, # all discharged were discharged alive and not to hospice, single out those that were tfu before day 60
                              Clinstatus_60 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
                              discharge_d >60 ~ 0)) # discharged later, proof of still alive
-# table(df$mort_60, useNA = "always") # no transfer to hospice in covinib! => apply our rules for missing data in mort_28 (see NOTES)
-df <- df %>% 
-  mutate(mort_60 = case_when(is.na(mort_60) ~ 0,
-                             TRUE ~ c(mort_60)))
 
 
 # (iii) Time to death within max. follow-up time
@@ -245,6 +262,7 @@ df <- df %>% # no missing and those that were discharged and afterwards have cor
   mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
                                 ltfu_d >=0 ~ c(ltfu_d), # time to LTFU,
                                 TRUE ~ 70)) # time to max FUP: 70
+
 
 # (iv) New mechanical ventilation among survivors within 28 days.
 df <- df %>% 
@@ -267,6 +285,7 @@ df <- df %>%
 df <- df %>% # The three LTFU (AFTER discharge) were correctly accounted for with mort_28 == 0, according to our rules for missing data in mort_28 (see NOTES)
   mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
                                 new_mv_28 == 0 | mort_28 == 0 ~ 0))
+
 
 # (v) Clinical status at day 28
 df$clinstatus_28 <- df$Clinstatus_28
@@ -367,35 +386,90 @@ df_ae <- df_ae_comb %>%
 # Save
 saveRDS(df_ae, file = "df_ae_covinib.RData")
 ```
-Discussion points
-1. newmv: 5 missing: The two deaths (no MICE) and the three LTFU (but AFTER discharge) -> MICE or 0 ?
 
-# Multiple imputation using chained equation
-
-Discussion points
 
 # Define final dataset, set references, summarize missing data and variables
 
 ```r
 # keep the overall set
 df_all <- df
+names(df_all)
+```
+
+```
+##   [1] "id_pat"                "trt"                   "age"                  
+##   [4] "Randdate"              "Sex"                   "Ethn"                 
+##   [7] "sympdur"               "Clinstatus_baseline"   "Comed_dexa"           
+##  [10] "Comed_ab"              "Comed_other"           "comorb_lung"          
+##  [13] "comorb_liver"          "comorb_cvd"            "comorb_aht"           
+##  [16] "comorb_dm"             "comorb_obese"          "comorb_smoker"        
+##  [19] "immunosupp"            "Any_comorb"            "Crp"                  
+##  [22] "Vacc"                  "Clinstatus_1"          "Clinstatus_2"         
+##  [25] "Clinstatus_3"          "Clinstatus_4"          "Clinstatus_5"         
+##  [28] "Clinstatus_6"          "Clinstatus_7"          "Clinstatus_8"         
+##  [31] "Clinstatus_9"          "Clinstatus_10"         "Clinstatus_11"        
+##  [34] "Clinstatus_12"         "Clinstatus_13"         "Clinstatus_14"        
+##  [37] "Clinstatus_15"         "Clinstatus_16"         "Clinstatus_17"        
+##  [40] "Clinstatus_18"         "Clinstatus_19"         "Clinstatus_20"        
+##  [43] "Clinstatus_21"         "Clinstatus_22"         "Clinstatus_23"        
+##  [46] "Clinstatus_24"         "Clinstatus_25"         "Clinstatus_26"        
+##  [49] "Clinstatus_27"         "Clinstatus_28"         "Clinstatus_29"        
+##  [52] "Clinstatus_30"         "Clinstatus_31"         "Clinstatus_32"        
+##  [55] "Clinstatus_33"         "Clinstatus_34"         "Clinstatus_35"        
+##  [58] "Clinstatus_36"         "Clinstatus_37"         "Clinstatus_38"        
+##  [61] "Clinstatus_39"         "Clinstatus_40"         "Clinstatus_41"        
+##  [64] "Clinstatus_42"         "Clinstatus_43"         "Clinstatus_44"        
+##  [67] "Clinstatus_45"         "Clinstatus_46"         "Clinstatus_47"        
+##  [70] "Clinstatus_48"         "Clinstatus_49"         "Clinstatus_50"        
+##  [73] "Clinstatus_51"         "Clinstatus_52"         "Clinstatus_53"        
+##  [76] "Clinstatus_54"         "Clinstatus_55"         "Clinstatus_56"        
+##  [79] "Clinstatus_57"         "Clinstatus_58"         "Clinstatus_59"        
+##  [82] "Clinstatus_60"         "Clinstatus_61"         "Clinstatus_62"        
+##  [85] "Clinstatus_63"         "Clinstatus_64"         "Clinstatus_65"        
+##  [88] "Clinstatus_66"         "Clinstatus_67"         "Clinstatus_68"        
+##  [91] "Clinstatus_69"         "Clinstatus_70"         "Death_date"           
+##  [94] "Discharge_date"        "Withdrawal_date"       "Ae_28"                
+##  [97] "trial"                 "JAKi"                  "sex"                  
+## [100] "ethn"                  "country"               "icu"                  
+## [103] "clinstatus_baseline"   "vbaseline"             "comed_toci"           
+## [106] "comed_rdv"             "comed_acoa"            "comed_interferon"     
+## [109] "comed_dexa"            "comed_ab"              "comed_other"          
+## [112] "comed_cat"             "comorb_autoimm"        "comorb_kidney"        
+## [115] "comorb_cancer"         "any_comorb"            "comorb_count"         
+## [118] "comorb_cat"            "crp"                   "vacc"                 
+## [121] "death_d"               "discharge_d"           "ltfu_d"               
+## [124] "mort_28"               "mort_28_dimp"          "mort_60"              
+## [127] "death_reached"         "death_time"            "new_mv_28"            
+## [130] "new_mvd_28"            "clinstatus_28"         "clinstatus_28_imp"    
+## [133] "discharge_reached"     "discharge_time"        "discharge_time_sens"  
+## [136] "discharge_reached_sus" "discharge_time_sus"    "ae_28"                
+## [139] "ae_28_sev"
+```
+
+```r
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
-  select(id_pat, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline, trial, JAKi, 
+  select(id_pat, trt, sex, age, trial, JAKi, 
+         ethn, 
+         country, icu, sympdur, 
+         vacc, 
+         clinstatus_baseline, vbaseline,
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
          any_comorb, comorb_cat, comorb_count,
          crp, 
-         # sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         # sero, variant, vl_baseline, 
+         mort_28, mort_28_dimp,
+         mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          ae_28, ae_28_sev
          # vir_clear_5, vir_clear_10, vir_clear_15
          )
+
 # export for one-stage model, i.e., add missing variables 
 df_os <- df
 df_os$sero <- NA
@@ -406,12 +480,12 @@ df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
 # Save
 saveRDS(df_os, file = "df_os_covinib.RData")
+```
 
-## set references, re-level
-# df <- df %>% 
-#   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
+# Missing data plot: One-stage dataset
 
-# Create a bar plot to visualize missing values in each column
+```r
+# Bar plot, missing data, each data point, standardized one-stage dataset
 original_order <- colnames(df_os)
 missing_plot <- df_os %>%
   summarise_all(~ mean(is.na(.))) %>%
@@ -419,7 +493,7 @@ missing_plot <- df_os %>%
   mutate(key = factor(key, levels = original_order)) %>%
   ggplot(aes(x = key, y = value)) +
   geom_bar(stat = "identity") +
-  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data Visualization") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - standardized one-stage dataset") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(0, 1)
 print(missing_plot)
@@ -435,20 +509,915 @@ Discussion points
 * Outcomes:
   - vir_clear_5, vir_clear_10, vir_clear_15
 2. Missing data:
-- NAs in new_mv_28 (some), ae_28, ae_28_sev: Not part of denominator
+- NAs in mort_28, mort_60, new_mv_28, new_mvd_28, ae_28, ae_28_sev
 
+# Missing data: Explore for MI
+
+```r
+# keep the core df
+# names(df_all)
+df_core <- df_all %>%
+    select(id_pat, trt, sex, age, trial, JAKi, ethn, vacc, country, icu, sympdur, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other, comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
+         any_comorb, comorb_cat, comorb_count,
+         crp, 
+         # sero, variant, vl_baseline, 
+         Clinstatus_1, Clinstatus_2, Clinstatus_3, Clinstatus_4, Clinstatus_5, Clinstatus_6, Clinstatus_7, Clinstatus_8, Clinstatus_9, Clinstatus_10, Clinstatus_11, Clinstatus_12, Clinstatus_13, Clinstatus_14, Clinstatus_15, Clinstatus_16, Clinstatus_17, Clinstatus_18, Clinstatus_19, Clinstatus_20, Clinstatus_21, Clinstatus_22, Clinstatus_23, Clinstatus_24, Clinstatus_25, Clinstatus_26, Clinstatus_27, clinstatus_28,
+         clinstatus_28_imp,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         # vir_clear_5, vir_clear_10, vir_clear_15,
+         ae_28, ae_28_sev
+         )
+
+# Convert character variables to factors
+char_vars <- c("id_pat", "sex", "trial", "JAKi", "ethn", "vacc", "country", "icu", "clinstatus_baseline", "vbaseline", 
+               "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb", "comorb_cat", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28")
+df_core <- df_core %>%
+  mutate(across(all_of(char_vars), factor))
+
+# Bar plot, missing data, each data point, core dataset
+original_order <- colnames(df_core)
+missing_plot <- df_core %>%
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
+# Bar plot, missing data, each data point, core dataset, by arm
+df_core_int <- df_core %>% 
+  filter(trt == 1)
+original_order <- colnames(df_core_int)
+missing_plot <- df_core_int %>% # Intervention arm
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, intervention") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
+
+```r
+df_core_cont <- df_core %>% 
+  filter(trt == 0)
+original_order <- colnames(df_core_cont)
+missing_plot <- df_core_cont %>% # Control arm
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, control") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-3.png)<!-- -->
+
+```r
+### Baseline table, by individuals with no missing data vs any missing data (or only in mort_28)
+# df_core <- df_core %>% mutate(complete = ifelse(rowSums(is.na(.)) > 0, 0, 1));table(df_core$complete) # ANY missing 
+df_core$resp<-ifelse(is.na(df_core$mort_28), 0, 1);table(df_core$resp) # only mort_28 missing 
+```
+
+```
+## 
+##   0   1 
+##   3 107
+```
+
+```r
+# Assign variable list
+vars.list <- c("resp", "age", "sympdur", "trt", "sex", "trial", "JAKi", "ethn", "vacc", "country", "icu", "sympdur", "clinstatus_baseline", "vbaseline", "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp"
+               , "mort_28", "mort_28_dimp", "mort_60", "death_reached","death_time", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_time", "discharge_reached_sus", "discharge_time_sus", "ae_28", "ae_28_sev")
+
+# By completeness (only mort_28)
+table_resp <- CreateTableOne(data = df_core, vars = vars.list[!vars.list %in% c("resp")], strata = "resp", includeNA = T, test = T, addOverall = TRUE)
+# Print and display the table
+capture.output(
+  table_resp <- print(
+    table_resp, 
+    nonnormal = vars.list, 
+    catDigits = 1, 
+    SMD = TRUE, 
+    showAllLevels = TRUE, 
+    test = TRUE, 
+    printToggle = FALSE, 
+    missing = TRUE))
+```
+
+```
+## character(0)
+```
+
+```r
+kable(table_resp, format = "markdown", table.attr = 'class="table"', caption = "By completeness (only mort_28)") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+Table: By completeness (only mort_28)
+
+|                                  |level       |Overall               |0                       |1                     |p      |test    |Missing |
+|:---------------------------------|:-----------|:---------------------|:-----------------------|:---------------------|:------|:-------|:-------|
+|n                                 |            |110                   |3                       |107                   |       |        |        |
+|age (median [IQR])                |            |55.00 [47.25, 62.00]  |63.00 [51.00, 63.00]    |55.00 [47.50, 62.00]  |0.769  |nonnorm |0.0     |
+|sympdur (median [IQR])            |            |7.00 [5.00, 9.00]     |9.00 [9.00, 9.50]       |7.00 [5.00, 9.00]     |0.029  |nonnorm |0.0     |
+|sympdur (median [IQR])            |            |7.00 [5.00, 9.00]     |9.00 [9.00, 9.50]       |7.00 [5.00, 9.00]     |0.029  |nonnorm |0.0     |
+|trt (median [IQR])                |            |0.50 [0.00, 1.00]     |1.00 [0.50, 1.00]       |0.00 [0.00, 1.00]     |0.560  |nonnorm |0.0     |
+|sex (%)                           |female      |34 ( 30.9)            |0 (  0.0)               |34 ( 31.8)            |0.588  |        |0.0     |
+|                                  |male        |76 ( 69.1)            |3 (100.0)               |73 ( 68.2)            |       |        |        |
+|trial (%)                         |COVINIB     |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|JAKi (%)                          |Baricitinib |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|ethn (%)                          |Asian       |1 (  0.9)             |0 (  0.0)               |1 (  0.9)             |0.710  |        |0.0     |
+|                                  |Latino      |19 ( 17.3)            |0 (  0.0)               |19 ( 17.8)            |       |        |        |
+|                                  |White       |90 ( 81.8)            |3 (100.0)               |87 ( 81.3)            |       |        |        |
+|vacc (%)                          |0           |108 ( 98.2)           |3 (100.0)               |105 ( 98.1)           |1.000  |        |0.0     |
+|                                  |1           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|country (%)                       |Spain       |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|icu (%)                           |0           |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|sympdur (median [IQR])            |            |7.00 [5.00, 9.00]     |9.00 [9.00, 9.50]       |7.00 [5.00, 9.00]     |0.029  |nonnorm |0.0     |
+|sympdur (median [IQR])            |            |7.00 [5.00, 9.00]     |9.00 [9.00, 9.50]       |7.00 [5.00, 9.00]     |0.029  |nonnorm |0.0     |
+|clinstatus_baseline (%)           |2           |35 ( 31.8)            |0 (  0.0)               |35 ( 32.7)            |0.568  |        |0.0     |
+|                                  |3           |75 ( 68.2)            |3 (100.0)               |72 ( 67.3)            |       |        |        |
+|vbaseline (%)                     |0           |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|comed_dexa (%)                    |0           |94 ( 85.5)            |2 ( 66.7)               |92 ( 86.0)            |0.916  |        |0.0     |
+|                                  |1           |16 ( 14.5)            |1 ( 33.3)               |15 ( 14.0)            |       |        |        |
+|comed_rdv (%)                     |0           |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|comed_toci (%)                    |0           |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|comed_ab (%)                      |0           |34 ( 30.9)            |0 (  0.0)               |34 ( 31.8)            |0.588  |        |0.0     |
+|                                  |1           |76 ( 69.1)            |3 (100.0)               |73 ( 68.2)            |       |        |        |
+|comed_acoa (%)                    |0           |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|comed_interferon (%)              |0           |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|comed_other (%)                   |0           |107 ( 97.3)           |3 (100.0)               |104 ( 97.2)           |1.000  |        |0.0     |
+|                                  |1           |3 (  2.7)             |0 (  0.0)               |3 (  2.8)             |       |        |        |
+|comed_cat (%)                     |1           |94 ( 85.5)            |2 ( 66.7)               |92 ( 86.0)            |0.916  |        |0.0     |
+|                                  |3           |16 ( 14.5)            |1 ( 33.3)               |15 ( 14.0)            |       |        |        |
+|comorb_lung (%)                   |0           |92 ( 83.6)            |3 (100.0)               |89 ( 83.2)            |1.000  |        |0.0     |
+|                                  |1           |18 ( 16.4)            |0 (  0.0)               |18 ( 16.8)            |       |        |        |
+|comorb_liver (%)                  |0           |108 ( 98.2)           |3 (100.0)               |105 ( 98.1)           |1.000  |        |0.0     |
+|                                  |1           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|comorb_cvd (%)                    |0           |98 ( 89.1)            |3 (100.0)               |95 ( 88.8)            |1.000  |        |0.0     |
+|                                  |1           |12 ( 10.9)            |0 (  0.0)               |12 ( 11.2)            |       |        |        |
+|comorb_aht (%)                    |0           |80 ( 72.7)            |1 ( 33.3)               |79 ( 73.8)            |0.370  |        |0.0     |
+|                                  |1           |30 ( 27.3)            |2 ( 66.7)               |28 ( 26.2)            |       |        |        |
+|comorb_dm (%)                     |0           |94 ( 85.5)            |2 ( 66.7)               |92 ( 86.0)            |0.916  |        |0.0     |
+|                                  |1           |16 ( 14.5)            |1 ( 33.3)               |15 ( 14.0)            |       |        |        |
+|comorb_obese (%)                  |0           |62 ( 56.4)            |2 ( 66.7)               |60 ( 56.1)            |1.000  |        |0.0     |
+|                                  |1           |48 ( 43.6)            |1 ( 33.3)               |47 ( 43.9)            |       |        |        |
+|comorb_smoker (%)                 |0           |108 ( 98.2)           |3 (100.0)               |105 ( 98.1)           |1.000  |        |0.0     |
+|                                  |1           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|immunosupp (%)                    |0           |108 ( 98.2)           |3 (100.0)               |105 ( 98.1)           |1.000  |        |0.0     |
+|                                  |1           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|any_comorb (%)                    |0           |37 ( 33.6)            |1 ( 33.3)               |36 ( 33.6)            |1.000  |        |0.0     |
+|                                  |1           |73 ( 66.4)            |2 ( 66.7)               |71 ( 66.4)            |       |        |        |
+|comorb_cat (%)                    |1           |37 ( 33.6)            |1 ( 33.3)               |36 ( 33.6)            |0.424  |        |0.0     |
+|                                  |2           |40 ( 36.4)            |0 (  0.0)               |40 ( 37.4)            |       |        |        |
+|                                  |3           |31 ( 28.2)            |2 ( 66.7)               |29 ( 27.1)            |       |        |        |
+|                                  |4           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|comorb_count (median [IQR])       |            |1.00 [0.00, 2.00]     |2.00 [1.00, 2.00]       |1.00 [0.00, 2.00]     |0.693  |nonnorm |0.0     |
+|comorb_autoimm (%)                |0           |105 ( 95.5)           |3 (100.0)               |102 ( 95.3)           |1.000  |        |0.0     |
+|                                  |1           |5 (  4.5)             |0 (  0.0)               |5 (  4.7)             |       |        |        |
+|comorb_cancer (%)                 |0           |110 (100.0)           |3 (100.0)               |107 (100.0)           |NA     |        |0.0     |
+|comorb_kidney (%)                 |0           |109 ( 99.1)           |3 (100.0)               |106 ( 99.1)           |1.000  |        |0.0     |
+|                                  |1           |1 (  0.9)             |0 (  0.0)               |1 (  0.9)             |       |        |        |
+|crp (median [IQR])                |            |79.15 [39.72, 134.60] |161.90 [159.65, 201.25] |77.30 [39.25, 129.25] |0.019  |nonnorm |0.0     |
+|mort_28 (%)                       |0           |105 ( 95.5)           |0 (  0.0)               |105 ( 98.1)           |<0.001 |        |2.7     |
+|                                  |1           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|                                  |NA          |3 (  2.7)             |3 (100.0)               |0 (  0.0)             |       |        |        |
+|mort_28_dimp (%)                  |0           |108 ( 98.2)           |3 (100.0)               |105 ( 98.1)           |1.000  |        |0.0     |
+|                                  |1           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|mort_60 (%)                       |0           |105 ( 95.5)           |0 (  0.0)               |105 ( 98.1)           |<0.001 |        |2.7     |
+|                                  |1           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|                                  |NA          |3 (  2.7)             |3 (100.0)               |0 (  0.0)             |       |        |        |
+|death_reached (%)                 |0           |108 ( 98.2)           |3 (100.0)               |105 ( 98.1)           |1.000  |        |0.0     |
+|                                  |1           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|death_time (median [IQR])         |            |70.00 [70.00, 70.00]  |21.00 [21.00, 21.00]    |70.00 [70.00, 70.00]  |<0.001 |nonnorm |0.0     |
+|new_mv_28 (%)                     |0           |97 ( 88.2)            |0 (  0.0)               |97 ( 90.7)            |<0.001 |        |4.5     |
+|                                  |1           |8 (  7.3)             |0 (  0.0)               |8 (  7.5)             |       |        |        |
+|                                  |NA          |5 (  4.5)             |3 (100.0)               |2 (  1.9)             |       |        |        |
+|new_mvd_28 (%)                    |0           |97 ( 88.2)            |0 (  0.0)               |97 ( 90.7)            |<0.001 |        |2.7     |
+|                                  |1           |10 (  9.1)            |0 (  0.0)               |10 (  9.3)            |       |        |        |
+|                                  |NA          |3 (  2.7)             |3 (100.0)               |0 (  0.0)             |       |        |        |
+|discharge_reached (%)             |0           |7 (  6.4)             |0 (  0.0)               |7 (  6.5)             |1.000  |        |0.0     |
+|                                  |1           |103 ( 93.6)           |3 (100.0)               |100 ( 93.5)           |       |        |        |
+|discharge_time (median [IQR])     |            |6.00 [4.00, 9.00]     |4.00 [4.00, 7.00]       |6.00 [4.00, 9.00]     |0.611  |nonnorm |0.0     |
+|discharge_reached_sus (%)         |0           |7 (  6.4)             |0 (  0.0)               |7 (  6.5)             |1.000  |        |0.0     |
+|                                  |1           |103 ( 93.6)           |3 (100.0)               |100 ( 93.5)           |       |        |        |
+|discharge_time_sus (median [IQR]) |            |6.00 [4.00, 9.00]     |4.00 [4.00, 7.00]       |6.00 [4.00, 9.00]     |0.611  |nonnorm |0.0     |
+|ae_28 (%)                         |0           |85 ( 77.3)            |3 (100.0)               |82 ( 76.6)            |0.635  |        |1.8     |
+|                                  |1           |23 ( 20.9)            |0 (  0.0)               |23 ( 21.5)            |       |        |        |
+|                                  |NA          |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
+|ae_28_sev (median [IQR])          |            |0.00 [0.00, 0.00]     |0.00 [0.00, 0.00]       |0.00 [0.00, 0.00]     |0.367  |nonnorm |1.8     |
+
+```r
+### Define variables to be included in imputation set
+# table(df_core$crp, useNA = "always")
+df_imp <- df_core %>% 
+  select("id_pat"
+         , "trt", "sex", "age" , "ethn"
+         # , "country"
+         , "sympdur" 
+         , "vacc" # no info
+         # , "trial", "JAKi"  # only 0
+         , "clinstatus_baseline"
+         # , "vbaseline" # derived
+         # , "comed_rdv" # no info
+         # , "comed_toci", "comed_interferon" # no info
+         #,  "comed_cat", # derived
+         , "comed_dexa", "comed_ab"
+         # , "comed_acoa" # no info
+         , "comed_other" 
+         # , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese",
+         # "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb",
+         # "comorb_count",  
+         ,"comorb_cat" # derived from above, contains most information, and needed as interaction term
+         ,"crp"
+         # ,"vl_baseline"
+         # , "sero" , "variant" # very little info
+         , Clinstatus_1, Clinstatus_2, Clinstatus_3, Clinstatus_4, Clinstatus_5, Clinstatus_6, Clinstatus_7, Clinstatus_8, Clinstatus_9, Clinstatus_10, Clinstatus_11, Clinstatus_12, Clinstatus_13, Clinstatus_14, Clinstatus_15, Clinstatus_16, Clinstatus_17, Clinstatus_18, Clinstatus_19, Clinstatus_20, Clinstatus_21, Clinstatus_22, Clinstatus_23, Clinstatus_24, Clinstatus_25, Clinstatus_26, Clinstatus_27, clinstatus_28
+         # , "clinstatus_28_imp" # imputed via LOVCF above
+         , "mort_28"
+         # , "mort_28_dimp" # imputed deterministically
+         # , "mort_60" # does not contain any additional information compared to death reached
+         , "death_reached", "death_time", "new_mv_28", "new_mvd_28", "discharge_reached", "discharge_time"
+         # , "discharge_reached_sus", "discharge_time_sus" # same as discharge, does not contain any addition information
+         , "ae_28", "ae_28_sev"
+         # , "vir_clear_5", "vir_clear_10", "vir_clear_15"
+         )
+
+# First, table and visualize missing data in various ways
+# df_imp %>% 
+#   ff_glimpse() # from finalfit package
+df_imp %>%
+  missing_plot() # from finalfit package
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-4.png)<!-- -->
+
+```r
+explanatory = c("age", 
+  "clinstatus_baseline", "sex", "vacc",  
+  "ethn", "sympdur", "comorb_cat", "comed_dexa", "comed_ab", "comed_other", "crp", "ae_28_sev")
+dependent = "mort_28"
+df_imp %>% # from finalfit package, missing plot
+  missing_pairs(dependent, explanatory, position = "fill", )
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-5.png)<!-- -->
+
+```r
+# Second, let's explore the missingness patterns
+md.pattern(df_imp[,c("mort_28", "age", 
+  "clinstatus_baseline", "sex", "vacc",  
+  "ethn", "sympdur", "comorb_cat", "comed_dexa", "comed_ab", "comed_other", "crp", "ae_28_sev")], rotate.names = T)
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-6.png)<!-- -->
+
+```
+##     age clinstatus_baseline sex vacc ethn sympdur comorb_cat comed_dexa
+## 105   1                   1   1    1    1       1          1          1
+## 3     1                   1   1    1    1       1          1          1
+## 2     1                   1   1    1    1       1          1          1
+##       0                   0   0    0    0       0          0          0
+##     comed_ab comed_other crp ae_28_sev mort_28  
+## 105        1           1   1         1       1 0
+## 3          1           1   1         1       0 1
+## 2          1           1   1         0       1 1
+##            0           0   0         2       3 5
+```
+
+```r
+# Third, let's explore if the variables from my substantive model plus auxiliary variables are associated with mort_28
+mort28.aux <- glm(mort_28 ~ trt
+            + age 
+            + clinstatus_baseline
+            + sex
+            + ethn
+            + vacc
+            + sympdur
+            + comorb_cat
+            # + comed_dexa
+            # + comed_ab
+            # + comed_other
+            + crp
+            # + ae_28_sev
+            ,family="binomial"
+            ,data=df_imp)
+summary(mort28.aux)
+```
+
+```
+## 
+## Call:
+## glm(formula = mort_28 ~ trt + age + clinstatus_baseline + sex + 
+##     ethn + vacc + sympdur + comorb_cat + crp, family = "binomial", 
+##     data = df_imp)
+## 
+## Deviance Residuals: 
+##        Min          1Q      Median          3Q         Max  
+## -9.439e-05  -2.100e-08  -2.100e-08  -2.100e-08   9.007e-05  
+## 
+## Coefficients:
+##                        Estimate Std. Error z value Pr(>|z|)
+## (Intercept)           2.467e+02  3.795e+05   0.001    0.999
+## trt                  -1.163e+02  3.778e+04  -0.003    0.998
+## age                   8.881e+00  2.540e+03   0.003    0.997
+## clinstatus_baseline3  1.326e+02  4.414e+04   0.003    0.998
+## sexmale              -9.189e+01  2.728e+04  -0.003    0.997
+## ethnLatino           -5.006e+02  3.816e+05  -0.001    0.999
+## ethnWhite            -5.734e+02  3.856e+05  -0.001    0.999
+## vacc1                 1.074e+02  2.151e+05   0.000    1.000
+## sympdur              -4.080e+01  1.127e+04  -0.004    0.997
+## comorb_cat2          -3.292e+01  6.655e+04   0.000    1.000
+## comorb_cat3          -1.944e+02  5.284e+04  -0.004    0.997
+## comorb_cat4           1.041e+02  2.198e+05   0.000    1.000
+## crp                  -5.227e-01  4.009e+02  -0.001    0.999
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1.9881e+01  on 106  degrees of freedom
+## Residual deviance: 3.5096e-08  on  94  degrees of freedom
+##   (3 observations deleted due to missingness)
+## AIC: 26
+## 
+## Number of Fisher Scoring iterations: 25
+```
+
+```r
+# Fourth, let's explore if they are associated with missingness of mort_28:
+df_imp %>% 
+  missing_compare(dependent, explanatory) %>%
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"))
+```
+
+<table>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Missing data analysis: mort_28 </th>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Not missing </th>
+   <th style="text-align:right;"> Missing </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> age </td>
+   <td style="text-align:left;"> Mean (SD) </td>
+   <td style="text-align:right;"> 54.6 (10.6) </td>
+   <td style="text-align:right;"> 55.0 (13.9) </td>
+   <td style="text-align:right;"> 0.944 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> clinstatus_baseline </td>
+   <td style="text-align:left;"> 2 </td>
+   <td style="text-align:right;"> 35 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;"> 0.568 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 3 </td>
+   <td style="text-align:right;"> 72 (96.0) </td>
+   <td style="text-align:right;"> 3 (4.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sex </td>
+   <td style="text-align:left;"> female </td>
+   <td style="text-align:right;"> 34 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;"> 0.588 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> male </td>
+   <td style="text-align:right;"> 73 (96.1) </td>
+   <td style="text-align:right;"> 3 (3.9) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> vacc </td>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:right;"> 105 (97.2) </td>
+   <td style="text-align:right;"> 3 (2.8) </td>
+   <td style="text-align:right;"> 1.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:right;"> 2 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> ethn </td>
+   <td style="text-align:left;"> Asian </td>
+   <td style="text-align:right;"> 1 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;"> 0.710 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> Latino </td>
+   <td style="text-align:right;"> 19 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> White </td>
+   <td style="text-align:right;"> 87 (96.7) </td>
+   <td style="text-align:right;"> 3 (3.3) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sympdur </td>
+   <td style="text-align:left;"> Mean (SD) </td>
+   <td style="text-align:right;"> 6.9 (2.1) </td>
+   <td style="text-align:right;"> 9.3 (0.6) </td>
+   <td style="text-align:right;"> 0.050 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> comorb_cat </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:right;"> 36 (97.3) </td>
+   <td style="text-align:right;"> 1 (2.7) </td>
+   <td style="text-align:right;"> 0.424 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 2 </td>
+   <td style="text-align:right;"> 40 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 3 </td>
+   <td style="text-align:right;"> 29 (93.5) </td>
+   <td style="text-align:right;"> 2 (6.5) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 4 </td>
+   <td style="text-align:right;"> 2 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> comed_dexa </td>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:right;"> 92 (97.9) </td>
+   <td style="text-align:right;"> 2 (2.1) </td>
+   <td style="text-align:right;"> 0.916 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:right;"> 15 (93.8) </td>
+   <td style="text-align:right;"> 1 (6.2) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> comed_ab </td>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:right;"> 34 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;"> 0.588 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:right;"> 73 (96.1) </td>
+   <td style="text-align:right;"> 3 (3.9) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> comed_other </td>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:right;"> 104 (97.2) </td>
+   <td style="text-align:right;"> 3 (2.8) </td>
+   <td style="text-align:right;"> 1.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:right;"> 3 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> crp </td>
+   <td style="text-align:left;"> Mean (SD) </td>
+   <td style="text-align:right;"> 91.2 (69.9) </td>
+   <td style="text-align:right;"> 186.6 (46.8) </td>
+   <td style="text-align:right;"> 0.021 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> ae_28_sev </td>
+   <td style="text-align:left;"> Mean (SD) </td>
+   <td style="text-align:right;"> 0.5 (1.2) </td>
+   <td style="text-align:right;"> 0.0 (0.0) </td>
+   <td style="text-align:right;"> 0.502 </td>
+  </tr>
+</tbody>
+</table>
+
+```r
+# Fifth, check age
+summary(df_imp$age)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   26.00   47.25   55.00   54.57   62.00   77.00
+```
+
+```r
+hist(df_imp$age, breaks=50) # looks fine
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-7.png)<!-- -->
+
+```r
+# Sixth, check sympdur
+summary(df_imp$sympdur)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   1.000   5.000   7.000   6.991   9.000  10.000
+```
+
+```r
+hist(df_imp$sympdur, breaks=50)
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-8.png)<!-- -->
+
+```r
+# Seventh, check crp
+summary(df_imp$crp)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    6.00   39.73   79.15   93.81  134.60  371.20
+```
+
+```r
+hist(df_imp$crp, breaks=50) # outliers
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-9.png)<!-- -->
+
+```r
+df_imp <- df_imp %>% # truncate outliers > 500
+  mutate(crptrunc = case_when(crp > 500 ~ 500,
+                               TRUE ~ crp))
+hist(df_imp$crptrunc)
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-10.png)<!-- -->
+
+```r
+df_imp$sqcrptrunc=sqrt(df_imp$crptrunc)
+hist(df_imp$sqcrptrunc) # looks fine
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-11.png)<!-- -->
+
+```r
+### Reshape to long format
+# names(df_imp)
+# str(df_imp)
+df_imp <- df_imp %>% # rename to differentiate between baseline clinical status and follow-up clinical statuses
+  rename(clinicalstatus_baseline = clinstatus_baseline)
+df_imp <- df_imp %>%
+  rename(clinstatus_1 = Clinstatus_1,
+         clinstatus_2 = Clinstatus_2,
+         clinstatus_3 = Clinstatus_3,
+         clinstatus_4 = Clinstatus_4,
+         clinstatus_5 = Clinstatus_5,
+         clinstatus_6 = Clinstatus_6,
+         clinstatus_7 = Clinstatus_7,
+         clinstatus_8 = Clinstatus_8,
+         clinstatus_9 = Clinstatus_9,
+         clinstatus_10 = Clinstatus_10,
+         clinstatus_11 = Clinstatus_11,
+         clinstatus_12 = Clinstatus_12,
+         clinstatus_13 = Clinstatus_13,
+         clinstatus_14 = Clinstatus_14,
+         clinstatus_15 = Clinstatus_15,
+         clinstatus_16 = Clinstatus_16,
+         clinstatus_17 = Clinstatus_17,
+         clinstatus_18 = Clinstatus_18,
+         clinstatus_19 = Clinstatus_19,
+         clinstatus_20 = Clinstatus_20,
+         clinstatus_21 = Clinstatus_21,
+         clinstatus_22 = Clinstatus_22,
+         clinstatus_23 = Clinstatus_23,
+         clinstatus_24 = Clinstatus_24,
+         clinstatus_25 = Clinstatus_25,
+         clinstatus_26 = Clinstatus_26,
+         clinstatus_27 = Clinstatus_27)
+# reshape
+# table(df_imp$clinstatus_28)
+df_imp$clinstatus_28 <- as.numeric(df_imp$clinstatus_28)
+df_imp_long <- df_imp %>% 
+  pivot_longer(cols = starts_with("clinstatus"), names_to = "time", values_to = "clinstatus")
+# names(df_imp_long)
+
+# Convert time to numeric
+df_imp_long$time <- as.numeric(gsub("clinstatus_", "", df_imp_long$time))
+# class(df_imp_long$time)
+# summary(df_imp_long$time)
+# have clinstatus as numeric
+df_imp_long$clinstatus_f <- factor(df_imp_long$clinstatus, levels = 1:6)
+
+### We will impute separately by treatment arm, since we have to expect an effect modification between outcome x trt over time
+df_imp_long_int <- df_imp_long %>% 
+  filter(trt == 1)
+df_imp_long_cont <- df_imp_long %>% 
+  filter(trt == 0)
+
+## Explore distribution of clinical status over time, by arm
+plot_clinstat_int <- ggplot(df_imp_long_int, aes(x = time, y = clinstatus)) +
+  stat_summary(fun = "mean", geom = "point", color = "blue", size = 3, na.rm = TRUE) +
+  geom_smooth(method = "loess", se = FALSE, color = "red", na.rm = TRUE) +
+  labs(title = "Distribution of Clinical Status Over Time / Intervention",
+       x = "Time",
+       y = "Mean Clinical Status") +
+  theme_minimal()
+print(plot_clinstat_int)
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-12.png)<!-- -->
+
+```r
+plot_clinstat_cont <- ggplot(df_imp_long_cont, aes(x = time, y = clinstatus)) +
+  stat_summary(fun = "mean", geom = "point", color = "blue", size = 3, na.rm = TRUE) +
+  geom_smooth(method = "loess", se = FALSE, color = "red", na.rm = TRUE) +
+  labs(title = "Distribution of Clinical Status Over Time / Control",
+       x = "Time",
+       y = "Mean Clinical Status") +
+  theme_minimal()
+print(plot_clinstat_cont)
+```
+
+![](covinib_files/figure-html/unnamed-chunk-6-13.png)<!-- -->
+
+# Multiple imputation
+
+```r
+#### INTERVENTION group
+## jomo only accepts numeric or factors, check and adapt
+# str(df_imp_long_int)
+df_imp_long_int$timesq <- sqrt(df_imp_long_int$time) # see X below
+attach(df_imp_long_int)
+Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
+               , age
+               , sex
+               , ethn
+               , vacc
+               , comed_dexa
+               , comed_ab
+               , comed_other
+               , comorb_cat
+               , sympdur
+               , sqcrptrunc
+                 )
+Y<-data.frame(clinstatus) # level 1 variable within clustering variable
+X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
+              , time
+              , timesq)
+clus<-data.frame(id_pat) # clustering variable (patient)
+Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
+colnames(Z)<-c("const", "time") 
+
+nimp<-50 # set number of iterations
+
+## run jomo
+# dry run
+imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=2) ## clinstatus_baseline has 7 missings
+# plot(c(1:2),imputed_int_mcmc$collectbeta[1,1,1:2],type="l")
+# plot(c(1:2),imputed_int_mcmc$collectcovu[5,5,1:2],type="l")
+set.seed(1569)
+imputed_int <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
+# nburn<-1000
+# imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=nburn)
+# plot(c(1:nburn),imputed_int_mcmc$collectbeta[1,1,1:nburn],type="l")
+# plot(c(1:nburn),imputed_int_mcmc$collectcovu[5,5,1:nburn],type="l")
+
+# convert to jomo object, split imputations, and exclude original data (imputation "0")
+imp.list_int <- imputationList(split(imputed_int, imputed_int$Imputation)[-1])
+
+# checks
+round(prop.table(table(imp.list_int[[1]]$`1`$mort_28, useNA = "always"))*100,1) # first imputed dataset
+round(prop.table(table(imp.list_int[[1]]$`2`$mort_28, useNA = "always"))*100,1) # second imputed dataset
+round(prop.table(table(df_imp_long_int$mort_28, useNA = "always"))*100,1) # original data
+summary(imp.list_int[[1]]$`1`$comorb_cat)
+summary(imp.list_int[[1]]$`2`$sqsympdur)
+summary(imp.list_int[[1]]$`2`$sqcrptrunc)
+
+
+#### CONTROL group
+## jomo only accepts numeric or factors, check and adapt
+# str(df_imp_long_cont)
+df_imp_long_cont$timesq <- sqrt(df_imp_long_cont$time) # see X below
+attach(df_imp_long_cont)
+Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
+               , age
+               , sex
+               , ethn
+               , country
+               , comed_dexa
+               , comed_ab
+               , comed_other
+               , comorb_cat
+               , sqsympdur
+               , sqcrptrunc
+               , vl_baseline
+               , ae_28_sev
+                 )
+Y<-data.frame(clinstatus_n) # level 1 variable within clustering variable
+X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
+              , time
+              , timesq)
+clus<-data.frame(id_pat) # clustering variable (patient)
+Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
+colnames(Z)<-c("const", "time") 
+
+nimp<-50 # set number of iterations
+
+# run jomo
+set.seed(1569)
+imputed_cont <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
+# nburn<-1000
+# imputed_cont_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=nburn)
+# plot(c(1:nburn),imputed_cont_mcmc$collectbeta[1,1,1:nburn],type="l")
+# plot(c(1:nburn),imputed_cont_mcmc$collectcovu[5,5,1:nburn],type="l")
+
+# convert to jomo object, split imputations, and exclude original data (imputation "0")
+imp.list_cont <- imputationList(split(imputed_cont, imputed_cont$Imputation)[-1])
+
+# checks
+round(prop.table(table(imp.list_cont[[1]]$`1`$mort_28, useNA = "always"))*100,1) # first imputed dataset
+round(prop.table(table(imp.list_cont[[1]]$`2`$mort_28, useNA = "always"))*100,1) # second imputed dataset
+round(prop.table(table(df_imp_long_cont$mort_28, useNA = "always"))*100,1) # original data
+summary(imp.list_cont[[1]]$`1`$comorb_cat)
+summary(imp.list_cont[[1]]$`2`$sqsympdur)
+
+
+#### Add trt back, change from long to wide format, and finally combine the two data frames
+imputed_int$trt <- 1
+imputed_int_s <- imputed_int %>% # remove imputation variables, not needed anymore
+  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+imputed_int_wide <- imputed_int_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
+  group_by(Imputation) %>%
+  distinct(clus, .keep_all = TRUE) 
+
+imputed_cont$trt <- 0 # treatment variable
+imputed_cont_s <- imputed_cont %>% # remove imputation variables, not needed anymore
+  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+imputed_cont_wide <- imputed_cont_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
+  group_by(Imputation) %>%
+  distinct(clus, .keep_all = TRUE) 
+
+imputed_combined <- rbind(imputed_cont_wide, imputed_int_wide)
+
+
+#### Convert combined df to jomo object, split imputations, and exclude original data (imputation "0")
+imp.list <- imputationList(split(imputed_combined, imputed_combined$Imputation)[-1])
+
+
+### Checks
+round(prop.table(table(imp.list[[1]]$`1`$mort_28, imp.list[[1]]$`1`$trt, useNA = "always"),2)*100,1) # first imputed dataset
+round(prop.table(table(imp.list[[1]]$`2`$mort_28, imp.list[[1]]$`2`$trt, useNA = "always"),2)*100,1) # second imputed dataset
+round(prop.table(table(df_imp$mort_28, df_imp$trt, useNA = "always"),2)*100,1) # original data
+summary(imp.list[[1]]$`1`$comorb_cat)
+summary(imp.list[[1]]$`2`$sqsympdur)
+```
 
 # (i) Primary outcome: Mortality at day 28
 
 ```r
-# adjusted for baseline patient characteristics (age, respiratory support at baseline).
 # addmargins(table(df$mort_28, df$trt, useNA = "always"))
+# addmargins(table(df$mort_28_dimp, df$trt, useNA = "always"))
+df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
+
+# Complete case analysis, substantive model
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
-      + age + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.11 </td>
+   <td style="text-align:right;"> 0.93 </td>
+   <td style="text-align:right;"> 1.32 </td>
+   <td style="text-align:right;"> 1.16 </td>
+   <td style="text-align:right;"> 0.25 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 55309387.82 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# Deterministic imputation
+mort.28.dimp <- df %>% 
+  glm(mort_28_dimp ~ trt 
+      + age + clinstatus_baseline
+      , family = "binomial", data=.)
+summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -459,7 +1428,7 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> mort_28 </td>
+   <td style="text-align:right;"> mort_28_dimp </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Type </td>
@@ -524,6 +1493,16 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 </table>
 
 ```r
+# # Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
+# mort.28.mi <- imp.list %>%
+#   with(glm(mort_28 ~ trt
+#            + age
+#            + clinicalstatus_baseline
+#            , family = binomial)) %>%
+#         pool() %>%
+#         summary(conf.int = T, exponentiate = T)
+# mort.28.mi
+
 # Create a 2x2 contingency table
 # The oddsRatio function from the mosaic package calculates the odds ratio for a 2 x 2 contingency table and a confidence interval for the each estimate. x should be a matrix, data frame or table. "Successes" should be located in column 1 of x, and the treatment of interest should be located in row 2. The odds ratio is calculated as (Odds row 2) / (Odds row 1). The confidence interval is calculated from the log(OR) and back-transformed.
 tbl <- tibble(
@@ -586,15 +1565,45 @@ mort.28.corr <- oddsRatio(tbl, conf.level = 0.95, digits = 3, verbose = TRUE)
 mort.28.firth <- df %>% 
   logistf(mort_28 ~ trt 
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , data=.)
-# Summary and extract coefficients
-coefficients_table <- summary(mort.28.firth)$coefficients
+summary(mort.28.firth)
 ```
 
 ```
 ## logistf(formula = mort_28 ~ trt + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)   lower 0.95 upper 0.95       Chisq
+## (Intercept)          -7.69731293 3.51142167 -18.48334621 -0.2588515 4.176604792
+## trt                  -1.70603163 1.36066586  -6.63902842  0.8272983 1.622527647
+## age                   0.08330966 0.05975321  -0.06612902  0.2485043 1.189737879
+## clinstatus_baseline3  0.11787779 1.43326393  -2.77606307  5.1531226 0.005028454
+##                               p method
+## (Intercept)          0.04098573      2
+## trt                  0.20273970      2
+## age                  0.27538244      2
+## clinstatus_baseline3 0.94346812      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=3.079668 on 3 df, p=0.3795042, n=107
+## Wald test = 31.54765 on 3 df, p = 6.517826e-07
+```
+
+```r
+mort.28.dimp.firth <- df %>% 
+  logistf(mort_28_dimp ~ trt 
+      + age 
+      + clinstatus_baseline
+      , data=.)
+summary(mort.28.dimp.firth)
+```
+
+```
+## logistf(formula = mort_28_dimp ~ trt + age + clinstatus_baseline, 
 ##     data = .)
 ## 
 ## Model fitted by Penalized ML
@@ -615,27 +1624,6 @@ coefficients_table <- summary(mort.28.firth)$coefficients
 ## Likelihood ratio test=3.03519 on 3 df, p=0.3862313, n=110
 ## Wald test = 32.16632 on 3 df, p = 4.827649e-07
 ```
-
-```r
-trt_coef <- coef(mort.28.firth)["trt"]
-hazard_odds_ratio <- exp(trt_coef)
-ci <- c(exp(mort.28.firth$ci.lower["trt"]), exp(mort.28.firth$ci.upper["trt"]))
-# Create a data frame to store Odds Ratios and CIs
-mort.28.firth_tbl <- data.frame(
-  # "Variable" = rownames(coefficients_table),
-  "Odds Ratio" = hazard_odds_ratio,
-  "CI Lower" = ci[1],
-  "CI Upper" = ci[2])
-# Nicely formatted table
-kable(mort.28.firth_tbl, format = "markdown", table.attr = 'class="table"') %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE)
-```
-
-
-
-|    | Odds.Ratio|  CI.Lower| CI.Upper|
-|:---|----------:|---------:|--------:|
-|trt |  0.1821907| 0.0013138| 2.290742|
 Discussion points
 1. Rare event correction
 -- Add 0.5 correction to crosstab, calculate ORs and then inverse variance pooling in second stage?
@@ -648,8 +1636,7 @@ Discussion points
 # table(df$mort_60, df$trt, useNA = "always")
 mort.60 <- df %>% 
   glm(mort_60 ~ trt 
-      + age + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -658,7 +1645,7 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -709,13 +1696,13 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.11 </td>
    <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 1.33 </td>
-   <td style="text-align:right;"> 1.15 </td>
+   <td style="text-align:right;"> 1.32 </td>
+   <td style="text-align:right;"> 1.16 </td>
    <td style="text-align:right;"> 0.25 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 52973385.84 </td>
+   <td style="text-align:right;"> 55309387.82 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -789,8 +1776,7 @@ mort.60.corr <- oddsRatio(tbl, conf.level = 0.95, digits = 3, verbose = TRUE)
 mort.60.firth <- df %>% 
   logistf(mort_60 ~ trt 
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.60.firth)
 ```
@@ -802,20 +1788,20 @@ summary(mort.60.firth)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                             coef   se(coef)   lower 0.95 upper 0.95       Chisq
-## (Intercept)          -7.70665058 3.53970479 -18.66034269 -0.1930171 4.090167958
-## trt                  -1.70270126 1.35785329  -6.63483085  0.8288759 1.618274121
-## age                   0.08351837 0.06026573  -0.06787577  0.2511428 1.153354552
-## clinstatus_baseline3  0.07715444 1.43266090  -2.81938144  5.1172659 0.002131824
+## (Intercept)          -7.69731293 3.51142167 -18.48334621 -0.2588515 4.176604792
+## trt                  -1.70603163 1.36066586  -6.63902842  0.8272983 1.622527647
+## age                   0.08330966 0.05975321  -0.06612902  0.2485043 1.189737879
+## clinstatus_baseline3  0.11787779 1.43326393  -2.77606307  5.1531226 0.005028454
 ##                               p method
-## (Intercept)          0.04313336      2
-## trt                  0.20333260      2
-## age                  0.28284802      2
-## clinstatus_baseline3 0.96317341      2
+## (Intercept)          0.04098573      2
+## trt                  0.20273970      2
+## age                  0.27538244      2
+## clinstatus_baseline3 0.94346812      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=3.03519 on 3 df, p=0.3862313, n=110
-## Wald test = 32.16632 on 3 df, p = 4.827649e-07
+## Likelihood ratio test=3.079668 on 3 df, p=0.3795042, n=107
+## Wald test = 31.54765 on 3 df, p = 6.517826e-07
 ```
 
 # (iii) Time to death within max. follow-up time
@@ -832,14 +1818,13 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](covinib_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](covinib_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 ```r
 # testing: cox ph
 ttdeath <- df %>%
   coxph(Surv(death_time, death_reached) ~ trt
-        + age + clinstatus_baseline 
-        #+ comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline
         , data =.)
 ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
 
@@ -876,8 +1861,7 @@ Discussion points
 # table(df$new_mv_28, df$trt, useNA = "always")
 new.mv.28 <- df %>% 
   glm(new_mv_28 ~ trt 
-       + age + clinstatus_baseline 
-       #+ comed_dexa + comed_rdv + comed_toci
+       + age + clinstatus_baseline
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -886,7 +1870,7 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 108 (2 missing obs. deleted) </td>
+   <td style="text-align:right;"> 105 (5 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -921,15 +1905,15 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.92 </td>
-   <td style="text-align:right;"> -2.00 </td>
-   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.89 </td>
+   <td style="text-align:right;"> -2.01 </td>
+   <td style="text-align:right;"> 0.04 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
    <td style="text-align:right;"> 0.27 </td>
    <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 1.42 </td>
+   <td style="text-align:right;"> 1.43 </td>
    <td style="text-align:right;"> -1.54 </td>
    <td style="text-align:right;"> 0.12 </td>
   </tr>
@@ -938,16 +1922,16 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
    <td style="text-align:right;"> 1.04 </td>
    <td style="text-align:right;"> 0.96 </td>
    <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 0.31 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 1.07 </td>
-   <td style="text-align:right;"> 0.17 </td>
-   <td style="text-align:right;"> 6.76 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> 1.12 </td>
+   <td style="text-align:right;"> 0.18 </td>
+   <td style="text-align:right;"> 7.01 </td>
+   <td style="text-align:right;"> 0.12 </td>
+   <td style="text-align:right;"> 0.91 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -959,8 +1943,7 @@ summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # table(df$new_mvd_28, df$trt, useNA = "always")
 new.mvd.28 <- df %>% 
   glm(new_mvd_28 ~ trt 
-      + age + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline
       , family = "binomial", data=.)
 summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -969,7 +1952,7 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1004,8 +1987,8 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.45 </td>
-   <td style="text-align:right;"> -2.33 </td>
+   <td style="text-align:right;"> 0.44 </td>
+   <td style="text-align:right;"> -2.34 </td>
    <td style="text-align:right;"> 0.02 </td>
   </tr>
   <tr>
@@ -1021,16 +2004,16 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 0.98 </td>
    <td style="text-align:right;"> 1.14 </td>
-   <td style="text-align:right;"> 1.39 </td>
+   <td style="text-align:right;"> 1.41 </td>
    <td style="text-align:right;"> 0.16 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 1.25 </td>
-   <td style="text-align:right;"> 0.21 </td>
-   <td style="text-align:right;"> 7.50 </td>
-   <td style="text-align:right;"> 0.25 </td>
-   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 1.30 </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 7.78 </td>
+   <td style="text-align:right;"> 0.29 </td>
+   <td style="text-align:right;"> 0.77 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1044,8 +2027,7 @@ summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2
 clin.28 <- df %>% 
   clm(clinstatus_28_imp ~ trt 
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , link= c("logit"), data=.)
 # Summary and extract coefficients
 coefficients_table <- summary(clin.28)$coefficients
@@ -1095,14 +2077,13 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](covinib_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](covinib_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 ```r
 # testing: cox ph
 ttdischarge <- df %>% 
   coxph(Surv(discharge_time, discharge_reached) ~ trt 
-        + age + clinstatus_baseline 
-        #+ comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline
         , data =.)
 ttdischarge_reg_tbl <- tbl_regression(ttdischarge, exp = TRUE)
 # Nicely formatted table
@@ -1181,14 +2162,13 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
   add_risktable()
 ```
 
-![](covinib_files/figure-html/unnamed-chunk-11-2.png)<!-- -->
+![](covinib_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
 
 ```r
 # testing: Fine-Gray regression
 ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt
     + age
     #+ clinstatus_baseline
-    #+ comed_dexa + comed_rdv + comed_toci
     ,data = df)
 ttdischarge_comp_reg_tbl <- tbl_regression(ttdischarge.comp, exp = TRUE)
 # Nicely formatted table
@@ -1215,14 +2195,13 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](covinib_files/figure-html/unnamed-chunk-11-3.png)<!-- -->
+![](covinib_files/figure-html/unnamed-chunk-13-3.png)<!-- -->
 
 ```r
 # testing: cox ph
 ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
-        + age + clinstatus_baseline 
-        #+ comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline
         , data =.)
 ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
 # Nicely formatted table
@@ -1245,26 +2224,6 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 |6                   |NA     |NA         |NA          |
 
 ```r
-# Assessing proportional hazards using default discharge_time and discharge_reached
-ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
-                , data = df)
-cz <- cox.zph(ph.check)
-print(cz)
-```
-
-```
-##        chisq df    p
-## trt    0.443  1 0.51
-## GLOBAL 0.443  1 0.51
-```
-
-```r
-plot(cz)
-```
-
-![](covinib_files/figure-html/unnamed-chunk-11-4.png)<!-- -->
-
-```r
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
 # Use cause-specific hazards
 survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>% 
@@ -1277,14 +2236,13 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](covinib_files/figure-html/unnamed-chunk-11-5.png)<!-- -->
+![](covinib_files/figure-html/unnamed-chunk-13-4.png)<!-- -->
 
 ```r
 # testing: cox ph
 ttdischarge.sus <- df %>% 
   coxph(Surv(discharge_time_sus, discharge_reached_sus) ~ trt 
-        + age + clinstatus_baseline 
-        #+ comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline
         , data =.)
 ttdischarge_sus_reg_tbl <- tbl_regression(ttdischarge.sus, exp = TRUE)
 # Nicely formatted table
@@ -1324,8 +2282,7 @@ Discussion points
 # table(df$ae_28, df$trt, useNA = "always")
 ae.28 <- df %>% 
   glm(ae_28 ~ trt 
-      + age + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline
       , family = "binomial", data=.)
 summ(ae.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1407,8 +2364,7 @@ summ(ae.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # table(df$ae_28_sev, df$trt, useNA = "always")
 ae.28.sev <- df %>% 
   glm(ae_28_sev ~ trt 
-      + age + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline
       , family = "poisson", data=.)
 summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1496,7 +2452,7 @@ table(df$clinstatus_baseline, df$mort_28, useNA = "always") # only 2 - 3 include
 ##         0  1 <NA>
 ##   1     0  0    0
 ##   2    35  0    0
-##   3    73  2    0
+##   3    70  2    3
 ##   4     0  0    0
 ##   5     0  0    0
 ##   6     0  0    0
@@ -1510,7 +2466,7 @@ table(df$vbaseline, df$mort_28, useNA = "always")
 ```
 ##       
 ##          0   1 <NA>
-##   0    108   2    0
+##   0    105   2    3
 ##   <NA>   0   0    0
 ```
 
@@ -1521,8 +2477,7 @@ df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 mort.28.vent <- df %>% 
   glm(mort_28 ~ trt*clinstatus_baseline_n
       + age 
-      #+ clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      #+ clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1531,7 +2486,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1572,7 +2527,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 3010497017138746.00 </td>
+   <td style="text-align:right;"> 3405757158023513.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -1580,7 +2535,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline_n </td>
-   <td style="text-align:right;"> 41283633.60 </td>
+   <td style="text-align:right;"> 43146385.28 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -1590,8 +2545,8 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.11 </td>
    <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 1.33 </td>
-   <td style="text-align:right;"> 1.15 </td>
+   <td style="text-align:right;"> 1.32 </td>
+   <td style="text-align:right;"> 1.16 </td>
    <td style="text-align:right;"> 0.25 </td>
   </tr>
   <tr>
@@ -1612,8 +2567,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 mort.28.vent.firth <- df %>% 
   logistf(mort_28 ~ trt*clinstatus_baseline_n
       + age 
-      #+ clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      #+ clinstatus_baseline
       , data=.)
 summary(mort.28.vent.firth)
 ```
@@ -1625,22 +2579,22 @@ summary(mort.28.vent.firth)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                                  coef   se(coef)   lower 0.95 upper 0.95
-## (Intercept)               -7.72689619 4.68400066 -23.48428982  0.4115319
-## trt                        2.41472155 6.51505406 -14.07105986 19.1943036
-## clinstatus_baseline_n      0.11888427 1.55916161  -2.82250640  5.1841981
-## age                        0.07981926 0.05764049  -0.07127278  0.2471661
-## trt:clinstatus_baseline_n -1.37167018 2.43943133  -7.59666227  4.3905550
-##                                 Chisq         p method
-## (Intercept)               3.379065021 0.0660295      2
-## trt                       0.123027482 0.7257739      2
-## clinstatus_baseline_n     0.004958073 0.9438645      2
-## age                       1.040759772 0.3076448      2
-## trt:clinstatus_baseline_n 0.288370731 0.5912665      2
+## (Intercept)               -7.80601920 4.68250455 -23.50757012  0.3221093
+## trt                        2.42629255 6.52050898 -14.05937455 19.2057921
+## clinstatus_baseline_n      0.15879460 1.55921253  -2.77886977  5.2173433
+## age                        0.07976083 0.05718833  -0.06949531  0.2446570
+## trt:clinstatus_baseline_n -1.37668386 2.44180577  -7.60216873  4.3858466
+##                                Chisq          p method
+## (Intercept)               3.47734165 0.06221461      2
+## trt                       0.12419823 0.72452503      2
+## clinstatus_baseline_n     0.00894597 0.92464594      2
+## age                       1.07724778 0.29931406      2
+## trt:clinstatus_baseline_n 0.29039989 0.58996438      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=2.742197 on 4 df, p=0.6018511, n=110
-## Wald test = 35.50544 on 4 df, p = 3.657258e-07
+## Likelihood ratio test=2.769707 on 4 df, p=0.5970731, n=107
+## Wald test = 34.86843 on 4 df, p = 4.943587e-07
 ```
 
 ```r
@@ -1649,7 +2603,6 @@ summary(mort.28.vent.firth)
 #   logistf(mort_28 ~ trt*vbaseline
 #       + age
 #       #+ clinstatus_baseline
-#       #+ comed_dexa + comed_rdv + comed_toci
 #       , data=.)
 # summary(mort.28.vent.vb.firth)
 
@@ -1659,9 +2612,6 @@ mort.28.vent.vb.no <- df %>%
   logistf(mort_28 ~ trt
       + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
       , data=.)
 summary(mort.28.vent.vb.no)
 ```
@@ -1671,10 +2621,10 @@ summary(mort.28.vent.vb.no)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                    coef   se(coef)   lower 0.95 upper 0.95    Chisq          p
-## (Intercept) -8.65902083 3.92481130 -20.15436139 -0.9003614 5.121395 0.02363261
-## trt         -1.76384535 1.47743586  -6.70323664  0.7835077 1.723955 0.18918480
-## age          0.09781723 0.06167522  -0.03709322  0.2674012 1.901655 0.16789315
+##                    coef  se(coef)   lower 0.95 upper 0.95    Chisq         p
+## (Intercept) -8.62732008 3.8825486 -19.95461812 -0.9578972 5.208919 0.0224713
+## trt         -1.76816715 1.4796585  -6.70812118  0.7803596 1.731365 0.1882367
+## age          0.09778546 0.0610325  -0.03565871  0.2648622 1.959702 0.1615451
 ##             method
 ## (Intercept)      2
 ## trt              2
@@ -1682,8 +2632,8 @@ summary(mort.28.vent.vb.no)
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=3.454544 on 2 df, p=0.1777687, n=110
-## Wald test = 29.14187 on 2 df, p = 4.698113e-07
+## Likelihood ratio test=3.48449 on 2 df, p=0.1751268, n=107
+## Wald test = 28.63054 on 2 df, p = 6.06677e-07
 ```
 
 ```r
@@ -1693,9 +2643,6 @@ mort.28.vent.rs.2 <- df %>%
   logistf(mort_28 ~ trt
       + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
       , data=.)
 summary(mort.28.vent.rs.2)
 ```
@@ -1726,9 +2673,6 @@ mort.28.vent.rs.3 <- df %>%
   logistf(mort_28 ~ trt
       + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
       , data=.)
 summary(mort.28.vent.rs.3)
 ```
@@ -1739,9 +2683,9 @@ summary(mort.28.vent.rs.3)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                    coef   se(coef)   lower 0.95 upper 0.95    Chisq         p
-## (Intercept) -7.67480403 4.31393161 -19.55412381  1.4773279 2.602205 0.1067151
-## trt         -1.69467301 1.46350043  -6.63577378  0.8594375 1.569976 0.2102105
-## age          0.08515515 0.06725575  -0.06981569  0.2604173 1.140610 0.2855234
+## (Intercept) -7.62184909 4.26438017 -19.31432265  1.3870121 2.665428 0.1025503
+## trt         -1.69992850 1.46731210  -6.64206158  0.8564571 1.577404 0.2091351
+## age          0.08489588 0.06650399  -0.06774908  0.2573674 1.182638 0.2768195
 ##             method
 ## (Intercept)      2
 ## trt              2
@@ -1749,8 +2693,8 @@ summary(mort.28.vent.rs.3)
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=2.708191 on 2 df, p=0.2581807, n=75
-## Wald test = 23.83073 on 2 df, p = 6.686882e-06
+## Likelihood ratio test=2.726417 on 2 df, p=0.2558386, n=72
+## Wald test = 23.1948 on 2 df, p = 9.189943e-06
 ```
 Discussion points
 1. Firth regression works for clinstatus_baseline but not for vbaseline
@@ -1761,8 +2705,7 @@ Discussion points
 mort.28.age <- df %>% 
   glm(mort_28 ~ trt*age
       #+ age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1771,7 +2714,7 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -1822,13 +2765,13 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.11 </td>
    <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 1.33 </td>
-   <td style="text-align:right;"> 1.15 </td>
+   <td style="text-align:right;"> 1.32 </td>
+   <td style="text-align:right;"> 1.16 </td>
    <td style="text-align:right;"> 0.25 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 54326231.44 </td>
+   <td style="text-align:right;"> 56795517.35 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -1853,7 +2796,6 @@ mort.28.age.firth <- df %>%
   logistf(mort_28 ~ trt*age
       #+ age
       + clinstatus_baseline
-      #+ comed_dexa + comed_rdv + comed_toci
       , data=.)
 summary(mort.28.age.firth)
 ```
@@ -1865,22 +2807,22 @@ summary(mort.28.age.firth)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                             coef   se(coef)   lower 0.95 upper 0.95       Chisq
-## (Intercept)          -8.07373741 3.87591736 -19.62342288 -0.3703441 4.315699174
-## trt                   6.84918339 5.89817848 -31.24397707 24.8472878 0.498923003
-## age                   0.08944092 0.06415329  -0.06154956  0.2597574 1.351044747
-## clinstatus_baseline3  0.06305630 1.27050982  -2.73639628  4.9707408 0.001602083
-## trt:age              -0.13997296 0.10643356  -0.59610459  0.4345390 0.643936343
-##                               p method
-## (Intercept)          0.03776225      2
-## trt                  0.47997373      2
-## age                  0.24509556      2
-## clinstatus_baseline3 0.96807237      2
-## trt:age              0.42228897      2
+## (Intercept)          -8.04876445 3.83681842 -19.43921525 -0.4362033 4.405196375
+## trt                   7.06159063 5.87534309 -31.05445934 24.7002116 0.498307653
+## age                   0.08898433 0.06349553  -0.05958177  0.2569315 1.386181085
+## clinstatus_baseline3  0.10319450 1.27102277  -2.69633935  4.9946087 0.004332509
+## trt:age              -0.14384247 0.10637393  -0.58312983  0.4313976 0.635538576
+##                              p method
+## (Intercept)          0.0358296      2
+## trt                  0.4802447      2
+## age                  0.2390511      2
+## clinstatus_baseline3 0.9475197      2
+## trt:age              0.4253310      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=2.863354 on 4 df, p=0.580947, n=110
-## Wald test = 36.38715 on 4 df, p = 2.408724e-07
+## Likelihood ratio test=2.901965 on 4 df, p=0.5743631, n=107
+## Wald test = 35.54615 on 4 df, p = 3.587459e-07
 ```
 
 ```r
@@ -1903,9 +2845,6 @@ mort.28.age.a70 <- df %>%
   logistf(mort_28 ~ trt
      # + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
       , data=.)
 summary(mort.28.age.a70)
 ```
@@ -1933,10 +2872,7 @@ mort.28.age.b70 <- df %>%
   filter(age_70 == 0) %>% # below 70
   logistf(mort_28 ~ trt
       # + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.age.b70)
 ```
@@ -1947,20 +2883,19 @@ summary(mort.28.age.b70)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                           coef se(coef) lower 0.95 upper 0.95      Chisq
-## (Intercept)          -3.670110 1.353187  -8.514147 -1.6884822 23.1746942
-## trt                  -1.674234 1.460953  -6.613798  0.8723639  1.5372705
-## clinstatus_baseline3  1.076696 1.468772  -1.487142  6.0217370  0.5753484
+## (Intercept)          -3.670978 1.352053  -8.515088 -1.6889700 23.1776817
+## trt                  -1.648000 1.459991  -6.587894  0.8997262  1.4833132
+## clinstatus_baseline3  1.108377 1.467236  -1.455338  6.0533395  0.6129674
 ##                                 p method
-## (Intercept)          1.479313e-06      2
-## trt                  2.150245e-01      2
-## clinstatus_baseline3 4.481414e-01      2
+## (Intercept)          1.477016e-06      2
+## trt                  2.232569e-01      2
+## clinstatus_baseline3 4.336727e-01      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=1.998919 on 2 df, p=0.3680784, n=104
-## Wald test = 32.81625 on 2 df, p = 7.482406e-08
+## Likelihood ratio test=1.99277 on 2 df, p=0.3692118, n=101
+## Wald test = 32.19699 on 2 df, p = 1.019793e-07
 ```
-Discussion points
 
 # Subgroup analysis: Comorbidities on primary endpoint
 
@@ -1971,8 +2906,7 @@ Discussion points
 mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1981,7 +2915,7 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -2030,23 +2964,23 @@ summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat </td>
-   <td style="text-align:right;"> 0.49 </td>
+   <td style="text-align:right;"> 0.50 </td>
    <td style="text-align:right;"> 0.07 </td>
-   <td style="text-align:right;"> 3.43 </td>
-   <td style="text-align:right;"> -0.72 </td>
-   <td style="text-align:right;"> 0.47 </td>
+   <td style="text-align:right;"> 3.60 </td>
+   <td style="text-align:right;"> -0.68 </td>
+   <td style="text-align:right;"> 0.50 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.14 </td>
    <td style="text-align:right;"> 0.94 </td>
-   <td style="text-align:right;"> 1.38 </td>
-   <td style="text-align:right;"> 1.32 </td>
+   <td style="text-align:right;"> 1.37 </td>
+   <td style="text-align:right;"> 1.31 </td>
    <td style="text-align:right;"> 0.19 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 84378464.83 </td>
+   <td style="text-align:right;"> 84456140.18 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -2072,7 +3006,6 @@ mort.28.comorb.firth <- df %>%
   logistf(mort_28 ~ trt*comorb_cat
       + age
       + clinstatus_baseline
-      #+ comed_dexa + comed_rdv + comed_toci
       , data=.)
 summary(mort.28.comorb.firth)
 ```
@@ -2083,25 +3016,25 @@ summary(mort.28.comorb.firth)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                            coef   se(coef)   lower 0.95 upper 0.95      Chisq
-## (Intercept)          -7.3817770 3.31172314 -18.17567287  0.1356948 3.68354785
-## trt                  -2.0629926 2.75995371 -28.50184281  4.2304479 0.42939426
-## comorb_cat           -0.4372216 0.68885062  -2.26088645  1.1644673 0.29866633
-## age                   0.0893670 0.05630933  -0.06232181  0.2603002 1.33236703
-## clinstatus_baseline3  0.4695207 1.36641773  -2.57732520  5.4973837 0.08197299
-## trt:comorb_cat        0.4050489 1.26055931  -3.72076024  8.8011448 0.07159375
-##                              p method
-## (Intercept)          0.0549518      2
-## trt                  0.5122863      2
-## comorb_cat           0.5847197      2
-## age                  0.2483846      2
-## clinstatus_baseline3 0.7746413      2
-## trt:comorb_cat       0.7890303      2
+##                             coef   se(coef)   lower 0.95 upper 0.95      Chisq
+## (Intercept)          -7.36573678 3.28480092 -18.01312953 0.06413755 3.76576753
+## trt                  -2.06911329 2.77909141 -28.09119731 4.26767877 0.42553105
+## comorb_cat           -0.39665271 0.68896672  -2.22903988 1.19953969 0.24541005
+## age                   0.08820144 0.05592989  -0.06116163 0.25762677 1.33178442
+## clinstatus_baseline3  0.46810987 1.35905686  -2.56684544 5.48902481 0.08214506
+## trt:comorb_cat        0.41100742 1.26630267  -3.75417008 8.66320896 0.07229336
+##                               p method
+## (Intercept)          0.05231184      2
+## trt                  0.51418998      2
+## comorb_cat           0.62032571      2
+## age                  0.24848802      2
+## clinstatus_baseline3 0.77441127      2
+## trt:comorb_cat       0.78802645      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=2.926824 on 5 df, p=0.7112664, n=110
-## Wald test = 35.71756 on 5 df, p = 1.081717e-06
+## Likelihood ratio test=2.923141 on 5 df, p=0.711834, n=107
+## Wald test = 35.15522 on 5 df, p = 1.401048e-06
 ```
 
 ```r
@@ -2111,8 +3044,7 @@ df$comorb_cat_f <- as.factor(df$comorb_cat)
 mort.28.comorb.f <- df %>% 
   glm(mort_28 ~ trt*comorb_cat_f 
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2121,7 +3053,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -2178,11 +3110,11 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f3 </td>
-   <td style="text-align:right;"> 0.15 </td>
+   <td style="text-align:right;"> 0.17 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 7.15 </td>
-   <td style="text-align:right;"> -0.96 </td>
-   <td style="text-align:right;"> 0.34 </td>
+   <td style="text-align:right;"> 8.09 </td>
+   <td style="text-align:right;"> -0.91 </td>
+   <td style="text-align:right;"> 0.36 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_cat_f4 </td>
@@ -2194,15 +3126,15 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.20 </td>
+   <td style="text-align:right;"> 1.19 </td>
    <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 1.55 </td>
-   <td style="text-align:right;"> 1.39 </td>
-   <td style="text-align:right;"> 0.16 </td>
+   <td style="text-align:right;"> 1.54 </td>
+   <td style="text-align:right;"> 1.36 </td>
+   <td style="text-align:right;"> 0.17 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 127390931.07 </td>
+   <td style="text-align:right;"> 126092299.90 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -2210,7 +3142,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f2 </td>
-   <td style="text-align:right;"> 4008037171.22 </td>
+   <td style="text-align:right;"> 3973254064.66 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -2218,7 +3150,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f3 </td>
-   <td style="text-align:right;"> 4.48 </td>
+   <td style="text-align:right;"> 4.37 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -2226,7 +3158,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_cat_f4 </td>
-   <td style="text-align:right;"> 14702907473.34 </td>
+   <td style="text-align:right;"> 14397167323.67 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -2243,8 +3175,7 @@ summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digi
 mort.28.comorb.count <- df %>%
   glm(mort_28 ~ trt*comorb_count 
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2253,7 +3184,7 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -2302,23 +3233,23 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comorb_count </td>
-   <td style="text-align:right;"> 0.76 </td>
+   <td style="text-align:right;"> 0.78 </td>
    <td style="text-align:right;"> 0.22 </td>
-   <td style="text-align:right;"> 2.69 </td>
-   <td style="text-align:right;"> -0.42 </td>
-   <td style="text-align:right;"> 0.68 </td>
+   <td style="text-align:right;"> 2.68 </td>
+   <td style="text-align:right;"> -0.40 </td>
+   <td style="text-align:right;"> 0.69 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.13 </td>
    <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 1.37 </td>
+   <td style="text-align:right;"> 1.36 </td>
    <td style="text-align:right;"> 1.22 </td>
    <td style="text-align:right;"> 0.22 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 65064052.61 </td>
+   <td style="text-align:right;"> 66876208.70 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -2326,7 +3257,7 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comorb_count </td>
-   <td style="text-align:right;"> 1.15 </td>
+   <td style="text-align:right;"> 1.16 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -2343,10 +3274,7 @@ mort.28.comorb.1 <- df %>%
   filter(comorb_cat == 1) %>% # no comorbidity
   logistf(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.comorb.1)
 ```
@@ -2357,21 +3285,21 @@ summary(mort.28.comorb.1)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                             coef  se(coef)   lower 0.95 upper 0.95     Chisq
-## (Intercept)          -12.8174690 6.9897991 -87.18146199   1.411220 2.8493744
-## trt                   -2.5955322 1.8583987 -12.93202943   1.330451 1.4515449
-## age                    0.1725042 0.1073242  -0.08140597   1.247104 1.5587873
-## clinstatus_baseline3   1.1992169 1.7064253  -2.36573486   8.679505 0.3672193
+##                             coef se(coef)   lower 0.95 upper 0.95     Chisq
+## (Intercept)          -12.9536056 7.070470 -87.31095356   1.384322 2.8836047
+## trt                   -2.6222674 1.870299 -12.95020483   1.310306 1.4873939
+## age                    0.1745883 0.108418  -0.08055283   1.248980 1.6205481
+## clinstatus_baseline3   1.2132102 1.712725  -2.36461352   8.690312 0.3729208
 ##                              p method
-## (Intercept)          0.0914095      2
-## trt                  0.2282802      2
-## age                  0.2118429      2
-## clinstatus_baseline3 0.5445239      2
+## (Intercept)          0.0894855      2
+## trt                  0.2226213      2
+## age                  0.2030154      2
+## clinstatus_baseline3 0.5414164      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=2.231857 on 3 df, p=0.5257008, n=37
-## Wald test = 10.15276 on 3 df, p = 0.01731126
+## Likelihood ratio test=2.251809 on 3 df, p=0.5218158, n=36
+## Wald test = 10.04415 on 3 df, p = 0.01819456
 ```
 
 ```r
@@ -2379,10 +3307,7 @@ mort.28.comorb.2 <- df %>%
   filter(comorb_cat == 2) %>% # 1 comorbidity
   logistf(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.comorb.2)
 ```
@@ -2415,10 +3340,7 @@ mort.28.comorb.3 <- df %>%
   filter(comorb_cat == 3) %>% # multiple comorbidities
   logistf(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.comorb.3)
 ```
@@ -2430,20 +3352,20 @@ summary(mort.28.comorb.3)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                             coef   se(coef)  lower 0.95 upper 0.95      Chisq
-## (Intercept)          -3.01125159 5.02557051 -17.9831609  8.5670825 0.22833842
-## trt                  -1.05316386 1.41671422  -6.1172875  1.9643994 0.44313527
-## age                   0.02219662 0.09130887  -0.1999314  0.2796264 0.03462029
-## clinstatus_baseline3 -0.40684692 1.76050511  -5.3357098  4.9117891 0.03659437
+## (Intercept)          -2.96048930 4.88240585 -17.4447022  8.2743905 0.24642914
+## trt                  -1.03263724 1.42119775  -6.1027713  1.9978939 0.42114454
+## age                   0.02103195 0.08856832  -0.1939405  0.2712149 0.03507345
+## clinstatus_baseline3 -0.30695388 1.74968822  -5.1611250  4.9861204 0.02156230
 ##                              p method
-## (Intercept)          0.6327586      2
-## trt                  0.5056131      2
-## age                  0.8523936      2
-## clinstatus_baseline3 0.8482933      2
+## (Intercept)          0.6196007      2
+## trt                  0.5163665      2
+## age                  0.8514418      2
+## clinstatus_baseline3 0.8832575      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=0.4557184 on 3 df, p=0.9285064, n=31
-## Wald test = 14.47185 on 3 df, p = 0.002328422
+## Likelihood ratio test=0.4486536 on 3 df, p=0.9300182, n=29
+## Wald test = 13.63906 on 3 df, p = 0.003439991
 ```
 
 ```r
@@ -2452,9 +3374,6 @@ mort.28.comorb.4 <- df %>%
   logistf(mort_28 ~ trt
       + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
       , data=.)
 summary(mort.28.comorb.4)
 ```
@@ -2474,13 +3393,11 @@ summary(mort.28.comorb.4)
 ## Likelihood ratio test=-1.776357e-15 on 2 df, p=1, n=2
 ## Wald test = 0.9052123 on 2 df, p = 0.6359686
 ```
-Discussion points
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 
 ```r
 # 4 comorbidity categories as numeric/continuous, i.e., linear interaction
-
 table(df$comed_cat, df$trt, useNA = "always")
 ```
 
@@ -2500,10 +3417,7 @@ table(df$comed_cat, df$trt, useNA = "always")
 mort.28.comed <- df %>%
   glm(mort_28 ~ trt*comed_cat 
       + age 
-      #+ clinstatus_baseline 
-      #+ comed_dexa 
-      #+ comed_rdv 
-      #+ comed_toci
+      #+ clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2512,7 +3426,7 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -2545,7 +3459,7 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.28 </td>
+   <td style="text-align:right;"> 0.30 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> -0.00 </td>
@@ -2572,12 +3486,12 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
    <td style="text-align:right;"> 1.12 </td>
    <td style="text-align:right;"> 0.95 </td>
    <td style="text-align:right;"> 1.32 </td>
-   <td style="text-align:right;"> 1.36 </td>
+   <td style="text-align:right;"> 1.38 </td>
    <td style="text-align:right;"> 0.17 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
-   <td style="text-align:right;"> 8332.61 </td>
+   <td style="text-align:right;"> 8048.03 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -2594,7 +3508,6 @@ mort.28.comed.firth <- df %>%
   logistf(mort_28 ~ trt*comed_cat
       + age
       + clinstatus_baseline
-      #+ comed_dexa + comed_rdv + comed_toci
       , data=.)
 summary(mort.28.comed.firth)
 ```
@@ -2605,25 +3518,25 @@ summary(mort.28.comed.firth)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                             coef   se(coef)   lower 0.95 upper 0.95       Chisq
-## (Intercept)          -7.42025466 3.61530825 -19.16949455  0.2035338 3.591570950
-## trt                  -1.90542297 2.30168398  -9.49395921  2.5650481 0.643504205
-## comed_cat             0.43270079 0.79624548  -2.09254768  2.0607449 0.222262989
-## age                   0.07130586 0.05655586  -0.07152049  0.2383497 0.916507064
-## clinstatus_baseline3  0.16276823 1.35585898  -2.71466135  5.1844572 0.009752564
-## trt:comed_cat         0.30837605 1.21464397  -2.60413746  3.4481615 0.056203113
+##                             coef   se(coef)  lower 0.95 upper 0.95      Chisq
+## (Intercept)          -7.40651370 3.60523447 -18.9873036  0.1616539 3.64164701
+## trt                  -1.90476471 2.30181737  -9.4944853  2.5709132 0.64179075
+## comed_cat             0.41537116 0.79671733  -2.1091417  2.0353236 0.20636973
+## age                   0.07139137 0.05638853  -0.0700562  0.2360478 0.94141714
+## clinstatus_baseline3  0.20121738 1.35613493  -2.6736500  5.2193221 0.01505140
+## trt:comed_cat         0.31015427 1.21850548  -2.6059998  3.4524569 0.05662683
 ##                               p method
-## (Intercept)          0.05807332      2
-## trt                  0.42244472      2
-## comed_cat            0.63732102      2
-## age                  0.33839378      2
-## clinstatus_baseline3 0.92133274      2
-## trt:comed_cat        0.81260097      2
+## (Intercept)          0.05635116      2
+## trt                  0.42306308      2
+## comed_cat            0.64962777      2
+## age                  0.33191366      2
+## clinstatus_baseline3 0.90235721      2
+## trt:comed_cat        0.81190908      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=2.850711 on 5 df, p=0.7229886, n=110
-## Wald test = 36.95939 on 5 df, p = 6.102807e-07
+## Likelihood ratio test=2.895319 on 5 df, p=0.7161206, n=107
+## Wald test = 36.13267 on 5 df, p = 8.935011e-07
 ```
 
 ```r
@@ -2632,10 +3545,7 @@ mort.28.comed.1 <- df %>%
   filter(comed_cat == 1) %>% # without Dexamethasone nor Tocilizumab
   logistf(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.comed.1)
 ```
@@ -2646,21 +3556,21 @@ summary(mort.28.comed.1)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                            coef   se(coef)   lower 0.95 upper 0.95      Chisq
-## (Intercept)          -7.2094326 3.51964723 -18.23118838 0.07136717 3.74666742
-## trt                  -1.5941851 1.36009822  -6.52900037 0.94963339 1.38583731
-## age                   0.0754323 0.06018938  -0.07188109 0.24500415 0.96504762
-## clinstatus_baseline3  0.1568785 1.42813947  -2.74571624 5.19356549 0.00892368
+##                             coef   se(coef)   lower 0.95  upper 0.95      Chisq
+## (Intercept)          -7.19033934 3.48017274 -18.02751505 0.005029864 3.83472222
+## trt                  -1.59091819 1.36053399  -6.52661601 0.955524844 1.37657517
+## age                   0.07500161 0.05946003  -0.07005261 0.241974033 0.99299615
+## clinstatus_baseline3  0.20377622 1.42826427  -2.69724692 5.236584734 0.01521286
 ##                               p method
-## (Intercept)          0.05291291      2
-## trt                  0.23910934      2
-## age                  0.32591840      2
-## clinstatus_baseline3 0.92473960      2
+## (Intercept)          0.05020131      2
+## trt                  0.24068538      2
+## age                  0.31901119      2
+## clinstatus_baseline3 0.90183753      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=2.627097 on 3 df, p=0.4527588, n=94
-## Wald test = 29.99458 on 3 df, p = 1.383688e-06
+## Likelihood ratio test=2.685375 on 3 df, p=0.4427183, n=92
+## Wald test = 29.42841 on 3 df, p = 1.820098e-06
 ```
 
 ```r
@@ -2668,10 +3578,7 @@ mort.28.comed.3 <- df %>%
   filter(comed_cat == 3) %>% # with Dexamethasone but no Tocilizumab
   logistf(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.comed.3)
 ```
@@ -2682,23 +3589,22 @@ summary(mort.28.comed.3)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                              coef  se(coef)  lower 0.95 upper 0.95        Chisq
-## (Intercept)          -1.731686093 4.7709735 -24.2478949 21.6127275 0.1022316708
-## trt                  -0.564818392 1.8624477  -8.3460502  4.6097484 0.0849672715
-## age                   0.002827212 0.1037378  -0.5328459  0.5188345 0.0005734334
-## clinstatus_baseline3 -0.347471320 2.4775875  -7.2104814  5.5884137 0.0182028188
+##                             coef  se(coef)  lower 0.95 upper 0.95       Chisq
+## (Intercept)          -1.34754260 4.9366331 -25.3756681 22.5678618 0.056536985
+## trt                  -0.50998067 1.8568148  -8.2553433  4.6624801 0.069791804
+## age                  -0.00600195 0.1077614  -0.5548081  0.5447925 0.002315850
+## clinstatus_baseline3 -0.24058239 2.4975587  -7.5463565  6.3233529 0.008474401
 ##                              p method
-## (Intercept)          0.7491678      2
-## trt                  0.7706755      2
-## age                  0.9808953      2
-## clinstatus_baseline3 0.8926768      2
+## (Intercept)          0.8120556      2
+## trt                  0.7916402      2
+## age                  0.9616180      2
+## clinstatus_baseline3 0.9266531      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=0.2457288 on 3 df, p=0.9698899, n=16
-## Wald test = 8.418992 on 3 df, p = 0.03810139
+## Likelihood ratio test=0.1974945 on 3 df, p=0.9779928, n=15
+## Wald test = 7.988277 on 3 df, p = 0.0462546
 ```
-Discussion points
 
 # Subgroup analysis: Vaccination on adverse events
 
@@ -2718,8 +3624,7 @@ table(df$vacc, df$trt, useNA = "always") # only two vaccinated, both in interven
 ae.28.vacc <- df %>% 
   glm(ae_28 ~ trt*vacc
       + age 
-      #+ clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      #+ clinstatus_baseline
       , family = "binomial", data=.)
 summ(ae.28.vacc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2810,7 +3715,6 @@ ae.28.vacc.firth <- df %>%
   logistf(ae_28 ~ trt*vacc
       + age
       + clinstatus_baseline
-      #+ comed_dexa + comed_rdv + comed_toci
       , data=.)
 summary(ae.28.vacc.firth)
 ```
@@ -2850,9 +3754,6 @@ ae.28.vacc.1 <- df %>%
   logistf(ae_28 ~ trt
       + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
     , data=.)
 summary(ae.28.vacc.1)
 ```
@@ -2878,10 +3779,7 @@ ae.28.vacc.0 <- df %>%
   filter(vacc == 0) %>% # not vaccinated
   glm(ae_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(ae.28.vacc.0, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2957,7 +3855,6 @@ summ(ae.28.vacc.0, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 
@@ -2966,8 +3863,7 @@ Discussion points
 mort.28.symp <- df %>% 
   glm(mort_28 ~ trt*sympdur
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2976,7 +3872,7 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -3025,11 +3921,11 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> sympdur </td>
-   <td style="text-align:right;"> 0.57 </td>
+   <td style="text-align:right;"> 0.58 </td>
    <td style="text-align:right;"> 0.29 </td>
-   <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> -1.60 </td>
-   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> 1.14 </td>
+   <td style="text-align:right;"> -1.57 </td>
+   <td style="text-align:right;"> 0.12 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
@@ -3041,7 +3937,7 @@ summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits =
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 55160002.41 </td>
+   <td style="text-align:right;"> 56187896.10 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -3066,7 +3962,6 @@ mort.28.symp.firth <- df %>%
   logistf(mort_28 ~ trt*sympdur
       + age
       + clinstatus_baseline
-      #+ comed_dexa + comed_rdv + comed_toci
       , data=.)
 summary(mort.28.symp.firth)
 ```
@@ -3077,25 +3972,25 @@ summary(mort.28.symp.firth)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                             coef  se(coef)   lower 0.95 upper 0.95      Chisq
-## (Intercept)          -4.86643177 3.5217299 -17.27757694 3.17813009 1.12351091
-## trt                  -2.69094322 3.3201723 -34.06592053 8.39369847 0.35598949
-## sympdur              -0.40092414 0.2344394  -1.03431351 0.09228557 2.60135128
-## age                   0.07427711 0.0597477  -0.07331908 0.29427967 0.78745464
-## clinstatus_baseline3  0.46371109 1.3500972  -2.54797409 5.55806234 0.07515517
-## trt:sympdur           0.25162991 0.5146759  -2.79850886 3.73650085 0.10807671
+##                             coef   se(coef)   lower 0.95 upper 0.95      Chisq
+## (Intercept)          -4.87857319 3.50800514 -17.18172867  3.1502515 1.14393922
+## trt                  -2.59543098 3.34303999 -41.99621211  8.5521982 0.32543091
+## sympdur              -0.39365532 0.23533154  -1.02971063  0.1028880 2.47940144
+## age                   0.07398334 0.05943427  -0.07284021  0.2928089 0.79728647
+## clinstatus_baseline3  0.46740606 1.34375670  -2.53900830  5.5553396 0.07703115
+## trt:sympdur           0.23606345 0.52527230  -2.85674001  4.6720416 0.09141534
 ##                              p method
-## (Intercept)          0.2891637      2
-## trt                  0.5507421      2
-## sympdur              0.1067726      2
-## age                  0.3748709      2
-## clinstatus_baseline3 0.7839736      2
-## trt:sympdur          0.7423445      2
+## (Intercept)          0.2848215      2
+## trt                  0.5683620      2
+## sympdur              0.1153461      2
+## age                  0.3719059      2
+## clinstatus_baseline3 0.7813618      2
+## trt:sympdur          0.7623855      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=5.104107 on 5 df, p=0.4033075, n=110
-## Wald test = 33.71823 on 5 df, p = 2.709161e-06
+## Likelihood ratio test=5.005926 on 5 df, p=0.4151574, n=107
+## Wald test = 33.14407 on 5 df, p = 3.523474e-06
 ```
 
 ```r
@@ -3120,9 +4015,6 @@ table(df$sympdur_cat, useNA = "always")
 #   logistf(mort_28 ~ trt
 #      # + age
 #      # + clinstatus_baseline
-#      # + comed_dexa
-#      # + comed_rdv
-#      # + comed_toci
 #       , data=.)
 # summ(mort.28.sympdur.a10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
@@ -3130,10 +4022,7 @@ mort.28.sympdur.510 <- df %>%
   filter(sympdur_cat == 1) %>% # 5-10 days
   logistf(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.sympdur.510)
 ```
@@ -3145,20 +4034,20 @@ summary(mort.28.sympdur.510)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                             coef   se(coef)  lower 0.95 upper 0.95     Chisq
-## (Intercept)          -7.02178769 3.75128723 -20.3830668  1.9471351 2.3039245
-## trt                  -1.13541799 1.36444473  -6.1010910  1.7705060 0.5722733
-## age                   0.07904815 0.06405209  -0.1122541  0.2775145 0.7862073
-## clinstatus_baseline3 -0.62510063 1.44424052  -3.8732486  4.4730110 0.1175551
+## (Intercept)          -7.01865515 3.72184210 -20.0992754  1.8614074 2.3740780
+## trt                  -1.13583677 1.36745476  -6.1026029  1.7705083 0.5721196
+## age                   0.07893878 0.06352589  -0.1100689  0.2734412 0.8211687
+## clinstatus_baseline3 -0.57521247 1.44554028  -3.8240978  4.5111385 0.1008141
 ##                              p method
-## (Intercept)          0.1290476      2
-## trt                  0.4493570      2
-## age                  0.3752494      2
-## clinstatus_baseline3 0.7317015      2
+## (Intercept)          0.1233644      2
+## trt                  0.4494179      2
+## age                  0.3648387      2
+## clinstatus_baseline3 0.7508549      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=1.286017 on 3 df, p=0.7324562, n=80
-## Wald test = 26.23784 on 3 df, p = 8.504044e-06
+## Likelihood ratio test=1.315872 on 3 df, p=0.7253677, n=77
+## Wald test = 25.62315 on 3 df, p = 1.1437e-05
 ```
 
 ```r
@@ -3166,10 +4055,7 @@ mort.28.sympdur.b5 <- df %>%
   filter(sympdur_cat == 2) %>% # 5d or less
   logistf(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.sympdur.b5)
 ```
@@ -3196,7 +4082,6 @@ summary(mort.28.sympdur.b5)
 ## Likelihood ratio test=0.9937635 on 3 df, p=0.802761, n=30
 ## Wald test = 13.0871 on 3 df, p = 0.004451975
 ```
-Discussion points
 
 # SENS Subgroup analysis: CRP on primary endpoint
 
@@ -3205,8 +4090,7 @@ Discussion points
 mort.28.crp <- df %>% 
   glm(mort_28 ~ trt*crp
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -3215,7 +4099,7 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 110 </td>
+   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -3267,20 +4151,20 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:right;"> 0.97 </td>
    <td style="text-align:right;"> 0.91 </td>
    <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> -1.22 </td>
-   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> -1.19 </td>
+   <td style="text-align:right;"> 0.23 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.37 </td>
-   <td style="text-align:right;"> 0.85 </td>
-   <td style="text-align:right;"> 2.21 </td>
-   <td style="text-align:right;"> 1.29 </td>
+   <td style="text-align:right;"> 1.36 </td>
+   <td style="text-align:right;"> 0.84 </td>
+   <td style="text-align:right;"> 2.20 </td>
+   <td style="text-align:right;"> 1.27 </td>
    <td style="text-align:right;"> 0.20 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 195794537.52 </td>
+   <td style="text-align:right;"> 194541480.05 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -3290,7 +4174,7 @@ summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:left;font-weight: bold;"> trt:crp </td>
    <td style="text-align:right;"> 1.04 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 24411503795368001434698530777159082877010456821237512846296421103191244125401466017939456.00 </td>
+   <td style="text-align:right;"> 2977816162891940608728224032685748317437794705899027611133052679163396853758872659410931291258880.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 1.00 </td>
   </tr>
@@ -3305,7 +4189,6 @@ mort.28.crp.firth <- df %>%
   logistf(mort_28 ~ trt*crp
       + age
       + clinstatus_baseline
-      #+ comed_dexa + comed_rdv + comed_toci
       , data=.)
 summary(mort.28.crp.firth)
 ```
@@ -3316,25 +4199,25 @@ summary(mort.28.crp.firth)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                              coef    se(coef)   lower 0.95   upper 0.95
-## (Intercept)          -9.453869032 4.089342980 -31.58828054 -0.636507843
-## trt                  -3.713207259 2.454387461 -22.21696188  2.528870654
-## crp                  -0.008522203 0.009222539  -0.05282785  0.009223566
-## age                   0.123236338 0.069874858  -0.04739161  0.471686981
-## clinstatus_baseline3  0.400734557 1.329006667  -2.59338812  5.470954602
-## trt:crp               0.020210272 0.015626804  -0.09710740  0.108611415
+##                             coef   se(coef)   lower 0.95   upper 0.95
+## (Intercept)          -9.32885430 4.03398494 -29.93191986 -0.679633431
+## trt                  -3.86381999 2.49016877 -19.80042772  2.516317071
+## crp                  -0.00777839 0.00890177  -0.05100037  0.009314367
+## age                   0.12001547 0.06877986  -0.04677471  0.450040838
+## clinstatus_baseline3  0.43742506 1.32872032  -2.55985956  5.544831227
+## trt:crp               0.02127433 0.01560067  -0.09531897  0.105906822
 ##                           Chisq         p method
-## (Intercept)          4.66177443 0.0308413      2
-## trt                  1.38091642 0.2399451      2
-## crp                  0.64514048 0.4218555      2
-## age                  1.85415959 0.1733004      2
-## clinstatus_baseline3 0.05504695 0.8145030      2
-## trt:crp              0.72521305 0.3944392      2
+## (Intercept)          4.71132230 0.0299646      2
+## trt                  1.42179736 0.2331078      2
+## crp                  0.59177464 0.4417337      2
+## age                  1.86860021 0.1716355      2
+## clinstatus_baseline3 0.06604048 0.7971916      2
+## trt:crp              0.81528469 0.3665624      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=3.762878 on 5 df, p=0.5840352, n=110
-## Wald test = 31.00425 on 5 df, p = 9.349181e-06
+## Likelihood ratio test=3.820981 on 5 df, p=0.5754675, n=107
+## Wald test = 30.17114 on 5 df, p = 1.36476e-05
 ```
 
 ```r
@@ -3347,10 +4230,7 @@ mort.28.crp.b75 <- df %>%
   filter(crp_75 == 1) %>% # below 75
   logistf(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.crp.b75)
 ```
@@ -3383,10 +4263,7 @@ mort.28.crp.a75 <- df %>%
   filter(crp_75 == 0) %>% # 75 and above
   logistf(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(mort.28.crp.a75)
 ```
@@ -3398,22 +4275,21 @@ summary(mort.28.crp.a75)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                             coef   se(coef)  lower 0.95 upper 0.95     Chisq
-## (Intercept)          -4.52026817 3.76903795 -18.3556767  3.8655369 0.9958003
-## trt                  -1.35283475 1.40874416  -6.7536486  1.7055775 0.7259746
-## age                   0.05929508 0.06990733  -0.1235702  0.2719583 0.4052166
-## clinstatus_baseline3 -1.72458403 1.76746588  -7.4201128  3.6180567 0.5983414
+## (Intercept)          -4.54675639 3.74273013 -18.0567904  3.8000911 1.0516341
+## trt                  -1.36004796 1.41684437  -6.7429779  1.7022254 0.7304801
+## age                   0.05985428 0.06940027  -0.1220918  0.2672985 0.4375515
+## clinstatus_baseline3 -1.68309317 1.77238295  -7.3028801  3.6520271 0.5760180
 ##                              p method
-## (Intercept)          0.3183288      2
-## trt                  0.3941911      2
-## age                  0.5244074      2
-## clinstatus_baseline3 0.4392116      2
+## (Intercept)          0.3051310      2
+## trt                  0.3927276      2
+## age                  0.5083066      2
+## clinstatus_baseline3 0.4478774      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=1.19467 on 3 df, p=0.7542829, n=58
-## Wald test = 21.25155 on 3 df, p = 9.334212e-05
+## Likelihood ratio test=1.192437 on 3 df, p=0.7548189, n=55
+## Wald test = 20.52572 on 3 df, p = 0.0001320622
 ```
-Discussion points
 
 # SENS Subgroup analysis: Variant on primary endpoint
 
@@ -3481,27 +4357,29 @@ result_list <- list()
 
 result_list[[1]] <- extract_trt_results(mort.28.firth, "death at day 28_firth", 
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[2]] <- extract_trt_results(mort.60.firth, "death at day 60_firth", 
+result_list[[2]] <- extract_trt_results(mort.28.dimp.firth, "death at day 28_dimp_firth", 
+                                        addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[3]] <- extract_trt_results(mort.60.firth, "death at day 60_firth", 
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-# result_list[[3]] <- extract_trt_results(ttdeath, "death within fup", 
+# result_list[[4]] <- extract_trt_results(ttdeath, "death within fup", 
 #                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[4]] <- extract_trt_results(new.mv.28, "new MV within 28d", 
+result_list[[5]] <- extract_trt_results(new.mv.28, "new MV within 28d", 
                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d", 
+result_list[[6]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d", 
                                         addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28", 
+result_list[[7]] <- extract_trt_results(clin.28, "clinical status at day 28", 
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
-result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days", 
+result_list[[8]] <- extract_trt_results(ttdischarge, "discharge within 28 days", 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event", 
+result_list[[9]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event", 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age
-result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event", 
+result_list[[10]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event", 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days", 
+result_list[[11]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days", 
                                          addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[11]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days", 
+result_list[[12]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days", 
                                          addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[12]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days", 
+result_list[[13]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days", 
                                          addmargins(table(df$ae_28_sev, df$trt))[8,2], addmargins(table(df$ae_28_sev, df$trt))[8,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
@@ -3563,25 +4441,25 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |      |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |JAKi        |
 |:-----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|---------:|:-------|:-----------|
-|trt   |death at day 28_firth                      |         0.1821907| 0.0013138| 2.2907423|      1.3578533| 0.2033326|             55|        55|COVINIB |Baricitinib |
-|trt1  |death at day 60_firth                      |         0.1821907| 0.0013138| 2.2907423|      1.3578533| 0.2033326|             55|        55|COVINIB |Baricitinib |
-|trt2  |new MV within 28d                          |         0.2698113| 0.0378235| 1.2528273|      0.8481418| 0.1224451|             55|        53|COVINIB |Baricitinib |
-|trt3  |new MV or death within 28d                 |         0.1994251| 0.0286724| 0.8616816|      0.8259909| 0.0509407|             55|        55|COVINIB |Baricitinib |
-|trt4  |clinical status at day 28                  |         0.3212049| 0.0428055| 1.6548681|      0.8868231| 0.2003301|             55|        55|COVINIB |Baricitinib |
-|trt5  |discharge within 28 days                   |         1.5863095| 1.0663853| 2.3597266|      0.2026239| 0.0227757|             55|        55|COVINIB |Baricitinib |
-|trt6  |discharge within 28 days, death=comp.event |         1.5296461| 1.0591368| 2.2091738|      0.1875454| 0.0230000|             55|        55|COVINIB |Baricitinib |
-|trt7  |discharge within 28 days, death=hypo.event |         1.5895397| 1.0685224| 2.3646079|      0.2026403| 0.0221941|             55|        55|COVINIB |Baricitinib |
-|trt8  |sustained discharge within 28 days         |         1.5863095| 1.0663853| 2.3597266|      0.2026239| 0.0227757|             55|        55|COVINIB |Baricitinib |
-|trt9  |any AE grade 3,4 within 28 days            |         0.7968701| 0.3083398| 2.0353792|      0.4772424| 0.6342294|             55|        53|COVINIB |Baricitinib |
-|trt10 |AEs grade 3,4 within 28 days               |         0.5880219| 0.3243155| 1.0415364|      0.2955431| 0.0723893|             55|        53|COVINIB |Baricitinib |
-|1     |death at day 28_0.5corr                    |         0.1962617| 0.0092010| 4.1860000|      1.0655099| 0.1264643|             55|        55|COVINIB |Baricitinib |
-|11    |death at day 60_0.5corr                    |         0.1962617| 0.0092010| 4.1860000|      1.0655099| 0.1264643|             55|        55|COVINIB |Baricitinib |
+|trt   |death at day 28_firth                      |         0.1815850| 0.0013083| 2.2871313|      1.3606659| 0.2027397|             53|        54|COVINIB |Baricitinib |
+|trt1  |death at day 28_dimp_firth                 |         0.1821907| 0.0013138| 2.2907423|      1.3578533| 0.2033326|             55|        55|COVINIB |Baricitinib |
+|trt2  |death at day 60_firth                      |         0.1815850| 0.0013083| 2.2871313|      1.3606659| 0.2027397|             53|        54|COVINIB |Baricitinib |
+|trt3  |new MV within 28d                          |         0.2704553| 0.0378052| 1.2606316|      0.8500686| 0.1239788|             53|        52|COVINIB |Baricitinib |
+|trt4  |new MV or death within 28d                 |         0.1994253| 0.0285841| 0.8653293|      0.8280712| 0.0515259|             53|        54|COVINIB |Baricitinib |
+|trt5  |clinical status at day 28                  |         0.3212049| 0.0428055| 1.6548681|      0.8868231| 0.2003301|             55|        55|COVINIB |Baricitinib |
+|trt6  |discharge within 28 days                   |         1.5863095| 1.0663853| 2.3597266|      0.2026239| 0.0227757|             55|        55|COVINIB |Baricitinib |
+|trt7  |discharge within 28 days, death=comp.event |         1.5296461| 1.0591368| 2.2091738|      0.1875454| 0.0230000|             55|        55|COVINIB |Baricitinib |
+|trt8  |discharge within 28 days, death=hypo.event |         1.5895397| 1.0685224| 2.3646079|      0.2026403| 0.0221941|             55|        55|COVINIB |Baricitinib |
+|trt9  |sustained discharge within 28 days         |         1.5863095| 1.0663853| 2.3597266|      0.2026239| 0.0227757|             55|        55|COVINIB |Baricitinib |
+|trt10 |any AE grade 3,4 within 28 days            |         0.7968701| 0.3083398| 2.0353792|      0.4772424| 0.6342294|             55|        53|COVINIB |Baricitinib |
+|trt11 |AEs grade 3,4 within 28 days               |         0.5880219| 0.3243155| 1.0415364|      0.2955431| 0.0723893|             55|        53|COVINIB |Baricitinib |
+|1     |death at day 28_0.5corr                    |         0.1962617| 0.0092010| 4.1860000|      1.0655099| 0.1264643|             53|        54|COVINIB |Baricitinib |
+|11    |death at day 60_0.5corr                    |         0.1962617| 0.0092010| 4.1860000|      1.0655099| 0.1264643|             53|        54|COVINIB |Baricitinib |
 
 ```r
 # Save
 saveRDS(result_df, file = "trt_effects_covinib.RData")
 ```
-Discussion points
 
 # Collect all interaction estimates (stage one)
 
@@ -3632,7 +4510,7 @@ result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support
 result_list[[2]] <- extract_interaction(mort.28.age.firth, "age_firth")
 result_list[[3]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
 result_list[[4]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
-result_list[[5]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth") # still to come -> firth
+result_list[[5]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
 result_list[[6]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
 result_list[[7]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
 
@@ -3652,19 +4530,18 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |                          |variable                  | log_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value|trial   |JAKi        |
 |:-------------------------|:-------------------------|--------------:|---------:|-------------:|--------------:|---------:|:-------|:-----------|
-|trt:clinstatus_baseline_n |respiratory support_firth |      0.2536829| 0.0005021|  8.068519e+01|      2.4394313| 0.5912665|COVINIB |Baricitinib |
-|trt:age                   |age_firth                 |      0.8693817| 0.5509537|  1.544251e+00|      0.1064336| 0.4222890|COVINIB |Baricitinib |
-|trt:comorb_cat            |comorbidity_firth         |      1.4993758| 0.0242156|  6.641843e+03|      1.2605593| 0.7890303|COVINIB |Baricitinib |
-|trt:comed_cat             |comedication_firth        |      1.3612128| 0.0739669|  3.144253e+01|      1.2146440| 0.8126010|COVINIB |Baricitinib |
+|trt:clinstatus_baseline_n |respiratory support_firth |      0.2524142| 0.0004994|  8.030618e+01|      2.4418058| 0.5899644|COVINIB |Baricitinib |
+|trt:age                   |age_firth                 |      0.8660242| 0.5581487|  1.539408e+00|      0.1063739| 0.4253310|COVINIB |Baricitinib |
+|trt:comorb_cat            |comorbidity_firth         |      1.5083366| 0.0234199|  5.786072e+03|      1.2663027| 0.7880265|COVINIB |Baricitinib |
+|trt:comed_cat             |comedication_firth        |      1.3636355| 0.0738293|  3.157788e+01|      1.2185055| 0.8119091|COVINIB |Baricitinib |
 |trt:vacc                  |vaccination on AEs_firth  |      1.0000000| 0.0000000| 1.774721e+204|      2.3995390| 0.9999999|COVINIB |Baricitinib |
-|trt:sympdur               |symptom duration_firth    |      1.2861200| 0.0609008|  4.195094e+01|      0.5146759| 0.7423445|COVINIB |Baricitinib |
-|trt:crp                   |crp_firth                 |      1.0204159| 0.9074585|  1.114729e+00|      0.0156268| 0.3944392|COVINIB |Baricitinib |
+|trt:sympdur               |symptom duration_firth    |      1.2662547| 0.0574558|  1.069158e+02|      0.5252723| 0.7623855|COVINIB |Baricitinib |
+|trt:crp                   |crp_firth                 |      1.0215022| 0.9090829|  1.111718e+00|      0.0156007| 0.3665624|COVINIB |Baricitinib |
 
 ```r
 # Save
 saveRDS(interaction_df, file = "int_effects_covinib.RData")
 ```
-Discussion points
 
 # Collect all subgroup treatment effect estimates
 
@@ -3841,26 +4718,25 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |      |variable                       | hazard_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial   |JAKi        |
 |:-----|:------------------------------|-----------------:|---------:|-------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------|:-----------|
-|trt   |None or low-flow oxygen_firth  |         0.1713846| 0.0012269|  2.189138e+00|      1.4774359| 0.1891848|              0|                 55|         2|            55|COVINIB |Baricitinib |
+|trt   |None or low-flow oxygen_firth  |         0.1706455| 0.0012210|  2.182257e+00|      1.4796585| 0.1882367|              0|                 53|         2|            54|COVINIB |Baricitinib |
 |trt1  |No oxygen_firth                |         1.4516881| 0.0050949|  3.369693e+02|      1.7562814| 0.8724571|              0|                 16|         0|            19|COVINIB |Baricitinib |
-|trt2  |low-flow oxygen_firth          |         0.1836593| 0.0013126|  2.361832e+00|      1.4635004| 0.2102105|              0|                 39|         2|            36|COVINIB |Baricitinib |
+|trt2  |low-flow oxygen_firth          |         0.1826966| 0.0013043|  2.354803e+00|      1.4673121| 0.2091351|              0|                 37|         2|            35|COVINIB |Baricitinib |
 |trt3  |70 years and above_firth       |         0.5555556| 0.0025702|  1.189958e+02|      2.1499335| 0.7854220|              0|                  4|         0|             2|COVINIB |Baricitinib |
-|trt4  |below 70 years_firth           |         0.1874516| 0.0013417|  2.392560e+00|      1.4609525| 0.2150245|              0|                 51|         2|            53|COVINIB |Baricitinib |
-|trt5  |No comorbidity_firth           |         0.0746062| 0.0000024|  3.782748e+00|      1.8583987| 0.2282802|              0|                 18|         1|            19|COVINIB |Baricitinib |
+|trt4  |below 70 years_firth           |         0.1924344| 0.0013769|  2.458930e+00|      1.4599915| 0.2232569|              0|                 49|         2|            52|COVINIB |Baricitinib |
+|trt5  |No comorbidity_firth           |         0.0726380| 0.0000024|  3.707308e+00|      1.8702986| 0.2226213|              0|                 17|         1|            19|COVINIB |Baricitinib |
 |trt6  |One comorbidity_firth          |         0.8351792| 0.0035622|  6.863845e+02|      1.4982055| 0.9239355|              0|                 21|         0|            19|COVINIB |Baricitinib |
-|trt7  |Multiple comorbidities_firth   |         0.3488323| 0.0022044|  7.130628e+00|      1.4167142| 0.5056131|              0|                 15|         1|            16|COVINIB |Baricitinib |
+|trt7  |Multiple comorbidities_firth   |         0.3560667| 0.0022367|  7.373511e+00|      1.4211978| 0.5163665|              0|                 14|         1|            15|COVINIB |Baricitinib |
 |trt8  |Immunocompromised_firth        |         1.0000000| 0.0054376|  7.294577e+01|      2.3094100| 1.0000000|              0|                  1|         0|             1|COVINIB |Baricitinib |
-|trt9  |No Dexa, no Tocilizumab_firth  |         0.2030739| 0.0014605|  2.584762e+00|      1.3600982| 0.2391093|              0|                 44|         2|            50|COVINIB |Baricitinib |
-|trt10 |Dexa, but no Tocilizumab_firth |         0.5684634| 0.0002373|  1.004589e+02|      1.8624477| 0.7706755|              0|                 11|         0|             5|COVINIB |Baricitinib |
+|trt9  |No Dexa, no Tocilizumab_firth  |         0.2037385| 0.0014640|  2.600035e+00|      1.3605340| 0.2406854|              0|                 43|         2|            49|COVINIB |Baricitinib |
+|trt10 |Dexa, but no Tocilizumab_firth |         0.6005072| 0.0002599|  1.058984e+02|      1.8568148| 0.7916402|              0|                 10|         0|             5|COVINIB |Baricitinib |
 |trt11 |vaccinated_firth               |         1.0000980| 0.0000000| 2.005975e+204|      2.3998851| 1.0000000|              0|                  2|         0|             0|COVINIB |Baricitinib |
-|trt12 |not vaccinated                 |         0.8436332| 0.3258987|  2.160550e+00|      0.4783483| 0.7222391|              0|                 53|         2|            55|COVINIB |Baricitinib |
-|trt13 |Between 5-10 days_firth        |         0.3212878| 0.0022404|  5.873824e+00|      1.3644447| 0.4493570|              0|                 15|         1|            15|COVINIB |Baricitinib |
-|trt14 |5 days and less_firth          |         0.2792402| 0.0018768|  5.345121e+00|      1.4061063| 0.4040744|              0|                 55|         2|            55|COVINIB |Baricitinib |
-|trt15 |CRP 75 and higher_firth        |         0.2585064| 0.0011666|  5.504564e+00|      1.4087442| 0.3941911|              0|                 32|         1|            26|COVINIB |Baricitinib |
+|trt12 |not vaccinated                 |         0.8436332| 0.3258987|  2.160550e+00|      0.4783483| 0.7222391|              0|                 51|         2|            54|COVINIB |Baricitinib |
+|trt13 |Between 5-10 days_firth        |         0.3211533| 0.0022370|  5.873839e+00|      1.3674548| 0.4494179|              0|                 15|         1|            15|COVINIB |Baricitinib |
+|trt14 |5 days and less_firth          |         0.2792402| 0.0018768|  5.345121e+00|      1.4061063| 0.4040744|              0|                 53|         2|            54|COVINIB |Baricitinib |
+|trt15 |CRP 75 and higher_firth        |         0.2566485| 0.0011791|  5.486143e+00|      1.4168444| 0.3927276|              0|                 30|         1|            25|COVINIB |Baricitinib |
 |trt16 |CRP below 75_firth             |         0.2436989| 0.0000120|  5.526709e+00|      1.4582197| 0.3923310|              0|                 23|         1|            29|COVINIB |Baricitinib |
 
 ```r
 # Save
 saveRDS(subgroup_df, file = "subgroup_effects_covinib.RData")
 ```
-Discussion points
