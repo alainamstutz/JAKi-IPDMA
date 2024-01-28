@@ -1434,14 +1434,14 @@ imputed_int_s <- imputed_int %>% # remove imputation variables, not needed anymo
   select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
 imputed_int_wide <- imputed_int_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
   group_by(Imputation) %>%
-  distinct(clus, .keep_all = TRUE) # 515, correct
+  distinct(clus, .keep_all = TRUE) 
 
 imputed_cont$trt <- 0 # treatment variable
 imputed_cont_s <- imputed_cont %>% # remove imputation variables, not needed anymore
   select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
 imputed_cont_wide <- imputed_cont_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
   group_by(Imputation) %>%
-  distinct(clus, .keep_all = TRUE) # 518, correct
+  distinct(clus, .keep_all = TRUE) 
 
 imputed_combined <- rbind(imputed_cont_wide, imputed_int_wide)
 
