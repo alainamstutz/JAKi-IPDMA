@@ -19,6 +19,7 @@ library(tidyverse)
 library(readxl)
 library(writexl)
 library(tableone)
+library(haven) # Read sas files
 library(here)
 library(kableExtra)
 
@@ -33,6 +34,11 @@ library(tidycmprsk) # competing risk analysis
 library(ordinal) # clinstatus ordinal regression
 library(mosaic) # OR for 0.5-corrected 2x2 table in case of rare events
 library(logistf) # Firth regression in case of rare events
+
+library(finalfit) # missing data exploration
+library(mice) # multiple imputation
+library(jomo) # multiple imputation
+library(mitools) # multiple imputation
 ```
 
 # Load Data
@@ -264,15 +270,21 @@ Discussion points BASELINE data:
 df$randdate <- as_date(df$`Randomization  Date`)
 df$death_date <- as_date(df$`death date`)
 df$withdrawal_date <- as_date(df$`withdrawal_date`)
-
 df$death_d <- as.numeric(df$death_date - df$randdate) 
 df$withdraw_d <- as.numeric(df$withdrawal_date - df$randdate)
 df$discharge_d <- as.numeric(df$`Hospital days`)
 
-# (i) Primary outcome: Mortality at day 28 // CAVE: WE HAVE WITHDRAWALS!!!! at the same time variable "death"...
+# (i) Primary outcome: Mortality at day 28 // We have withdrawals, but still discharge/death/clinstatus data at day 28
 df <- df %>%
-  mutate(mort_28 = case_when(death_d <29 ~ 1, 
-                             TRUE ~ 0)) 
+  mutate(mort_28 = case_when(death_d <29 ~ 1,
+                             death == "no" ~ 0
+                             )) 
+# df %>% 
+#   filter(is.na(mort_28)) %>% 
+#   View()
+# table(df$mort_28, useNA = "always")
+df$mort_28_dimp <- df$mort_28
+
 
 # (ii) Mortality at day 60
 df$mort_60 <- df$mort_28 # max fup time was 28 days; thus mort_60 imputed from mort_28
@@ -350,9 +362,8 @@ df_ae <- df %>%
 # Save
 saveRDS(df_ae, file = "df_ae_ghazaeian.RData")
 ```
-Discussion points OUTCOME data:
 
-# Define final datasets, set references, summarize missing data and variables
+# Define final datasets
 
 ```r
 # keep the overall set
@@ -370,7 +381,7 @@ df <- df %>%
          any_comorb, comorb_cat, comorb_count,
          crp, 
          # sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -388,12 +399,12 @@ df_os$vir_clear_10 <- NA
 df_os$vir_clear_15 <- NA
 # Save
 saveRDS(df_os, file = "df_os_ghazaeian.RData")
+```
 
-## set references, re-level
-# df <- df %>% 
-#   mutate(Treatment = relevel(Treatment, "no JAK inhibitor"))
+# Missing data plot: One-stage dataset
 
-# Create a bar plot to visualize missing values in each column
+```r
+# Bar plot, missing data, each data point, standardized one-stage dataset
 original_order <- colnames(df_os)
 missing_plot <- df_os %>%
   summarise_all(~ mean(is.na(.))) %>%
@@ -401,13 +412,13 @@ missing_plot <- df_os %>%
   mutate(key = factor(key, levels = original_order)) %>%
   ggplot(aes(x = key, y = value)) +
   geom_bar(stat = "identity") +
-  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data Visualization") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - standardized one-stage dataset") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ylim(0, 1)
 print(missing_plot)
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 Discussion points
 1. Missing variables:
 * Baseline:
@@ -415,16 +426,644 @@ Discussion points
   - Viremia
   - Variant
   - Serology
+  - comorb kidney and liver
 * Outcomes:
   - viral load
 2. Missing data:
 - crp: 2 NAs
-- NAs in new_mv_28, aesi_28, ae_28_list: Not part of denominator
+- NAs in new_mv_28: Not part of denominator
+
+# Missing data: Explore for MI
+
+```r
+# keep the core df
+# names(df_all)
+df_core <- df_all %>% 
+  select(id_pat, JAKi, trt, sex, age, ethn, country, icu, sympdur, 
+         # vacc, 
+         clinstatus_baseline, vbaseline, trial,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney,
+         any_comorb, comorb_cat, comorb_count,
+         crp, 
+         # sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev
+         # vir_clear_5, vir_clear_10, vir_clear_15
+         )
+
+# Convert character variables to factors
+char_vars <- c("id_pat", "sex", "trial", "JAKi", "ethn", "country", "icu", "clinstatus_baseline", "vbaseline", 
+               "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb", "comorb_cat", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28")
+df_core <- df_core %>%
+  mutate(across(all_of(char_vars), factor))
+
+# Bar plot, missing data, each data point, core dataset
+original_order <- colnames(df_core)
+missing_plot <- df_core %>%
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
+# Bar plot, missing data, each data point, core dataset, by arm
+df_core_int <- df_core %>% 
+  filter(trt == 1)
+original_order <- colnames(df_core_int)
+missing_plot <- df_core_int %>% # Intervention arm
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, intervention") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
+
+```r
+df_core_cont <- df_core %>% 
+  filter(trt == 0)
+original_order <- colnames(df_core_cont)
+missing_plot <- df_core_cont %>% # Control arm
+  summarise_all(~ mean(is.na(.))) %>%
+  gather() %>%
+  mutate(key = factor(key, levels = original_order)) %>%
+  ggplot(aes(x = key, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Columns", y = "Proportion of Missing Values", title = "Missing Data - core dataset, control") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  ylim(0, 1)
+print(missing_plot)
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-6-3.png)<!-- -->
+
+```r
+#### only CRP missing -> MI
+### Baseline table, by individuals with no missing data vs any missing data (or only in crp)
+df_core$resp<-ifelse(is.na(df_core$crp), 0, 1);table(df_core$resp) # only mort_28 missing 
+```
+
+```
+## 
+##  0  1 
+##  2 95
+```
+
+```r
+# Assign variable list
+vars.list <- c("resp", "age", "sympdur", "trt", "sex", "trial", "JAKi", "ethn", "country", "icu", "sympdur", "clinstatus_baseline", "vbaseline", "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp"
+               , "mort_28", "mort_28_dimp", "mort_60", "death_reached","death_time", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_time", "discharge_reached_sus", "discharge_time_sus", "ae_28", "ae_28_sev")
+
+# By completeness (only mort_28)
+table_resp <- CreateTableOne(data = df_core, vars = vars.list[!vars.list %in% c("resp")], strata = "resp", includeNA = T, test = T, addOverall = TRUE)
+# Print and display the table
+capture.output(
+  table_resp <- print(
+    table_resp, 
+    nonnormal = vars.list, 
+    catDigits = 1, 
+    SMD = TRUE, 
+    showAllLevels = TRUE, 
+    test = TRUE, 
+    printToggle = FALSE, 
+    missing = TRUE))
+```
+
+```
+## character(0)
+```
+
+```r
+kable(table_resp, format = "markdown", table.attr = 'class="table"', caption = "By completeness (only crp)") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+Table: By completeness (only crp)
+
+|                                  |level          |Overall              |0                    |1                    |p     |test    |Missing |
+|:---------------------------------|:--------------|:--------------------|:--------------------|:--------------------|:-----|:-------|:-------|
+|n                                 |               |97                   |2                    |95                   |      |        |        |
+|age (median [IQR])                |               |51.00 [37.00, 64.00] |49.50 [40.25, 58.75] |51.00 [37.50, 64.00] |0.839 |nonnorm |0.0     |
+|sympdur (median [IQR])            |               |7.00 [6.00, 10.00]   |7.00 [7.00, 7.00]    |7.00 [6.00, 10.00]   |0.837 |nonnorm |0.0     |
+|sympdur (median [IQR])            |               |7.00 [6.00, 10.00]   |7.00 [7.00, 7.00]    |7.00 [6.00, 10.00]   |0.837 |nonnorm |0.0     |
+|trt (median [IQR])                |               |0.00 [0.00, 1.00]    |0.50 [0.25, 0.75]    |0.00 [0.00, 1.00]    |0.942 |nonnorm |0.0     |
+|sex (%)                           |female         |50 ( 51.5)           |0 (  0.0)            |50 ( 52.6)           |0.448 |        |0.0     |
+|                                  |male           |47 ( 48.5)           |2 (100.0)            |45 ( 47.4)           |      |        |        |
+|trial (%)                         |Ghazaeian      |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|JAKi (%)                          |Tofacitinib    |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|ethn (%)                          |Persian/Mazani |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|country (%)                       |Iran           |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|icu (%)                           |0              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|sympdur (median [IQR])            |               |7.00 [6.00, 10.00]   |7.00 [7.00, 7.00]    |7.00 [6.00, 10.00]   |0.837 |nonnorm |0.0     |
+|sympdur (median [IQR])            |               |7.00 [6.00, 10.00]   |7.00 [7.00, 7.00]    |7.00 [6.00, 10.00]   |0.837 |nonnorm |0.0     |
+|clinstatus_baseline (%)           |2              |2 (  2.1)            |0 (  0.0)            |2 (  2.1)            |1.000 |        |0.0     |
+|                                  |3              |95 ( 97.9)           |2 (100.0)            |93 ( 97.9)           |      |        |        |
+|vbaseline (%)                     |0              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|comed_dexa (%)                    |1              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|comed_rdv (%)                     |1              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|comed_toci (%)                    |0              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|comed_ab (%)                      |1              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|comed_acoa (%)                    |1              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|comed_interferon (%)              |0              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|comed_other (%)                   |0              |82 ( 84.5)           |2 (100.0)            |80 ( 84.2)           |1.000 |        |0.0     |
+|                                  |1              |15 ( 15.5)           |0 (  0.0)            |15 ( 15.8)           |      |        |        |
+|comed_cat (%)                     |3              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|comorb_lung (%)                   |0              |94 ( 96.9)           |2 (100.0)            |92 ( 96.8)           |1.000 |        |0.0     |
+|                                  |1              |3 (  3.1)            |0 (  0.0)            |3 (  3.2)            |      |        |        |
+|comorb_cvd (%)                    |0              |95 ( 97.9)           |2 (100.0)            |93 ( 97.9)           |1.000 |        |0.0     |
+|                                  |1              |2 (  2.1)            |0 (  0.0)            |2 (  2.1)            |      |        |        |
+|comorb_aht (%)                    |0              |69 ( 71.1)           |2 (100.0)            |67 ( 70.5)           |0.903 |        |0.0     |
+|                                  |1              |28 ( 28.9)           |0 (  0.0)            |28 ( 29.5)           |      |        |        |
+|comorb_dm (%)                     |0              |67 ( 69.1)           |1 ( 50.0)            |66 ( 69.5)           |1.000 |        |0.0     |
+|                                  |1              |30 ( 30.9)           |1 ( 50.0)            |29 ( 30.5)           |      |        |        |
+|comorb_obese (%)                  |0              |65 ( 67.0)           |1 ( 50.0)            |64 ( 67.4)           |0.853 |        |1.0     |
+|                                  |1              |31 ( 32.0)           |1 ( 50.0)            |30 ( 31.6)           |      |        |        |
+|                                  |NA             |1 (  1.0)            |0 (  0.0)            |1 (  1.1)            |      |        |        |
+|comorb_smoker (%)                 |0              |97 (100.0)           |2 (100.0)            |95 (100.0)           |NA    |        |0.0     |
+|immunosupp (%)                    |0              |95 ( 97.9)           |2 (100.0)            |93 ( 97.9)           |1.000 |        |0.0     |
+|                                  |1              |2 (  2.1)            |0 (  0.0)            |2 (  2.1)            |      |        |        |
+|any_comorb (%)                    |0              |41 ( 42.3)           |1 ( 50.0)            |40 ( 42.1)           |1.000 |        |0.0     |
+|                                  |1              |56 ( 57.7)           |1 ( 50.0)            |55 ( 57.9)           |      |        |        |
+|comorb_cat (%)                    |1              |41 ( 42.3)           |1 ( 50.0)            |40 ( 42.1)           |0.870 |        |0.0     |
+|                                  |2              |22 ( 22.7)           |0 (  0.0)            |22 ( 23.2)           |      |        |        |
+|                                  |3              |32 ( 33.0)           |1 ( 50.0)            |31 ( 32.6)           |      |        |        |
+|                                  |4              |2 (  2.1)            |0 (  0.0)            |2 (  2.1)            |      |        |        |
+|comorb_count (median [IQR])       |               |1.00 [0.00, 2.00]    |1.00 [0.50, 1.50]    |1.00 [0.00, 2.00]    |0.947 |nonnorm |0.0     |
+|comorb_autoimm (%)                |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |0.0     |
+|                                  |1              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
+|comorb_cancer (%)                 |0              |95 ( 97.9)           |2 (100.0)            |93 ( 97.9)           |1.000 |        |0.0     |
+|                                  |1              |2 (  2.1)            |0 (  0.0)            |2 (  2.1)            |      |        |        |
+|crp (median [IQR])                |               |68.00 [33.50, 84.00] |NA [NA, NA]          |68.00 [33.50, 84.00] |NA    |nonnorm |2.1     |
+|mort_28 (%)                       |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |0.0     |
+|                                  |1              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
+|mort_28_dimp (%)                  |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |0.0     |
+|                                  |1              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
+|mort_60 (%)                       |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |0.0     |
+|                                  |1              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
+|death_reached (%)                 |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |0.0     |
+|                                  |1              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
+|death_time (median [IQR])         |               |28.00 [28.00, 28.00] |16.00 [10.00, 22.00] |28.00 [28.00, 28.00] |0.158 |nonnorm |0.0     |
+|new_mv_28 (%)                     |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |7.2     |
+|                                  |NA             |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
+|new_mvd_28 (%)                    |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |0.0     |
+|                                  |1              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
+|discharge_reached (%)             |0              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |1.000 |        |0.0     |
+|                                  |1              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |      |        |        |
+|discharge_time (median [IQR])     |               |6.00 [6.00, 7.00]    |6.50 [5.25, 7.75]    |6.00 [6.00, 7.00]    |0.967 |nonnorm |0.0     |
+|discharge_reached_sus (%)         |0              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |1.000 |        |0.0     |
+|                                  |1              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |      |        |        |
+|discharge_time_sus (median [IQR]) |               |6.00 [6.00, 7.00]    |6.50 [5.25, 7.75]    |6.00 [6.00, 7.00]    |0.967 |nonnorm |0.0     |
+|ae_28 (%)                         |0              |96 ( 99.0)           |2 (100.0)            |94 ( 98.9)           |1.000 |        |0.0     |
+|                                  |1              |1 (  1.0)            |0 (  0.0)            |1 (  1.1)            |      |        |        |
+|ae_28_sev (median [IQR])          |               |0.00 [0.00, 0.00]    |0.00 [0.00, 0.00]    |0.00 [0.00, 0.00]    |0.885 |nonnorm |0.0     |
+
+```r
+### Define variables to be included in imputation set
+table(df_core$ae_28_sev, useNA = "always")
+```
+
+```
+## 
+##    0    1 <NA> 
+##   96    1    0
+```
+
+```r
+df_imp <- df_core %>% 
+  select("id_pat"
+         , "trt", "sex", "age" 
+         # , "ethn" # no info
+         # , "country" # no info
+         , "sympdur" 
+         # , "vacc"
+         # , "trial", "JAKi"  # only 0
+         , "clinstatus_baseline"
+         # , "vbaseline" # derived
+         # , "comed_rdv"
+         # , "comed_toci", "comed_interferon" # no info
+         #,  "comed_cat", # derived
+         # , "comed_dexa", "comed_ab"
+         # , "comed_acoa" # no info
+         # , "comed_other" # no info
+         # , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese",
+         # "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb",
+         # "comorb_count",  
+         ,"comorb_cat" # derived from above, contains most information, and needed as interaction term
+         ,"crp"
+         # ,"vl_baseline"
+         # , "sero" , "variant" # no info
+         # , "clinstatus_28_imp" # imputed via LOVCF above
+         , "mort_28"
+         # , "mort_28_dimp" # imputed deterministically
+         # , "mort_60" # does not contain any additional information compared to death reached
+         , "death_reached", "death_time", "new_mv_28", "new_mvd_28", "discharge_reached", "discharge_time"
+         # , "discharge_reached_sus", "discharge_time_sus" # same as discharge, does not contain any addition information
+         # , "ae_28", "ae_28_sev" # very little info
+         # , "vir_clear_5", "vir_clear_10", "vir_clear_15"
+         )
+
+# First, table and visualize missing data in various ways
+# df_imp %>% 
+#   ff_glimpse() # from finalfit package
+df_imp %>%
+  missing_plot() # from finalfit package
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-6-4.png)<!-- -->
+
+```r
+explanatory = c("age", 
+  "clinstatus_baseline", "sex", 
+  "sympdur", "comorb_cat", "mort_28")
+dependent = "crp"
+df_imp %>% # from finalfit package, missing plot
+  missing_pairs(dependent, explanatory, position = "fill", )
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-6-5.png)<!-- -->
+
+```r
+# Second, let's explore the missingness patterns
+md.pattern(df_imp[,c("age", "crp",
+  "clinstatus_baseline", "sex", 
+  "sympdur", "comorb_cat", "mort_28")], rotate.names = T)
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-6-6.png)<!-- -->
+
+```
+##    age clinstatus_baseline sex sympdur comorb_cat mort_28 crp  
+## 95   1                   1   1       1          1       1   1 0
+## 2    1                   1   1       1          1       1   0 1
+##      0                   0   0       0          0       0   2 2
+```
+
+```r
+# Third, let's explore if the variables from my substantive model plus auxiliary variables are associated with crp
+mort28.aux <- lm(crp ~
+            + age 
+            + clinstatus_baseline
+            + sex
+            + sympdur
+            + comorb_cat
+            + mort_28
+            ,family="binomial"
+            ,data=df_imp)
+summary(mort28.aux)
+```
+
+```
+## 
+## Call:
+## lm(formula = crp ~ +age + clinstatus_baseline + sex + sympdur + 
+##     comorb_cat + mort_28, data = df_imp, family = "binomial")
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -74.681 -26.557   1.183  17.499 161.344 
+## 
+## Coefficients:
+##                       Estimate Std. Error t value Pr(>|t|)   
+## (Intercept)            1.59895   39.98029   0.040  0.96819   
+## age                    0.85446    0.30149   2.834  0.00572 **
+## clinstatus_baseline3  35.59301   31.88529   1.116  0.26741   
+## sexmale               -8.26811    9.95231  -0.831  0.40840   
+## sympdur               -0.03289    1.83526  -0.018  0.98574   
+## comorb_cat2           -5.15274   11.96321  -0.431  0.66775   
+## comorb_cat3          -22.59500   11.71426  -1.929  0.05705 . 
+## comorb_cat4           -1.16282   33.53052  -0.035  0.97242   
+## mort_281              -7.90620   17.97848  -0.440  0.66121   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 43.76 on 86 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.1182,	Adjusted R-squared:  0.03613 
+## F-statistic:  1.44 on 8 and 86 DF,  p-value: 0.1915
+```
+
+```r
+# Fourth, let's explore if they are associated with missingness of crp:
+df_imp %>% 
+  missing_compare(dependent, explanatory) %>%
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"))
+```
+
+<table>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Missing data analysis: crp </th>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Not missing </th>
+   <th style="text-align:right;"> Missing </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> age </td>
+   <td style="text-align:left;"> Mean (SD) </td>
+   <td style="text-align:right;"> 51.7 (16.0) </td>
+   <td style="text-align:right;"> 49.5 (26.2) </td>
+   <td style="text-align:right;"> 0.849 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> clinstatus_baseline </td>
+   <td style="text-align:left;"> 2 </td>
+   <td style="text-align:right;"> 2 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;"> 1.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 3 </td>
+   <td style="text-align:right;"> 93 (97.9) </td>
+   <td style="text-align:right;"> 2 (2.1) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sex </td>
+   <td style="text-align:left;"> female </td>
+   <td style="text-align:right;"> 50 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;"> 0.448 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> male </td>
+   <td style="text-align:right;"> 45 (95.7) </td>
+   <td style="text-align:right;"> 2 (4.3) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> sympdur </td>
+   <td style="text-align:left;"> Mean (SD) </td>
+   <td style="text-align:right;"> 7.8 (2.7) </td>
+   <td style="text-align:right;"> 7.0 (0.0) </td>
+   <td style="text-align:right;"> 0.688 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> comorb_cat </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:right;"> 40 (97.6) </td>
+   <td style="text-align:right;"> 1 (2.4) </td>
+   <td style="text-align:right;"> 0.870 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 2 </td>
+   <td style="text-align:right;"> 22 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 3 </td>
+   <td style="text-align:right;"> 31 (96.9) </td>
+   <td style="text-align:right;"> 1 (3.1) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 4 </td>
+   <td style="text-align:right;"> 2 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> mort_28 </td>
+   <td style="text-align:left;"> 0 </td>
+   <td style="text-align:right;"> 88 (97.8) </td>
+   <td style="text-align:right;"> 2 (2.2) </td>
+   <td style="text-align:right;"> 1.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:right;"> 7 (100.0) </td>
+   <td style="text-align:right;"> 0 (0.0) </td>
+   <td style="text-align:right;">  </td>
+  </tr>
+</tbody>
+</table>
+
+```r
+# Fifth, check age
+summary(df_imp$age)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   20.00   37.00   51.00   51.66   64.00   86.00
+```
+
+```r
+hist(df_imp$age, breaks=50) # looks fine
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-6-7.png)<!-- -->
+
+```r
+# Sixth, check sympdur
+summary(df_imp$sympdur)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   3.000   6.000   7.000   7.753  10.000  14.000
+```
+
+```r
+hist(df_imp$sympdur, breaks=50)
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-6-8.png)<!-- -->
+
+```r
+# Seventh, check crp
+summary(df_imp$crp)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##    4.00   33.50   68.00   67.28   84.00  237.00       2
+```
+
+```r
+hist(df_imp$crp, breaks=50) # outliers
+```
+
+![](Ghazaeian_files/figure-html/unnamed-chunk-6-9.png)<!-- -->
+
+```r
+# df_imp <- df_imp %>% # truncate outliers > 500
+#   mutate(crptrunc = case_when(crp > 500 ~ 500,
+#                                TRUE ~ crp))
+# hist(df_imp$crptrunc)
+# df_imp$sqcrptrunc=sqrt(df_imp$crptrunc)
+# hist(df_imp$sqcrptrunc) # looks fine
+
+### Reshape to long format // not possible in Ghazaeian to use clinstatus over time, since this info is not available
+```
+
+# Multiple imputation // only CRP is missing: Choose a different imputation model
+
+```r
+# #### INTERVENTION group
+# ## jomo only accepts numeric or factors, check and adapt
+# # str(df_imp_long_int)
+# df_imp_long_int$timesq <- sqrt(df_imp_long_int$time) # see X below
+# attach(df_imp_long_int)
+# Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
+#                , age
+#                , sex
+#                , ethn
+#                , vacc
+#                , comed_dexa
+#                , comed_ab
+#                , comed_other
+#                , comorb_cat
+#                , sympdur
+#                , sqcrptrunc
+#                  )
+# Y<-data.frame(clinstatus) # level 1 variable within clustering variable
+# X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
+#               , time
+#               , timesq)
+# clus<-data.frame(id_pat) # clustering variable (patient)
+# Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
+# colnames(Z)<-c("const", "time") 
+# 
+# nimp<-50 # set number of iterations
+# 
+# ## run jomo
+# # dry run
+# imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=2) ## clinstatus_baseline has 7 missings
+# # plot(c(1:2),imputed_int_mcmc$collectbeta[1,1,1:2],type="l")
+# # plot(c(1:2),imputed_int_mcmc$collectcovu[5,5,1:2],type="l")
+# set.seed(1569)
+# imputed_int <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
+# # nburn<-1000
+# # imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=nburn)
+# # plot(c(1:nburn),imputed_int_mcmc$collectbeta[1,1,1:nburn],type="l")
+# # plot(c(1:nburn),imputed_int_mcmc$collectcovu[5,5,1:nburn],type="l")
+# 
+# # convert to jomo object, split imputations, and exclude original data (imputation "0")
+# imp.list_int <- imputationList(split(imputed_int, imputed_int$Imputation)[-1])
+# 
+# # checks
+# round(prop.table(table(imp.list_int[[1]]$`1`$mort_28, useNA = "always"))*100,1) # first imputed dataset
+# round(prop.table(table(imp.list_int[[1]]$`2`$mort_28, useNA = "always"))*100,1) # second imputed dataset
+# round(prop.table(table(df_imp_long_int$mort_28, useNA = "always"))*100,1) # original data
+# summary(imp.list_int[[1]]$`1`$comorb_cat)
+# summary(imp.list_int[[1]]$`2`$sqsympdur)
+# summary(imp.list_int[[1]]$`2`$sqcrptrunc)
+# 
+# 
+# #### CONTROL group
+# ## jomo only accepts numeric or factors, check and adapt
+# # str(df_imp_long_cont)
+# df_imp_long_cont$timesq <- sqrt(df_imp_long_cont$time) # see X below
+# attach(df_imp_long_cont)
+# Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
+#                , age
+#                , sex
+#                , ethn
+#                , country
+#                , comed_dexa
+#                , comed_ab
+#                , comed_other
+#                , comorb_cat
+#                , sqsympdur
+#                , sqcrptrunc
+#                , vl_baseline
+#                , ae_28_sev
+#                  )
+# Y<-data.frame(clinstatus_n) # level 1 variable within clustering variable
+# X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
+#               , time
+#               , timesq)
+# clus<-data.frame(id_pat) # clustering variable (patient)
+# Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
+# colnames(Z)<-c("const", "time") 
+# 
+# nimp<-50 # set number of iterations
+# 
+# # run jomo
+# set.seed(1569)
+# imputed_cont <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
+# # nburn<-1000
+# # imputed_cont_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=nburn)
+# # plot(c(1:nburn),imputed_cont_mcmc$collectbeta[1,1,1:nburn],type="l")
+# # plot(c(1:nburn),imputed_cont_mcmc$collectcovu[5,5,1:nburn],type="l")
+# 
+# # convert to jomo object, split imputations, and exclude original data (imputation "0")
+# imp.list_cont <- imputationList(split(imputed_cont, imputed_cont$Imputation)[-1])
+# 
+# # checks
+# round(prop.table(table(imp.list_cont[[1]]$`1`$mort_28, useNA = "always"))*100,1) # first imputed dataset
+# round(prop.table(table(imp.list_cont[[1]]$`2`$mort_28, useNA = "always"))*100,1) # second imputed dataset
+# round(prop.table(table(df_imp_long_cont$mort_28, useNA = "always"))*100,1) # original data
+# summary(imp.list_cont[[1]]$`1`$comorb_cat)
+# summary(imp.list_cont[[1]]$`2`$sqsympdur)
+# 
+# 
+# #### Add trt back, change from long to wide format, and finally combine the two data frames
+# imputed_int$trt <- 1
+# imputed_int_s <- imputed_int %>% # remove imputation variables, not needed anymore
+#   select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+# imputed_int_wide <- imputed_int_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
+#   group_by(Imputation) %>%
+#   distinct(clus, .keep_all = TRUE) 
+# 
+# imputed_cont$trt <- 0 # treatment variable
+# imputed_cont_s <- imputed_cont %>% # remove imputation variables, not needed anymore
+#   select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+# imputed_cont_wide <- imputed_cont_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
+#   group_by(Imputation) %>%
+#   distinct(clus, .keep_all = TRUE) 
+# 
+# imputed_combined <- rbind(imputed_cont_wide, imputed_int_wide)
+# 
+# 
+# #### Convert combined df to jomo object, split imputations, and exclude original data (imputation "0")
+# imp.list <- imputationList(split(imputed_combined, imputed_combined$Imputation)[-1])
+# 
+# 
+# ### Checks
+# round(prop.table(table(imp.list[[1]]$`1`$mort_28, imp.list[[1]]$`1`$trt, useNA = "always"),2)*100,1) # first imputed dataset
+# round(prop.table(table(imp.list[[1]]$`2`$mort_28, imp.list[[1]]$`2`$trt, useNA = "always"),2)*100,1) # second imputed dataset
+# round(prop.table(table(df_imp$mort_28, df_imp$trt, useNA = "always"),2)*100,1) # original data
+# summary(imp.list[[1]]$`1`$comorb_cat)
+# summary(imp.list[[1]]$`2`$sqsympdur)
+```
 
 # (i) Primary outcome: Mortality at day 28
 
 ```r
-# adjusted for baseline patient characteristics (age, respiratory support at baseline (ordinal scale 1-3 vs 4-5), dexamethasone use at baseline (y/n), remdesivir use at baseline (y/n), anti-IL-6 use at baseline (y/n)).
 addmargins(table(df$mort_28, df$trt, useNA = "always"))
 ```
 
@@ -440,8 +1079,7 @@ addmargins(table(df$mort_28, df$trt, useNA = "always"))
 ```r
 mort.28 <- df %>% 
   glm(mort_28 ~ trt 
-      + age + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -455,6 +1093,86 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
    <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.79 </td>
+   <td style="text-align:right;"> 0.17 </td>
+   <td style="text-align:right;"> 3.78 </td>
+   <td style="text-align:right;"> -0.29 </td>
+   <td style="text-align:right;"> 0.77 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 1.09 </td>
+   <td style="text-align:right;"> 0.28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 1351843.73 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+mort.28.dimp <- df %>% 
+  glm(mort_28_dimp ~ trt 
+      + age + clinstatus_baseline
+      , family = "binomial", data=.)
+summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 97 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28_dimp </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Type </td>
@@ -537,8 +1255,7 @@ table(df$mort_60, df$trt, useNA = "always")
 ```r
 mort.60 <- df %>% 
   glm(mort_60 ~ trt 
-      + age + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -685,14 +1402,13 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 ```r
 # testing: cox ph
 ttdeath <- df %>% 
   coxph(Surv(death_time, death_reached) ~ trt 
         + age + clinstatus_baseline 
-        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ```
 
@@ -728,27 +1444,6 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
 
-```r
-# Assessing proportional hazards // also just check KM curve
-ph.check <- coxph(Surv(death_time, death_reached) ~ trt
-                , data = df)
-cz <- cox.zph(ph.check)
-print(cz)
-```
-
-```
-##        chisq df    p
-## trt    0.135  1 0.71
-## GLOBAL 0.135  1 0.71
-```
-
-```r
-plot(cz)
-```
-
-![](Ghazaeian_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
-Discussion points
-
 # (iv) New mechanical ventilation among survivors within 28 days
 
 ```r
@@ -766,8 +1461,7 @@ table(df$new_mv_28, df$trt, useNA = "always")
 new.mv.28 <- df %>% 
   glm(new_mv_28 ~ trt 
        #+ age 
-       #+ clinstatus_baseline 
-       #+ comed_dexa + comed_rdv + comed_toci
+       #+ clinstatus_baseline
       , family = "binomial", data=.)
 summ(new.mv.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -844,8 +1538,7 @@ table(df$new_mvd_28, df$trt, useNA = "always")
 ```r
 new.mvd.28 <- df %>% 
   glm(new_mvd_28 ~ trt 
-      + age + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + age + clinstatus_baseline
       , family = "binomial", data=.)
 summ(new.mvd.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -946,8 +1639,7 @@ table(df$clinstatus_28_imp, df$trt, useNA = "always")
 clin.28 <- df %>% 
   clm(clinstatus_28_imp ~ trt 
       + age 
-      #+ clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      #+ clinstatus_baseline
       , link= c("logit"), data=.)
 # Summary and extract coefficients
 coefficients_table <- summary(clin.28)$coefficients
@@ -974,7 +1666,6 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |1&#124;6 |1&#124;6 | 52.1672552| 2.6152188| 1040.609880|
 |trt      |trt      |  0.8256311| 0.1729268|    3.941938|
 |age      |age      |  1.0275873| 0.9786306|    1.078993|
-Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 
@@ -1007,7 +1698,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 ```r
 # table(df$discharge_reached, df$discharge_time)
@@ -1018,8 +1709,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
 # testing: cox ph
 ttdischarge <- df %>% 
   coxph(Surv(discharge_time, discharge_reached) ~ trt 
-        + age + clinstatus_baseline 
-        #+ comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline
         , data =.)
 ttdischarge_reg_tbl <- tbl_regression(ttdischarge, exp = TRUE)
 # Nicely formatted table
@@ -1082,14 +1772,13 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-10-2.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
 
 ```r
 # testing: cox ph
 ttdischarge.sens <- df %>% 
   coxph(Surv(discharge_time_sens, discharge_reached) ~ trt 
         + age + clinstatus_baseline 
-        #+ comed_dexa + comed_rdv + comed_toci
         , data =.)
 ttdischarge_sens_reg_tbl <- tbl_regression(ttdischarge.sens, exp = TRUE)
 # Nicely formatted table
@@ -1112,26 +1801,6 @@ kable(ttdischarge_sens_reg_tbl, format = "markdown", table.attr = 'class="table"
 |6                   |NA     |NA         |NA          |
 
 ```r
-# Assessing proportional hazards using default discharge_time and discharge_reached
-ph.check <- coxph(Surv(discharge_time, discharge_reached) ~ trt 
-                , data = df)
-cz <- cox.zph(ph.check)
-print(cz)
-```
-
-```
-##         chisq df    p
-## trt    0.0252  1 0.87
-## GLOBAL 0.0252  1 0.87
-```
-
-```r
-plot(cz)
-```
-
-![](Ghazaeian_files/figure-html/unnamed-chunk-10-3.png)<!-- -->
-
-```r
 # Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
 # Use cause-specific hazards
 survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>% 
@@ -1144,14 +1813,13 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-10-4.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-13-3.png)<!-- -->
 
 ```r
 # testing: cox ph
 ttdischarge.sus <- df %>% 
   coxph(Surv(discharge_time_sus, discharge_reached_sus) ~ trt 
-        + age + clinstatus_baseline 
-        #+ comed_dexa + comed_rdv + comed_toci
+        + age + clinstatus_baseline
         , data =.)
 ttdischarge_sus_reg_tbl <- tbl_regression(ttdischarge.sus, exp = TRUE)
 # Nicely formatted table
@@ -1264,8 +1932,7 @@ ae.28.corr <- oddsRatio(tbl, conf.level = 0.95, digits = 3, verbose = TRUE)
 ae.28.firth <- df %>% 
   logistf(ae_28 ~ trt 
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(ae.28.firth)
 ```
@@ -1298,8 +1965,7 @@ summary(ae.28.firth)
 ae.28.sev.firth <- df %>% 
   logistf(ae_28_sev ~ trt 
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , data=.)
 summary(ae.28.sev.firth)
 ```
@@ -1365,8 +2031,7 @@ df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 mort.28.vent <- df %>% 
   glm(mort_28 ~ trt*clinstatus_baseline_n
       + age 
-      #+ clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      #+ clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1456,8 +2121,7 @@ summ(mort.28.vent, exp = T, confint = T, model.info = T, model.fit = F, digits =
 mort.28.vent.firth <- df %>% 
   logistf(mort_28 ~ trt*clinstatus_baseline_n
       + age 
-      #+ clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      #+ clinstatus_baseline
       , data=.)
 summary(mort.28.vent.firth)
 ```
@@ -1492,8 +2156,7 @@ summary(mort.28.vent.firth)
 # mort.28.vent.vb.firth <- df %>% 
 #   logistf(mort_28 ~ trt*vbaseline
 #       + age 
-#       #+ clinstatus_baseline 
-#       #+ comed_dexa + comed_rdv + comed_toci
+#       #+ clinstatus_baseline
 #       , data=.)
 # summary(mort.28.vent.vb.firth)
 
@@ -1503,9 +2166,6 @@ mort.28.vent.vb.no <- df %>%
   glm(mort_28 ~ trt
       + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
      ,family = "binomial" , data=.)
 summ(mort.28.vent.vb.no, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1581,9 +2241,6 @@ summ(mort.28.vent.vb.no, exp = T, confint = T, model.info = T, model.fit = F, di
 #   logistf(mort_28 ~ trt
 #      # + age
 #      # + clinstatus_baseline
-#      # + comed_dexa
-#      # + comed_rdv
-#      # + comed_toci
 #      , data=.)
 # summary(mort.28.vent.rs.2)
 
@@ -1592,9 +2249,6 @@ mort.28.vent.rs.3 <- df %>%
   glm(mort_28 ~ trt
       + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
      ,family = "binomial"  , data=.)
 summ(mort.28.vent.rs.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1671,8 +2325,7 @@ Discussion points
 mort.28.age <- df %>% 
   glm(mort_28 ~ trt*age
       #+ age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -1797,9 +2450,6 @@ mort.28.age.a70 <- df %>%
   logistf(mort_28 ~ trt
       # + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
      , data=.)
 summary(mort.28.age.a70)
 ```
@@ -1828,9 +2478,6 @@ mort.28.age.b70 <- df %>%
   logistf(mort_28 ~ trt
       # + age 
       + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
       , data=.)
 summary(mort.28.age.b70)
 ```
@@ -1861,9 +2508,6 @@ mort.28.age.b70 <- df %>%
   logistf(mort_28 ~ trt
       # + age 
       + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
      , data=.)
 summary(mort.28.age.b70)
 ```
@@ -1887,7 +2531,6 @@ summary(mort.28.age.b70)
 ## Likelihood ratio test=0.6999507 on 2 df, p=0.7047054, n=85
 ## Wald test = 37.69334 on 2 df, p = 6.53124e-09
 ```
-Discussion points
 
 # Subgroup analysis: Comorbidities on primary endpoint
 
@@ -1912,7 +2555,6 @@ mort.28.comorb <- df %>%
   glm(mort_28 ~ trt*comorb_cat 
       + age 
       + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2013,7 +2655,6 @@ mort.28.comorb.f <- df %>%
   glm(mort_28 ~ trt*comorb_cat_f 
       + age 
       + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2145,7 +2786,6 @@ mort.28.comorb.count <- df %>%
   glm(mort_28 ~ trt*comorb_count 
       + age 
       + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2245,9 +2885,6 @@ mort.28.comorb.1 <- df %>%
   glm(mort_28 ~ trt
       + age 
       + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
      , family = "binomial" , data=.)
 summ(mort.28.comorb.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2330,9 +2967,6 @@ mort.28.comorb.2 <- df %>%
   logistf(mort_28 ~ trt
       + age 
      # + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
      , data=.)
 summary(mort.28.comorb.2)
 ```
@@ -2363,9 +2997,6 @@ mort.28.comorb.3 <- df %>%
   glm(mort_28 ~ trt
       + age 
       + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comorb.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2448,9 +3079,6 @@ mort.28.comorb.4 <- df %>%
   logistf(mort_28 ~ trt
        + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
      , data=.)
 summary(mort.28.comorb.4)
 ```
@@ -2474,7 +3102,6 @@ summary(mort.28.comorb.4)
 ## Likelihood ratio test=0.4711321 on 2 df, p=0.7901235, n=2
 ## Wald test = 0.9052123 on 2 df, p = 0.6359686
 ```
-Discussion points
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 
@@ -2500,9 +3127,6 @@ mort.28.comed <- df %>%
   glm(mort_28 ~ trt*comed_cat 
       + age 
       + clinstatus_baseline 
-      #+ comed_dexa 
-      #+ comed_rdv 
-      #+ comed_toci
       , family = "binomial", data=.)
 summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2601,7 +3225,6 @@ mort.28.comed.firth <- df %>%
   logistf(mort_28 ~ trt*comed_cat
       + age
       + clinstatus_baseline
-      #+ comed_dexa + comed_rdv + comed_toci
       , data=.)
 summary(mort.28.comed.firth)
 ```
@@ -2640,9 +3263,6 @@ mort.28.comed.3 <- df %>%
   glm(mort_28 ~ trt
       + age 
       + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
      , family = "binomial" , data=.)
 summ(mort.28.comed.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2733,8 +3353,7 @@ Discussion points
 mort.28.symp <- df %>% 
   glm(mort_28 ~ trt*sympdur
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.symp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2849,9 +3468,6 @@ mort.28.sympdur.a10 <- df %>%
   glm(mort_28 ~ trt
       + age
      # + clinstatus_baseline
-     # + comed_dexa
-     # + comed_rdv
-     # + comed_toci
      , family = "binomial" , data=.)
 summ(mort.28.sympdur.a10, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -2925,10 +3541,7 @@ mort.28.sympdur.510 <- df %>%
   filter(sympdur_cat == 1) %>% # 5-10 days
   glm(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
      , family = "binomial" , data=.)
 summ(mort.28.sympdur.510, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -3010,10 +3623,7 @@ mort.28.sympdur.b5 <- df %>%
   filter(sympdur_cat == 2) %>% # 5d or less
   glm(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
      , family = "binomial" , data=.)
 summ(mort.28.sympdur.b5, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -3097,8 +3707,7 @@ summ(mort.28.sympdur.b5, exp = T, confint = T, model.info = T, model.fit = F, di
 mort.28.crp <- df %>% 
   glm(mort_28 ~ trt*crp
       + age 
-      + clinstatus_baseline 
-      #+ comed_dexa + comed_rdv + comed_toci
+      + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.crp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -3201,10 +3810,7 @@ mort.28.crp.b75 <- df %>%
   filter(crp_75 == 1) %>% # below 75
   glm(mort_28 ~ trt
       + age 
-      + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+      + clinstatus_baseline
      , family = "binomial" , data=.)
 summ(mort.28.crp.b75, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -3286,10 +3892,7 @@ mort.28.crp.a75 <- df %>%
   filter(crp_75 == 0) %>% # 75 and above
   glm(mort_28 ~ trt
       + age 
-     # + clinstatus_baseline 
-     # + comed_dexa 
-     # + comed_rdv 
-     # + comed_toci
+     # + clinstatus_baseline
      , family = "binomial" , data=.)
 summ(mort.28.crp.a75, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
@@ -3357,7 +3960,6 @@ summ(mort.28.crp.a75, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # SENS Subgroup analysis: Variant on primary endpoint
 
@@ -3425,27 +4027,29 @@ result_list <- list()
 
 result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[2]] <- extract_trt_results(mort.60, "death at day 60",
+result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
+                                        addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[3]] <- extract_trt_results(mort.60, "death at day 60",
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
+result_list[[4]] <- extract_trt_results(ttdeath, "death within fup",
                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
 # result_list[[x]] <- extract_trt_results(new.mv.28, "new MV within 28d",
 #                                       addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # not possible
-result_list[[4]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
+result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
                                         addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[5]] <- extract_trt_results(clin.28, "clinical status at day 28",
+result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28",
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age
-result_list[[6]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
+result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[8]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
+result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[9]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[10]] <- extract_trt_results(ae.28.firth, "any AE grade 3,4 within 28 days_firth",
+result_list[[11]] <- extract_trt_results(ae.28.firth, "any AE grade 3,4 within 28 days_firth",
                                          addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[11]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days_firth",
+result_list[[12]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days_firth",
                                          addmargins(table(df$ae_28_sev, df$trt))[3,2], addmargins(table(df$ae_28_sev, df$trt))[3,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
@@ -3488,23 +4092,23 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial     |JAKi        |
 |:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:---------|:-----------|
 |trt   |death at day 28                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
-|trt1  |death at day 60                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
-|trt2  |death within fup                           |         0.8379501| 0.1873973|   3.746907|      0.7641607| 0.8170346|             46|        51|Ghazaeian |Tofacitinib |
-|trt3  |new MV or death within 28d                 |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
-|trt4  |clinical status at day 28                  |         0.8256311| 0.1539462|   3.988879|      0.7975917| 0.8101502|             46|        51|Ghazaeian |Tofacitinib |
-|trt5  |discharge within 28 days                   |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
-|trt6  |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
-|trt7  |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812|   1.254624|      0.2150223| 0.3654539|             46|        51|Ghazaeian |Tofacitinib |
-|trt8  |sustained discharge within 28 days         |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
-|trt9  |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
-|trt10 |AEs grade 3,4 within 28 days_firth         |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
+|trt1  |death at day 28_dimp                       |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt2  |death at day 60                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt3  |death within fup                           |         0.8379501| 0.1873973|   3.746907|      0.7641607| 0.8170346|             46|        51|Ghazaeian |Tofacitinib |
+|trt4  |new MV or death within 28d                 |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt5  |clinical status at day 28                  |         0.8256311| 0.1539462|   3.988879|      0.7975917| 0.8101502|             46|        51|Ghazaeian |Tofacitinib |
+|trt6  |discharge within 28 days                   |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
+|trt7  |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
+|trt8  |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812|   1.254624|      0.2150223| 0.3654539|             46|        51|Ghazaeian |Tofacitinib |
+|trt9  |sustained discharge within 28 days         |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
+|trt10 |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
+|trt11 |AEs grade 3,4 within 28 days_firth         |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
 |1     |any AE grade 3,4 within 28 days_0.5-corr   |         3.3956044| 0.1349000|  85.440000|     21.7615051| 0.9552013|             46|        51|Ghazaeian |Tofacitinib |
 
 ```r
 # Save
 saveRDS(result_df, file = "trt_effects_ghazaeian.RData")
 ```
-Discussion points
 
 # Collect all interaction estimates (stage one)
 
@@ -3588,7 +4192,6 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(interaction_df, file = "int_effects_ghazaeian.RData")
 ```
-Discussion points
 
 # Collect all subgroup treatment effect estimates
 
@@ -3784,4 +4387,3 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(subgroup_df, file = "subgroup_effects_ghazaeian.RData")
 ```
-Discussion points
