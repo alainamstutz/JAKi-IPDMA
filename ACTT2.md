@@ -1567,7 +1567,7 @@ print(plot_clinstat_cont)
 # str(df_imp_long_int)
 df_imp_long_int$timesq <- sqrt(df_imp_long_int$time) # see X below
 attach(df_imp_long_int)
-Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
+Y2 <- data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                  , age
                  , sex
                  , ethn
@@ -1581,13 +1581,11 @@ Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                  , comed_ab
                  , comed_other
                  )
-Y<-data.frame(clinstatus_n) # level 1 variable within clustering variable
-X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
-              , time
-              , timesq)
-clus<-data.frame(id_pat) # clustering variable (patient)
-Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
-colnames(Z)<-c("const", "time") 
+Y <- data.frame(clinstatus_n) # level 1 variable within clustering variable
+X <- cbind(1, data.frame(clinicalstatus_baseline, time, timesq)) # matrix modelling linearity of clinstatus throughout day 28
+clus <- data.frame(id_pat) # clustering variable (patient)
+Z <- data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
+colnames(Z) <- c("const", "time") 
 
 nimp<-50 # set number of iterations
 
@@ -1635,9 +1633,7 @@ Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                  , comed_other
                  )
 Y<-data.frame(clinstatus_n) # level 1 variable within clustering variable
-X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
-              , time
-              , timesq)
+X <- cbind(1, data.frame(clinicalstatus_baseline, time, timesq)) # matrix modelling linearity of clinstatus throughout day 28
 clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
@@ -1666,17 +1662,17 @@ summary(imp.list_cont[[1]]$`2`$sqsympdur)
 #### Add trt back, change from long to wide format, and finally combine the two data frames
 imputed_int$trt <- 1
 imputed_int_s <- imputed_int %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, ethn, region, comorb_cat, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sqsympdur, mort_28, sex, ethn, country, comed_dexa, comed_ab, comed_other, comorb_cat, sqcrptrunc, vl_baseline, clinicalstatus_baseline, ae_28_sev, clus, Imputation)
 imputed_int_wide <- imputed_int_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
   group_by(Imputation) %>%
-  distinct(clus, .keep_all = TRUE) # 515, correct
+  distinct(clus, .keep_all = TRUE) # 515 * 51 = 26265, correct
 
 imputed_cont$trt <- 0 # treatment variable
 imputed_cont_s <- imputed_cont %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, ethn, region, comorb_cat, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sqsympdur, mort_28, sex, ethn, country, comed_dexa, comed_ab, comed_other, comorb_cat, sqcrptrunc, vl_baseline, clinicalstatus_baseline, ae_28_sev, clus, Imputation)
 imputed_cont_wide <- imputed_cont_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
   group_by(Imputation) %>%
-  distinct(clus, .keep_all = TRUE) # 518, correct
+  distinct(clus, .keep_all = TRUE) # 518 * 51 = 26418, correct
 
 imputed_combined <- rbind(imputed_cont_wide, imputed_int_wide)
 
@@ -1688,6 +1684,9 @@ imp.list <- imputationList(split(imputed_combined, imputed_combined$Imputation)[
 ### Checks
 round(prop.table(table(imp.list[[1]]$`1`$mort_28, imp.list[[1]]$`1`$trt, useNA = "always"),2)*100,1) # first imputed dataset
 round(prop.table(table(imp.list[[1]]$`2`$mort_28, imp.list[[1]]$`2`$trt, useNA = "always"),2)*100,1) # second imputed dataset
+round(prop.table(table(imp.list[[1]]$`3`$mort_28, imp.list[[1]]$`3`$trt, useNA = "always"),2)*100,1) # second imputed dataset
+round(prop.table(table(imp.list[[1]]$`4`$mort_28, imp.list[[1]]$`4`$trt, useNA = "always"),2)*100,1) # second imputed dataset
+round(prop.table(table(imp.list[[1]]$`5`$mort_28, imp.list[[1]]$`5`$trt, useNA = "always"),2)*100,1) # second imputed dataset
 round(prop.table(table(df_imp$mort_28, df_imp$trt, useNA = "always"),2)*100,1) # original data
 summary(imp.list[[1]]$`1`$comorb_cat)
 summary(imp.list[[1]]$`2`$sqsympdur)
@@ -1927,29 +1926,6 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 #         pool() %>%
 #         summary(conf.int = T, exponentiate = T)
 # mort.28.mi
-
-# ## Passed to or_plot (see finalfit package above)
-# explanatory = c("trt", "age", 
-#   "clinicalstatus_baseline")
-# dependent = "mort_28"
-# imp.list %>% 
-#     or_plot(dependent, explanatory, glmfit = mort.28.mi, table_text_size=4)
-# df_imp %>% 
-#     or_plot(dependent, explanatory, glmfit = mort.28.mi, table_text_size=4)
-# # Summarise and put in table
-# fit_imputed = mort.28.mi %>%                                  
-#     fit2df(estimate_name = "OR (multiple imputation)", exp = TRUE)
-# # Use finalfit merge methods to create and compare results between complete case and multiple imputation
-# df %>% 
-#   summary_factorlist(dependent, explanatory, fit_id = TRUE)
-# df %>% 
-#   glmmulti(dependent, explanatory) %>% 
-#   fit2df(estimate_suffix = "OR (complete case)") -> fit_cc
-# summary1 %>% 
-#   ff_merge(fit_cc) %>% 
-#   ff_merge(fit_imputed) %>% 
-#   select(-fit_id, -index) %>% 
-#     knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r","r", "r", "r"))
 ```
 
 # (ii) Mortality at day 60
@@ -6083,6 +6059,11 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
+  } else if (inherits(model, "data.frame")) {
+    hazard_odds_ratio <- model$estimate[2]
+    ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
+    se <- model$std.error[2]
+    p_value <- model$p.value[2]
   } else {
     stop("Unsupported model class")
   }
@@ -6107,27 +6088,29 @@ result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[3]] <- extract_trt_results(mort.60, "death at day 60",
+# result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
+#                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[4]] <- extract_trt_results(mort.60, "death at day 60",
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[4]] <- extract_trt_results(ttdeath, "death within fup",
+result_list[[5]] <- extract_trt_results(ttdeath, "death within fup",
                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[5]] <- extract_trt_results(new.mv.28, "new MV within 28d",
+result_list[[6]] <- extract_trt_results(new.mv.28, "new MV within 28d",
                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[6]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
+result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
                                         addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[7]] <- extract_trt_results(clin.28, "clinical status at day 28",
+result_list[[8]] <- extract_trt_results(clin.28, "clinical status at day 28",
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
-result_list[[8]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
+result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[9]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+result_list[[10]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age
-result_list[[10]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
+result_list[[11]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[11]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+result_list[[12]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
                                          addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[12]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
+result_list[[13]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
                                          addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1])
-result_list[[13]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
+result_list[[14]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
                                          addmargins(table(df$ae_28_sev, df$trt))[19,2], addmargins(table(df$ae_28_sev, df$trt))[19,1])
 
 # Filter out NULL results and bind the results into a single data frame
