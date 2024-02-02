@@ -211,8 +211,7 @@ df$vacc <- 0
 # Variant
 # Serology
 ```
-Discussion points BASELINE data:
-1) 
+Discussion points BASELINE data
 
 # Endpoints
 ```{r echo=TRUE}
