@@ -183,10 +183,10 @@ And consider multiple imputation.
 * By different JAK inhibitors
 
 ## Combining IPD Trials with Partially Reconstructed IPD from Non-IPD Trials
+# one stage:
 1. "For binary outcome data, IPD can be partly reconstructed from the aggregated information in published two-by-two tables.8 For example, if the number of participants who were dead and alive for each of the treatment and control groups is known, IPD can be re-created in a binary data format, where control/treatment group and alive/dead are represented by a series of zeros and ones. This is illustrated in Box 6.5." (p. 160)
-2. Add CTI biopharma trial and Murugesan (?) for primary endpoint - and what about subgroup analyses?
-
-3. Also, see p.127
+# two stage:
+3. See p.124
 
 
 # ONE-STAGE APPROACH
