@@ -754,7 +754,7 @@ df <- df %>%
 Discussion points OUTCOME data:
 1. finalize ae_28_list & aesi_28 -> separate export
 
-# Define final dataset, set references, summarize missing data and variables
+# Define final datasets
 
 ```r
 # keep the overall set
@@ -856,7 +856,7 @@ df_core <- df_all %>%
 # Convert character variables to factors
 char_vars <- c("id_pat", "sex", "trial", "JAKi", "country", "icu", "ethn", "clinstatus_baseline", "vbaseline", 
                "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
-               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_autoimm","comorb_cancer", "comorb_kidney", "vl_baseline", "clinstatus_2", "clinstatus_4", "clinstatus_7", "clinstatus_14", "clinstatus_21", "clinstatus_28", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28", "vir_clear_5", "vir_clear_10", "vir_clear_15")
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_autoimm","comorb_cancer", "comorb_kidney", "vl_baseline", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28", "vir_clear_5", "vir_clear_10", "vir_clear_15")
 df_core <- df_core %>%
   mutate(across(all_of(char_vars), factor))
 
@@ -1084,16 +1084,7 @@ Table: By completeness (only mort_28)
 
 ```r
 ### Define variables to be included in imputation set
-table(df_core$vl_baseline)
-```
-
-```
-## 
-##    0    1 
-## 1494   43
-```
-
-```r
+# table(df_core$vl_baseline)
 df_imp <- df_core %>% 
   select("id_pat"
          , "trt", "sex", "age" , "ethn"
@@ -1746,6 +1737,9 @@ print(plot_clinstat_cont)
 ## jomo only accepts numeric or factors, check and adapt
 # str(df_imp_long_int)
 df_imp_long_int$timesq <- sqrt(df_imp_long_int$time) # see X below
+df_imp_long_int <- df_imp_long_int %>% 
+    mutate(clinicalstatus_baseline = case_when(is.na(clinicalstatus_baseline) ~ "5", # only for X below, see rules in Notes
+                                             TRUE ~ clinicalstatus_baseline))
 attach(df_imp_long_int)
 Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                , age
@@ -1762,9 +1756,7 @@ Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                , ae_28_sev
                  )
 Y<-data.frame(clinstatus_n) # level 1 variable within clustering variable
-X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
-              , time
-              , timesq)
+X <- cbind(1, data.frame(clinicalstatus_baseline, time, timesq)) # matrix modelling linearity of clinstatus throughout day 28
 clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
@@ -1773,7 +1765,7 @@ nimp<-50 # set number of iterations
 
 ## run jomo
 # dry run
-imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=2) ## clinstatus_baseline has 7 missings
+imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=2)
 # plot(c(1:2),imputed_int_mcmc$collectbeta[1,1,1:2],type="l")
 # plot(c(1:2),imputed_int_mcmc$collectcovu[5,5,1:2],type="l")
 set.seed(1569)
@@ -1799,6 +1791,9 @@ summary(imp.list_int[[1]]$`2`$sqcrptrunc)
 ## jomo only accepts numeric or factors, check and adapt
 # str(df_imp_long_cont)
 df_imp_long_cont$timesq <- sqrt(df_imp_long_cont$time) # see X below
+df_imp_long_cont <- df_imp_long_cont %>% 
+    mutate(clinicalstatus_baseline = case_when(is.na(clinicalstatus_baseline) ~ "5", # only for X below, see rules in Notes
+                                             TRUE ~ clinicalstatus_baseline))
 attach(df_imp_long_cont)
 Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                , age
@@ -1815,9 +1810,7 @@ Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                , ae_28_sev
                  )
 Y<-data.frame(clinstatus_n) # level 1 variable within clustering variable
-X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
-              , time
-              , timesq)
+X <- cbind(1, data.frame(clinicalstatus_baseline, time, timesq)) # matrix modelling linearity of clinstatus throughout day 28
 clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
@@ -1846,14 +1839,14 @@ summary(imp.list_cont[[1]]$`2`$sqsympdur)
 #### Add trt back, change from long to wide format, and finally combine the two data frames
 imputed_int$trt <- 1
 imputed_int_s <- imputed_int %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sex, ethn, country, comed_dexa, comed_ab, comed_other, comorb_cat, sqsympdur, sqcrptrunc, vl_baseline, ae_28_sev, mort_28, clinicalstatus_baseline, clus, Imputation)
 imputed_int_wide <- imputed_int_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
   group_by(Imputation) %>%
   distinct(clus, .keep_all = TRUE) 
 
 imputed_cont$trt <- 0 # treatment variable
 imputed_cont_s <- imputed_cont %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sex, ethn, country, comed_dexa, comed_ab, comed_other, comorb_cat, sqsympdur, sqcrptrunc, vl_baseline, ae_28_sev, mort_28, clinicalstatus_baseline, clus, Imputation)
 imputed_cont_wide <- imputed_cont_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
   group_by(Imputation) %>%
   distinct(clus, .keep_all = TRUE) 
@@ -1872,7 +1865,6 @@ round(prop.table(table(df_imp$mort_28, df_imp$trt, useNA = "always"),2)*100,1) #
 summary(imp.list[[1]]$`1`$comorb_cat)
 summary(imp.list[[1]]$`2`$sqsympdur)
 ```
-
 
 # (i) Primary endpoint: Mortality at day 28
 
@@ -5080,8 +5072,6 @@ summary(mort.28.comorb.4)
 ## Likelihood ratio test=0.08435878 on 4 df, p=0.9991351, n=16
 ## Wald test = 8.710941 on 4 df, p = 0.06874495
 ```
-Discussion points
-1. Double-check comorb_cat again in Baseline chunk. Immunosuppressed only in control?!
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 
@@ -6336,6 +6326,11 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
+  } else if (inherits(model, "data.frame")) {
+    hazard_odds_ratio <- model$estimate[2]
+    ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
+    se <- model$std.error[2]
+    p_value <- model$p.value[2]
   } else {
     stop("Unsupported model class")
   }
@@ -6360,33 +6355,35 @@ result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[3]] <- extract_trt_results(mort.60, "death at day 60",
+# result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
+#                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[4]] <- extract_trt_results(mort.60, "death at day 60",
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[4]] <- extract_trt_results(ttdeath, "death within fup",
+result_list[[5]] <- extract_trt_results(ttdeath, "death within fup",
                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[5]] <- extract_trt_results(new.mv.28, "new MV within 28d",
+result_list[[6]] <- extract_trt_results(new.mv.28, "new MV within 28d",
                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[6]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
+result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
                                         addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[7]] <- extract_trt_results(clin.28, "clinical status at day 28",
+result_list[[8]] <- extract_trt_results(clin.28, "clinical status at day 28",
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
-result_list[[8]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
+result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[9]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+result_list[[10]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age
-result_list[[10]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
+result_list[[11]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[11]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+result_list[[12]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[12]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5",
+result_list[[13]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5",
                                         addmargins(table(df$vir_clear_5, df$trt))[3,2], addmargins(table(df$vir_clear_5, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[13]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10",
+result_list[[14]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10",
                                         addmargins(table(df$vir_clear_10, df$trt))[3,2], addmargins(table(df$vir_clear_10, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[14]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15",
+result_list[[15]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15",
                                         addmargins(table(df$vir_clear_15, df$trt))[3,2], addmargins(table(df$vir_clear_15, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[15]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
+result_list[[16]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[16]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
+result_list[[17]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
                                         addmargins(table(df$ae_28_sev, df$trt))[13,2], addmargins(table(df$ae_28_sev, df$trt))[13,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
