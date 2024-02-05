@@ -787,7 +787,7 @@ clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-50 # set number of iterations
+nimp<-30 # set number of iterations
 
 ## run jomo
 # dry run
@@ -837,7 +837,7 @@ clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-50 # set number of iterations
+nimp<-30 # set number of iterations
 
 # run jomo
 set.seed(1569)
@@ -909,15 +909,15 @@ mort.28.dimp <- df %>%
       , family = "binomial", data=.)
 summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
-# # Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
-# mort.28.mi <- imp.list %>%
-#   with(glm(mort_28 ~ trt
-#            + age
-#            + clinicalstatus_baseline
-#            , family = binomial)) %>%
-#         pool() %>%
-#         summary(conf.int = T, exponentiate = T)
-# mort.28.mi
+# Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
+mort.28.mi <- imp.list %>%
+  with(glm(mort_28 ~ trt
+           + age
+           + clinicalstatus_baseline
+           , family = binomial)) %>%
+        pool() %>%
+        summary(conf.int = T, exponentiate = T)
+mort.28.mi
 ```
 
 # (ii) Mortality at day 60
@@ -1607,8 +1607,8 @@ result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
-# result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
-#                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[4]] <- extract_trt_results(mort.60, "death at day 60",
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[5]] <- extract_trt_results(ttdeath, "death within fup",
