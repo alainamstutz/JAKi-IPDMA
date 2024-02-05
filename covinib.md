@@ -387,66 +387,12 @@ df_ae <- df_ae_comb %>%
 saveRDS(df_ae, file = "df_ae_covinib.RData")
 ```
 
-
-# Define final dataset, set references, summarize missing data and variables
+# Define final datasets
 
 ```r
 # keep the overall set
 df_all <- df
-names(df_all)
-```
-
-```
-##   [1] "id_pat"                "trt"                   "age"                  
-##   [4] "Randdate"              "Sex"                   "Ethn"                 
-##   [7] "sympdur"               "Clinstatus_baseline"   "Comed_dexa"           
-##  [10] "Comed_ab"              "Comed_other"           "comorb_lung"          
-##  [13] "comorb_liver"          "comorb_cvd"            "comorb_aht"           
-##  [16] "comorb_dm"             "comorb_obese"          "comorb_smoker"        
-##  [19] "immunosupp"            "Any_comorb"            "Crp"                  
-##  [22] "Vacc"                  "Clinstatus_1"          "Clinstatus_2"         
-##  [25] "Clinstatus_3"          "Clinstatus_4"          "Clinstatus_5"         
-##  [28] "Clinstatus_6"          "Clinstatus_7"          "Clinstatus_8"         
-##  [31] "Clinstatus_9"          "Clinstatus_10"         "Clinstatus_11"        
-##  [34] "Clinstatus_12"         "Clinstatus_13"         "Clinstatus_14"        
-##  [37] "Clinstatus_15"         "Clinstatus_16"         "Clinstatus_17"        
-##  [40] "Clinstatus_18"         "Clinstatus_19"         "Clinstatus_20"        
-##  [43] "Clinstatus_21"         "Clinstatus_22"         "Clinstatus_23"        
-##  [46] "Clinstatus_24"         "Clinstatus_25"         "Clinstatus_26"        
-##  [49] "Clinstatus_27"         "Clinstatus_28"         "Clinstatus_29"        
-##  [52] "Clinstatus_30"         "Clinstatus_31"         "Clinstatus_32"        
-##  [55] "Clinstatus_33"         "Clinstatus_34"         "Clinstatus_35"        
-##  [58] "Clinstatus_36"         "Clinstatus_37"         "Clinstatus_38"        
-##  [61] "Clinstatus_39"         "Clinstatus_40"         "Clinstatus_41"        
-##  [64] "Clinstatus_42"         "Clinstatus_43"         "Clinstatus_44"        
-##  [67] "Clinstatus_45"         "Clinstatus_46"         "Clinstatus_47"        
-##  [70] "Clinstatus_48"         "Clinstatus_49"         "Clinstatus_50"        
-##  [73] "Clinstatus_51"         "Clinstatus_52"         "Clinstatus_53"        
-##  [76] "Clinstatus_54"         "Clinstatus_55"         "Clinstatus_56"        
-##  [79] "Clinstatus_57"         "Clinstatus_58"         "Clinstatus_59"        
-##  [82] "Clinstatus_60"         "Clinstatus_61"         "Clinstatus_62"        
-##  [85] "Clinstatus_63"         "Clinstatus_64"         "Clinstatus_65"        
-##  [88] "Clinstatus_66"         "Clinstatus_67"         "Clinstatus_68"        
-##  [91] "Clinstatus_69"         "Clinstatus_70"         "Death_date"           
-##  [94] "Discharge_date"        "Withdrawal_date"       "Ae_28"                
-##  [97] "trial"                 "JAKi"                  "sex"                  
-## [100] "ethn"                  "country"               "icu"                  
-## [103] "clinstatus_baseline"   "vbaseline"             "comed_toci"           
-## [106] "comed_rdv"             "comed_acoa"            "comed_interferon"     
-## [109] "comed_dexa"            "comed_ab"              "comed_other"          
-## [112] "comed_cat"             "comorb_autoimm"        "comorb_kidney"        
-## [115] "comorb_cancer"         "any_comorb"            "comorb_count"         
-## [118] "comorb_cat"            "crp"                   "vacc"                 
-## [121] "death_d"               "discharge_d"           "ltfu_d"               
-## [124] "mort_28"               "mort_28_dimp"          "mort_60"              
-## [127] "death_reached"         "death_time"            "new_mv_28"            
-## [130] "new_mvd_28"            "clinstatus_28"         "clinstatus_28_imp"    
-## [133] "discharge_reached"     "discharge_time"        "discharge_time_sens"  
-## [136] "discharge_reached_sus" "discharge_time_sus"    "ae_28"                
-## [139] "ae_28_sev"
-```
-
-```r
+# names(df_all)
 # reduce the df set to our standardized set across all trials
 df <- df %>% 
   select(id_pat, trt, sex, age, trial, JAKi, 
@@ -1147,17 +1093,15 @@ df_imp <- df_imp %>%
          clinstatus_26 = Clinstatus_26,
          clinstatus_27 = Clinstatus_27)
 # reshape
-# table(df_imp$clinstatus_28)
 df_imp$clinstatus_28 <- as.numeric(df_imp$clinstatus_28)
 df_imp_long <- df_imp %>% 
   pivot_longer(cols = starts_with("clinstatus"), names_to = "time", values_to = "clinstatus")
 # names(df_imp_long)
-
+# str(df_imp_long)
 # Convert time to numeric
 df_imp_long$time <- as.numeric(gsub("clinstatus_", "", df_imp_long$time))
 # class(df_imp_long$time)
 # summary(df_imp_long$time)
-# have clinstatus as numeric
 df_imp_long$clinstatus_f <- factor(df_imp_long$clinstatus, levels = 1:6)
 
 ### We will impute separately by treatment arm, since we have to expect an effect modification between outcome x trt over time
@@ -1198,6 +1142,7 @@ print(plot_clinstat_cont)
 #### INTERVENTION group
 ## jomo only accepts numeric or factors, check and adapt
 # str(df_imp_long_int)
+# table(df_imp_long_cont$mort_28, useNA = "always") # not a single death in intervention
 df_imp_long_int$timesq <- sqrt(df_imp_long_int$time) # see X below
 attach(df_imp_long_int)
 Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
@@ -1213,18 +1158,16 @@ Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                , sqcrptrunc
                  )
 Y<-data.frame(clinstatus) # level 1 variable within clustering variable
-X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
-              , time
-              , timesq)
+X <- cbind(1, data.frame(clinicalstatus_baseline, time, timesq)) # matrix modelling linearity of clinstatus throughout day 28
 clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-50 # set number of iterations
+nimp<-30 # set number of iterations
 
 ## run jomo
 # dry run
-imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=2) ## clinstatus_baseline has 7 missings
+imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, nburn=2)
 # plot(c(1:2),imputed_int_mcmc$collectbeta[1,1,1:2],type="l")
 # plot(c(1:2),imputed_int_mcmc$collectcovu[5,5,1:2],type="l")
 set.seed(1569)
@@ -1255,25 +1198,21 @@ Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                , age
                , sex
                , ethn
-               , country
+               , vacc
                , comed_dexa
                , comed_ab
                , comed_other
                , comorb_cat
-               , sqsympdur
+               , sympdur
                , sqcrptrunc
-               , vl_baseline
-               , ae_28_sev
                  )
-Y<-data.frame(clinstatus_n) # level 1 variable within clustering variable
-X<-data.frame(clinicalstatus_baseline # matrix modelling linearity of clinstatus throughout day 28
-              , time
-              , timesq)
+Y<-data.frame(clinstatus) # level 1 variable within clustering variable
+X <- cbind(1, data.frame(clinicalstatus_baseline, time, timesq)) # matrix modelling linearity of clinstatus throughout day 28
 clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-50 # set number of iterations
+nimp<-30 # set number of iterations
 
 # run jomo
 set.seed(1569)
@@ -1291,20 +1230,19 @@ round(prop.table(table(imp.list_cont[[1]]$`1`$mort_28, useNA = "always"))*100,1)
 round(prop.table(table(imp.list_cont[[1]]$`2`$mort_28, useNA = "always"))*100,1) # second imputed dataset
 round(prop.table(table(df_imp_long_cont$mort_28, useNA = "always"))*100,1) # original data
 summary(imp.list_cont[[1]]$`1`$comorb_cat)
-summary(imp.list_cont[[1]]$`2`$sqsympdur)
 
 
 #### Add trt back, change from long to wide format, and finally combine the two data frames
 imputed_int$trt <- 1
 imputed_int_s <- imputed_int %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sex, ethn, vacc, comed_dexa, comed_ab, comed_other, comorb_cat, sympdur, sqcrptrunc, mort_28, clinicalstatus_baseline, clus, Imputation)
 imputed_int_wide <- imputed_int_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
   group_by(Imputation) %>%
   distinct(clus, .keep_all = TRUE) 
 
 imputed_cont$trt <- 0 # treatment variable
 imputed_cont_s <- imputed_cont %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sex, ethn, vacc, comed_dexa, comed_ab, comed_other, comorb_cat, sympdur, sqcrptrunc, mort_28, clinicalstatus_baseline, clus, Imputation)
 imputed_cont_wide <- imputed_cont_s %>% # change from long to wide format, i.e. remove duplicates within Imputation sets
   group_by(Imputation) %>%
   distinct(clus, .keep_all = TRUE) 
@@ -4335,6 +4273,11 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
     se <- sqrt(diag(vcov(model)))["trt"]
     p_value <- model$prob["trt"]
+  } else if (inherits(model, "data.frame")) {
+    hazard_odds_ratio <- model$estimate[2]
+    ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
+    se <- model$std.error[2]
+    p_value <- model$p.value[2]
   } else {
     stop("Unsupported model class")
   }
@@ -4359,27 +4302,29 @@ result_list[[1]] <- extract_trt_results(mort.28.firth, "death at day 28_firth",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.28.dimp.firth, "death at day 28_dimp_firth", 
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[3]] <- extract_trt_results(mort.60.firth, "death at day 60_firth", 
+# result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
+#                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[4]] <- extract_trt_results(mort.60.firth, "death at day 60_firth", 
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-# result_list[[4]] <- extract_trt_results(ttdeath, "death within fup", 
+# result_list[[5]] <- extract_trt_results(ttdeath, "death within fup", 
 #                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[5]] <- extract_trt_results(new.mv.28, "new MV within 28d", 
+result_list[[6]] <- extract_trt_results(new.mv.28, "new MV within 28d", 
                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[6]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d", 
+result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d", 
                                         addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[7]] <- extract_trt_results(clin.28, "clinical status at day 28", 
+result_list[[8]] <- extract_trt_results(clin.28, "clinical status at day 28", 
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
-result_list[[8]] <- extract_trt_results(ttdischarge, "discharge within 28 days", 
+result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days", 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[9]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event", 
+result_list[[10]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event", 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age
-result_list[[10]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event", 
+result_list[[11]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event", 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[11]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days", 
+result_list[[12]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days", 
                                          addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[12]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days", 
+result_list[[13]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days", 
                                          addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[13]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days", 
+result_list[[14]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days", 
                                          addmargins(table(df$ae_28_sev, df$trt))[8,2], addmargins(table(df$ae_28_sev, df$trt))[8,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
