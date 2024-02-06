@@ -29,6 +29,7 @@ library(ggfortify) # autoplot
 library(meta)
 library(forestplot)
 library(metafor) #forest()
+library(logistf) # Firth regression in case of rare events
 ```
 
 # Load entire dataset (from one-stage.Rmd) for descriptive purpose - make sure to run one-stage before
@@ -48,13 +49,14 @@ df_tofacov <- readRDS("trt_effects_tofacov.RData")
 df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 # df_murugesan <- readRDS("trt_effects_murugesan.RData")
+df_recovery <- readRDS("trt_effects_recovery.RData")
 ```
 
 # Reshape dataframes for all treatment effect estimates
 
 ```r
 ### Create a list of all data frames / trials
-list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier) # add all trials
+list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery) # add all trials
 
 ## Mortality at day 28
 outcomes <- "death at day 28"
@@ -208,24 +210,7 @@ for (df in list_df) {
 # (i) Primary outcome: Mortality at day 28
 
 ```r
-str(df_mort28)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "death at day 28" "death at day 28" "death at day 28" "death at day 28_firth" ...
-##  $ hazard_odds_ratio: num  0.64 0.737 0.791 2.537 0.182 ...
-##  $ ci_lower         : num  0.29477 0.41582 0.14728 0.12715 0.00131 ...
-##  $ ci_upper         : num  1.36 1.29 3.83 380.13 2.29 ...
-##  $ standard_error   : num  0.387 0.287 0.798 1.315 1.358 ...
-##  $ p_value          : num  0.25 0.287 0.769 0.552 0.203 ...
-##  $ n_intervention   : num  145 515 46 58 55 815
-##  $ n_control        : num  144 518 51 58 55 811
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_mort28)
 mort28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -235,10 +220,10 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - mortality 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -250,32 +235,35 @@ summary(mort28)
 ## Review:     Average treatment effect - mortality 28 days
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.6404 [0.2998;  1.3677]       11.9
-## ACTT-2        0.7368 [0.4197;  1.2933]       21.6
-## Ghazaeian     0.7909 [0.1654;  3.7807]        2.8
-## TOFACOV       2.5366 [0.1928; 33.3748]        1.0
-## COVINIB       0.1822 [0.0127;  2.6082]        1.0
-## COV-BARRIER   0.5122 [0.3674;  0.7141]       61.8
+## Bari-SolidAct 0.6573 [0.3068;  1.4084]        8.4
+## ACTT-2        0.7041 [0.3996;  1.2406]       13.5
+## Ghazaeian     0.7909 [0.1654;  3.7807]        2.2
+## TOFACOV       2.5366 [0.1928; 33.3748]        0.8
+## COVINIB       0.1816 [0.0126;  2.6139]        0.8
+## COV-BARRIER   0.5131 [0.3666;  0.7182]       26.6
+## RECOVERY      0.8434 [0.7357;  0.9669]       47.7
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 3271
+## Number of studies: k = 7
+## Number of observations: o = 11236
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.5795 [0.4114; 0.8164] -4.09  0.0094
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.7032 [0.5386; 0.9181] -3.23  0.0179
+## Prediction interval              [0.4178; 1.1838]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 2.5985]; tau = 0 [0.0000; 1.6120]
-##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+##  tau^2 = 0.0262 [0.0000; 1.2914]; tau = 0.1619 [0.0000; 1.1364]
+##  I^2 = 36.8% [0.0%; 73.3%]; H = 1.26 [1.00; 1.94]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  3.43    5  0.6333
+##  9.49    6  0.1480
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -286,7 +274,7 @@ forest.meta(mort28,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - mortality 28 days", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -305,6 +293,1002 @@ forest.meta(mort28,
 Discussion points:
 1. REML or ML ? -> Give the exact same result, but the one-stage uses ML (including centering) due to rare events. REML is preferred (see notes), but to correspond with one-stage, a sens-analysis with ML is probably worth it. The choice of estimator might have the biggest influence on the 95%CI, larger than other model parameter choices.
 
+# Funnel plot
+
+```r
+## funnel plot (contour enhanced)
+funnel(mort28)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+```r
+funnel(mort28, common = TRUE,
+  level = 0.95, contour = c(0.9, 0.95, 0.99),
+  col.contour = c("darkgreen", "green", "lightgreen"),
+  lwd = 2, cex = 1.5, pch = 16, studlab = TRUE, cex.studlab = 1.1)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-5-2.png)<!-- -->
+
+```r
+# legend(0.05, 0.05,
+#   c("0.1 > p > 0.05", "0.05 > p > 0.01", "< 0.01"),
+#   fill = c("darkgreen", "green", "lightgreen"))
+# par(oldpar)
+```
+
+# (i.i) Primary outcome: Mortality at day 28 / including the non-IPD RCTs // subsets
+
+```r
+#### read in aggregate data
+## PRE-VENT
+df_prevent <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "PRE-VENT")
+# analyse with same model
+addmargins(table(df_prevent$mort_28, df_prevent$trt, useNA = "always"))
+```
+
+```
+##       
+##          0   1 <NA> Sum
+##   0     93  89    0 182
+##   1      8  10    0  18
+##   <NA>   0   0    0   0
+##   Sum  101  99    0 200
+```
+
+```r
+mort.28.prevent <- df_prevent %>% 
+  glm(mort_28 ~ trt
+      , family = "binomial", data=.)
+summ(mort.28.prevent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 200 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.09 </td>
+   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> 0.18 </td>
+   <td style="text-align:right;"> -6.66 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.31 </td>
+   <td style="text-align:right;"> 0.49 </td>
+   <td style="text-align:right;"> 3.46 </td>
+   <td style="text-align:right;"> 0.54 </td>
+   <td style="text-align:right;"> 0.59 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# add effect estimates and other parameters to df_mort28
+row_prevent <- tibble(
+  variable = "death at day 28",
+  hazard_odds_ratio = exp(coef(mort.28.prevent)["trt"]),
+  ci_lower = exp(confint(mort.28.prevent)["trt", ])[1],
+  ci_upper = exp(confint(mort.28.prevent)["trt", ])[2],
+  standard_error = summary(mort.28.prevent)$coefficients["trt", "Std. Error"],
+  p_value = summary(mort.28.prevent)$coefficients["trt", "Pr(>|z|)"],
+  n_intervention = addmargins(table(df_prevent$mort_28, df_prevent$trt, useNA = "always"))[4,2],
+  n_control = addmargins(table(df_prevent$mort_28, df_prevent$trt, useNA = "always"))[4,1],
+  trial = "PRE-VENT",
+  JAKi = "Pacritinib")
+```
+
+```
+## Waiting for profiling to be done...
+## Waiting for profiling to be done...
+```
+
+```r
+## CAO
+df_cao <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "CAO")
+# analyse with same model
+addmargins(table(df_cao$mort_28, df_cao$trt, useNA = "always"))
+```
+
+```
+##       
+##         0  1 <NA> Sum
+##   0    18 20    0  38
+##   1     3  0    0   3
+##   <NA>  0  0    0   0
+##   Sum  21 20    0  41
+```
+
+```r
+mort.28.cao <- df_cao %>% 
+  logistf(mort_28 ~ trt
+      , family = "binomial", data=.)
+summary(mort.28.cao)
+```
+
+```
+## logistf(formula = mort_28 ~ trt, data = ., family = "binomial")
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                  coef  se(coef) lower 0.95 upper 0.95     Chisq            p
+## (Intercept) -1.665008 0.5828965  -2.996461 -0.6391919 11.219466 0.0008094379
+## trt         -2.048564 1.5454930  -6.975291  0.3788351  2.610367 0.1061671667
+##             method
+## (Intercept)      2
+## trt              2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=2.610367 on 1 df, p=0.1061672, n=41
+## Wald test = 14.89037 on 1 df, p = 0.0001139429
+```
+
+```r
+# add effect estimates and other parameters to df_mort28
+row_cao <- tibble(
+  variable = "death at day 28",
+  hazard_odds_ratio = exp(coef(mort.28.cao)["trt"]),
+  ci_lower = exp(mort.28.cao$ci.lower["trt"]),
+  ci_upper = exp(mort.28.cao$ci.upper["trt"]),
+  standard_error = sqrt(diag(vcov(mort.28.cao)))["trt"],
+  p_value = mort.28.cao$prob["trt"],
+  n_intervention = addmargins(table(df_cao$mort_28, df_cao$trt, useNA = "always"))[4,2],
+  n_control = addmargins(table(df_cao$mort_28, df_cao$trt, useNA = "always"))[4,1],
+  trial = "CAO",
+  JAKi = "Ruxolitinib")
+
+## Pancovid
+df_pancovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Pancovid")
+# analyse with same model
+addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))
+```
+
+```
+##       
+##          0   1 <NA> Sum
+##   0    135 142    0 277
+##   1      7   3    0  10
+##   <NA>   0   0    0   0
+##   Sum  142 145    0 287
+```
+
+```r
+mort.28.pancovid <- df_pancovid %>% 
+  glm(mort_28 ~ trt
+      , family = "binomial", data=.)
+summ(mort.28.pancovid, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 287 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> -7.63 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.41 </td>
+   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> 1.61 </td>
+   <td style="text-align:right;"> -1.28 </td>
+   <td style="text-align:right;"> 0.20 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# add effect estimates and other parameters to df_mort28
+row_pancovid <- tibble(
+  variable = "death at day 28",
+  hazard_odds_ratio = exp(coef(mort.28.pancovid)["trt"]),
+  ci_lower = exp(confint(mort.28.pancovid)["trt", ])[1],
+  ci_upper = exp(confint(mort.28.pancovid)["trt", ])[2],
+  standard_error = summary(mort.28.pancovid)$coefficients["trt", "Std. Error"],
+  p_value = summary(mort.28.pancovid)$coefficients["trt", "Pr(>|z|)"],
+  n_intervention = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,2],
+  n_control = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,1],
+  trial = "Pancovid",
+  JAKi = "Baricitinib")
+```
+
+```
+## Waiting for profiling to be done...
+## Waiting for profiling to be done...
+```
+
+```r
+## STOP-COVID
+df_stopcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "STOP-COVID")
+# analyse with same model
+addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))
+```
+
+```
+##       
+##          0   1 <NA> Sum
+##   0    137 140    0 277
+##   1      8   4    0  12
+##   <NA>   0   0    0   0
+##   Sum  145 144    0 289
+```
+
+```r
+mort.28.stopcovid <- df_stopcovid %>% 
+  glm(mort_28 ~ trt
+      , family = "binomial", data=.)
+summ(mort.28.stopcovid, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 289 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 0.12 </td>
+   <td style="text-align:right;"> -7.81 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.49 </td>
+   <td style="text-align:right;"> 0.14 </td>
+   <td style="text-align:right;"> 1.66 </td>
+   <td style="text-align:right;"> -1.15 </td>
+   <td style="text-align:right;"> 0.25 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# add effect estimates and other parameters to df_mort28
+row_stopcovid <- tibble(
+  variable = "death at day 28",
+  hazard_odds_ratio = exp(coef(mort.28.stopcovid)["trt"]),
+  ci_lower = exp(confint(mort.28.stopcovid)["trt", ])[1],
+  ci_upper = exp(confint(mort.28.stopcovid)["trt", ])[2],
+  standard_error = summary(mort.28.stopcovid)$coefficients["trt", "Std. Error"],
+  p_value = summary(mort.28.stopcovid)$coefficients["trt", "Pr(>|z|)"],
+  n_intervention = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))[4,2],
+  n_control = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))[4,1],
+  trial = "STOP-COVID",
+  JAKi = "Tofacitinib")
+```
+
+```
+## Waiting for profiling to be done...
+## Waiting for profiling to be done...
+```
+
+```r
+## RUXCOVID-DEVENT
+df_ruxcoviddevent <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "RUXCOVID-DEVENT")
+# analyse with same model
+addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))
+```
+
+```
+##       
+##          0   1 <NA> Sum
+##   0     14  80    0  94
+##   1     33  84    0 117
+##   <NA>   0   0    0   0
+##   Sum   47 164    0 211
+```
+
+```r
+mort.28.ruxcoviddevent <- df_ruxcoviddevent %>% 
+  glm(mort_28 ~ trt
+      , family = "binomial", data=.)
+summ(mort.28.ruxcoviddevent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 211 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 2.36 </td>
+   <td style="text-align:right;"> 1.26 </td>
+   <td style="text-align:right;"> 4.40 </td>
+   <td style="text-align:right;"> 2.69 </td>
+   <td style="text-align:right;"> 0.01 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.45 </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 0.89 </td>
+   <td style="text-align:right;"> -2.28 </td>
+   <td style="text-align:right;"> 0.02 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# add effect estimates and other parameters to df_mort28
+row_ruxcoviddevent <- tibble(
+  variable = "death at day 28",
+  hazard_odds_ratio = exp(coef(mort.28.ruxcoviddevent)["trt"]),
+  ci_lower = exp(confint(mort.28.ruxcoviddevent)["trt", ])[1],
+  ci_upper = exp(confint(mort.28.ruxcoviddevent)["trt", ])[2],
+  standard_error = summary(mort.28.ruxcoviddevent)$coefficients["trt", "Std. Error"],
+  p_value = summary(mort.28.ruxcoviddevent)$coefficients["trt", "Pr(>|z|)"],
+  n_intervention = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))[4,2],
+  n_control = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))[4,1],
+  trial = "RUXCOVID-DEVENT",
+  JAKi = "Ruxolitinib")
+```
+
+```
+## Waiting for profiling to be done...
+## Waiting for profiling to be done...
+```
+
+```r
+## RUXCOVID
+df_ruxcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "RUXCOVID")
+# analyse with same model
+addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))
+```
+
+```
+##       
+##          0   1 <NA> Sum
+##   0    141 276    0 417
+##   1      4  11    0  15
+##   <NA>   0   0    0   0
+##   Sum  145 287    0 432
+```
+
+```r
+mort.28.ruxcovid <- df_ruxcovid %>% 
+  glm(mort_28 ~ trt
+      , family = "binomial", data=.)
+summ(mort.28.ruxcovid, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 432 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> -7.03 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.40 </td>
+   <td style="text-align:right;"> 0.44 </td>
+   <td style="text-align:right;"> 4.49 </td>
+   <td style="text-align:right;"> 0.57 </td>
+   <td style="text-align:right;"> 0.57 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# add effect estimates and other parameters to df_mort28
+row_ruxcovid <- tibble(
+  variable = "death at day 28",
+  hazard_odds_ratio = exp(coef(mort.28.ruxcovid)["trt"]),
+  ci_lower = exp(confint(mort.28.ruxcovid)["trt", ])[1],
+  ci_upper = exp(confint(mort.28.ruxcovid)["trt", ])[2],
+  standard_error = summary(mort.28.ruxcovid)$coefficients["trt", "Std. Error"],
+  p_value = summary(mort.28.ruxcovid)$coefficients["trt", "Pr(>|z|)"],
+  n_intervention = addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))[4,2],
+  n_control = addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))[4,1],
+  trial = "RUXCOVID",
+  JAKi = "Ruxolitinib")
+```
+
+```
+## Waiting for profiling to be done...
+## Waiting for profiling to be done...
+```
+
+```r
+## TACTIC-R
+df_tacticr <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "TACTIC-R")
+# analyse with same model
+addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))
+```
+
+```
+##       
+##          0   1 <NA> Sum
+##   0    138 121    0 259
+##   1      7  16    0  23
+##   <NA>   0   0    0   0
+##   Sum  145 137    0 282
+```
+
+```r
+mort.28.tacticr <- df_tacticr %>% 
+  glm(mort_28 ~ trt
+      , family = "binomial", data=.)
+summ(mort.28.tacticr, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 282 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> -7.70 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 2.61 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 6.55 </td>
+   <td style="text-align:right;"> 2.04 </td>
+   <td style="text-align:right;"> 0.04 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# add effect estimates and other parameters to df_mort28
+row_tacticr <- tibble(
+  variable = "death at day 28",
+  hazard_odds_ratio = exp(coef(mort.28.tacticr)["trt"]),
+  ci_lower = exp(confint(mort.28.tacticr)["trt", ])[1],
+  ci_upper = exp(confint(mort.28.tacticr)["trt", ])[2],
+  standard_error = summary(mort.28.tacticr)$coefficients["trt", "Std. Error"],
+  p_value = summary(mort.28.tacticr)$coefficients["trt", "Pr(>|z|)"],
+  n_intervention = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,2],
+  n_control = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,1],
+  trial = "TACTIC-R",
+  JAKi = "Baricitinib")
+```
+
+```
+## Waiting for profiling to be done...
+## Waiting for profiling to be done...
+```
+
+```r
+## Dastan
+df_dastan <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Dastan")
+# analyse with same model
+addmargins(table(df_dastan$mort_28, df_dastan$trt, useNA = "always"))
+```
+
+```
+##       
+##         0  1 <NA> Sum
+##   0    32 34    0  66
+##   1     2  0    0   2
+##   <NA>  0  0    0   0
+##   Sum  34 34    0  68
+```
+
+```r
+mort.28.dastan <- df_dastan %>% 
+  logistf(mort_28 ~ trt
+      , family = "binomial", data=.)
+summary(mort.28.dastan)
+```
+
+```
+## logistf(formula = mort_28 ~ trt, data = ., family = "binomial")
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                  coef  se(coef) lower 0.95 upper 0.95     Chisq            p
+## (Intercept) -2.564949 0.6563301  -4.152264 -1.4678989 30.507998 3.324930e-08
+## trt         -1.669157 1.5683605  -6.610664  0.8879405  1.515226 2.183433e-01
+##             method
+## (Intercept)      2
+## trt              2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.515226 on 1 df, p=0.2183433, n=68
+## Wald test = 24.10837 on 1 df, p = 9.106353e-07
+```
+
+```r
+# add effect estimates and other parameters to df_mort28
+row_dastan <- tibble(
+  variable = "death at day 28",
+  hazard_odds_ratio = exp(coef(mort.28.dastan)["trt"]),
+  ci_lower = exp(mort.28.dastan$ci.lower["trt"]),
+  ci_upper = exp(mort.28.dastan$ci.upper["trt"]),
+  standard_error = sqrt(diag(vcov(mort.28.dastan)))["trt"],
+  p_value = mort.28.dastan$prob["trt"],
+  n_intervention = addmargins(table(df_dastan$mort_28, df_dastan$trt, useNA = "always"))[4,2],
+  n_control = addmargins(table(df_dastan$mort_28, df_dastan$trt, useNA = "always"))[4,1],
+  trial = "Dastan",
+  JAKi = "Baricitinib")
+
+## Singh
+df_singh <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Singh")
+# analyse with same model
+addmargins(table(df_singh$mort_28, df_singh$trt, useNA = "always"))
+```
+
+```
+##       
+##          0   1 <NA> Sum
+##   0     89  97    0 186
+##   1     13   6    0  19
+##   <NA>   0   0    0   0
+##   Sum  102 103    0 205
+```
+
+```r
+mort.28.singh <- df_singh %>% 
+  glm(mort_28 ~ trt
+      , family = "binomial", data=.)
+summ(mort.28.singh, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 205 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.15 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 0.26 </td>
+   <td style="text-align:right;"> -6.48 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.42 </td>
+   <td style="text-align:right;"> 0.15 </td>
+   <td style="text-align:right;"> 1.16 </td>
+   <td style="text-align:right;"> -1.67 </td>
+   <td style="text-align:right;"> 0.10 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# add effect estimates and other parameters to df_mort28
+row_singh <- tibble(
+  variable = "death at day 28",
+  hazard_odds_ratio = exp(coef(mort.28.singh)["trt"]),
+  ci_lower = exp(confint(mort.28.singh)["trt", ])[1],
+  ci_upper = exp(confint(mort.28.singh)["trt", ])[2],
+  standard_error = summary(mort.28.singh)$coefficients["trt", "Std. Error"],
+  p_value = summary(mort.28.singh)$coefficients["trt", "Pr(>|z|)"],
+  n_intervention = addmargins(table(df_singh$mort_28, df_singh$trt, useNA = "always"))[4,2],
+  n_control = addmargins(table(df_singh$mort_28, df_singh$trt, useNA = "always"))[4,1],
+  trial = "Singh",
+  JAKi = "Nezulcitinib")
+```
+
+```
+## Waiting for profiling to be done...
+## Waiting for profiling to be done...
+```
+
+```r
+# Add the new rows to your existing dataframe
+df_mort28_agg <- bind_rows(df_mort28, row_prevent, row_cao, row_pancovid, row_stopcovid, row_ruxcoviddevent, row_ruxcovid, row_tacticr, row_dastan, row_singh)
+
+
+# Foresplot
+# str(df_mort28_agg)
+mort28_agg <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_agg,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect - mortality 28 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(mort28_agg)
+```
+
+```
+## Review:     Average treatment effect - mortality 28 days
+## 
+##                     OR            95%-CI %W(random)
+## Bari-SolidAct   0.6573 [0.3068;  1.4084]        7.3
+## ACTT-2          0.7041 [0.3996;  1.2406]       10.9
+## Ghazaeian       0.7909 [0.1654;  3.7807]        2.1
+## TOFACOV         2.5366 [0.1928; 33.3748]        0.8
+## COVINIB         0.1816 [0.0126;  2.6139]        0.8
+## COV-BARRIER     0.5131 [0.3666;  0.7182]       18.1
+## RECOVERY        0.8434 [0.7357;  0.9669]       25.8
+## PRE-VENT        1.3062 [0.4931;  3.4597]        4.9
+## CAO             0.1289 [0.0062;  2.6659]        0.6
+## Pancovid        0.4074 [0.1032;  1.6080]        2.7
+## STOP-COVID      0.4893 [0.1440;  1.6625]        3.3
+## RUXCOVID-DEVENT 0.4455 [0.2221;  0.8935]        8.3
+## RUXCOVID        1.4049 [0.4394;  4.4914]        3.7
+## TACTIC-R        2.6068 [1.0378;  6.5484]        5.4
+## Dastan          0.1884 [0.0087;  4.0746]        0.6
+## Singh           0.4235 [0.1544;  1.1618]        4.7
+## 
+## Number of studies: k = 16
+## Number of observations: o = 13251
+## 
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.7090 [0.5373; 0.9355] -2.64  0.0184
+## Prediction interval              [0.4065; 1.2366]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0525 [0.0000; 0.7896]; tau = 0.2291 [0.0000; 0.8886]
+##  I^2 = 41.4% [0.0%; 67.6%]; H = 1.31 [1.00; 1.76]
+## 
+## Test of heterogeneity:
+##      Q d.f. p-value
+##  25.62   15  0.0422
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 15)
+## - Prediction interval based on t-distribution (df = 14)
+```
+
+```r
+forest.meta(mort28_agg,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect - mortality 28 days", # get the title into the figure
+            xlim = c(0.10,5),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
+# Open a pdf file
+# pdf("./fp_aggregated.pdf", width=9, height=4)
+# forest.meta(i.mort28_adhoc_se,
+#             xlim = c(0.1,5),
+#             xlab = "                  Favours Remdesivir <-> Favours No Remdesivir",
+#             fs.xlab = 9)
+# dev.off()
+```
+Discussion points:
+* How much do the true effects vary, and over what specific interval?
+a. The confidence interval tells us that the mean effect size in the universe of comparable studies probably falls in the interval -xxx to -xxx.
+b. The prediction interval tells us that in any single study (selected at random from the universe of comparable studies) the true effect size will usually fall between -xxx and +xxx.
+The confidence interval is based on the standard error of the mean and speaks to the precision of the mean. The prediction interval is based on the standard deviation of true effects and speaks to the dispersion of those effects.
+Researchers often assume that if the effect is beneficial and statistically significant, it must be helpful in all populations. However, this is a mistake. The fact that an effect is statisti- cally significant tells us (for example) that the treatment is associated with a benefit on average. It may still be associ- ated with harm in some populations.
+a. The results are statistically significant because the confidence interval excludes zero. However, this speaks only to the mean effect size.
+b. The dispersion of effects is an entirely separate matter.
+
+# Funnel plot
+
+```r
+## funnel plot (contour enhanced)
+funnel(mort28_agg)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+```r
+funnel(mort28_agg, common = TRUE,
+  level = 0.95, contour = c(0.9, 0.95, 0.99),
+  col.contour = c("grey", "lightgrey", "lightyellow"),
+  lwd = 2, cex = 1.5, pch = 16, studlab = TRUE, cex.studlab = 1.0)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
+
+```r
+# legend(0.05, 0.05,
+#   c("0.1 > p > 0.05", "0.05 > p > 0.01", "< 0.01"),
+#   fill = c("darkgreen", "green", "lightgreen"))
+# par(oldpar)
+```
+
+
+# (i.i) Primary outcome: Mortality at day 28 / including the non-IPD RCTs // subsets
+
+```r
+# # Foresplot
+# str(df_mort28_agg)
+# mort28_agg_ruxo <- metagen(TE = log(hazard_odds_ratio),
+#                       seTE = standard_error,
+#                       studlab = trial,
+#                       data = df_mort28_agg,
+#                       n.e = n_intervention + n_control,
+#                       # n.c = n_control,
+#                       sm = "OR",
+#                       fixed = F,
+#                       random = T,
+#                       prediction = T,
+#                       method.tau = "ML", # same results with ML (-> see one-stage!)
+#                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+#                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+#                       title = "Average treatment effect - mortality 28 days",
+#                       subset = JAKi %in% c("Ruxolitinib"
+#                                            # , "Tofacitinib", "Pacritinib", "Nezulcitinib"
+#                                            ) # exclude entirely
+#                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+#                       )
+# summary(mort28_agg_ruxo)
+# forest.meta(mort28_agg_ruxo,
+#             # hetstat = T,
+#             # rightcols = c("w.random"),
+#             leftcols = c("studlab", "TE", "seTE", "n.e"),
+#             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+#             text.random = "Average treatment effect (random effects model)",
+#             title = "Average treatment effect - mortality 28 days", # get the title into the figure
+#             xlim = c(0.10,5),
+#             # xlab = "Average treatment effect (95% CI)"
+#             )
+```
+
 # (ii) Mortality at day 60
 
 ```r
@@ -314,13 +1298,13 @@ str(df_mort60)
 ```
 ## 'data.frame':	6 obs. of  10 variables:
 ##  $ variable         : chr  "death at day 60" "death at day 60" "death at day 60" "death at day 60_firth" ...
-##  $ hazard_odds_ratio: num  0.89 0.737 0.791 2.537 0.182 ...
-##  $ ci_lower         : num  0.44951 0.41582 0.14728 0.12715 0.00131 ...
-##  $ ci_upper         : num  1.75 1.29 3.83 380.13 2.29 ...
-##  $ standard_error   : num  0.346 0.287 0.798 1.315 1.358 ...
-##  $ p_value          : num  0.736 0.287 0.769 0.552 0.203 ...
-##  $ n_intervention   : num  145 515 46 58 55 815
-##  $ n_control        : num  144 518 51 58 55 811
+##  $ hazard_odds_ratio: num  0.917 0.704 0.791 2.537 0.182 ...
+##  $ ci_lower         : num  0.46144 0.39577 0.14728 0.12715 0.00131 ...
+##  $ ci_upper         : num  1.81 1.24 3.83 380.13 2.29 ...
+##  $ standard_error   : num  0.348 0.289 0.798 1.315 1.361 ...
+##  $ p_value          : num  0.803 0.225 0.769 0.552 0.203 ...
+##  $ n_intervention   : num  137 494 46 58 53 748
+##  $ n_control        : num  140 492 51 58 54 750
 ##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
 ##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
@@ -350,26 +1334,26 @@ summary(mort60)
 ## Review:     Average treatment effect - mortality 60 days
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.8900 [0.4520;  1.7522]       13.3
-## ACTT-2        0.7368 [0.4197;  1.2933]       19.3
+## Bari-SolidAct 0.9170 [0.4640;  1.8125]       13.4
+## ACTT-2        0.7041 [0.3996;  1.2406]       19.3
 ## Ghazaeian     0.7909 [0.1654;  3.7807]        2.5
 ## TOFACOV       2.5366 [0.1928; 33.3748]        0.9
-## COVINIB       0.1822 [0.0127;  2.6082]        0.9
-## COV-BARRIER   0.5696 [0.4181;  0.7758]       63.1
+## COVINIB       0.1816 [0.0126;  2.6139]        0.9
+## COV-BARRIER   0.5656 [0.4133;  0.7740]       63.0
 ## 
 ## Number of studies: k = 6
-## Number of observations: o = 3271
+## Number of observations: o = 3081
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.6430 [0.4646; 0.8898] -3.49  0.0174
+## Random effects model (HK-SE) 0.6373 [0.4598; 0.8835] -3.55  0.0165
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0004 [0.0000; 2.6022]; tau = 0.0211 [0.0000; 1.6131]
+##  tau^2 = 0 [0.0000; 2.6411]; tau = 0 [0.0000; 1.6251]
 ##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  3.72    5  0.5904
+##  3.80    5  0.5786
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -391,7 +1375,7 @@ forest.meta(mort60,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 Discussion points
 
 # (iii) Time to death within max. follow-up time
@@ -403,11 +1387,11 @@ str(df_ttdeath)
 ```
 ## 'data.frame':	4 obs. of  10 variables:
 ##  $ variable         : chr  "death within fup" "death within fup" "death within fup" "death within fup"
-##  $ hazard_odds_ratio: num  0.773 0.741 0.838 0.614
-##  $ ci_lower         : num  0.432 0.442 0.187 0.476
-##  $ ci_upper         : num  1.38 1.24 3.75 0.79
-##  $ standard_error   : num  0.296 0.264 0.764 0.129
-##  $ p_value          : num  0.384572 0.256266 0.817035 0.000154
+##  $ hazard_odds_ratio: num  0.773 0.741 0.838 0.595
+##  $ ci_lower         : num  0.432 0.442 0.187 0.461
+##  $ ci_upper         : num  1.382 1.243 3.747 0.767
+##  $ standard_error   : num  0.296 0.264 0.764 0.13
+##  $ p_value          : num  3.85e-01 2.56e-01 8.17e-01 6.16e-05
 ##  $ n_intervention   : num  145 515 46 815
 ##  $ n_control        : num  144 518 51 811
 ##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "COV-BARRIER"
@@ -439,24 +1423,24 @@ summary(ttdeath)
 ## Review:     Average treatment effect - time to death
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 0.7727 [0.4322; 1.3817]       13.0
-## ACTT-2        0.7409 [0.4415; 1.2434]       16.4
+## Bari-SolidAct 0.7727 [0.4322; 1.3817]       13.1
+## ACTT-2        0.7409 [0.4415; 1.2434]       16.5
 ## Ghazaeian     0.8380 [0.1874; 3.7469]        2.0
-## COV-BARRIER   0.6136 [0.4764; 0.7902]       68.6
+## COV-BARRIER   0.5947 [0.4612; 0.7668]       68.4
 ## 
 ## Number of studies: k = 4
 ## Number of observations: o = 3045
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.6561 [0.4668; 0.9221] -3.94  0.0291
+## Random effects model (HK-SE) 0.6425 [0.4566; 0.9040] -4.12  0.0259
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1376]; tau = 0 [0.0000; 0.3709]
+##  tau^2 = 0 [0.0000; 0.1926]; tau = 0 [0.0000; 0.4388]
 ##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.89    3  0.8281
+##  1.16    3  0.7638
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -478,7 +1462,7 @@ forest.meta(ttdeath,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 Discussion points
 
 # (iv) New mechanical ventilation or death within 28 days
@@ -490,13 +1474,13 @@ str(df_new_mvd28)
 ```
 ## 'data.frame':	6 obs. of  10 variables:
 ##  $ variable         : chr  "new MV or death within 28d" "new MV or death within 28d" "new MV or death within 28d" "new MV or death within 28d" ...
-##  $ hazard_odds_ratio: num  1.016 0.71 0.791 0.503 0.199 ...
-##  $ ci_lower         : num  0.5916 0.4833 0.1473 0.0222 0.0287 ...
-##  $ ci_upper         : num  1.747 1.038 3.826 5.795 0.862 ...
-##  $ standard_error   : num  0.276 0.195 0.798 1.271 0.826 ...
-##  $ p_value          : num  0.9528 0.078 0.7688 0.5891 0.0509 ...
-##  $ n_intervention   : num  145 515 46 58 55 815
-##  $ n_control        : num  144 518 51 58 55 811
+##  $ hazard_odds_ratio: num  1.05 0.687 0.791 0.503 0.199 ...
+##  $ ci_lower         : num  0.6084 0.4667 0.1473 0.0222 0.0286 ...
+##  $ ci_upper         : num  1.814 1.008 3.826 5.795 0.865 ...
+##  $ standard_error   : num  0.278 0.196 0.798 1.271 0.828 ...
+##  $ p_value          : num  0.8603 0.056 0.7688 0.5891 0.0515 ...
+##  $ n_intervention   : num  138 500 46 58 53 768
+##  $ n_control        : num  140 499 51 58 54 775
 ##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
 ##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
@@ -526,26 +1510,26 @@ summary(new.mvd28)
 ## Review:     Average treatment effect - New MV or death within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0165 [0.5923; 1.7443]       13.4
-## ACTT-2        0.7097 [0.4846; 1.0392]       26.8
-## Ghazaeian     0.7909 [0.1654; 3.7807]        1.6
-## TOFACOV       0.5034 [0.0417; 6.0761]        0.6
-## COVINIB       0.1994 [0.0395; 1.0066]        1.5
-## COV-BARRIER   0.7651 [0.5879; 0.9958]       56.1
+## Bari-SolidAct 1.0501 [0.6091; 1.8106]       14.3
+## ACTT-2        0.6874 [0.4680; 1.0096]       28.6
+## Ghazaeian     0.7909 [0.1654; 3.7807]        1.7
+## TOFACOV       0.5034 [0.0417; 6.0761]        0.7
+## COVINIB       0.1994 [0.0393; 1.0107]        1.6
+## COV-BARRIER   0.8235 [0.6209; 1.0922]       53.1
 ## 
 ## Number of studies: k = 6
-## Number of observations: o = 3271
+## Number of observations: o = 3140
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.7618 [0.5880; 0.9870] -2.70  0.0428
+## Random effects model (HK-SE) 0.7881 [0.6017; 1.0322] -2.27  0.0726
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 1.4870]; tau = 0 [0.0000; 1.2194]
+##  tau^2 = 0 [0.0000; 1.5748]; tau = 0 [0.0000; 1.2549]
 ##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  3.97    5  0.5537
+##  4.52    5  0.4768
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -567,7 +1551,7 @@ forest.meta(new.mvd28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 Discussion points
 
 # (iv.i) New mechanical ventilation among survivors within 28 days
@@ -579,13 +1563,13 @@ str(df_new_mv28)
 ```
 ## 'data.frame':	5 obs. of  10 variables:
 ##  $ variable         : chr  "new MV within 28d" "new MV within 28d" "new MV within 28d_firth" "new MV within 28d" ...
-##  $ hazard_odds_ratio: num  1.483 0.705 0.217 0.27 1.214
-##  $ ci_lower         : num  0.72932 0.4374 0.00154 0.03782 0.83795
-##  $ ci_upper         : num  3.09 1.13 2.88 1.25 1.77
-##  $ standard_error   : num  0.366 0.242 1.385 0.848 0.19
-##  $ p_value          : num  0.281 0.149 0.269 0.122 0.307
-##  $ n_intervention   : num  114 449 57 55 702
-##  $ n_control        : num  108 436 58 53 661
+##  $ hazard_odds_ratio: num  1.536 0.687 0.217 0.27 1.221
+##  $ ci_lower         : num  0.7522 0.42483 0.00154 0.03781 0.83974
+##  $ ci_upper         : num  3.21 1.1 2.88 1.26 1.78
+##  $ standard_error   : num  0.368 0.243 1.385 0.85 0.192
+##  $ p_value          : num  0.243 0.123 0.269 0.124 0.298
+##  $ n_intervention   : num  107 437 57 53 655
+##  $ n_control        : num  104 422 58 52 624
 ##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "TOFACOV" "COVINIB" ...
 ##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Baricitinib" ...
 ```
@@ -615,25 +1599,25 @@ summary(new.mv28)
 ## Review:     Average treatment effect - New MV among survivors within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.4835 [0.7243; 3.0383]       21.7
-## ACTT-2        0.7055 [0.4394; 1.1328]       32.2
-## TOFACOV       0.2175 [0.0144; 3.2855]        2.5
-## COVINIB       0.2698 [0.0512; 1.4223]        6.1
-## COV-BARRIER   1.2142 [0.8368; 1.7617]       37.6
+## Bari-SolidAct 1.5355 [0.7471; 3.1562]       22.3
+## ACTT-2        0.6873 [0.4269; 1.1068]       31.8
+## TOFACOV       0.2175 [0.0144; 3.2855]        2.8
+## COVINIB       0.2705 [0.0511; 1.4311]        6.8
+## COV-BARRIER   1.2208 [0.8387; 1.7772]       36.3
 ## 
 ## Number of studies: k = 5
-## Number of observations: o = 2693
+## Number of observations: o = 2569
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.9306 [0.4685; 1.8488] -0.29  0.7857
+## Random effects model (HK-SE) 0.9210 [0.4450; 1.9062] -0.31  0.7691
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0968 [0.0000; 5.4203]; tau = 0.3112 [0.0000; 2.3281]
-##  I^2 = 49.3% [0.0%; 81.4%]; H = 1.40 [1.00; 2.32]
+##  tau^2 = 0.1207 [0.0000; 5.5522]; tau = 0.3474 [0.0000; 2.3563]
+##  I^2 = 52.4% [0.0%; 82.5%]; H = 1.45 [1.00; 2.39]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  7.89    4  0.0957
+##  8.40    4  0.0779
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -655,7 +1639,7 @@ forest.meta(new.mv28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 Discussion points
 
 # (v) Clinical status at day 28
@@ -667,11 +1651,11 @@ str(df_clin28)
 ```
 ## 'data.frame':	6 obs. of  10 variables:
 ##  $ variable         : chr  "clinical status at day 28" "clinical status at day 28" "clinical status at day 28" "clinical status at day 28" ...
-##  $ hazard_odds_ratio: num  0.945 0.703 0.826 0.509 0.321 ...
-##  $ ci_lower         : num  0.5773 0.4833 0.1539 0.0667 0.0428 ...
-##  $ ci_upper         : num  1.55 1.02 3.99 2.84 1.65 ...
-##  $ standard_error   : num  0.251 0.19 0.798 0.907 0.887 ...
-##  $ p_value          : num  0.8219 0.0638 0.8102 0.4563 0.2003 ...
+##  $ hazard_odds_ratio: num  0.945 0.693 0.826 0.509 0.321 ...
+##  $ ci_lower         : num  0.5773 0.4961 0.1539 0.0667 0.0428 ...
+##  $ ci_upper         : num  1.547 0.965 3.989 2.843 1.655 ...
+##  $ standard_error   : num  0.251 0.17 0.798 0.907 0.887 ...
+##  $ p_value          : num  0.8219 0.0304 0.8102 0.4563 0.2003 ...
 ##  $ n_intervention   : num  145 515 46 58 55 815
 ##  $ n_control        : num  144 518 51 58 55 811
 ##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
@@ -703,26 +1687,26 @@ summary(clin28)
 ## Review:     Average treatment effect - Clinical status at day 28
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 0.9451 [0.5778; 1.5456]       14.1
-## ACTT-2        0.7031 [0.4845; 1.0204]       24.6
-## Ghazaeian     0.8256 [0.1729; 3.9418]        1.4
-## TOFACOV       0.5090 [0.0861; 3.0089]        1.1
+## Bari-SolidAct 0.9451 [0.5778; 1.5456]       13.3
+## ACTT-2        0.6928 [0.4970; 0.9659]       29.1
+## Ghazaeian     0.8256 [0.1729; 3.9418]        1.3
+## TOFACOV       0.5090 [0.0861; 3.0089]        1.0
 ## COVINIB       0.3212 [0.0565; 1.8266]        1.1
-## COV-BARRIER   0.8487 [0.6655; 1.0823]       57.7
+## COV-BARRIER   0.8487 [0.6655; 1.0823]       54.3
 ## 
 ## Number of studies: k = 6
 ## Number of observations: o = 3271
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.8089 [0.6349; 1.0306] -2.25  0.0742
+## Random effects model (HK-SE) 0.7988 [0.6315; 1.0103] -2.46  0.0574
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.4620]; tau = 0 [0.0000; 0.6797]
+##  tau^2 = 0 [0.0000; 0.4642]; tau = 0 [0.0000; 0.6813]
 ##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.42    5  0.7878
+##  2.70    5  0.7466
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -744,7 +1728,7 @@ forest.meta(clin28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
@@ -833,7 +1817,7 @@ forest.meta(ttdischarge.comp,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 Discussion points
 
 # (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
@@ -922,7 +1906,7 @@ forest.meta(ttdischarge.hypo,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 Discussion points
 
 # (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -1011,7 +1995,7 @@ forest.meta(ttdischarge.cens,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 Discussion points
 
 # (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -1100,7 +2084,7 @@ forest.meta(ttdischarge.sus,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 Discussion points
 
 # (vii) Viral clearance up to day 5
@@ -1183,7 +2167,7 @@ forest.meta(vir.clear5,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 Discussion points
 
 # (viii) Viral clearance up to day 10
@@ -1266,7 +2250,7 @@ forest.meta(vir.clear10,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 Discussion points
 
 # (ix) Viral clearance up to day 15
@@ -1349,7 +2333,7 @@ forest.meta(vir.clear15,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 Discussion points
 
 # (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
@@ -1359,17 +2343,17 @@ str(df_ae28)
 ```
 
 ```
-## 'data.frame':	4 obs. of  10 variables:
-##  $ variable         : chr  "any AE grade 3,4 within 28 days_firth" "any AE grade 3,4 within 28 days" "any AE grade 3,4 within 28 days" "Any AE grade 3,4 within 28 days"
-##  $ hazard_odds_ratio: num  3.225 0.694 0.797 1.24
-##  $ ci_lower         : num  0.17 0.241 0.308 0.843
-##  $ ci_upper         : num  472.45 1.96 2.04 1.83
-##  $ standard_error   : num  1.476 0.529 0.477 0.198
-##  $ p_value          : num  0.441 0.489 0.634 0.277
-##  $ n_intervention   : num  46 58 55 734
-##  $ n_control        : num  51 58 53 684
-##  $ trial            : chr  "Ghazaeian" "TOFACOV" "COVINIB" "COV-BARRIER"
-##  $ JAKi             : chr  "Tofacitinib" "Tofacitinib" "Baricitinib" "Baricitinib"
+## 'data.frame':	6 obs. of  10 variables:
+##  $ variable         : chr  "Any AE grade 3,4 within 28 days" "Any AE grade 3,4 within 28 days" "any AE grade 3,4 within 28 days_firth" "any AE grade 3,4 within 28 days" ...
+##  $ hazard_odds_ratio: num  0.905 0.902 3.225 0.694 0.797 ...
+##  $ ci_lower         : num  0.506 0.689 0.17 0.241 0.308 ...
+##  $ ci_upper         : num  1.62 1.18 472.45 1.96 2.04 ...
+##  $ standard_error   : num  0.296 0.137 1.476 0.529 0.477 ...
+##  $ p_value          : num  0.736 0.454 0.441 0.489 0.634 ...
+##  $ n_intervention   : num  131 491 46 58 55 734
+##  $ n_control        : num  126 481 51 58 53 684
+##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
 
 ```r
@@ -1396,31 +2380,33 @@ summary(ae28)
 ```
 ## Review:     Average treatment effect - dverse event(s) grade 3 or 4, or a se ...
 ## 
-##                 OR            95%-CI %W(random)
-## Ghazaeian   3.2247 [0.1787; 58.1925]        1.4
-## TOFACOV     0.6936 [0.2461;  1.9552]       10.5
-## COVINIB     0.7969 [0.3127;  2.0306]       12.9
-## COV-BARRIER 1.2399 [0.8413;  1.8275]       75.2
+##                   OR            95%-CI %W(random)
+## Bari-SolidAct 0.9051 [0.5070;  1.6157]        8.9
+## ACTT-2        0.9024 [0.6896;  1.1808]       41.4
+## Ghazaeian     3.2247 [0.1787; 58.1925]        0.4
+## TOFACOV       0.6936 [0.2461;  1.9552]        2.8
+## COVINIB       0.7969 [0.3127;  2.0306]        3.4
+## COV-BARRIER   1.1011 [0.8462;  1.4327]       43.2
 ## 
-## Number of studies: k = 4
-## Number of observations: o = 1739
+## Number of studies: k = 6
+## Number of observations: o = 2968
 ## 
-##                                  OR           95%-CI    t p-value
-## Random effects model (HK-SE) 1.1158 [0.6463; 1.9266] 0.64  0.5684
+##                                  OR           95%-CI     t p-value
+## Random effects model (HK-SE) 0.9767 [0.7785; 1.2254] -0.27  0.7999
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 5.2235]; tau = 0 [0.0000; 2.2855]
-##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
+##  tau^2 = 0 [0.0000; 0.4065]; tau = 0 [0.0000; 0.6375]
+##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.11    3  0.5505
+##  2.45    5  0.7839
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Restricted maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 3)
+## - Hartung-Knapp adjustment for random effects model (df = 5)
 ```
 
 ```r
@@ -1436,7 +2422,7 @@ forest.meta(ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
 Discussion points
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
@@ -1446,17 +2432,17 @@ str(df_ae28sev)
 ```
 
 ```
-## 'data.frame':	4 obs. of  10 variables:
-##  $ variable         : chr  "AEs grade 3,4 within 28 days_firth" "AEs grade 3,4 within 28 days" "AEs grade 3,4 within 28 days" "AEs grade 3,4 within 28 days"
-##  $ hazard_odds_ratio: num  3.225 0.694 0.588 1.287
-##  $ ci_lower         : num  0.17 0.241 0.324 0.969
-##  $ ci_upper         : num  472.45 1.96 1.04 1.72
-##  $ standard_error   : num  1.476 0.529 0.296 0.145
-##  $ p_value          : num  0.4412 0.489 0.0724 0.0834
-##  $ n_intervention   : num  46 58 55 734
-##  $ n_control        : num  51 58 53 684
-##  $ trial            : chr  "Ghazaeian" "TOFACOV" "COVINIB" "COV-BARRIER"
-##  $ JAKi             : chr  "Tofacitinib" "Tofacitinib" "Baricitinib" "Baricitinib"
+## 'data.frame':	6 obs. of  10 variables:
+##  $ variable         : chr  "AEs grade 3,4 within 28 days" "AEs grade 3,4 within 28 days" "AEs grade 3,4 within 28 days_firth" "AEs grade 3,4 within 28 days" ...
+##  $ hazard_odds_ratio: num  1.286 0.81 3.225 0.694 0.588 ...
+##  $ ci_lower         : num  0.927 0.719 0.17 0.241 0.324 ...
+##  $ ci_upper         : num  1.793 0.913 472.451 1.957 1.042 ...
+##  $ standard_error   : num  0.168 0.0607 1.476 0.5287 0.2955 ...
+##  $ p_value          : num  0.134632 0.000538 0.44122 0.489005 0.072389 ...
+##  $ n_intervention   : num  131 491 46 58 55 734
+##  $ n_control        : num  126 481 51 58 53 684
+##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
 
 ```r
@@ -1483,31 +2469,33 @@ summary(ae28sev)
 ```
 ## Review:     Average treatment effect - Adverse event(s) grade 3 or 4, or a s ...
 ## 
-##                 OR            95%-CI %W(random)
-## Ghazaeian   3.2247 [0.1787; 58.1925]        3.3
-## TOFACOV     0.6936 [0.2461;  1.9552]       18.0
-## COVINIB     0.5880 [0.3295;  1.0494]       32.8
-## COV-BARRIER 1.2865 [0.9673;  1.7110]       45.9
+##                   OR            95%-CI %W(random)
+## Bari-SolidAct 1.2857 [0.9250;  1.7870]       22.0
+## ACTT-2        0.8105 [0.7196;  0.9129]       28.4
+## Ghazaeian     3.2247 [0.1787; 58.1925]        1.1
+## TOFACOV       0.6936 [0.2461;  1.9552]        6.6
+## COVINIB       0.5880 [0.3295;  1.0494]       14.3
+## COV-BARRIER   1.2960 [1.1139;  1.5079]       27.6
 ## 
-## Number of studies: k = 4
-## Number of observations: o = 1739
+## Number of studies: k = 6
+## Number of observations: o = 2968
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.9175 [0.3803; 2.2132] -0.31  0.7760
+## Random effects model (HK-SE) 0.9799 [0.6583; 1.4587] -0.13  0.9007
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.1458 [0.0000; 6.9235]; tau = 0.3818 [0.0000; 2.6313]
-##  I^2 = 56.7% [0.0%; 85.6%]; H = 1.52 [1.00; 2.64]
+##  tau^2 = 0.0807 [0.0104; 1.2598]; tau = 0.2840 [0.1020; 1.1224]
+##  I^2 = 83.1% [64.4%; 91.9%]; H = 2.43 [1.68; 3.52]
 ## 
 ## Test of heterogeneity:
-##     Q d.f. p-value
-##  6.93    3  0.0742
+##      Q d.f.  p-value
+##  29.54    5 < 0.0001
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Restricted maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 3)
+## - Hartung-Knapp adjustment for random effects model (df = 5)
 ```
 
 ```r
@@ -1523,7 +2511,7 @@ forest.meta(ae28sev,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 Discussion points
 
 # Collect all treatment effect estimates across endpoints
@@ -1664,12 +2652,12 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
 |:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
-|death at day 28                            |         0.5795133| 0.4113851|  0.8163535|      0.1333001| 0.0094212|            125|               1684|       193|          1687|two-stage |
-|death at day 60                            |         0.6429778| 0.4646233|  0.8897972|      0.1263851| 0.0173876|            152|               1684|       214|          1687|two-stage |
-|death within fup                           |         0.6560949| 0.4668262|  0.9221001|      0.1069455| 0.0291212|            153|               1684|       214|          1687|two-stage |
-|new MV or death within 28d                 |         0.7618224| 0.5880279|  0.9869827|      0.1007317| 0.0427504|            268|               1684|       333|          1687|two-stage |
-|new MV within 28d                          |         0.9306486| 0.4684692|  1.8488021|      0.2472267| 0.7857166|            143|               1470|       140|          1413|two-stage |
-|clinical status at day 28                  |         0.8089203| 0.6349042|  1.0306312|      0.0942301| 0.0742403|           1684|               1684|      1687|          1687|two-stage |
+|death at day 28                            |         0.7032277| 0.5386358|  0.9181144|      0.1089705| 0.0178899|            125|               1684|       193|          1687|two-stage |
+|death at day 60                            |         0.6373426| 0.4597868|  0.8834652|      0.1270314| 0.0164580|            152|               1684|       214|          1687|two-stage |
+|death within fup                           |         0.6425026| 0.4566257|  0.9040435|      0.1073095| 0.0258744|            153|               1684|       214|          1687|two-stage |
+|new MV or death within 28d                 |         0.7881019| 0.6017180|  1.0322187|      0.1049718| 0.0725754|            268|               1684|       333|          1687|two-stage |
+|new MV within 28d                          |         0.9210084| 0.4450101|  1.9061513|      0.2619797| 0.7691495|            143|               1470|       140|          1413|two-stage |
+|clinical status at day 28                  |         0.7987921| 0.6315483|  1.0103247|      0.0913903| 0.0573562|           1684|               1684|      1687|          1687|two-stage |
 |discharge within 28 days, death=comp.event |         1.1337880| 1.0104104|  1.2722308|      0.0448177| 0.0379191|           1350|               1684|      1305|          1687|two-stage |
 |discharge within 28 days, death=hypo.event |         1.1568680| 1.0325273|  1.2961823|      0.0442339| 0.0216126|           1350|               1684|      1305|          1687|two-stage |
 |discharge within 28 days, death=censored   |         1.1325994| 0.9565386|  1.3410660|      0.0657242| 0.1166822|           1350|               1684|      1305|          1687|two-stage |
@@ -1677,8 +2665,8 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |viral clearance until day 5                |         0.9819506| 0.0836518| 11.5266782|      0.1938327| 0.9403527|            136|                554|       138|           545|two-stage |
 |viral clearance until day 10               |         1.0008751| 0.2153709|  4.6512825|      0.1209069| 0.9953944|            236|                604|       228|           583|two-stage |
 |viral clearance until day 15               |         0.9751177| 0.2214836|  4.2931147|      0.1166524| 0.8645700|            292|                618|       291|           606|two-stage |
-|Any AE grade 3,4 within 28 days            |         1.1158432| 0.6462771|  1.9265822|      0.1716092| 0.5684263|             89|                943|        75|           896|two-stage |
-|AEs grade 3,4 within 28 days               |         0.9174720| 0.3803375|  2.2131788|      0.2766938| 0.7759547|            943|                943|       896|           896|two-stage |
+|Any AE grade 3,4 within 28 days            |         0.9766802| 0.7784532|  1.2253841|      0.0882487| 0.7998542|             89|                943|        75|           896|two-stage |
+|AEs grade 3,4 within 28 days               |         0.9798948| 0.6582755|  1.4586504|      0.1547594| 0.9007056|            943|                943|       896|           896|two-stage |
 
 ```r
 # Save
@@ -1731,7 +2719,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 ## generated.
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
 
 
 # TREATMENT-COVARIATE INTERACTIONS
@@ -2003,11 +2991,11 @@ str(df_rs_mort28)
 ```
 ## 'data.frame':	6 obs. of  8 variables:
 ##  $ variable      : chr  "respiratory support" "respiratory support" "respiratory support_firth" "respiratory support_firth" ...
-##  $ log_odds_ratio: num  0.22 1.859 1 1.188 0.254 ...
-##  $ ci_lower      : num  0.022524 0.956064 0.001618 0.003153 0.000502 ...
-##  $ ci_upper      : num  1.54 3.73 617.98 689.75 80.69 ...
-##  $ standard_error: num  1.0498 0.3453 0.0328 2.4621 2.4394 ...
-##  $ p_value       : num  0.149 0.0726 1 0.9488 0.5913 ...
+##  $ log_odds_ratio: num  0.212 1.747 1 1.188 0.252 ...
+##  $ ci_lower      : num  0.021687 0.894905 0.001618 0.003153 0.000499 ...
+##  $ ci_upper      : num  1.49 3.52 617.98 689.75 80.31 ...
+##  $ standard_error: num  1.0509 0.3473 0.0328 2.4621 2.4418 ...
+##  $ p_value       : num  0.14 0.108 1 0.949 0.59 ...
 ##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
 ##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
@@ -2037,23 +3025,23 @@ summary(rs.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Respiratory ...
 ## 
 ##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct          -1.5148 [-3.5724; 0.5427]        3.1       11.2
-## ACTT-2                  0.6198 [-0.0569; 1.2965]       28.6       40.0
-## COV-BARRIER            -0.1065 [-0.5443; 0.3312]       68.3       48.8
+## Bari-SolidAct          -1.5507 [-3.6105; 0.5090]        3.1       10.2
+## ACTT-2                  0.5576 [-0.1231; 1.2383]       28.7       39.8
+## COV-BARRIER            -0.1312 [-0.5733; 0.3109]       68.1       50.0
 ## 
 ## Number of studies: k = 3
 ## 
-##                              log(Ratio of OR)            95%-CI  z|t p-value
-## Common effect model                    0.0576 [-0.3042; 0.4194] 0.31  0.7552
-## Random effects model (HK-SE)           0.0256 [-1.9374; 1.9886] 0.06  0.9603
+##                              log(Ratio of OR)            95%-CI   z|t p-value
+## Common effect model                    0.0222 [-0.3427; 0.3871]  0.12  0.9050
+## Random effects model (HK-SE)          -0.0026 [-1.8746; 1.8693] -0.01  0.9957
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.2650 [0.0000; 45.8270]; tau = 0.5147 [0.0000; 6.7696]
-##  I^2 = 63.2% [0.0%; 89.5%]; H = 1.65 [1.00; 3.08]
+##  tau^2 = 0.2207 [0.0000; 44.9442]; tau = 0.4697 [0.0000; 6.7040]
+##  I^2 = 60.6% [0.0%; 88.8%]; H = 1.59 [1.00; 2.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  5.44    2  0.0660
+##  5.08    2  0.0789
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -2076,7 +3064,7 @@ forest.meta(rs.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 Discussion points
 
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
@@ -2088,11 +3076,11 @@ str(df_vb_mort28)
 ```
 ## 'data.frame':	3 obs. of  8 variables:
 ##  $ variable      : chr  "ventilation_firth" "ventilation" "ventilation"
-##  $ log_odds_ratio: num  0.778 2.437 0.809
-##  $ ci_lower      : num  8.81e-13 7.21e-01 4.22e-01
-##  $ ci_upper      : num  1.65 9.16 1.56
-##  $ standard_error: num  0.0712 0.6395 0.3322
-##  $ p_value       : num  0.249 0.164 0.524
+##  $ log_odds_ratio: num  0.773 2.196 0.789
+##  $ ci_lower      : num  7.40e-13 6.48e-01 4.09e-01
+##  $ ci_upper      : num  1.63 8.28 1.53
+##  $ standard_error: num  0.0717 0.6412 0.3356
+##  $ p_value       : num  0.242 0.22 0.479
 ##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "COV-BARRIER"
 ##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Baricitinib"
 ```
@@ -2122,20 +3110,20 @@ summary(vb.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Ventilation ...
 ## 
 ##             log(Ratio of OR)            95%-CI %W(random)
-## ACTT-2                0.8907 [-0.3627; 2.1442]       37.7
-## COV-BARRIER          -0.2119 [-0.8630; 0.4392]       62.3
+## ACTT-2                0.7867 [-0.4700; 2.0435]       35.8
+## COV-BARRIER          -0.2375 [-0.8952; 0.4202]       64.2
 ## 
 ## Number of studies: k = 2
 ## 
 ##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-SE)           0.2040 [-6.5866; 6.9947] 0.38  0.7678
+## Random effects model (HK-SE)           0.1289 [-6.1091; 6.3669] 0.26  0.8366
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.3482; tau = 0.5901; I^2 = 57.3% [0.0%; 89.8%]; H = 1.53 [1.00; 3.13]
+##  tau^2 = 0.2627; tau = 0.5125; I^2 = 50.1% [0.0%; 87.2%]; H = 1.42 [1.00; 2.79]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.34    1  0.1260
+##  2.00    1  0.1570
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -2159,7 +3147,7 @@ forest.meta(vb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -2316,7 +3304,7 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -2331,11 +3319,11 @@ str(df_age_mort28)
 ```
 ## 'data.frame':	6 obs. of  8 variables:
 ##  $ variable      : chr  "age" "age" "age" "age_firth" ...
-##  $ log_odds_ratio: num  1.026 0.993 1.05 1.047 0.869 ...
-##  $ ci_lower      : num  0.954 0.952 0.951 0.661 0.551 ...
+##  $ log_odds_ratio: num  1.027 0.992 1.05 1.047 0.866 ...
+##  $ ci_lower      : num  0.954 0.951 0.951 0.661 0.558 ...
 ##  $ ci_upper      : num  1.11 1.04 1.18 1.67 1.54 ...
-##  $ standard_error: num  0.0377 0.0212 0.0531 0.0973 0.1064 ...
-##  $ p_value       : num  0.498 0.732 0.354 0.775 0.422 ...
+##  $ standard_error: num  0.0377 0.0215 0.0531 0.0973 0.1064 ...
+##  $ p_value       : num  0.486 0.725 0.354 0.775 0.425 ...
 ##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
 ##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
@@ -2364,25 +3352,25 @@ summary(age.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Age
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.0255 [-0.0483; 0.0993]        8.4
-## ACTT-2                 -0.0073 [-0.0488; 0.0343]       26.3
-## Ghazaeian               0.0492 [-0.0549; 0.1534]        4.2
+## Bari-SolidAct           0.0263 [-0.0476; 0.1002]        8.5
+## ACTT-2                 -0.0076 [-0.0497; 0.0346]       25.9
+## Ghazaeian               0.0492 [-0.0549; 0.1534]        4.3
 ## TOFACOV                 0.0460 [-0.1448; 0.2368]        1.3
-## COVINIB                -0.1400 [-0.3486; 0.0686]        1.1
-## COV-BARRIER             0.0228 [-0.0049; 0.0505]       58.7
+## COVINIB                -0.1438 [-0.3523; 0.0646]        1.1
+## COV-BARRIER             0.0238 [-0.0040; 0.0516]       59.0
 ## 
 ## Number of studies: k = 6
 ## 
 ##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-SE)           0.0148 [-0.0133; 0.0429] 1.36  0.2331
+## Random effects model (HK-SE)           0.0154 [-0.0128; 0.0437] 1.41  0.2186
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.0209]; tau = 0.0019 [0.0000; 0.1445]
+##  tau^2 < 0.0001 [0.0000; 0.0223]; tau = 0.0017 [0.0000; 0.1494]
 ##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.12    5  0.5321
+##  4.32    5  0.5044
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -2406,7 +3394,7 @@ forest.meta(age.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -2563,7 +3551,7 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -2579,11 +3567,11 @@ str(df_comorb_mort28)
 ```
 ## 'data.frame':	6 obs. of  8 variables:
 ##  $ variable      : chr  "comorbidity" "comorbidity" "comorbidity" "comorbidity_firth" ...
-##  $ log_odds_ratio: num  1.257 0.818 1.914 0.606 1.499 ...
-##  $ ci_lower      : num  0.50767 0.34036 0.32782 0.00546 0.02422 ...
-##  $ ci_upper      : num  3.26 1.96 16.49 88.27 6641.84 ...
-##  $ standard_error: num  0.468 0.444 0.95 1.381 1.261 ...
-##  $ p_value       : num  0.625 0.65 0.494 0.777 0.789 ...
+##  $ log_odds_ratio: num  1.099 0.808 1.914 0.606 1.508 ...
+##  $ ci_lower      : num  0.4299 0.33599 0.32782 0.00546 0.02342 ...
+##  $ ci_upper      : num  2.9 1.95 16.49 88.27 5786.07 ...
+##  $ standard_error: num  0.481 0.445 0.95 1.381 1.266 ...
+##  $ p_value       : num  0.845 0.632 0.494 0.777 0.788 ...
 ##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
 ##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
@@ -2612,26 +3600,26 @@ summary(comorb.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Comorbidity
 ## 
 ##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct           0.2290 [-0.6881; 1.1460]       15.3       15.3
-## ACTT-2                 -0.2010 [-1.0703; 0.6683]       17.0       17.0
-## Ghazaeian               0.6492 [-1.2128; 2.5111]        3.7        3.7
+## Bari-SolidAct           0.0940 [-0.8479; 1.0359]       14.8       14.8
+## ACTT-2                 -0.2127 [-1.0842; 0.6589]       17.2       17.2
+## Ghazaeian               0.6492 [-1.2128; 2.5111]        3.8        3.8
 ## TOFACOV                -0.5007 [-3.2076; 2.2062]        1.8        1.8
-## COVINIB                 0.4050 [-2.0656; 2.8757]        2.1        2.1
-## COV-BARRIER            -0.1323 [-0.5946; 0.3300]       60.1       60.1
+## COVINIB                 0.4110 [-2.0709; 2.8929]        2.1        2.1
+## COV-BARRIER            -0.1635 [-0.6294; 0.3023]       60.3       60.3
 ## 
 ## Number of studies: k = 6
 ## 
 ##                              log(Ratio of OR)            95%-CI   z|t p-value
-## Common effect model                   -0.0550 [-0.4135; 0.3035] -0.30  0.7638
-## Random effects model (HK-SE)          -0.0550 [-0.5251; 0.4152] -0.30  0.7759
+## Common effect model                   -0.0971 [-0.4589; 0.2647] -0.53  0.5988
+## Random effects model (HK-SE)          -0.0971 [-0.5717; 0.3774] -0.53  0.6213
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.2470]; tau = 0 [0.0000; 0.4970]
+##  tau^2 = 0 [0.0000; 0.1895]; tau = 0 [0.0000; 0.4353]
 ##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.37    5  0.9275
+##  1.17    5  0.9480
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -2654,7 +3642,7 @@ forest.meta(comorb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
 Discussion points
 
 # Interaction: Comedication on primary endpoint
@@ -2664,15 +3652,15 @@ str(df_comed_mort28)
 ```
 
 ```
-## 'data.frame':	5 obs. of  8 variables:
-##  $ variable      : chr  "comedication_firth" "comedication_firth" "comedication_firth" "comedication_firth" ...
-##  $ log_odds_ratio: num  1.715 0.994 1.901 1.361 1.216
-##  $ ci_lower      : num  0.337293 0.000715 0.09537 0.073967 0.762656
-##  $ ci_upper      : num  22.15 7.84 48.5 31.44 1.99
-##  $ standard_error: num  0.8879 0.0342 1.2141 1.2146 0.2431
-##  $ p_value       : num  0.526 0.951 0.636 0.813 0.421
-##  $ trial         : chr  "Bari-SolidAct" "Ghazaeian" "TOFACOV" "COVINIB" ...
-##  $ JAKi          : chr  "Baricitinib" "Tofacitinib" "Tofacitinib" "Baricitinib" ...
+## 'data.frame':	6 obs. of  8 variables:
+##  $ variable      : chr  "comedication_firth" "comedication" "comedication_firth" "comedication_firth" ...
+##  $ log_odds_ratio: num  1.636 1.476 0.994 1.901 1.364 ...
+##  $ ci_lower      : num  0.308395 0.451998 0.000715 0.09537 0.073829 ...
+##  $ ci_upper      : num  21.52 4.83 7.84 48.5 31.58 ...
+##  $ standard_error: num  0.9068 0.5757 0.0342 1.2141 1.2185 ...
+##  $ p_value       : num  0.575 0.499 0.951 0.636 0.812 ...
+##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
 
 ```r
@@ -2700,30 +3688,29 @@ summary(comed.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Comedication
 ## 
 ##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct           0.5395 [-1.2009; 2.2798]        6.5        6.5
-## TOFACOV                 0.6425 [-1.7371; 3.0221]        3.5        3.5
-## COVINIB                 0.3084 [-2.0723; 2.6890]        3.5        3.5
-## COV-BARRIER             0.1954 [-0.2810; 0.6719]       86.6       86.6
+## Bari-SolidAct           0.4922 [-1.2850; 2.2695]        5.5        5.5
+## ACTT-2                  0.3891 [-0.7393; 1.5175]       13.7       13.7
+## TOFACOV                 0.6425 [-1.7371; 3.0221]        3.1        3.1
+## COVINIB                 0.3102 [-2.0781; 2.6984]        3.0        3.0
+## COV-BARRIER             0.1782 [-0.3043; 0.6608]       74.7       74.7
 ## 
-## Number of studies: k = 4
+## Number of studies: k = 5
 ## 
 ##                              log(Ratio of OR)            95%-CI  z|t p-value
-## Common effect model                    0.2372 [-0.2061; 0.6806] 1.05  0.2943
-## Random effects model (HK-SE)           0.2372 [-0.4827; 0.9571] 1.05  0.3714
+## Common effect model                    0.2426 [-0.1745; 0.6597] 1.14  0.2543
+## Random effects model (HK-SE)           0.2426 [-0.3482; 0.8334] 1.14  0.3179
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0755]; tau = 0 [0.0000; 0.2747]
-##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
+##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.26    3  0.9673
+##  0.32    4  0.9885
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Restricted maximum-likelihood estimator for tau^2
-## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 3)
+## - Hartung-Knapp adjustment for random effects model (df = 4)
 ```
 
 ```r
@@ -2740,7 +3727,7 @@ forest.meta(comed.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
 Discussion points
 
 # Interaction: Vaccination on AEs
@@ -2750,15 +3737,15 @@ str(df_vacc_ae28)
 ```
 
 ```
-## 'data.frame':	2 obs. of  8 variables:
-##  $ variable      : chr  "vaccination on AEs_firth" "vaccination on AEs_firth"
-##  $ log_odds_ratio: num  2.65 1
-##  $ ci_lower      : num  9.71e-03 5.63e-205
-##  $ ci_upper      : num  7.65e+02 1.77e+204
-##  $ standard_error: num  2.36 2.4
-##  $ p_value       : num  0.684 1
-##  $ trial         : chr  "TOFACOV" "COVINIB"
-##  $ JAKi          : chr  "Tofacitinib" "Baricitinib"
+## 'data.frame':	3 obs. of  8 variables:
+##  $ variable      : chr  "vaccination on AEs" "vaccination on AEs_firth" "vaccination on AEs_firth"
+##  $ log_odds_ratio: num  1.75 2.65 1
+##  $ ci_lower      : num  5.14e-01 9.71e-03 5.63e-205
+##  $ ci_upper      : num  6.04 7.65e+02 1.77e+204
+##  $ standard_error: num  0.627 2.358 2.4
+##  $ p_value       : num  0.371 0.684 1
+##  $ trial         : chr  "Bari-SolidAct" "TOFACOV" "COVINIB"
+##  $ JAKi          : chr  "Baricitinib" "Tofacitinib" "Baricitinib"
 ```
 
 ```r
@@ -2784,27 +3771,30 @@ summary(vacc.ae28)
 ```
 ## Review:     Treatment-covariate interaction on AEs: vaccination
 ## 
-##         log(Ratio of OR)            95%-CI %W(common) %W(random)
-## TOFACOV           0.9745 [-3.6477; 5.5967]       50.9       50.9
-## COVINIB           0.0000 [-4.7030; 4.7030]       49.1       49.1
+##               log(Ratio of OR)            95%-CI %W(common) %W(random)
+## Bari-SolidAct           0.5606 [-0.6675; 1.7886]       87.8       87.8
+## TOFACOV                 0.9745 [-3.6477; 5.5967]        6.2        6.2
+## COVINIB                 0.0000 [-4.7030; 4.7030]        6.0        6.0
 ## 
-## Number of studies: k = 2
+## Number of studies: k = 3
 ## 
-##                              log(Ratio of OR)              95%-CI  z|t p-value
-## Common effect model                    0.4957 [ -2.8009;  3.7923] 0.29  0.7682
-## Random effects model (HK-SE)           0.4957 [-20.8757; 21.8671] 0.29  0.8175
+##                              log(Ratio of OR)            95%-CI  z|t p-value
+## Common effect model                    0.5527 [-0.5981; 1.7035] 0.94  0.3466
+## Random effects model (HK-SE)           0.5527 [-1.9737; 3.0790] 0.94  0.4459
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0; tau = 0; I^2 = 0.0%; H = 1.00
+##  tau^2 = 0 [0.0000; 3.8158]; tau = 0 [0.0000; 1.9534]
+##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.08    1  0.7721
+##  0.09    2  0.9583
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Restricted maximum-likelihood estimator for tau^2
-## - Hartung-Knapp adjustment for random effects model (df = 1)
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 2)
 ```
 
 ```r
@@ -2821,7 +3811,7 @@ forest.meta(vacc.ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
 Discussion points
 
 # Interaction: Symptom onset on primary endpoint
@@ -2833,11 +3823,11 @@ str(df_symp_mort28)
 ```
 ## 'data.frame':	6 obs. of  8 variables:
 ##  $ variable      : chr  "symptom duration" "symptom duration" "symptom duration" "symptom duration_firth" ...
-##  $ log_odds_ratio: num  0.796 0.949 1.196 0.824 1.286 ...
-##  $ ci_lower      : num  0.6279 0.8225 0.6407 0.3883 0.0609 ...
-##  $ ci_upper      : num  1 1.08 2.36 3.74 41.95 ...
-##  $ standard_error: num  0.1177 0.0703 0.3233 0.259 0.5147 ...
-##  $ p_value       : num  0.0531 0.4544 0.5804 0.6358 0.7423 ...
+##  $ log_odds_ratio: num  0.809 0.953 1.196 0.824 1.266 ...
+##  $ ci_lower      : num  0.6375 0.8246 0.6407 0.3883 0.0575 ...
+##  $ ci_upper      : num  1.02 1.09 2.36 3.74 106.92 ...
+##  $ standard_error: num  0.1184 0.0711 0.3233 0.259 0.5253 ...
+##  $ p_value       : num  0.0742 0.4962 0.5804 0.6358 0.7624 ...
 ##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
 ##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
@@ -2867,26 +3857,26 @@ summary(symp.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Symptom dur ...
 ## 
 ##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct          -0.2277 [-0.4584; 0.0030]        6.1       17.2
-## ACTT-2                 -0.0526 [-0.1903; 0.0852]       17.1       29.9
-## Ghazaeian               0.1787 [-0.4549; 0.8123]        0.8        3.2
-## TOFACOV                -0.1941 [-0.7017; 0.3135]        1.3        4.9
-## COVINIB                 0.2516 [-0.7571; 1.2604]        0.3        1.3
-## COV-BARRIER             0.0457 [-0.0205; 0.1118]       74.4       43.5
+## Bari-SolidAct          -0.2114 [-0.4436; 0.0207]        6.1       15.5
+## ACTT-2                 -0.0484 [-0.1877; 0.0910]       16.9       29.2
+## Ghazaeian               0.1787 [-0.4549; 0.8123]        0.8        2.7
+## TOFACOV                -0.1941 [-0.7017; 0.3135]        1.3        4.1
+## COVINIB                 0.2361 [-0.7935; 1.2656]        0.3        1.1
+## COV-BARRIER             0.0395 [-0.0269; 0.1059]       74.5       47.4
 ## 
 ## Number of studies: k = 6
 ## 
 ##                              log(Ratio of OR)            95%-CI   z|t p-value
-## Common effect model                    0.0108 [-0.0462; 0.0679]  0.37  0.7092
-## Random effects model (HK-SE)          -0.0353 [-0.1897; 0.1192] -0.59  0.5828
+## Common effect model                    0.0081 [-0.0493; 0.0654]  0.28  0.7829
+## Random effects model (HK-SE)          -0.0289 [-0.1690; 0.1112] -0.53  0.6191
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0071 [0.0000; 0.1325]; tau = 0.0846 [0.0000; 0.3639]
-##  I^2 = 29.6% [0.0%; 71.2%]; H = 1.19 [1.00; 1.86]
+##  tau^2 = 0.0051 [0.0000; 0.1137]; tau = 0.0715 [0.0000; 0.3372]
+##  I^2 = 16.7% [0.0%; 61.5%]; H = 1.10 [1.00; 1.61]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  7.10    5  0.2132
+##  6.00    5  0.3060
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -2909,7 +3899,7 @@ forest.meta(symp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
 Discussion points
 
 # Interaction: CRP on primary endpoint
@@ -2919,15 +3909,15 @@ str(df_crp_mort28)
 ```
 
 ```
-## 'data.frame':	5 obs. of  8 variables:
-##  $ variable      : chr  "crp" "crp" "crp_firth" "crp_firth" ...
-##  $ log_odds_ratio: num  1 0.997 0.989 1.02 1.001
-##  $ ci_lower      : num  0.995 0.955 0.483 0.907 0.998
-##  $ ci_upper      : num  1 1.03 1.05 1.11 1
-##  $ standard_error: num  0.00162 0.01962 0.02457 0.01563 0.00157
-##  $ p_value       : num  0.974 0.864 0.695 0.394 0.604
-##  $ trial         : chr  "Bari-SolidAct" "Ghazaeian" "TOFACOV" "COVINIB" ...
-##  $ JAKi          : chr  "Baricitinib" "Tofacitinib" "Tofacitinib" "Baricitinib" ...
+## 'data.frame':	6 obs. of  8 variables:
+##  $ variable      : chr  "crp" "crp" "crp" "crp_firth" ...
+##  $ log_odds_ratio: num  1 0.998 0.997 0.989 1.022 ...
+##  $ ci_lower      : num  0.995 0.993 0.955 0.483 0.909 ...
+##  $ ci_upper      : num  1 1 1.03 1.05 1.11 ...
+##  $ standard_error: num  0.00154 0.00247 0.01962 0.02457 0.0156 ...
+##  $ p_value       : num  0.933 0.491 0.864 0.695 0.367 ...
+##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
 ```
 
 ```r
@@ -2955,31 +3945,32 @@ summary(crp.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: CRP
 ## 
 ##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct           0.0001 [-0.0031; 0.0032]       47.9       47.9
+## Bari-SolidAct           0.0001 [-0.0029; 0.0031]       42.8       42.8
+## ACTT-2                 -0.0017 [-0.0065; 0.0031]       16.6       16.6
 ## Ghazaeian              -0.0034 [-0.0418; 0.0351]        0.3        0.3
 ## TOFACOV                -0.0108 [-0.0589; 0.0374]        0.2        0.2
-## COVINIB                 0.0202 [-0.0104; 0.0508]        0.5        0.5
-## COV-BARRIER             0.0008 [-0.0023; 0.0039]       51.0       51.0
+## COVINIB                 0.0213 [-0.0093; 0.0519]        0.4        0.4
+## COV-BARRIER             0.0005 [-0.0026; 0.0036]       39.7       39.7
 ## 
-## Number of studies: k = 5
+## Number of studies: k = 6
 ## 
 ##                              log(Ratio of OR)            95%-CI  z|t p-value
-## Common effect model                    0.0005 [-0.0017; 0.0027] 0.46  0.6487
-## Random effects model (HK-SE)           0.0005 [-0.0026; 0.0036] 0.46  0.6723
+## Common effect model                    0.0000 [-0.0019; 0.0020] 0.04  0.9704
+## Random effects model (HK-SE)           0.0000 [-0.0025; 0.0026] 0.04  0.9719
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0008]; tau = 0 [0.0000; 0.0276]
-##  I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
+##  tau^2 = 0 [0.0000; 0.0004]; tau = 0 [0.0000; 0.0203]
+##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.96    4  0.7438
+##  2.66    5  0.7516
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Restricted maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 4)
+## - Hartung-Knapp adjustment for random effects model (df = 5)
 ```
 
 ```r
@@ -2996,7 +3987,7 @@ forest.meta(crp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
 Discussion points
 
 # Collect all interaction effect estimates
@@ -3060,16 +4051,16 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|variable            | log_odds_ratio| ci_lower|     ci_upper| standard_error| p_value|approach  |
-|:-------------------|--------------:|--------:|------------:|--------------:|-------:|:---------|
-|respiratory support |          1.026|    0.144| 7.306000e+00|          0.456|   0.960|two-stage |
-|ventilation         |          1.226|    0.001| 1.090810e+03|          0.534|   0.768|two-stage |
-|age                 |          1.015|    0.987| 1.044000e+00|          0.011|   0.233|two-stage |
-|comorbidity         |          0.947|    0.591| 1.515000e+00|          0.183|   0.776|two-stage |
-|comedication        |          1.268|    0.617| 2.604000e+00|          0.226|   0.371|two-stage |
-|vaccination on AEs  |          1.642|    0.000| 3.138722e+09|          1.682|   0.818|two-stage |
-|symptom duration    |          0.965|    0.827| 1.127000e+00|          0.060|   0.583|two-stage |
-|crp                 |          1.001|    0.997| 1.004000e+00|          0.001|   0.672|two-stage |
+|variable            | log_odds_ratio| ci_lower| ci_upper| standard_error| p_value|approach  |
+|:-------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
+|respiratory support |          0.997|    0.153|    6.484|          0.435|   0.996|two-stage |
+|ventilation         |          1.138|    0.002|  582.242|          0.491|   0.837|two-stage |
+|age                 |          1.016|    0.987|    1.045|          0.011|   0.219|two-stage |
+|comorbidity         |          0.907|    0.565|    1.459|          0.185|   0.621|two-stage |
+|comedication        |          1.275|    0.706|    2.301|          0.213|   0.318|two-stage |
+|vaccination on AEs  |          1.738|    0.139|   21.737|          0.587|   0.446|two-stage |
+|symptom duration    |          0.972|    0.845|    1.118|          0.055|   0.619|two-stage |
+|crp                 |          1.000|    0.997|    1.003|          0.001|   0.972|two-stage |
 
 ```r
 # Save
