@@ -243,7 +243,7 @@ forest.meta(mort28,
 # pdf("./fp_aggregated.pdf", width=9, height=4)
 # forest.meta(i.mort28_adhoc_se,
 #             xlim = c(0.1,5),
-#             xlab = "                  Favours Remdesivir <-> Favours No Remdesivir",
+#             xlab = "                  Favours JAKi <-> Favours No JAKi",
 #             fs.xlab = 9)
 # dev.off()
 

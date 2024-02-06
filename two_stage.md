@@ -287,7 +287,7 @@ forest.meta(mort28,
 # pdf("./fp_aggregated.pdf", width=9, height=4)
 # forest.meta(i.mort28_adhoc_se,
 #             xlim = c(0.1,5),
-#             xlab = "                  Favours Remdesivir <-> Favours No Remdesivir",
+#             xlab = "                  Favours JAKi <-> Favours No JAKi",
 #             fs.xlab = 9)
 # dev.off()
 ```
@@ -881,8 +881,8 @@ addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))
 ```
 ##       
 ##          0   1 <NA> Sum
-##   0    138 121    0 259
-##   1      7  16    0  23
+##   0    128 118    0 246
+##   1     17  19    0  36
 ##   <NA>   0   0    0   0
 ##   Sum  145 137    0 282
 ```
@@ -931,19 +931,19 @@ summ(mort.28.tacticr, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.11 </td>
-   <td style="text-align:right;"> -7.70 </td>
+   <td style="text-align:right;"> 0.13 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> -7.82 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 2.61 </td>
-   <td style="text-align:right;"> 1.04 </td>
-   <td style="text-align:right;"> 6.55 </td>
-   <td style="text-align:right;"> 2.04 </td>
-   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> 1.21 </td>
+   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 2.44 </td>
+   <td style="text-align:right;"> 0.54 </td>
+   <td style="text-align:right;"> 0.59 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -1154,37 +1154,37 @@ summary(mort28.agg)
 ## Review:     Average treatment effect - mortality 28 days
 ## 
 ##                      OR            95%-CI %W(random)
-## Bari-SolidAct    0.6573 [0.3068;  1.4084]        7.3
-## ACTT-2           0.7041 [0.3996;  1.2406]       10.9
-## Ghazaeian        0.7909 [0.1654;  3.7807]        2.1
-## TOFACOV          2.5366 [0.1928; 33.3748]        0.8
-## COVINIB          0.1816 [0.0126;  2.6139]        0.8
-## COV-BARRIER      0.5131 [0.3666;  0.7182]       18.1
-## RECOVERY         0.8434 [0.7357;  0.9669]       25.8
-## PRE-VENT*        1.3062 [0.4931;  3.4597]        4.9
-## CAO*             0.1289 [0.0062;  2.6659]        0.6
-## Pancovid*        0.4074 [0.1032;  1.6080]        2.7
-## STOP-COVID*      0.4893 [0.1440;  1.6625]        3.3
-## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        8.3
-## RUXCOVID*        1.4049 [0.4394;  4.4914]        3.7
-## TACTIC-R*        2.6068 [1.0378;  6.5484]        5.4
-## Dastan*          0.1884 [0.0087;  4.0746]        0.6
-## Singh*           0.4235 [0.1544;  1.1618]        4.7
+## Bari-SolidAct    0.6573 [0.3068;  1.4084]        6.2
+## ACTT-2           0.7041 [0.3996;  1.2406]        9.9
+## Ghazaeian        0.7909 [0.1654;  3.7807]        1.7
+## TOFACOV          2.5366 [0.1928; 33.3748]        0.6
+## COVINIB          0.1816 [0.0126;  2.6139]        0.6
+## COV-BARRIER      0.5131 [0.3666;  0.7182]       18.7
+## RECOVERY         0.8434 [0.7357;  0.9669]       31.4
+## PRE-VENT*        1.3062 [0.4931;  3.4597]        4.1
+## CAO*             0.1289 [0.0062;  2.6659]        0.5
+## Pancovid*        0.4074 [0.1032;  1.6080]        2.2
+## STOP-COVID*      0.4893 [0.1440;  1.6625]        2.7
+## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        7.2
+## RUXCOVID*        1.4049 [0.4394;  4.4914]        3.0
+## TACTIC-R*        1.2124 [0.6017;  2.4426]        7.1
+## Dastan*          0.1884 [0.0087;  4.0746]        0.5
+## Singh*           0.4235 [0.1544;  1.1618]        3.8
 ## 
 ## Number of studies: k = 16
 ## Number of observations: o = 13251
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.7090 [0.5373; 0.9355] -2.64  0.0184
-## Prediction interval              [0.4065; 1.2366]              
+## Random effects model (HK) 0.6982 [0.5610; 0.8690] -3.50  0.0032
+## Prediction interval              [0.4485; 1.0871]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0525 [0.0000; 0.7896]; tau = 0.2291 [0.0000; 0.8886]
-##  I^2 = 41.4% [0.0%; 67.6%]; H = 1.31 [1.00; 1.76]
+##  tau^2 = 0.0313 [0.0000; 0.4488]; tau = 0.1769 [0.0000; 0.6699]
+##  I^2 = 26.9% [0.0%; 59.9%]; H = 1.17 [1.00; 1.58]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f. p-value
-##  25.62   15  0.0422
+##  20.51   15  0.1533
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
