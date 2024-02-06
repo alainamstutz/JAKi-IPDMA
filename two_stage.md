@@ -275,6 +275,7 @@ forest.meta(mort28,
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - mortality 28 days", # get the title into the figure
             xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -318,7 +319,7 @@ funnel(mort28, common = TRUE,
 # par(oldpar)
 ```
 
-# (i.i) Primary outcome: Mortality at day 28 / including the non-IPD RCTs // subsets
+# (i.i) Primary outcome: Mortality at day 28 / including the non-IPD RCTs
 
 ```r
 #### read in aggregate data
@@ -411,7 +412,7 @@ row_prevent <- tibble(
   p_value = summary(mort.28.prevent)$coefficients["trt", "Pr(>|z|)"],
   n_intervention = addmargins(table(df_prevent$mort_28, df_prevent$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_prevent$mort_28, df_prevent$trt, useNA = "always"))[4,1],
-  trial = "PRE-VENT",
+  trial = "PRE-VENT*",
   JAKi = "Pacritinib")
 ```
 
@@ -472,7 +473,7 @@ row_cao <- tibble(
   p_value = mort.28.cao$prob["trt"],
   n_intervention = addmargins(table(df_cao$mort_28, df_cao$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_cao$mort_28, df_cao$trt, useNA = "always"))[4,1],
-  trial = "CAO",
+  trial = "CAO*",
   JAKi = "Ruxolitinib")
 
 ## Pancovid
@@ -564,7 +565,7 @@ row_pancovid <- tibble(
   p_value = summary(mort.28.pancovid)$coefficients["trt", "Pr(>|z|)"],
   n_intervention = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,1],
-  trial = "Pancovid",
+  trial = "Pancovid*",
   JAKi = "Baricitinib")
 ```
 
@@ -663,7 +664,7 @@ row_stopcovid <- tibble(
   p_value = summary(mort.28.stopcovid)$coefficients["trt", "Pr(>|z|)"],
   n_intervention = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))[4,1],
-  trial = "STOP-COVID",
+  trial = "STOP-COVID*",
   JAKi = "Tofacitinib")
 ```
 
@@ -762,7 +763,7 @@ row_ruxcoviddevent <- tibble(
   p_value = summary(mort.28.ruxcoviddevent)$coefficients["trt", "Pr(>|z|)"],
   n_intervention = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))[4,1],
-  trial = "RUXCOVID-DEVENT",
+  trial = "RUXCOVID-DEVENT*",
   JAKi = "Ruxolitinib")
 ```
 
@@ -861,7 +862,7 @@ row_ruxcovid <- tibble(
   p_value = summary(mort.28.ruxcovid)$coefficients["trt", "Pr(>|z|)"],
   n_intervention = addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))[4,1],
-  trial = "RUXCOVID",
+  trial = "RUXCOVID*",
   JAKi = "Ruxolitinib")
 ```
 
@@ -960,7 +961,7 @@ row_tacticr <- tibble(
   p_value = summary(mort.28.tacticr)$coefficients["trt", "Pr(>|z|)"],
   n_intervention = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,1],
-  trial = "TACTIC-R",
+  trial = "TACTIC-R*",
   JAKi = "Baricitinib")
 ```
 
@@ -1021,7 +1022,7 @@ row_dastan <- tibble(
   p_value = mort.28.dastan$prob["trt"],
   n_intervention = addmargins(table(df_dastan$mort_28, df_dastan$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_dastan$mort_28, df_dastan$trt, useNA = "always"))[4,1],
-  trial = "Dastan",
+  trial = "Dastan*",
   JAKi = "Baricitinib")
 
 ## Singh
@@ -1113,7 +1114,7 @@ row_singh <- tibble(
   p_value = summary(mort.28.singh)$coefficients["trt", "Pr(>|z|)"],
   n_intervention = addmargins(table(df_singh$mort_28, df_singh$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_singh$mort_28, df_singh$trt, useNA = "always"))[4,1],
-  trial = "Singh",
+  trial = "Singh*",
   JAKi = "Nezulcitinib")
 ```
 
@@ -1129,46 +1130,46 @@ df_mort28_agg <- bind_rows(df_mort28, row_prevent, row_cao, row_pancovid, row_st
 
 # Foresplot
 # str(df_mort28_agg)
-mort28_agg <- metagen(TE = log(hazard_odds_ratio),
+mort28.agg <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_mort28_agg,
                       n.e = n_intervention + n_control,
-                      # n.c = n_control,
                       sm = "OR",
                       fixed = F,
                       random = T,
                       prediction = T,
+                      # subgroup = JAKi,
                       method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      # adhoc.hakn.ci = "", # 'adhoc.hakn.ci' in case of I-squared 0 (either "", "se", "ci", or "IQWiG6").
                       title = "Average treatment effect - mortality 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
                       )
-summary(mort28_agg)
+summary(mort28.agg)
 ```
 
 ```
 ## Review:     Average treatment effect - mortality 28 days
 ## 
-##                     OR            95%-CI %W(random)
-## Bari-SolidAct   0.6573 [0.3068;  1.4084]        7.3
-## ACTT-2          0.7041 [0.3996;  1.2406]       10.9
-## Ghazaeian       0.7909 [0.1654;  3.7807]        2.1
-## TOFACOV         2.5366 [0.1928; 33.3748]        0.8
-## COVINIB         0.1816 [0.0126;  2.6139]        0.8
-## COV-BARRIER     0.5131 [0.3666;  0.7182]       18.1
-## RECOVERY        0.8434 [0.7357;  0.9669]       25.8
-## PRE-VENT        1.3062 [0.4931;  3.4597]        4.9
-## CAO             0.1289 [0.0062;  2.6659]        0.6
-## Pancovid        0.4074 [0.1032;  1.6080]        2.7
-## STOP-COVID      0.4893 [0.1440;  1.6625]        3.3
-## RUXCOVID-DEVENT 0.4455 [0.2221;  0.8935]        8.3
-## RUXCOVID        1.4049 [0.4394;  4.4914]        3.7
-## TACTIC-R        2.6068 [1.0378;  6.5484]        5.4
-## Dastan          0.1884 [0.0087;  4.0746]        0.6
-## Singh           0.4235 [0.1544;  1.1618]        4.7
+##                      OR            95%-CI %W(random)
+## Bari-SolidAct    0.6573 [0.3068;  1.4084]        7.3
+## ACTT-2           0.7041 [0.3996;  1.2406]       10.9
+## Ghazaeian        0.7909 [0.1654;  3.7807]        2.1
+## TOFACOV          2.5366 [0.1928; 33.3748]        0.8
+## COVINIB          0.1816 [0.0126;  2.6139]        0.8
+## COV-BARRIER      0.5131 [0.3666;  0.7182]       18.1
+## RECOVERY         0.8434 [0.7357;  0.9669]       25.8
+## PRE-VENT*        1.3062 [0.4931;  3.4597]        4.9
+## CAO*             0.1289 [0.0062;  2.6659]        0.6
+## Pancovid*        0.4074 [0.1032;  1.6080]        2.7
+## STOP-COVID*      0.4893 [0.1440;  1.6625]        3.3
+## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        8.3
+## RUXCOVID*        1.4049 [0.4394;  4.4914]        3.7
+## TACTIC-R*        2.6068 [1.0378;  6.5484]        5.4
+## Dastan*          0.1884 [0.0087;  4.0746]        0.6
+## Singh*           0.4235 [0.1544;  1.1618]        4.7
 ## 
 ## Number of studies: k = 16
 ## Number of observations: o = 13251
@@ -1194,12 +1195,17 @@ summary(mort28_agg)
 ```
 
 ```r
-forest.meta(mort28_agg,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
+forest.meta(mort28.agg,
+            leftcols = c("studlab", 
+                         # "TE", 
+                         # "seTE", 
+                         "n.e"),
+            leftlabs = c("Trial", 
+                         # "log(OR)", 
+                         # "Standard Error", 
+                         "Sample Size"),
+            sortvar = +TE,
+            text.random = "Average treatment effect (RE model)",
             title = "Average treatment effect - mortality 28 days", # get the title into the figure
             xlim = c(0.10,5),
             # xlab = "Average treatment effect (95% CI)"
@@ -1213,7 +1219,7 @@ forest.meta(mort28_agg,
 # pdf("./fp_aggregated.pdf", width=9, height=4)
 # forest.meta(i.mort28_adhoc_se,
 #             xlim = c(0.1,5),
-#             xlab = "                  Favours Remdesivir <-> Favours No Remdesivir",
+#             xlab = "                  Favours JAKi <-> Favours No JAKi",
 #             fs.xlab = 9)
 # dev.off()
 ```
@@ -1230,13 +1236,13 @@ b. The dispersion of effects is an entirely separate matter.
 
 ```r
 ## funnel plot (contour enhanced)
-funnel(mort28_agg)
+funnel(mort28.agg)
 ```
 
 ![](two_stage_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 ```r
-funnel(mort28_agg, common = TRUE,
+funnel(mort28.agg, common = TRUE,
   level = 0.95, contour = c(0.9, 0.95, 0.99),
   col.contour = c("grey", "lightgrey", "lightyellow"),
   lwd = 2, cex = 1.5, pch = 16, studlab = TRUE, cex.studlab = 1.0)
@@ -1251,42 +1257,35 @@ funnel(mort28_agg, common = TRUE,
 # par(oldpar)
 ```
 
-
-# (i.i) Primary outcome: Mortality at day 28 / including the non-IPD RCTs // subsets
+# (i.i) Primary outcome: Mortality at day 28 / including the non-IPD RCTs // meta-regression by JAKi
 
 ```r
-# # Foresplot
-# str(df_mort28_agg)
-# mort28_agg_ruxo <- metagen(TE = log(hazard_odds_ratio),
-#                       seTE = standard_error,
-#                       studlab = trial,
-#                       data = df_mort28_agg,
-#                       n.e = n_intervention + n_control,
-#                       # n.c = n_control,
-#                       sm = "OR",
-#                       fixed = F,
-#                       random = T,
-#                       prediction = T,
-#                       method.tau = "ML", # same results with ML (-> see one-stage!)
-#                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-#                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-#                       title = "Average treatment effect - mortality 28 days",
-#                       subset = JAKi %in% c("Ruxolitinib"
-#                                            # , "Tofacitinib", "Pacritinib", "Nezulcitinib"
-#                                            ) # exclude entirely
-#                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
-#                       )
-# summary(mort28_agg_ruxo)
-# forest.meta(mort28_agg_ruxo,
-#             # hetstat = T,
-#             # rightcols = c("w.random"),
-#             leftcols = c("studlab", "TE", "seTE", "n.e"),
-#             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-#             text.random = "Average treatment effect (random effects model)",
-#             title = "Average treatment effect - mortality 28 days", # get the title into the figure
-#             xlim = c(0.10,5),
-#             # xlab = "Average treatment effect (95% CI)"
-#             )
+# meta-regression by JAKi
+mort28.agg.jaki <- update.meta(mort28.agg, 
+                               subgroup = JAKi)
+forest.meta(mort28.agg.jaki,
+            leftcols = c("studlab", 
+                         # "TE", 
+                         # "seTE", 
+                         "n.e"),
+            leftlabs = c("Trial", 
+                         # "log(OR)", 
+                         # "Standard Error", 
+                         "Sample Size"),
+            sortvar = +TE,
+            test.subgroup.random = TRUE,
+            text.random = "Average treatment effect (RE model)",
+            title = "Average treatment effect - mortality 28 days", # get the title into the figure
+            xlim = c(0.03,30),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
+```r
+# Print only subgroup results
+# forest(mort28.agg.jaki, layout = "subgroup", calcwidth.hetstat = TRUE)
 ```
 
 # (ii) Mortality at day 60
