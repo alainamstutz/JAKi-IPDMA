@@ -50,6 +50,10 @@ df_in <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumen
 df_lab <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RECOVERY/DATA_2024-01-24/LB 2024-01-11.csv")
 df_mb <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RECOVERY/DATA_2024-01-24/MB 2024-01-11.csv")
 df_sa <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RECOVERY/DATA_2024-01-24/SA 2024-01-11.csv")
+df_ds <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RECOVERY/DATA_2024-02-06/DS 2024-02-06.csv")
+df_ho <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RECOVERY/DATA_2024-02-06/HO 2024-02-06.csv")
+df_sv <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RECOVERY/DATA_2024-02-06/SV 2024-02-06.csv")
+
 ```
 
 # Define ITT population
@@ -70,15 +74,18 @@ df <- df %>%
 # add trial variables
 df$trial <- c("RECOVERY")
 df$JAKi <- c("Baricitinib")
+
+# sex
 df <- df %>% # no missing in sex
   mutate(sex = case_when(SEX == "F" ~ "female",
                          SEX == "M" ~ "male"))
 # Ethnicity
 df$ethn <- df$RACE
+
 # AGE
 df$age <- as.numeric(df$AGE)
-df <- df %>% # exclude the kids (see protocol: 16y or older)
-  filter(age>15)
+# df <- df %>% # exclude the kids (see protocol: 16y or older)
+#   filter(age>15)
 df %>% 
   drop_na(age) %>% 
   ggplot(aes(x = age)) +
@@ -87,29 +94,20 @@ df %>%
        x = "Age",
        y = "Density")
 
-# clinical score at baseline
-df_in %>% # respiratory support at baseline has various options per patient!
-  filter(INDECOD %in% c("EXTRA-CORPOREAL MEMBRANE OXYGENATION", "NON-INVASIVE VENTILATION", "HEATED AND HUMIDIFIED HIGH FLOW OXYGEN THERAPY USING NASAL CANNULA", "ASSISTED BREATHING
-         INTUBATION OF RESPIRATORY TRACT", "CONTINUOUS POSITIVE AIRWAY PRESSURE VENTILATION TREATMENT", "OXYGEN THERAPY", "INVASIVE MECHANICAL VENTILATION") |
-           INMODIFY %in% c("CPAP", "OXYGEN THERAPY", "ECMO", "INVASIVE MECHANICAL VENTILATION", "NON-INVASIVE VENTILATION") |
-           INTRT %in% c("Mechanical ventilation (tube/tracheo)", "Extra-corporeal membrane oxygenation", "Non-invasive ventilation (e.g. BiPAP)", "CPAP ventilation", "Requires non-invasive ventilation", "Requires inv. mech. ventilation or ECMO", "Requires oxygen", "High-flow nasal oxygen (e.g. AIRVO)", "Any assisted ventilation including IMV, NIV, ECMO", "Invasive mechanical ventilation or ECMO", "Non-invasive ventilation", "Other respiratory support", "New use of invasive mech. ventilation", "New use or inc. concentration of oxygen", "New use of non-invasive resp. support")) %>% 
-  View()
-
-df_in <- df_in %>% # id_pat
+# id_pat
+df_in <- df_in %>% 
   rename(id_pat = USUBJID)
+
+### Clinical score at baseline
 df_baseline <- df_in %>% # get all respiratory support information for baseline
   filter(INDECOD %in% c("EXTRA-CORPOREAL MEMBRANE OXYGENATION", "NON-INVASIVE VENTILATION", "HEATED AND HUMIDIFIED HIGH FLOW OXYGEN THERAPY USING NASAL CANNULA", "ASSISTED BREATHING
          INTUBATION OF RESPIRATORY TRACT", "CONTINUOUS POSITIVE AIRWAY PRESSURE VENTILATION TREATMENT", "OXYGEN THERAPY", "INVASIVE MECHANICAL VENTILATION") |
            INMODIFY %in% c("CPAP", "OXYGEN THERAPY", "ECMO", "INVASIVE MECHANICAL VENTILATION", "NON-INVASIVE VENTILATION") |
            INTRT %in% c("Mechanical ventilation (tube/tracheo)", "Extra-corporeal membrane oxygenation", "Non-invasive ventilation (e.g. BiPAP)", "CPAP ventilation", "Requires non-invasive ventilation", "Requires inv. mech. ventilation or ECMO", "Requires oxygen", "High-flow nasal oxygen (e.g. AIRVO)", "Any assisted ventilation including IMV, NIV, ECMO", "Invasive mechanical ventilation or ECMO", "Non-invasive ventilation", "Other respiratory support", "New use of invasive mech. ventilation", "New use or inc. concentration of oxygen", "New use of non-invasive resp. support")) %>% 
-  filter(VISIT == "RANDOMIZATION")
+  filter(VISIT == "RANDOMIZATION") %>% 
+  filter(INOCCUR == "Y")
 
-unique(df_baseline$INDECOD)
-unique(df_baseline$INTRT)
-unique(df_baseline$EPOCH)
-unique(df_baseline$INEVINTX)
-unique(df_baseline$VISIT)
-
+# recode into our score
 df_baseline <- df_baseline %>% 
   mutate(clinstatus_baseline_all = case_when(INDECOD == "INTUBATION OF RESPIRATORY TRACT" | 
                                            INTRT == "Mechanical ventilation (tube/tracheo)" | 
@@ -125,7 +123,6 @@ df_baseline <- df_baseline %>%
                                          INDECOD == "HEATED AND HUMIDIFIED HIGH FLOW OXYGEN THERAPY USING NASAL CANNULA" | 
                                            INDECOD == "OXYGEN THERAPY" |
                                            INTRT == "Requires oxygen" ~ 3))
-
 # sort by highest value within each patient 
 df_baseline <- df_baseline %>%
   arrange(id_pat, desc(clinstatus_baseline_all))
@@ -140,81 +137,260 @@ df_baseline <- df_baseline %>%
 # merge
 df <- left_join(df, df_baseline[, c("clinstatus_baseline_all", "id_pat")], by = join_by(id_pat == id_pat)) 
 
-table(df$clinstatus_baseline_all, useNA = "always")
-  
+# table(df$clinstatus_baseline_all, df$trt, useNA = "always") ## corresponds to trial publication! 
+df <- df %>% 
+  mutate(clinstatus_baseline = case_when(is.na(clinstatus_baseline_all) ~ 2,
+                                         TRUE ~ clinstatus_baseline_all))
+# table(df$clinstatus_baseline, df$trt, useNA = "always") ## And the NAs are None (no O2 support)
+
+### Vaccination at baseline
+df_vacc <- df_in %>%
+  filter(INDECOD %in% c("COVID-19 VACCINES") |
+           INMODIFY %in% c("COVID-19 VACCINATION") |
+           INTRT %in% c("COVID-19 vaccine")) %>% 
+  filter(VISIT == "RANDOMIZATION") %>% 
+  filter(INOCCUR == "Y")
+# df_vacc <- df_vacc %>%
+#   distinct(id_pat) # no duplicates
+df_vacc$vacc <- 1
+# merge
+df <- left_join(df, df_vacc[, c("vacc", "id_pat")], by = join_by(id_pat == id_pat)) 
+df <- df %>% 
+  mutate(vacc = case_when(is.na(vacc) ~ 0,
+                          TRUE ~ vacc))
+# table(df$vacc, df$trt, useNA = "always") ## corresponds to trial publication! 
 
 ### Co-medication at baseline
-df$comed_toci 
-df$comed_acoa 
-df$comed_interferon 
+# rdv
+df_rdv <- df_in %>% 
+  filter(INDECOD %in% c("REMDESIVIR") |
+           INMODIFY %in% c("REMDESIVIR") |
+           INTRT %in% c("Remdesivir")) %>% 
+  filter(VISIT == "RANDOMIZATION") %>% 
+  filter(INOCCUR == "Y")
+# df_rdv <- df_rdv %>%
+#   distinct(id_pat) # no duplicates
+df_rdv$comed_rdv <- 1
+# merge
+df <- left_join(df, df_rdv[, c("comed_rdv", "id_pat")], by = join_by(id_pat == id_pat)) 
 df <- df %>% 
-  mutate(comed_dexa = case_when(BLSTRFN == 1 ~ 1,
-                                BLSTRFN == 0 ~ 0))
+  mutate(comed_rdv = case_when(is.na(comed_rdv) ~ 0,
+                          TRUE ~ comed_rdv))
+# table(df$comed_rdv, df$trt, useNA = "always") ## corresponds to trial publication!
+
+# toci, incl. planned to be given
+df_toci <- df_in %>% 
+  filter(INDECOD %in% c("TOCILIZUMAB", "INTERLEUKIN INHIBITORS") |
+           INTRT %in% c("Tocilizumab planned to be given in next 24h", "Tocilizumab", "Tocilizumab or sarilumab")) %>%
+  filter(VISIT == "RANDOMIZATION") %>% 
+  filter(INOCCUR == "Y")
+# df_in %>% # these codes were only given during follow-up!
+#   filter(INTRT == "Tocilizumab or sarilumab" | INDECOD == "INTERLEUKIN INHIBITORS") %>%
+#   filter(VISIT == "RANDOMIZATION") %>% 
+#   View()
+# df_toci <- df_toci %>%
+#   distinct(id_pat) # no duplicates
+df_toci$comed_toci <- 1
+# merge
+df <- left_join(df, df_toci[, c("comed_toci", "id_pat")], by = join_by(id_pat == id_pat)) 
 df <- df %>% 
-  mutate(comed_rdv = case_when(BRMDSVFL == "Y" ~ 1,
-                                TRUE ~ 0))
+  mutate(comed_toci = case_when(is.na(comed_toci) ~ 0,
+                          TRUE ~ comed_toci))
+# table(df$comed_toci, df$trt, useNA = "always") ## corresponds to trial publication!
+
+# cortico
+df_dexa <- df_in %>% 
+  filter(INDECOD %in% c("GLUCOCORTICOIDS") |
+           INMODIFY %in% c("CORTICOSTEROIDS") |
+           INTRT %in% c("Systemic corticosteroids (e.g. dexamethasone, prednisolone, hydrocorticone, methylprednisolone)", "Corticosteroid (dexamethasone, prednisolone, hydrocortisone, methylprednisolone)")) %>%
+  filter(VISIT == "RANDOMIZATION") %>% 
+  filter(INOCCUR == "Y")
+# df_in %>% # these codes were only given during follow-up!
+#   filter(INTRT == "Corticosteroid (dexamethasone, prednisolone, hydrocortisone, methylprednisolone)") %>%
+#   filter(VISIT == "RANDOMIZATION") %>%
+#   View()
+df_dexa <- df_dexa %>%
+  distinct(id_pat) # no duplicates
+df_dexa$comed_dexa <- 1
+# merge
+df <- left_join(df, df_dexa[, c("comed_dexa", "id_pat")], by = join_by(id_pat == id_pat)) 
 df <- df %>% 
-  mutate(comed_ab = case_when(PTHANTBI == "Y" ~ 1,
-                                TRUE ~ 0))
+  mutate(comed_dexa = case_when(is.na(comed_dexa) ~ 0,
+                          TRUE ~ comed_dexa))
+# table(df$comed_dexa, df$trt, useNA = "always") ## corresponds to trial publication!
+
+# anticoa
+df_acoa <- df_in %>% 
+  filter(INDECOD %in% c("HEPARIN GROUP") |
+           INTRT %in% c("Warfarin or direct oral anticoagulant","Higher dose low molecular weight heparin")) %>%
+  filter(VISIT == "RANDOMIZATION") %>% 
+  filter(INOCCUR == "Y")
+df_acoa <- df_acoa %>%
+  distinct(id_pat) # remove duplicates
+df_acoa$comed_acoa <- 1
+# merge
+df <- left_join(df, df_acoa[, c("comed_acoa", "id_pat")], by = join_by(id_pat == id_pat)) 
 df <- df %>% 
-  mutate(comed_other = case_when(PTHOTH == "Y" ~ 1,
-                                TRUE ~ 0))
+  mutate(comed_acoa = case_when(is.na(comed_acoa) ~ 0,
+                          TRUE ~ comed_acoa))
+
+# interferon
+df$comed_interferon <- 0 # see protocol
+
+# antibiotics
+df_ab <- df_in %>% 
+  filter(INDECOD %in% c("MACROLIDES", "AZITHROMYCIN, UNSPECIFIED FORM") |
+           INMODIFY %in% c("AZITHROMYCIN") |
+           INTRT %in% c("Macrolide", "Other macrolides", "Azithromycin or other macrolides", "Azithromycin")) %>%
+  filter(VISIT == "RANDOMIZATION") %>% 
+  filter(INOCCUR == "Y")
+# df_ab <- df_ab %>%
+#   distinct(id_pat) # no duplicates
+df_ab$comed_ab <- 1
+# merge
+df <- left_join(df, df_ab[, c("comed_ab", "id_pat")], by = join_by(id_pat == id_pat)) 
+df <- df %>% 
+  mutate(comed_ab = case_when(is.na(comed_ab) ~ 0,
+                          TRUE ~ comed_ab))
+
+# comed_other
+df_comed_other <- df_in %>% # get all comedication
+  filter(INDECOD %in% c("ANTITHROMBOTIC AGENTS", "CASIRIVIMAB AND IMDEVIMAB", 
+                        "COLCHICINE", "TRANSFUSION OF CONVALESCENT PLASMA", "HYDROXYCHLOROQUINE", "IMMUNOGLOBULINS",
+                        "LOPINAVIR_RITONAVIR", "ASPIRIN") |
+           INMODIFY %in% c("CONVALESCENT PLASMA", "IMMUNOGLOBULINS", "LOPINAVIR AND RITONAVIR",
+                           "ACETYLSALICYLIC ACID", "COLCHICINE", 
+                           "HYDROXYCHLOROQUINE", "BLOOD TRANSFUSION OR BLOOD PRODUCT") |
+           INTRT %in% c("Antiplatelet therapy", "Venous thromboembolism prophylaxis",
+                        "Standard low molecular weight heparin", "Synthetic monoclonal antibodies (REGN10933+REGN10987)", 
+                        "Colchicine", "Convalescent plasma infusion",
+                        "Hydroxychloroquine",
+                        "Intravenous immunoglobulin", "Vasoactive drug", "Blood transfusion", "Lopinavir-ritonavir",
+                        "Aspirin")) %>% 
+  filter(VISIT == "RANDOMIZATION") %>% 
+  filter(INOCCUR == "Y")
+df_comed_other <- df_comed_other %>%
+  distinct(id_pat) # remove duplicates
+df_comed_other$comed_other <- 1
+# merge
+df <- left_join(df, df_comed_other[, c("comed_other", "id_pat")], by = join_by(id_pat == id_pat)) 
+df <- df %>% 
+  mutate(comed_other = case_when(is.na(comed_other) ~ 0,
+                          TRUE ~ comed_other))
+
 # group them for the subgroup analysis, according to protocol
 df <- df %>% 
-  mutate(comed_cat = case_when(comed_dexa == 0 & (comed_toci == 0 | is.na(comed_toci)) ~ 1, # patients without Dexamethasone nor Tocilizumab
-                               comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexamethasone and Tocilizumab
-                               comed_dexa == 1 & (comed_toci == 0 | is.na(comed_toci)) ~ 3, # patients with Dexamethasone but no Tocilizumab
-                               comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Tocilizumab but no Dexamethasone (if exist)
+  mutate(comed_cat = case_when(comed_dexa == 0 & (comed_toci == 0 | is.na(comed_toci)) ~ 1, # patients without Dexa nor Toci
+                               comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexa and Toci
+                               comed_dexa == 1 & (comed_toci == 0 | is.na(comed_toci)) ~ 3, # patients with Dexa but no Toci
+                               comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Toci but no Dexa
+table(df$comed_cat, df$trt, useNA = "always")
+
 
 ### Comorbidity at baseline, including immunocompromised
+# id_pat
+df_sa <- df_sa %>% 
+  rename(id_pat = USUBJID)
+
+df_comorb <- df_sa %>% 
+  filter(SACAT == "MEDICAL HISTORY" | is.na(SACAT)) %>% 
+  filter(SAOCCUR == "Y")
+
+# diabetes
+df_dm <- df_comorb %>% 
+  filter(SATERM %in% c("Diabetes") |
+           SAMODIFY %in% c("DIABETES MELLITUS - TYPE NOT SPECIFIED") |
+           SADECOD %in% c("Diabetes mellitus"))
+# df_dm <- df_dm %>%
+#   distinct(id_pat) # no duplicates
+df_dm$comorb_dm <- 1
+# merge
+df <- left_join(df, df_dm[, c("comorb_dm", "id_pat")], by = join_by(id_pat == id_pat)) 
 df <- df %>% 
-  mutate(comorb_dm = case_when(CMRDFL == "Y" ~ 1,
-                              CMRDFL == "N" ~ 0))
-df <- df %>%
-  mutate(comorb_obese = case_when(CMROFL == "Y" ~ 1,
-                                   CMROFL == "N" ~ 0))
-df <- df %>%
-  mutate(comorb_aht = case_when(CMRHFL == "Y" ~ 1,
-                                   CMRHFL == "N" ~ 0))
-df <- df %>%
-  mutate(comorb_lung = case_when(CMRCFL == "Y" ~ 1,
-                                  CMRCFL == "N" ~ 0))
-df <- df %>%
-  mutate(comorb_kidney = case_when(BRNLGR1 == "Impaired" ~ 1,
-                                   TRUE ~ 0))
-comorb_cancer
-comorb_liver
-comorb_cvd
-immunosupp
-comorb_autoimm
-comorb_smoker
-# the remaining missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
+  mutate(comorb_dm = case_when(is.na(comorb_dm) ~ 0,
+                          TRUE ~ comorb_dm))
+# table(df$comorb_dm, df$trt, useNA = "always") ## corresponds to trial publication!
+
+# heart disease (except hypertension)
+df_cvd <- df_comorb %>% 
+  filter(SATERM %in% c("Heart Disease") |
+           SAMODIFY %in% c("CHRONIC CARDIAC DISEASE (NOT HYPERTENSION)") |
+           SADECOD %in% c("Heart disease"))
+# df_cvd <- df_cvd %>%
+#   distinct(id_pat) # no duplicates
+df_cvd$comorb_cvd <- 1
+# merge
+df <- left_join(df, df_cvd[, c("comorb_cvd", "id_pat")], by = join_by(id_pat == id_pat)) 
 df <- df %>% 
-  mutate(comorb_cancer = case_when(is.na(comorb_cancer) ~ 0,
-                                TRUE ~ c(comorb_cancer)),
-         comorb_liver = case_when(is.na(comorb_liver) ~ 0,
-                                TRUE ~ c(comorb_liver)),
-         comorb_cvd = case_when(is.na(comorb_cvd) ~ 0,
-                                TRUE ~ c(comorb_cvd)),
-         immunosupp = case_when(is.na(immunosupp) ~ 0,
-                                TRUE ~ c(immunosupp)),
-         comorb_autoimm = case_when(is.na(comorb_autoimm) ~ 0,
-                                TRUE ~ c(comorb_autoimm)),
-         comorb_smoker = case_when(is.na(comorb_smoker) ~ 0,
-                                TRUE ~ c(comorb_smoker)))
+  mutate(comorb_cvd = case_when(is.na(comorb_cvd) ~ 0,
+                          TRUE ~ comorb_cvd))
+# table(df$comorb_cvd, df$trt, useNA = "always") ## corresponds to trial publication!
+
+# lung disease
+df_lung <- df_comorb %>% 
+  filter(SATERM %in% c("Lung disease") |
+           SAMODIFY %in% c("CHRONIC PULMONARY DISEASE (NOT ASTHMA)") |
+           SADECOD %in% c("Disorder of lung"))
+# df_lung <- df_lung %>%
+#   distinct(id_pat) # no duplicates
+df_lung$comorb_lung <- 1
+# merge
+df <- left_join(df, df_lung[, c("comorb_lung", "id_pat")], by = join_by(id_pat == id_pat)) 
+df <- df %>% 
+  mutate(comorb_lung = case_when(is.na(comorb_lung) ~ 0,
+                          TRUE ~ comorb_lung))
+# table(df$comorb_lung, df$trt, useNA = "always") ## corresponds to trial publication!
+
+# kidney disease
+df_kidney <- df_comorb %>% 
+  filter(SATERM %in% c("Severe kidney impairment (eGFR<30 or on dialysis)") |
+           SAMODIFY %in% c("CHRONIC KIDNEY DISEASE") |
+           SADECOD %in% c("Chronic kidney disease"))
+# df_kidney <- df_kidney %>%
+#   distinct(id_pat) # no duplicates
+df_kidney$comorb_kidney <- 1
+# merge
+df <- left_join(df, df_kidney[, c("comorb_kidney", "id_pat")], by = join_by(id_pat == id_pat)) 
+df <- df %>% 
+  mutate(comorb_kidney = case_when(is.na(comorb_kidney) ~ 0,
+                          TRUE ~ comorb_kidney))
+# table(df$comorb_kidney, df$trt, useNA = "always") ## corresponds to trial publication!
+
+# liver disease
+df_liver <- df_comorb %>% 
+  filter(SATERM %in% c("Severe liver disease") |
+           SAMODIFY %in% c("MODERATE OR SEVERE LIVER DISEASE") |
+           SADECOD %in% c("Disorder of liver"))
+# df_liver <- df_liver %>%
+#   distinct(id_pat) # no duplicates
+df_liver$comorb_liver <- 1
+# merge
+df <- left_join(df, df_liver[, c("comorb_liver", "id_pat")], by = join_by(id_pat == id_pat)) 
+df <- df %>% 
+  mutate(comorb_liver = case_when(is.na(comorb_liver) ~ 0,
+                          TRUE ~ comorb_liver))
+# table(df$comorb_liver, df$trt, useNA = "always") ## corresponds to trial publication!
+
+df$comorb_obese <- NA # no info 
+df$comorb_aht <- NA # no info 
+df$comorb_cancer <- NA # no info 
+df$comorb_autoimm <- NA # no info 
+df$comorb_smoker <- NA # no info 
+df$immunosupp <- NA # there is HIV, but no info re viral suppression / CD4
+
+## any of the above 5
 df <- df %>% 
   mutate(any_comorb = case_when(comorb_lung == 1 | comorb_liver == 1 | comorb_cvd == 1 |
-                                  comorb_aht == 1 | comorb_dm == 1 | comorb_obese == 1 | comorb_smoker == 1
-                                | immunosupp == 1 | comorb_cancer == 1 | comorb_autoimm == 1 | comorb_kidney == 1 
+                                  comorb_dm == 1 | comorb_kidney == 1 
                                   ~ 1,
                                 comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
-                                  comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0
+                                  comorb_dm == 0 & comorb_kidney == 0
                                 ~ 0))
-# addmargins(table(df$any_comorb, df$trt, useNA = "always"))
+addmargins(table(df$any_comorb, df$trt, useNA = "always"))
+
 ## group them for the subgroup analysis, according to protocol // count all pre-defined comorbidities per patient first
 comorb <- df %>% 
-  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp, comorb_kidney, comorb_autoimm, comorb_cancer)
+  select(id_pat, comorb_lung, comorb_liver, comorb_cvd, comorb_dm, comorb_kidney)
 comorb$comorb_count <- NA
 for (i in 1:dim(comorb)[[1]]) {
   comorb$comorb_count[i] <- ifelse(
@@ -225,21 +401,55 @@ for (i in 1:dim(comorb)[[1]]) {
 }
 comorb <- comorb %>%
   mutate(comorb_count = case_when(comorb_lung == 0 & comorb_liver == 0 & comorb_cvd == 0 &
-                                  comorb_aht == 0 & comorb_dm == 0 & comorb_obese == 0 & comorb_smoker == 0
-                                & immunosupp == 0 & comorb_cancer == 0 & comorb_autoimm == 0 & comorb_kidney == 0 ~ 0,
+                                  comorb_dm == 0 & comorb_kidney == 0 ~ 0,
                                 TRUE ~ comorb_count))
 df <- left_join(df, comorb[, c("comorb_count", "id_pat")], by = join_by(id_pat == id_pat)) ## merge imputed variable back
 df <- df %>%
-  mutate(comorb_cat = case_when(immunosupp == 1 ~ 4, # immunocompromised
-                                comorb_count == 0 ~ 1, # no comorbidity
+  mutate(comorb_cat = case_when(comorb_count == 0 ~ 1, # no comorbidity
                                 comorb_count == 1 ~ 2, # one comorbidity
-                                comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
-# addmargins(table(df$comorb_cat, df$trt, useNA = "always"))
+                                comorb_count >1 ~ 3)) # multiple comorbidities
+addmargins(table(df$comorb_cat, df$trt, useNA = "always"))
 
 
+### Days with symptoms prior to randomization
+df_symp <- df_sa %>% 
+  filter(SATERM == "COVID-19 Symptoms" | SAMODIFY == "COVID-19 SYMPTOMS") %>% 
+  filter(SAOCCUR == "Y")
+# df_symp <- df_symp %>%
+#   distinct(id_pat) # no duplicates
+df_symp$sympdur <- df_symp$SASTDY
+summary(df_symp$sympdur)
+df <- left_join(df, df_symp[, c("sympdur", "id_pat")], by = join_by(id_pat == id_pat)) 
+df %>% 
+  drop_na(sympdur) %>% 
+  ggplot(aes(x = sympdur)) +
+  geom_density(fill = "blue", color = "black") +
+  labs(title = "Density Plot of Symptom Duration",
+       x = "Symptom Duration",
+       y = "Density")
+# df <- df %>% 
+#   mutate(sympdur2 = case_when(sympdur > 0 ~ NA,
+#                              TRUE ~ sympdur))
+# summary(df$sympdur2)
+# df %>% 
+#   filter(trt == 0) %>% 
+#   summary()
+# summary(df$sympdur, df$trt)
+# unique(df_symp$SADY)
 
-## CRP
-df <- left_join(df, df_crp[, c("crp", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+### CRP at baseline
+# id_pat
+df_lab <- df_lab %>% 
+  rename(id_pat = USUBJID)
+
+df_crp <- df_lab %>% # these are all at randomization and OCCUR == Yes
+  filter(LBTESTCD == "CRP")
+df_crp <- df_crp %>% 
+  rename(crp = LBSTRESN)
+# summary(df_crp$crp) # 7 missing
+# df_crp <- df_crp %>%
+#   distinct(id_pat) # no duplicates
+df <- left_join(df, df_crp[, c("crp", "id_pat")], by = join_by(id_pat == id_pat)) ## merge to main df
 df %>% 
   drop_na(crp) %>% 
   ggplot(aes(x = crp)) +
@@ -248,38 +458,68 @@ df %>%
        x = "CRP",
        y = "Density")
 
-# Viremia dataset 
 
-df_viremia <- df_viremia %>% # viral load value <LOQ and/or undectectable
-  mutate(vl_baseline = case_when(MBORRES == "POSITIVE" ~ 0,
-                                 TRUE ~ 1))
-df <- left_join(df, df_viremia[, c("vl_baseline", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
+### Viremia / Undetectable VL at baseline
+# id_pat
+df_mb <- df_mb %>% 
+  rename(id_pat = USUBJID)
 
-# Vaccination
+df_vl_baseline <- df_mb %>% 
+  filter(MBTESTCD == "SARSCOV2") %>% # viral load
+  filter(VISIT == "RANDOMIZATION" | is.na(VISIT)) %>% # exclude follow-up
+  filter(EPOCH == "BASELINE" | is.na(EPOCH)) # exclude follow-up
+
+df_vl_baseline <- df_vl_baseline %>% # keep (within each patient) only value closest to baseline
+  group_by(id_pat) %>%
+  slice_max(order_by = MBDY) %>%
+  ungroup()
+
+df_vl_baseline <- df_vl_baseline %>% # viral load value <LOQ and/or undectectable
+  mutate(vl_baseline = case_when(MBSTRESC == "POSITIVE" ~ 0,
+                                 MBSTRESC == "NEGATIVE" ~ 1)) %>% 
+  filter(vl_baseline == 0 | vl_baseline == 1) # remove NAs, to avoid duplicates when merging
+df_vl_baseline <- df_vl_baseline %>%
+  distinct(id_pat, vl_baseline) # remove duplicates with same result
+# df_vl_baseline$duplicate <- duplicated(df_vl_baseline$id_pat)
+# df_vl_baseline %>% # this person has pos and neg result at the same day, closest to baseline day.
+#   filter(id_pat == 2261) %>% 
+#   View()
+df_vl_baseline <- df_vl_baseline %>% # Keep neg since had already a neg before
+  filter(!(id_pat == 2261 & vl_baseline == 0))
+
+df <- left_join(df, df_vl_baseline[, c("vl_baseline", "id_pat")], by = join_by(id_pat == id_pat)) ## merge to main df
+# table(df$vl_baseline, df$trt, useNA = "always") # resolve
 
 
-# Variant // not available
-# Serology // not available
+### Serology at baseline
+df_sero <- df_mb %>% 
+  filter(MBTESTCD == "SAR2IGG") %>% # viral load
+  filter(VISIT == "RANDOMIZATION" | is.na(VISIT)) %>% # exclude follow-up
+  filter(EPOCH == "BASELINE" | is.na(EPOCH)) # exclude follow-up
+
+df_sero <- df_sero %>% 
+  mutate(sero = case_when(MBSTRESC == "POSITIVE" ~ 1,
+                          MBSTRESC == "NEGATIVE" ~ 0))
+# df_sero <- df_sero %>%
+#   distinct(id_pat, sero) # no duplicates
+
+df <- left_join(df, df_sero[, c("sero", "id_pat")], by = join_by(id_pat == id_pat)) ## merge to main df
 
 
+### Variant // not available
 ```
 Discussion points:
-* time to death -> DMDY in dm set? But includes event dates after day 28? Censoring info?
-* (time to) withdrawal? (time to) LTFU? (time to) discharge?
-* time to mechanical ventilation? Only event y/n "DURING 28 DAYS AFTER FIRST RANDOMIZATION" ?!
-* Several baseline severity/respiratory support per patient?
-* Where is Symptom duration?
+* Symptom duration?
+* ICU at baseline? (although not in publication)
 
-* What was the maximum systematic follow-up of all study participants? According to protocol: 6months
-* Deaths after discharge systematically documented?
+* Resolve discrepancy in viral load
+
+* What was the maximum systematic follow-up of all study participants? According to protocol: 6months.
+* Deaths after discharge systematically documented? Probably not.
 * Re-admissions systematically documented? Probably not.
 * Any transfer to hospice occurred? Probably yes.
 
-*** USE INOCCUR for the baseline severity!!!
-
-* ICU at baseline? (although not in publication)
-
-* Exclude the children?
+* Exclude the children
 
 
 # Endpoints
