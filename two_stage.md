@@ -235,28 +235,28 @@ summary(mort28)
 ## Review:     Average treatment effect - mortality 28 days
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.6573 [0.3068;  1.4084]        8.4
-## ACTT-2        0.7041 [0.3996;  1.2406]       13.5
-## Ghazaeian     0.7909 [0.1654;  3.7807]        2.2
-## TOFACOV       2.5366 [0.1928; 33.3748]        0.8
-## COVINIB       0.1816 [0.0126;  2.6139]        0.8
-## COV-BARRIER   0.5131 [0.3666;  0.7182]       26.6
-## RECOVERY      0.8434 [0.7357;  0.9669]       47.7
+## Bari-SolidAct 0.6573 [0.3068;  1.4084]        7.4
+## ACTT-2        0.7041 [0.3996;  1.2406]       12.2
+## Ghazaeian     0.7909 [0.1654;  3.7807]        1.9
+## TOFACOV       2.5366 [0.1928; 33.3748]        0.7
+## COVINIB       0.1816 [0.0126;  2.6139]        0.7
+## COV-BARRIER   0.5131 [0.3666;  0.7182]       25.8
+## RECOVERY      0.8109 [0.7034;  0.9349]       51.3
 ## 
 ## Number of studies: k = 7
-## Number of observations: o = 11236
+## Number of observations: o = 11107
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.7032 [0.5386; 0.9181] -3.23  0.0179
-## Prediction interval              [0.4178; 1.1838]              
+## Random effects model (HK) 0.6957 [0.5440; 0.8898] -3.61  0.0113
+## Prediction interval              [0.4401; 1.0998]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0262 [0.0000; 1.2914]; tau = 0.1619 [0.0000; 1.1364]
-##  I^2 = 36.8% [0.0%; 73.3%]; H = 1.26 [1.00; 1.94]
+##  tau^2 = 0.0192 [0.0000; 1.2657]; tau = 0.1385 [0.0000; 1.1250]
+##  I^2 = 26.5% [0.0%; 68.1%]; H = 1.17 [1.00; 1.77]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  9.49    6  0.1480
+##  8.17    6  0.2262
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -1154,37 +1154,37 @@ summary(mort28.agg)
 ## Review:     Average treatment effect - mortality 28 days
 ## 
 ##                      OR            95%-CI %W(random)
-## Bari-SolidAct    0.6573 [0.3068;  1.4084]        6.2
-## ACTT-2           0.7041 [0.3996;  1.2406]        9.9
-## Ghazaeian        0.7909 [0.1654;  3.7807]        1.7
+## Bari-SolidAct    0.6573 [0.3068;  1.4084]        5.8
+## ACTT-2           0.7041 [0.3996;  1.2406]        9.4
+## Ghazaeian        0.7909 [0.1654;  3.7807]        1.5
 ## TOFACOV          2.5366 [0.1928; 33.3748]        0.6
-## COVINIB          0.1816 [0.0126;  2.6139]        0.6
-## COV-BARRIER      0.5131 [0.3666;  0.7182]       18.7
-## RECOVERY         0.8434 [0.7357;  0.9669]       31.4
-## PRE-VENT*        1.3062 [0.4931;  3.4597]        4.1
-## CAO*             0.1289 [0.0062;  2.6659]        0.5
-## Pancovid*        0.4074 [0.1032;  1.6080]        2.2
-## STOP-COVID*      0.4893 [0.1440;  1.6625]        2.7
-## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        7.2
-## RUXCOVID*        1.4049 [0.4394;  4.4914]        3.0
-## TACTIC-R*        1.2124 [0.6017;  2.4426]        7.1
-## Dastan*          0.1884 [0.0087;  4.0746]        0.5
-## Singh*           0.4235 [0.1544;  1.1618]        3.8
+## COVINIB          0.1816 [0.0126;  2.6139]        0.5
+## COV-BARRIER      0.5131 [0.3666;  0.7182]       19.0
+## RECOVERY         0.8109 [0.7034;  0.9349]       34.7
+## PRE-VENT*        1.3062 [0.4931;  3.4597]        3.7
+## CAO*             0.1289 [0.0062;  2.6659]        0.4
+## Pancovid*        0.4074 [0.1032;  1.6080]        2.0
+## STOP-COVID*      0.4893 [0.1440;  1.6625]        2.4
+## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        6.7
+## RUXCOVID*        1.4049 [0.4394;  4.4914]        2.7
+## TACTIC-R*        1.2124 [0.6017;  2.4426]        6.7
+## Dastan*          0.1884 [0.0087;  4.0746]        0.4
+## Singh*           0.4235 [0.1544;  1.1618]        3.5
 ## 
 ## Number of studies: k = 16
-## Number of observations: o = 13251
+## Number of observations: o = 13122
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.6982 [0.5610; 0.8690] -3.50  0.0032
-## Prediction interval              [0.4485; 1.0871]              
+## Random effects model (HK) 0.6930 [0.5625; 0.8536] -3.75  0.0019
+## Prediction interval              [0.4669; 1.0284]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0313 [0.0000; 0.4488]; tau = 0.1769 [0.0000; 0.6699]
-##  I^2 = 26.9% [0.0%; 59.9%]; H = 1.17 [1.00; 1.58]
+##  tau^2 = 0.0238 [0.0000; 0.4424]; tau = 0.1543 [0.0000; 0.6651]
+##  I^2 = 21.1% [0.0%; 56.5%]; H = 1.13 [1.00; 1.52]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f. p-value
-##  20.51   15  0.1533
+##  19.01   15  0.2132
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -1291,24 +1291,7 @@ forest.meta(mort28.agg.jaki,
 # (ii) Mortality at day 60
 
 ```r
-str(df_mort60)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "death at day 60" "death at day 60" "death at day 60" "death at day 60_firth" ...
-##  $ hazard_odds_ratio: num  0.917 0.704 0.791 2.537 0.182 ...
-##  $ ci_lower         : num  0.46144 0.39577 0.14728 0.12715 0.00131 ...
-##  $ ci_upper         : num  1.81 1.24 3.83 380.13 2.29 ...
-##  $ standard_error   : num  0.348 0.289 0.798 1.315 1.361 ...
-##  $ p_value          : num  0.803 0.225 0.769 0.552 0.203 ...
-##  $ n_intervention   : num  137 494 46 58 53 748
-##  $ n_control        : num  140 492 51 58 54 750
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_mort60)
 mort60 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1318,10 +1301,10 @@ mort60 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - mortality 60 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -1333,32 +1316,35 @@ summary(mort60)
 ## Review:     Average treatment effect - mortality 60 days
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.9170 [0.4640;  1.8125]       13.4
-## ACTT-2        0.7041 [0.3996;  1.2406]       19.3
-## Ghazaeian     0.7909 [0.1654;  3.7807]        2.5
-## TOFACOV       2.5366 [0.1928; 33.3748]        0.9
-## COVINIB       0.1816 [0.0126;  2.6139]        0.9
-## COV-BARRIER   0.5656 [0.4133;  0.7740]       63.0
+## Bari-SolidAct 0.9170 [0.4640;  1.8125]        5.2
+## ACTT-2        0.7041 [0.3996;  1.2406]        7.4
+## Ghazaeian     0.7909 [0.1654;  3.7807]        1.0
+## TOFACOV       2.5366 [0.1928; 33.3748]        0.4
+## COVINIB       0.1816 [0.0126;  2.6139]        0.4
+## COV-BARRIER   0.5656 [0.4133;  0.7740]       21.4
+## RECOVERY      0.8109 [0.7034;  0.9349]       64.4
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 3081
+## Number of studies: k = 7
+## Number of observations: o = 11082
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.6373 [0.4598; 0.8835] -3.55  0.0165
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.7469 [0.6181; 0.9027] -3.77  0.0093
+## Prediction interval              [0.5682; 0.9820]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 2.6411]; tau = 0 [0.0000; 1.6251]
-##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+##  tau^2 = 0.0048 [0.0000; 1.2712]; tau = 0.0695 [0.0000; 1.1275]
+##  I^2 = 7.8% [0.0%; 73.1%]; H = 1.04 [1.00; 1.93]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  3.80    5  0.5786
+##  6.51    6  0.3686
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -1369,7 +1355,8 @@ forest.meta(mort60,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - mortality 60 days", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -1380,24 +1367,7 @@ Discussion points
 # (iii) Time to death within max. follow-up time
 
 ```r
-str(df_ttdeath)
-```
-
-```
-## 'data.frame':	4 obs. of  10 variables:
-##  $ variable         : chr  "death within fup" "death within fup" "death within fup" "death within fup"
-##  $ hazard_odds_ratio: num  0.773 0.741 0.838 0.595
-##  $ ci_lower         : num  0.432 0.442 0.187 0.461
-##  $ ci_upper         : num  1.382 1.243 3.747 0.767
-##  $ standard_error   : num  0.296 0.264 0.764 0.13
-##  $ p_value          : num  3.85e-01 2.56e-01 8.17e-01 6.16e-05
-##  $ n_intervention   : num  145 515 46 815
-##  $ n_control        : num  144 518 51 811
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "COV-BARRIER"
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Baricitinib"
-```
-
-```r
+# str(df_ttdeath)
 ttdeath <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1407,10 +1377,10 @@ ttdeath <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - time to death",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -1422,30 +1392,33 @@ summary(ttdeath)
 ## Review:     Average treatment effect - time to death
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 0.7727 [0.4322; 1.3817]       13.1
-## ACTT-2        0.7409 [0.4415; 1.2434]       16.5
-## Ghazaeian     0.8380 [0.1874; 3.7469]        2.0
-## COV-BARRIER   0.5947 [0.4612; 0.7668]       68.4
+## Bari-SolidAct 0.7727 [0.4322; 1.3817]        8.6
+## ACTT-2        0.7409 [0.4415; 1.2434]       10.5
+## Ghazaeian     0.8380 [0.1874; 3.7469]        1.5
+## COV-BARRIER   0.5947 [0.4612; 0.7668]       28.8
+## RECOVERY      0.8531 [0.7562; 0.9626]       50.7
 ## 
-## Number of studies: k = 4
-## Number of observations: o = 3045
+## Number of studies: k = 5
+## Number of observations: o = 11046
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.6425 [0.4566; 0.9040] -4.12  0.0259
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.7510 [0.6051; 0.9320] -3.68  0.0212
+## Prediction interval              [0.4679; 1.2053]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1926]; tau = 0 [0.0000; 0.4388]
-##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
+##  tau^2 = 0.0134 [0.0000; 0.1370]; tau = 0.1157 [0.0000; 0.3701]
+##  I^2 = 37.6% [0.0%; 76.8%]; H = 1.27 [1.00; 2.08]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.16    3  0.7638
+##  6.41    4  0.1707
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 3)
+## - Hartung-Knapp adjustment for random effects model (df = 4)
+## - Prediction interval based on t-distribution (df = 3)
 ```
 
 ```r
@@ -1456,7 +1429,8 @@ forest.meta(ttdeath,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - time to death", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -1467,24 +1441,7 @@ Discussion points
 # (iv) New mechanical ventilation or death within 28 days
 
 ```r
-str(df_new_mvd28)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "new MV or death within 28d" "new MV or death within 28d" "new MV or death within 28d" "new MV or death within 28d" ...
-##  $ hazard_odds_ratio: num  1.05 0.687 0.791 0.503 0.199 ...
-##  $ ci_lower         : num  0.6084 0.4667 0.1473 0.0222 0.0286 ...
-##  $ ci_upper         : num  1.814 1.008 3.826 5.795 0.865 ...
-##  $ standard_error   : num  0.278 0.196 0.798 1.271 0.828 ...
-##  $ p_value          : num  0.8603 0.056 0.7688 0.5891 0.0515 ...
-##  $ n_intervention   : num  138 500 46 58 53 768
-##  $ n_control        : num  140 499 51 58 54 775
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_new_mvd28)
 new.mvd28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1494,10 +1451,10 @@ new.mvd28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - New MV or death within 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -1509,32 +1466,35 @@ summary(new.mvd28)
 ## Review:     Average treatment effect - New MV or death within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0501 [0.6091; 1.8106]       14.3
-## ACTT-2        0.6874 [0.4680; 1.0096]       28.6
-## Ghazaeian     0.7909 [0.1654; 3.7807]        1.7
-## TOFACOV       0.5034 [0.0417; 6.0761]        0.7
-## COVINIB       0.1994 [0.0393; 1.0107]        1.6
-## COV-BARRIER   0.8235 [0.6209; 1.0922]       53.1
+## Bari-SolidAct 1.0501 [0.6091; 1.8106]        3.8
+## ACTT-2        0.6874 [0.4680; 1.0096]        7.7
+## Ghazaeian     0.7909 [0.1654; 3.7807]        0.5
+## TOFACOV       0.5034 [0.0417; 6.0761]        0.2
+## COVINIB       0.1994 [0.0393; 1.0107]        0.4
+## COV-BARRIER   0.8235 [0.6209; 1.0922]       14.2
+## RECOVERY      0.8153 [0.7201; 0.9232]       73.3
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 3140
+## Number of studies: k = 7
+## Number of observations: o = 11169
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.7881 [0.6017; 1.0322] -2.27  0.0726
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.8080 [0.7193; 0.9076] -4.49  0.0042
+## Prediction interval              [0.7028; 0.9289]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 1.5748]; tau = 0 [0.0000; 1.2549]
-##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+##  tau^2 = 0 [0.0000; 0.9358]; tau = 0 [0.0000; 0.9673]
+##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.52    5  0.4768
+##  4.60    6  0.5960
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -1545,7 +1505,8 @@ forest.meta(new.mvd28,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - New MV or death within 28 days", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -1556,24 +1517,7 @@ Discussion points
 # (iv.i) New mechanical ventilation among survivors within 28 days
 
 ```r
-str(df_new_mv28)
-```
-
-```
-## 'data.frame':	5 obs. of  10 variables:
-##  $ variable         : chr  "new MV within 28d" "new MV within 28d" "new MV within 28d_firth" "new MV within 28d" ...
-##  $ hazard_odds_ratio: num  1.536 0.687 0.217 0.27 1.221
-##  $ ci_lower         : num  0.7522 0.42483 0.00154 0.03781 0.83974
-##  $ ci_upper         : num  3.21 1.1 2.88 1.26 1.78
-##  $ standard_error   : num  0.368 0.243 1.385 0.85 0.192
-##  $ p_value          : num  0.243 0.123 0.269 0.124 0.298
-##  $ n_intervention   : num  107 437 57 53 655
-##  $ n_control        : num  104 422 58 52 624
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "TOFACOV" "COVINIB" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Baricitinib" ...
-```
-
-```r
+# str(df_new_mv28)
 new.mv28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1583,10 +1527,10 @@ new.mv28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - New MV among survivors within 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -1598,31 +1542,34 @@ summary(new.mv28)
 ## Review:     Average treatment effect - New MV among survivors within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.5355 [0.7471; 3.1562]       22.3
-## ACTT-2        0.6873 [0.4269; 1.1068]       31.8
-## TOFACOV       0.2175 [0.0144; 3.2855]        2.8
-## COVINIB       0.2705 [0.0511; 1.4311]        6.8
-## COV-BARRIER   1.2208 [0.8387; 1.7772]       36.3
+## Bari-SolidAct 1.5355 [0.7471; 3.1562]        8.1
+## ACTT-2        0.6873 [0.4269; 1.1068]       16.9
+## TOFACOV       0.2175 [0.0144; 3.2855]        0.6
+## COVINIB       0.2705 [0.0511; 1.4311]        1.6
+## COV-BARRIER   1.2208 [0.8387; 1.7772]       24.7
+## RECOVERY      0.8229 [0.6575; 1.0299]       48.1
 ## 
-## Number of studies: k = 5
-## Number of observations: o = 2569
+## Number of studies: k = 6
+## Number of observations: o = 9388
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.9210 [0.4450; 1.9062] -0.31  0.7691
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.9016 [0.6287; 1.2930] -0.74  0.4934
+## Prediction interval              [0.5877; 1.3831]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.1207 [0.0000; 5.5522]; tau = 0.3474 [0.0000; 2.3563]
-##  I^2 = 52.4% [0.0%; 82.5%]; H = 1.45 [1.00; 2.39]
+##  tau^2 = 0.0118 [0.0000; 2.9865]; tau = 0.1086 [0.0000; 1.7282]
+##  I^2 = 47.5% [0.0%; 79.2%]; H = 1.38 [1.00; 2.19]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  8.40    4  0.0779
+##  9.52    5  0.0900
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 4)
+## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Prediction interval based on t-distribution (df = 4)
 ```
 
 ```r
@@ -1633,7 +1580,8 @@ forest.meta(new.mv28,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - New MV among survivors within 28 days", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -1644,24 +1592,7 @@ Discussion points
 # (v) Clinical status at day 28
 
 ```r
-str(df_clin28)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "clinical status at day 28" "clinical status at day 28" "clinical status at day 28" "clinical status at day 28" ...
-##  $ hazard_odds_ratio: num  0.945 0.693 0.826 0.509 0.321 ...
-##  $ ci_lower         : num  0.5773 0.4961 0.1539 0.0667 0.0428 ...
-##  $ ci_upper         : num  1.547 0.965 3.989 2.843 1.655 ...
-##  $ standard_error   : num  0.251 0.17 0.798 0.907 0.887 ...
-##  $ p_value          : num  0.8219 0.0304 0.8102 0.4563 0.2003 ...
-##  $ n_intervention   : num  145 515 46 58 55 815
-##  $ n_control        : num  144 518 51 58 55 811
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_clin28)
 clin28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1671,10 +1602,10 @@ clin28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Clinical status at day 28",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -1686,32 +1617,35 @@ summary(clin28)
 ## Review:     Average treatment effect - Clinical status at day 28
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 0.9451 [0.5778; 1.5456]       13.3
-## ACTT-2        0.6928 [0.4970; 0.9659]       29.1
-## Ghazaeian     0.8256 [0.1729; 3.9418]        1.3
-## TOFACOV       0.5090 [0.0861; 3.0089]        1.0
-## COVINIB       0.3212 [0.0565; 1.8266]        1.1
-## COV-BARRIER   0.8487 [0.6655; 1.0823]       54.3
+## Bari-SolidAct 0.9451 [0.5778; 1.5456]        3.9
+## ACTT-2        0.6928 [0.4970; 0.9659]        8.5
+## Ghazaeian     0.8256 [0.1729; 3.9418]        0.4
+## TOFACOV       0.5090 [0.0861; 3.0089]        0.3
+## COVINIB       0.3212 [0.0565; 1.8266]        0.3
+## COV-BARRIER   0.8487 [0.6655; 1.0823]       15.9
+## RECOVERY      0.7987 [0.7119; 0.8962]       70.8
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 3271
+## Number of studies: k = 7
+## Number of observations: o = 11401
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.7988 [0.6315; 1.0103] -2.46  0.0574
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.7988 [0.7366; 0.8662] -6.78  0.0005
+## Prediction interval              [0.7035; 0.9070]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.4642]; tau = 0 [0.0000; 0.6813]
-##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+##  tau^2 = 0 [0.0000; 0.1847]; tau = 0 [0.0000; 0.4298]
+##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.70    5  0.7466
+##  2.70    6  0.8459
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -1722,7 +1656,8 @@ forest.meta(clin28,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - Clinical status at day 28", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -1733,24 +1668,7 @@ Discussion points
 # (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
 
 ```r
-str(df_ttdischarge_comp)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "discharge within 28 days, death=comp.event" "discharge within 28 days, death=comp.event" "discharge within 28 days, death=comp.event" "discharge within 28 days, death=comp.event" ...
-##  $ hazard_odds_ratio: num  1.113 1.16 0.738 1.256 1.53 ...
-##  $ ci_lower         : num  0.847 1.02 0.48 0.876 1.059 ...
-##  $ ci_upper         : num  1.46 1.32 1.14 1.8 2.21 ...
-##  $ standard_error   : num  0.1396 0.0656 0.2198 0.1839 0.1875 ...
-##  $ p_value          : num  0.44 0.024 0.167 0.21 0.023 ...
-##  $ n_intervention   : num  145 515 46 58 55 815
-##  $ n_control        : num  144 518 51 58 55 811
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_ttdischarge_comp)
 ttdischarge.comp <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1760,10 +1678,10 @@ ttdischarge.comp <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Time to discharge within 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -1775,32 +1693,35 @@ summary(ttdischarge.comp)
 ## Review:     Average treatment effect - Time to discharge within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.1133 [0.8468; 1.4636]        7.4
-## ACTT-2        1.1601 [1.0202; 1.3192]       33.5
-## Ghazaeian     0.7381 [0.4798; 1.1355]        3.0
-## TOFACOV       1.2562 [0.8760; 1.8014]        4.3
-## COVINIB       1.5296 [1.0591; 2.2092]        4.1
-## COV-BARRIER   1.1099 [0.9966; 1.2360]       47.7
+## Bari-SolidAct 1.1133 [0.8468; 1.4636]        2.1
+## ACTT-2        1.1601 [1.0202; 1.3192]        9.5
+## Ghazaeian     0.7381 [0.4798; 1.1355]        0.8
+## TOFACOV       1.2562 [0.8760; 1.8014]        1.2
+## COVINIB       1.5296 [1.0591; 2.2092]        1.2
+## COV-BARRIER   1.1099 [0.9966; 1.2360]       13.6
+## RECOVERY      1.0930 [1.0429; 1.1454]       71.5
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 3271
+## Number of studies: k = 7
+## Number of observations: o = 11401
 ## 
-##                                  OR           95%-CI    t p-value
-## Random effects model (HK-SE) 1.1338 [1.0104; 1.2722] 2.80  0.0379
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.1044 [1.0444; 1.1679] 4.35  0.0048
+## Prediction interval              [1.0483; 1.1635]             
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.3003]; tau = 0.0018 [0.0000; 0.5480]
-##  I^2 = 28.2% [0.0%; 70.4%]; H = 1.18 [1.00; 1.84]
+##  tau^2 < 0.0001 [0.0000; 0.1886]; tau = 0.0009 [0.0000; 0.4342]
+##  I^2 = 21.4% [0.0%; 64.6%]; H = 1.13 [1.00; 1.68]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.97    5  0.2232
+##  7.63    6  0.2662
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -1811,7 +1732,8 @@ forest.meta(ttdischarge.comp,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - Time to discharge within 28 days", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -1822,24 +1744,7 @@ Discussion points
 # (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
 
 ```r
-str(df_ttdischarge_hypo)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "discharge within 28 days, death=hypo.event" "discharge within 28 days, death=hypo.event" "discharge within 28 days, death=hypo.event" "discharge within 28 days, death=hypo.event" ...
-##  $ hazard_odds_ratio: num  1.083 1.211 0.823 1.284 1.59 ...
-##  $ ci_lower         : num  0.816 1.057 0.54 0.88 1.069 ...
-##  $ ci_upper         : num  1.44 1.39 1.25 1.87 2.36 ...
-##  $ standard_error   : num  0.1442 0.0694 0.215 0.1924 0.2026 ...
-##  $ p_value          : num  0.5816 0.00583 0.36545 0.19432 0.02219 ...
-##  $ n_intervention   : num  145 515 46 58 55 815
-##  $ n_control        : num  144 518 51 58 55 811
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_ttdischarge_hypo)
 ttdischarge.hypo <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1849,10 +1754,10 @@ ttdischarge.hypo <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Time to discharge within 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -1864,32 +1769,35 @@ summary(ttdischarge.hypo)
 ## Review:     Average treatment effect - Time to discharge within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0827 [0.8162; 1.4361]        7.6
-## ACTT-2        1.2108 [1.0569; 1.3872]       32.8
-## Ghazaeian     0.8232 [0.5401; 1.2546]        3.4
-## TOFACOV       1.2836 [0.8804; 1.8714]        4.3
-## COVINIB       1.5895 [1.0685; 2.3646]        3.8
-## COV-BARRIER   1.1214 [1.0023; 1.2548]       48.1
+## Bari-SolidAct 1.0827 [0.8162; 1.4361]        2.2
+## ACTT-2        1.2108 [1.0569; 1.3872]        9.3
+## Ghazaeian     0.8232 [0.5401; 1.2546]        1.0
+## TOFACOV       1.2836 [0.8804; 1.8714]        1.2
+## COVINIB       1.5895 [1.0685; 2.3646]        1.1
+## COV-BARRIER   1.1214 [1.0023; 1.2548]       13.6
+## RECOVERY      1.1327 [1.0787; 1.1895]       71.7
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 3271
+## Number of studies: k = 7
+## Number of observations: o = 11401
 ## 
-##                                  OR           95%-CI    t p-value
-## Random effects model (HK-SE) 1.1569 [1.0325; 1.2962] 3.29  0.0216
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.1395 [1.0802; 1.2021] 5.98  0.0010
+## Prediction interval              [1.0790; 1.2035]             
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.2401]; tau = 0.0015 [0.0000; 0.4900]
-##  I^2 = 19.3% [0.0%; 64.0%]; H = 1.11 [1.00; 1.67]
+##  tau^2 < 0.0001 [0.0000; 0.1480]; tau = 0.0018 [0.0000; 0.3848]
+##  I^2 = 6.2% [0.0%; 72.6%]; H = 1.03 [1.00; 1.91]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.19    5  0.2879
+##  6.39    6  0.3805
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -1900,7 +1808,8 @@ forest.meta(ttdischarge.hypo,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - Time to discharge within 28 days", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -1911,24 +1820,7 @@ Discussion points
 # (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
 
 ```r
-str(df_ttdischarge)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "discharge within 28 days" "discharge within 28 days" "discharge within 28 days" "discharge within 28 days" ...
-##  $ hazard_odds_ratio: num  1.072 1.214 0.738 1.284 1.586 ...
-##  $ ci_lower         : num  0.808 1.06 0.48 0.88 1.066 ...
-##  $ ci_upper         : num  1.42 1.39 1.14 1.87 2.36 ...
-##  $ standard_error   : num  0.1441 0.0694 0.2198 0.1924 0.2026 ...
-##  $ p_value          : num  0.62921 0.00519 0.16705 0.19432 0.02278 ...
-##  $ n_intervention   : num  145 515 46 58 55 815
-##  $ n_control        : num  144 518 51 58 55 811
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_ttdischarge)
 ttdischarge.cens <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1938,10 +1830,10 @@ ttdischarge.cens <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Time to discharge within 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -1953,32 +1845,35 @@ summary(ttdischarge.cens)
 ## Review:     Average treatment effect - Time to discharge within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0721 [0.8083; 1.4219]       11.5
-## ACTT-2        1.2141 [1.0596; 1.3910]       31.6
-## Ghazaeian     0.7381 [0.4798; 1.1355]        5.5
-## TOFACOV       1.2836 [0.8804; 1.8714]        7.0
-## COVINIB       1.5863 [1.0664; 2.3597]        6.4
-## COV-BARRIER   1.0679 [0.9544; 1.1949]       38.0
+## Bari-SolidAct 1.0721 [0.8083; 1.4219]        2.2
+## ACTT-2        1.2141 [1.0596; 1.3910]        9.3
+## Ghazaeian     0.7381 [0.4798; 1.1355]        0.9
+## TOFACOV       1.2836 [0.8804; 1.8714]        1.2
+## COVINIB       1.5863 [1.0664; 2.3597]        1.1
+## COV-BARRIER   1.0679 [0.9544; 1.1949]       13.6
+## RECOVERY      1.1217 [1.0682; 1.1779]       71.7
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 3271
+## Number of studies: k = 7
+## Number of observations: o = 11401
 ## 
-##                                  OR           95%-CI    t p-value
-## Random effects model (HK-SE) 1.1326 [0.9565; 1.3411] 1.89  0.1167
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.1231 [1.0534; 1.1973] 4.44  0.0044
+## Prediction interval              [1.0635; 1.1860]             
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0043 [0.0000; 0.3459]; tau = 0.0658 [0.0000; 0.5881]
-##  I^2 = 45.4% [0.0%; 78.4%]; H = 1.35 [1.00; 2.15]
+##  tau^2 < 0.0001 [0.0000; 0.2182]; tau = 0.0015 [0.0000; 0.4671]
+##  I^2 = 34.6% [0.0%; 72.3%]; H = 1.24 [1.00; 1.90]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  9.16    5  0.1027
+##  9.17    6  0.1641
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -1989,7 +1884,8 @@ forest.meta(ttdischarge.cens,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - Time to discharge within 28 days", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -2000,24 +1896,7 @@ Discussion points
 # (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
 
 ```r
-str(df_ttdischarge_sus)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "sustained discharge within 28 days" "sustained discharge within 28 days" "sustained discharge within 28 days" "sustained discharge within 28 days" ...
-##  $ hazard_odds_ratio: num  1.055 1.214 0.738 1.284 1.586 ...
-##  $ ci_lower         : num  0.795 1.06 0.48 0.88 1.066 ...
-##  $ ci_upper         : num  1.4 1.39 1.14 1.87 2.36 ...
-##  $ standard_error   : num  0.1448 0.0694 0.2198 0.1924 0.2026 ...
-##  $ p_value          : num  0.70965 0.00519 0.16705 0.19432 0.02278 ...
-##  $ n_intervention   : num  145 515 46 58 55 815
-##  $ n_control        : num  144 518 51 58 55 811
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_ttdischarge_sus)
 ttdischarge.sus <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -2027,10 +1906,10 @@ ttdischarge.sus <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Time to sustained discharge within 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -2042,32 +1921,35 @@ summary(ttdischarge.sus)
 ## Review:     Average treatment effect - Time to sustained discharge within 28 ...
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0554 [0.7946; 1.4017]       12.3
-## ACTT-2        1.2141 [1.0596; 1.3910]       30.9
-## Ghazaeian     0.7381 [0.4798; 1.1355]        6.1
-## TOFACOV       1.2836 [0.8804; 1.8714]        7.7
-## COVINIB       1.5863 [1.0664; 2.3597]        7.0
-## COV-BARRIER   1.0582 [0.9454; 1.1845]       36.1
+## Bari-SolidAct 1.0554 [0.7946; 1.4017]        2.1
+## ACTT-2        1.2141 [1.0596; 1.3910]        9.3
+## Ghazaeian     0.7381 [0.4798; 1.1355]        0.9
+## TOFACOV       1.2836 [0.8804; 1.8714]        1.2
+## COVINIB       1.5863 [1.0664; 2.3597]        1.1
+## COV-BARRIER   1.0582 [0.9454; 1.1845]       13.6
+## RECOVERY      1.1217 [1.0682; 1.1779]       71.7
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 3271
+## Number of studies: k = 7
+## Number of observations: o = 11401
 ## 
-##                                  OR           95%-CI    t p-value
-## Random effects model (HK-SE) 1.1276 [0.9435; 1.3475] 1.73  0.1438
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.1214 [1.0504; 1.1972] 4.28  0.0052
+## Prediction interval              [1.0616; 1.1845]             
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0058 [0.0000; 0.3498]; tau = 0.0761 [0.0000; 0.5914]
-##  I^2 = 47.6% [0.0%; 79.2%]; H = 1.38 [1.00; 2.19]
+##  tau^2 < 0.0001 [0.0000; 0.2209]; tau = 0.0022 [0.0000; 0.4700]
+##  I^2 = 37.1% [0.0%; 73.5%]; H = 1.26 [1.00; 1.94]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  9.54    5  0.0892
+##  9.55    6  0.1452
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -2078,7 +1960,8 @@ forest.meta(ttdischarge.sus,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - Time to sustained discharge within 28 days", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -2089,24 +1972,7 @@ Discussion points
 # (vii) Viral clearance up to day 5
 
 ```r
-str(df_vir_clear_5)
-```
-
-```
-## 'data.frame':	2 obs. of  10 variables:
-##  $ variable         : chr  "viral clearance until day 5" "viral clearance until day 5"
-##  $ hazard_odds_ratio: num  1.495 0.898
-##  $ ci_lower         : num  0.639 0.67
-##  $ ci_upper         : num  3.58 1.2
-##  $ standard_error   : num  0.437 0.149
-##  $ p_value          : num  0.358 0.471
-##  $ n_intervention   : num  62 492
-##  $ n_control        : num  59 486
-##  $ trial            : chr  "Bari-SolidAct" "COV-BARRIER"
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib"
-```
-
-```r
+# str(df_vir_clear_5)
 vir.clear5 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -2116,10 +1982,10 @@ vir.clear5 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Viral clearance up to day 5",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -2131,26 +1997,31 @@ summary(vir.clear5)
 ## Review:     Average treatment effect - Viral clearance up to day 5
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.4947 [0.6349; 3.5190]       17.5
-## COV-BARRIER   0.8980 [0.6700; 1.2034]       82.5
+## Bari-SolidAct 1.4947 [0.6349; 3.5190]        7.0
+## COV-BARRIER   0.8980 [0.6700; 1.2034]       60.2
+## RECOVERY      0.9713 [0.6530; 1.4447]       32.7
 ## 
-## Number of studies: k = 2
-## Number of observations: o = 1099
+## Number of studies: k = 3
+## Number of observations: o = 8616
 ## 
-##                                  OR            95%-CI     t p-value
-## Random effects model (HK-SE) 0.9820 [0.0837; 11.5267] -0.09  0.9404
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.9550 [0.6460; 1.4118] -0.51  0.6626
+## Prediction interval              [0.2189; 4.1656]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0233; tau = 0.1525; I^2 = 17.9%; H = 1.10
+##  tau^2 = 0 [0.0000; 2.8393]; tau = 0 [0.0000; 1.6850]
+##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.22    1  0.2697
+##  1.23    2  0.5410
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
-## - Hartung-Knapp adjustment for random effects model (df = 1)
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 2)
+## - Prediction interval based on t-distribution (df = 1)
 ```
 
 ```r
@@ -2161,7 +2032,8 @@ forest.meta(vir.clear5,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - Viral clearance up to day 5", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -2172,24 +2044,7 @@ Discussion points
 # (viii) Viral clearance up to day 10
 
 ```r
-str(df_vir_clear_10)
-```
-
-```
-## 'data.frame':	2 obs. of  10 variables:
-##  $ variable         : chr  "viral clearance until day 10" "viral clearance until day 10"
-##  $ hazard_odds_ratio: num  1.09 0.99
-##  $ ci_lower         : num  0.536 0.77
-##  $ ci_upper         : num  2.21 1.27
-##  $ standard_error   : num  0.361 0.128
-##  $ p_value          : num  0.815 0.94
-##  $ n_intervention   : num  66 538
-##  $ n_control        : num  61 522
-##  $ trial            : chr  "Bari-SolidAct" "COV-BARRIER"
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib"
-```
-
-```r
+# str(df_vir_clear_10)
 vir.clear10 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -2199,10 +2054,10 @@ vir.clear10 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Viral clearance up to day 10",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -2214,26 +2069,31 @@ summary(vir.clear10)
 ## Review:     Average treatment effect - Viral clearance up to day 10
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0882 [0.5367; 2.2064]       11.2
-## COV-BARRIER   0.9903 [0.7701; 1.2736]       88.8
+## Bari-SolidAct 1.0882 [0.5367; 2.2064]        7.6
+## COV-BARRIER   0.9903 [0.7701; 1.2736]       59.9
+## RECOVERY      0.9141 [0.6500; 1.2856]       32.6
 ## 
-## Number of studies: k = 2
-## Number of observations: o = 1187
+## Number of studies: k = 3
+## Number of observations: o = 8897
 ## 
-##                                  OR           95%-CI    t p-value
-## Random effects model (HK-SE) 1.0009 [0.2154; 4.6513] 0.01  0.9954
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.9718 [0.8371; 1.1281] -0.83  0.4954
+## Prediction interval              [0.2752; 3.4311]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0; tau = 0; I^2 = 0.0%; H = 1.00
+##  tau^2 = 0 [0.0000; 0.2208]; tau = 0 [0.0000; 0.4699]
+##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.06    1  0.8054
+##  0.24    2  0.8852
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
-## - Hartung-Knapp adjustment for random effects model (df = 1)
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 2)
+## - Prediction interval based on t-distribution (df = 1)
 ```
 
 ```r
@@ -2244,7 +2104,8 @@ forest.meta(vir.clear10,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - Viral clearance up to day 10", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -2255,24 +2116,7 @@ Discussion points
 # (ix) Viral clearance up to day 15
 
 ```r
-str(df_vir_clear_15)
-```
-
-```
-## 'data.frame':	2 obs. of  10 variables:
-##  $ variable         : chr  "viral clearance until day 15" "viral clearance until day 15"
-##  $ hazard_odds_ratio: num  1.004 0.972
-##  $ ci_lower         : num  0.496 0.763
-##  $ ci_upper         : num  2.03 1.24
-##  $ standard_error   : num  0.359 0.123
-##  $ p_value          : num  0.991 0.816
-##  $ n_intervention   : num  67 551
-##  $ n_control        : num  61 545
-##  $ trial            : chr  "Bari-SolidAct" "COV-BARRIER"
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib"
-```
-
-```r
+# str(df_vir_clear_15)
 vir.clear15 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -2282,10 +2126,10 @@ vir.clear15 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Viral clearance up to day 15",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -2297,26 +2141,31 @@ summary(vir.clear15)
 ## Review:     Average treatment effect - Viral clearance up to day 15
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0042 [0.4970; 2.0290]       10.6
-## COV-BARRIER   0.9717 [0.7630; 1.2375]       89.4
+## Bari-SolidAct 1.0042 [0.4970; 2.0290]        7.1
+## COV-BARRIER   0.9717 [0.7630; 1.2375]       59.7
+## RECOVERY      0.8551 [0.6183; 1.1825]       33.2
 ## 
-## Number of studies: k = 2
-## Number of observations: o = 1224
+## Number of studies: k = 3
+## Number of observations: o = 9007
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.9751 [0.2215; 4.2931] -0.22  0.8646
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.9335 [0.7720; 1.1287] -1.56  0.2593
+## Prediction interval              [0.2780; 3.1346]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0; tau = 0; I^2 = 0.0%; H = 1.00
+##  tau^2 = 0 [0.0000; 0.2336]; tau = 0 [0.0000; 0.4833]
+##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.01    1  0.9309
+##  0.43    2  0.8070
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
-## - Hartung-Knapp adjustment for random effects model (df = 1)
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 2)
+## - Prediction interval based on t-distribution (df = 1)
 ```
 
 ```r
@@ -2327,7 +2176,8 @@ forest.meta(vir.clear15,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - Viral clearance up to day 15", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -2338,24 +2188,7 @@ Discussion points
 # (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
 
 ```r
-str(df_ae28)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "Any AE grade 3,4 within 28 days" "Any AE grade 3,4 within 28 days" "any AE grade 3,4 within 28 days_firth" "any AE grade 3,4 within 28 days" ...
-##  $ hazard_odds_ratio: num  0.905 0.902 3.225 0.694 0.797 ...
-##  $ ci_lower         : num  0.506 0.689 0.17 0.241 0.308 ...
-##  $ ci_upper         : num  1.62 1.18 472.45 1.96 2.04 ...
-##  $ standard_error   : num  0.296 0.137 1.476 0.529 0.477 ...
-##  $ p_value          : num  0.736 0.454 0.441 0.489 0.634 ...
-##  $ n_intervention   : num  131 491 46 58 55 734
-##  $ n_control        : num  126 481 51 58 53 684
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_ae28)
 ae28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -2365,10 +2198,10 @@ ae28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - dverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -2380,32 +2213,35 @@ summary(ae28)
 ## Review:     Average treatment effect - dverse event(s) grade 3 or 4, or a se ...
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.9051 [0.5070;  1.6157]        8.9
-## ACTT-2        0.9024 [0.6896;  1.1808]       41.4
-## Ghazaeian     3.2247 [0.1787; 58.1925]        0.4
-## TOFACOV       0.6936 [0.2461;  1.9552]        2.8
-## COVINIB       0.7969 [0.3127;  2.0306]        3.4
-## COV-BARRIER   1.1011 [0.8462;  1.4327]       43.2
+## Bari-SolidAct 0.9051 [0.5070;  1.6157]        4.9
+## ACTT-2        0.9024 [0.6896;  1.1808]       22.7
+## Ghazaeian     3.2247 [0.1787; 58.1925]        0.2
+## TOFACOV       0.6936 [0.2461;  1.9552]        1.5
+## COVINIB       0.7969 [0.3127;  2.0306]        1.9
+## COV-BARRIER   1.1011 [0.8462;  1.4327]       23.7
+## RECOVERY      0.9094 [0.7513;  1.1007]       45.1
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 2968
+## Number of studies: k = 7
+## Number of observations: o = 9926
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.9767 [0.7785; 1.2254] -0.27  0.7999
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.9457 [0.8487; 1.0539] -1.26  0.2542
+## Prediction interval              [0.7994; 1.1189]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.4065]; tau = 0 [0.0000; 0.6375]
-##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+##  tau^2 = 0 [0.0000; 0.0993]; tau = 0 [0.0000; 0.3152]
+##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.45    5  0.7839
+##  2.75    6  0.8400
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -2416,7 +2252,8 @@ forest.meta(ae28,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - dverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -2427,24 +2264,7 @@ Discussion points
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
 
 ```r
-str(df_ae28sev)
-```
-
-```
-## 'data.frame':	6 obs. of  10 variables:
-##  $ variable         : chr  "AEs grade 3,4 within 28 days" "AEs grade 3,4 within 28 days" "AEs grade 3,4 within 28 days_firth" "AEs grade 3,4 within 28 days" ...
-##  $ hazard_odds_ratio: num  1.286 0.81 3.225 0.694 0.588 ...
-##  $ ci_lower         : num  0.927 0.719 0.17 0.241 0.324 ...
-##  $ ci_upper         : num  1.793 0.913 472.451 1.957 1.042 ...
-##  $ standard_error   : num  0.168 0.0607 1.476 0.5287 0.2955 ...
-##  $ p_value          : num  0.134632 0.000538 0.44122 0.489005 0.072389 ...
-##  $ n_intervention   : num  131 491 46 58 55 734
-##  $ n_control        : num  126 481 51 58 53 684
-##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_ae28sev)
 ae28sev <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -2454,10 +2274,10 @@ ae28sev <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = F,
                       random = T,
-                      prediction = F,
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
@@ -2469,32 +2289,35 @@ summary(ae28sev)
 ## Review:     Average treatment effect - Adverse event(s) grade 3 or 4, or a s ...
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 1.2857 [0.9250;  1.7870]       22.0
-## ACTT-2        0.8105 [0.7196;  0.9129]       28.4
-## Ghazaeian     3.2247 [0.1787; 58.1925]        1.1
-## TOFACOV       0.6936 [0.2461;  1.9552]        6.6
-## COVINIB       0.5880 [0.3295;  1.0494]       14.3
-## COV-BARRIER   1.2960 [1.1139;  1.5079]       27.6
+## Bari-SolidAct 1.2857 [0.9250;  1.7870]       16.2
+## ACTT-2        0.8105 [0.7196;  0.9129]       24.6
+## Ghazaeian     3.2247 [0.1787; 58.1925]        0.5
+## TOFACOV       0.6936 [0.2461;  1.9552]        3.6
+## COVINIB       0.5880 [0.3295;  1.0494]        8.9
+## COV-BARRIER   1.2960 [1.1139;  1.5079]       23.5
+## RECOVERY      0.8576 [0.7204;  1.0210]       22.6
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 2968
+## Number of studies: k = 7
+## Number of observations: o = 9926
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-SE) 0.9799 [0.6583; 1.4587] -0.13  0.9007
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.9616 [0.7277; 1.2708] -0.34  0.7429
+## Prediction interval              [0.5250; 1.7612]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0807 [0.0104; 1.2598]; tau = 0.2840 [0.1020; 1.1224]
-##  I^2 = 83.1% [64.4%; 91.9%]; H = 2.43 [1.68; 3.52]
+##  tau^2 = 0.0437 [0.0095; 0.6889]; tau = 0.2091 [0.0977; 0.8300]
+##  I^2 = 80.8% [61.1%; 90.5%]; H = 2.28 [1.60; 3.25]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f.  p-value
-##  29.54    5 < 0.0001
+##  31.24    6 < 0.0001
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -2505,7 +2328,8 @@ forest.meta(ae28sev,
             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL", # get the title into the figure
-            # xlim = c(0.15,5),
+            xlim = c(0.15,5),
+            sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -2649,23 +2473,23 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
-|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
-|death at day 28                            |         0.7032277| 0.5386358|  0.9181144|      0.1089705| 0.0178899|            125|               1684|       193|          1687|two-stage |
-|death at day 60                            |         0.6373426| 0.4597868|  0.8834652|      0.1270314| 0.0164580|            152|               1684|       214|          1687|two-stage |
-|death within fup                           |         0.6425026| 0.4566257|  0.9040435|      0.1073095| 0.0258744|            153|               1684|       214|          1687|two-stage |
-|new MV or death within 28d                 |         0.7881019| 0.6017180|  1.0322187|      0.1049718| 0.0725754|            268|               1684|       333|          1687|two-stage |
-|new MV within 28d                          |         0.9210084| 0.4450101|  1.9061513|      0.2619797| 0.7691495|            143|               1470|       140|          1413|two-stage |
-|clinical status at day 28                  |         0.7987921| 0.6315483|  1.0103247|      0.0913903| 0.0573562|           1684|               1684|      1687|          1687|two-stage |
-|discharge within 28 days, death=comp.event |         1.1337880| 1.0104104|  1.2722308|      0.0448177| 0.0379191|           1350|               1684|      1305|          1687|two-stage |
-|discharge within 28 days, death=hypo.event |         1.1568680| 1.0325273|  1.2961823|      0.0442339| 0.0216126|           1350|               1684|      1305|          1687|two-stage |
-|discharge within 28 days, death=censored   |         1.1325994| 0.9565386|  1.3410660|      0.0657242| 0.1166822|           1350|               1684|      1305|          1687|two-stage |
-|sustained discharge within 28 days         |         1.1275720| 0.9435417|  1.3474959|      0.0693156| 0.1437881|           1342|               1684|      1303|          1687|two-stage |
-|viral clearance until day 5                |         0.9819506| 0.0836518| 11.5266782|      0.1938327| 0.9403527|            136|                554|       138|           545|two-stage |
-|viral clearance until day 10               |         1.0008751| 0.2153709|  4.6512825|      0.1209069| 0.9953944|            236|                604|       228|           583|two-stage |
-|viral clearance until day 15               |         0.9751177| 0.2214836|  4.2931147|      0.1166524| 0.8645700|            292|                618|       291|           606|two-stage |
-|Any AE grade 3,4 within 28 days            |         0.9766802| 0.7784532|  1.2253841|      0.0882487| 0.7998542|             89|                943|        75|           896|two-stage |
-|AEs grade 3,4 within 28 days               |         0.9798948| 0.6582755|  1.4586504|      0.1547594| 0.9007056|            943|                943|       896|           896|two-stage |
+|variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
+|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
+|death at day 28                            |         0.6957313| 0.5439897| 0.8897999|      0.1005484| 0.0112562|            125|               1684|       193|          1687|two-stage |
+|death at day 60                            |         0.7469343| 0.6180689| 0.9026678|      0.0773944| 0.0092886|            152|               1684|       214|          1687|two-stage |
+|death within fup                           |         0.7510062| 0.6051414| 0.9320307|      0.0777800| 0.0211774|            153|               1684|       214|          1687|two-stage |
+|new MV or death within 28d                 |         0.8079745| 0.7192738| 0.9076137|      0.0475245| 0.0041629|            268|               1684|       333|          1687|two-stage |
+|new MV within 28d                          |         0.9016036| 0.6286949| 1.2929787|      0.1402519| 0.4933779|            143|               1470|       140|          1413|two-stage |
+|clinical status at day 28                  |         0.7987556| 0.7365536| 0.8662106|      0.0331328| 0.0005026|           1684|               1684|      1687|          1687|two-stage |
+|discharge within 28 days, death=comp.event |         1.1044247| 1.0443920| 1.1679081|      0.0228409| 0.0048302|           1350|               1684|      1305|          1687|two-stage |
+|discharge within 28 days, death=hypo.event |         1.1395304| 1.0802160| 1.2021018|      0.0218460| 0.0009825|           1350|               1684|      1305|          1687|two-stage |
+|discharge within 28 days, death=censored   |         1.1230654| 1.0534490| 1.1972824|      0.0261523| 0.0043856|           1350|               1684|      1305|          1687|two-stage |
+|sustained discharge within 28 days         |         1.1213678| 1.0503570| 1.1971794|      0.0267354| 0.0051797|           1342|               1684|      1303|          1687|two-stage |
+|viral clearance until day 5                |         0.9549876| 0.6459928| 1.4117825|      0.0908532| 0.6625652|            136|                554|       138|           545|two-stage |
+|viral clearance until day 10               |         0.9717526| 0.8371022| 1.1280620|      0.0346659| 0.4953915|            236|                604|       228|           583|two-stage |
+|viral clearance until day 15               |         0.9334866| 0.7720192| 1.1287249|      0.0441396| 0.2592637|            292|                618|       291|           606|two-stage |
+|Any AE grade 3,4 within 28 days            |         0.9457488| 0.8487112| 1.0538811|      0.0442427| 0.2542109|             89|                943|        75|           896|two-stage |
+|AEs grade 3,4 within 28 days               |         0.9616221| 0.7276780| 1.2707779|      0.1139244| 0.7429348|            943|                943|       896|           896|two-stage |
 
 ```r
 # Save
@@ -2732,13 +2556,14 @@ df_int_tofacov <- readRDS("int_effects_tofacov.RData")
 df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 # df_int_murugesan <- readRDS("int_effects_murugesan.RData")
+df_int_recovery <- readRDS("int_effects_recovery.RData")
 ```
 
 # Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint - and vacc.ae)
 
 ```r
 ### Create a list of all data frames / trials
-list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier) # add all trials
+list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier, df_int_recovery) # add all trials
 
 ## Respiratory support on Mortality at day 28
 outcomes <- "respiratory support"
@@ -2838,13 +2663,14 @@ df_subgroup_barisolidact <- readRDS("subgroup_effects_barisolidact.RData")
 df_subgroup_covinib <- readRDS("subgroup_effects_covinib.RData")
 df_subgroup_tofacov <- readRDS("subgroup_effects_tofacov.RData")
 df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
+df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
 ```
 
 # Reshape dataframes for all subgroup estimates
 
 ```r
 ### Create a list of all data frames / trials
-list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian) # add all trials
+list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian, df_subgroup_recovery) # add all trials
 
 ## Respiratory support
 outcomes1 <- "No oxygen"
@@ -2917,12 +2743,12 @@ for (df in list_subgroup_df) {
 ## Comedication
 outcomes1 <- "No Dexa, no Tocilizumab"
 outcomes1.firth <- "No Dexa, no Tocilizumab_firth"
-# outcomes2 <- "xxx"
-# outcomes2.firth <- "xxx"
+outcomes2 <- "Dexa and Tocilizumab"
+outcomes2.firth <- "Dexa and Tocilizumab"
 outcomes3 <- "Dexa, but no Tocilizumab"
 outcomes3.firth <- "Dexa, but no Tocilizumab_firth"
-# outcomes4 <- "xxx"
-# outcomes4.firth <- "xxx"
+outcomes4 <- "Tocilizumab, but no Dexa"
+outcomes4.firth <- "Tocilizumab, but no Dexa"
 # Initialize an empty data frame to store the selected rows
 df_sg_comed_mort28 <- data.frame()
 # Loop through the list of data frames
@@ -2984,22 +2810,7 @@ for (df in list_subgroup_df) {
 # Interaction: Respiratory support (proxy for disease severity) on primary endpoint
 
 ```r
-str(df_rs_mort28)
-```
-
-```
-## 'data.frame':	6 obs. of  8 variables:
-##  $ variable      : chr  "respiratory support" "respiratory support" "respiratory support_firth" "respiratory support_firth" ...
-##  $ log_odds_ratio: num  0.212 1.747 1 1.188 0.252 ...
-##  $ ci_lower      : num  0.021687 0.894905 0.001618 0.003153 0.000499 ...
-##  $ ci_upper      : num  1.49 3.52 617.98 689.75 80.31 ...
-##  $ standard_error: num  1.0509 0.3473 0.0328 2.4621 2.4418 ...
-##  $ p_value       : num  0.14 0.108 1 0.949 0.59 ...
-##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_rs_mort28)
 ## "TOFACOV", "COVINIB", "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
 rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -3008,13 +2819,13 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       # n.e = n_intervention + n_control,
                       # n.c = n_control,
                       sm = "log(Ratio of OR)",
-                      fixed = T, # the true interaction is assumed the same in all trials 
+                      fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct"),
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "RECOVERY"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(rs.mort28)
@@ -3023,30 +2834,30 @@ summary(rs.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Respiratory ...
 ## 
-##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct          -1.5507 [-3.6105; 0.5090]        3.1       10.2
-## ACTT-2                  0.5576 [-0.1231; 1.2383]       28.7       39.8
-## COV-BARRIER            -0.1312 [-0.5733; 0.3109]       68.1       50.0
+##               log(Ratio of OR)            95%-CI %W(random)
+## Bari-SolidAct          -1.5507 [-3.6105; 0.5090]        0.8
+## ACTT-2                  0.5576 [-0.1231; 1.2383]        7.7
+## COV-BARRIER            -0.1312 [-0.5733; 0.3109]       18.2
+## RECOVERY               -0.1719 [-0.3922; 0.0483]       73.3
 ## 
-## Number of studies: k = 3
+## Number of studies: k = 4
 ## 
-##                              log(Ratio of OR)            95%-CI   z|t p-value
-## Common effect model                    0.0222 [-0.3427; 0.3871]  0.12  0.9050
-## Random effects model (HK-SE)          -0.0026 [-1.8746; 1.8693] -0.01  0.9957
+##                           log(Ratio of OR)            95%-CI     t p-value
+## Random effects model (HK)          -0.1201 [-0.5487; 0.3085] -0.89  0.4383
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.2207 [0.0000; 44.9442]; tau = 0.4697 [0.0000; 6.7040]
-##  I^2 = 60.6% [0.0%; 88.8%]; H = 1.59 [1.00; 2.99]
+##  tau^2 < 0.0001 [0.0000; 10.1104]; tau = 0.0024 [0.0000; 3.1797]
+##  I^2 = 48.9% [0.0%; 83.1%]; H = 1.40 [1.00; 2.43]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  5.08    2  0.0789
+##  5.88    3  0.1178
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 2)
+## - Hartung-Knapp adjustment for random effects model (df = 3)
 ```
 
 ```r
@@ -3055,7 +2866,7 @@ forest.meta(rs.mort28,
             # rightcols = c("w.random"),
             leftcols = c("studlab", "TE", "seTE"),
             leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
-            text.common = "Average interaction effect (common effect model)*",
+            # text.common = "Average interaction effect (common effect model)*",
             text.random = "Average interaction effect (random effect model)*",
             title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
             # xlim = c(0.15,5),
@@ -3069,22 +2880,7 @@ Discussion points
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
 
 ```r
-str(df_vb_mort28)
-```
-
-```
-## 'data.frame':	3 obs. of  8 variables:
-##  $ variable      : chr  "ventilation_firth" "ventilation" "ventilation"
-##  $ log_odds_ratio: num  0.773 2.196 0.789
-##  $ ci_lower      : num  7.40e-13 6.48e-01 4.09e-01
-##  $ ci_upper      : num  1.63 8.28 1.53
-##  $ standard_error: num  0.0717 0.6412 0.3356
-##  $ p_value       : num  0.242 0.22 0.479
-##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "COV-BARRIER"
-##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Baricitinib"
-```
-
-```r
+# str(df_vb_mort28)
 ## "TOFACOV", "COVINIB", "Ghazaeian" and "Bari-SolidAct" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
 vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -3095,11 +2891,11 @@ vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       sm = "log(Ratio of OR)",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(vb.mort28)
@@ -3108,26 +2904,29 @@ summary(vb.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Ventilation ...
 ## 
-##             log(Ratio of OR)            95%-CI %W(random)
-## ACTT-2                0.7867 [-0.4700; 2.0435]       35.8
-## COV-BARRIER          -0.2375 [-0.8952; 0.4202]       64.2
+##             log(Ratio of OR)             95%-CI %W(random)
+## ACTT-2                0.7867 [-0.4700;  2.0435]        4.2
+## COV-BARRIER          -0.2375 [-0.8952;  0.4202]       15.2
+## RECOVERY             -0.2927 [-0.5786; -0.0069]       80.6
 ## 
-## Number of studies: k = 2
+## Number of studies: k = 3
 ## 
-##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-SE)           0.1289 [-6.1091; 6.3669] 0.26  0.8366
+##                           log(Ratio of OR)            95%-CI     t p-value
+## Random effects model (HK)          -0.2393 [-0.8934; 0.4148] -1.57  0.2561
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.2627; tau = 0.5125; I^2 = 50.1% [0.0%; 87.2%]; H = 1.42 [1.00; 2.79]
+##  tau^2 < 0.0001 [0.0000; 14.3036]; tau = 0.0025 [0.0000; 3.7820]
+##  I^2 = 25.8% [0.0%; 92.3%]; H = 1.16 [1.00; 3.60]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.00    1  0.1570
+##  2.69    2  0.2599
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
-## - Hartung-Knapp adjustment for random effects model (df = 1)
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 2)
 ```
 
 ```r
@@ -3287,6 +3086,29 @@ second_part <- df_sg_vb_mort28[13:nrow(df_sg_vb_mort28), ]
 # Insert the empty row before/after
 df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
 
+# Insert RECOVERY title
+empty_row <- data.frame(
+  variable = "RECOVERY",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vb_mort28[1:14, ]
+second_part <- df_sg_vb_mort28[15:nrow(df_sg_vb_mort28), ]
+# Insert the empty row before/after
+df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
+
+
 # Create a forest plot
 # pdf("sg_vb_mort28.pdf", width=10, height=8)
 forest(df_sg_vb_mort28$hazard_odds_ratio,
@@ -3295,7 +3117,7 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
        slab = df_sg_vb_mort28$variable,
        alim = c(0, 3),
        xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.8,
+       cex = 0.5,
        refline = 1,
        annotate = F,
        lwd.ci = 1,
@@ -3312,22 +3134,7 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
 # Interaction: Age on primary endpoint
 
 ```r
-str(df_age_mort28)
-```
-
-```
-## 'data.frame':	6 obs. of  8 variables:
-##  $ variable      : chr  "age" "age" "age" "age_firth" ...
-##  $ log_odds_ratio: num  1.027 0.992 1.05 1.047 0.866 ...
-##  $ ci_lower      : num  0.954 0.951 0.951 0.661 0.558 ...
-##  $ ci_upper      : num  1.11 1.04 1.18 1.67 1.54 ...
-##  $ standard_error: num  0.0377 0.0215 0.0531 0.0973 0.1064 ...
-##  $ p_value       : num  0.486 0.725 0.354 0.775 0.425 ...
-##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_age_mort28)
 age.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -3337,9 +3144,9 @@ age.mort28 <- metagen(TE = log(log_odds_ratio),
                       sm = "log(Ratio of OR)",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Age",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
@@ -3351,31 +3158,32 @@ summary(age.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Age
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.0263 [-0.0476; 0.1002]        8.5
-## ACTT-2                 -0.0076 [-0.0497; 0.0346]       25.9
-## Ghazaeian               0.0492 [-0.0549; 0.1534]        4.3
-## TOFACOV                 0.0460 [-0.1448; 0.2368]        1.3
-## COVINIB                -0.1438 [-0.3523; 0.0646]        1.1
-## COV-BARRIER             0.0238 [-0.0040; 0.0516]       59.0
+## Bari-SolidAct           0.0263 [-0.0476; 0.1002]        1.9
+## ACTT-2                 -0.0076 [-0.0497; 0.0346]        5.7
+## Ghazaeian               0.0492 [-0.0549; 0.1534]        0.9
+## TOFACOV                 0.0460 [-0.1448; 0.2368]        0.3
+## COVINIB                -0.1438 [-0.3523; 0.0646]        0.2
+## COV-BARRIER             0.0238 [-0.0040; 0.0516]       13.1
+## RECOVERY                0.0080 [-0.0033; 0.0193]       77.9
 ## 
-## Number of studies: k = 6
+## Number of studies: k = 7
 ## 
-##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-SE)           0.0154 [-0.0128; 0.0437] 1.41  0.2186
+##                           log(Ratio of OR)            95%-CI    t p-value
+## Random effects model (HK)           0.0097 [-0.0014; 0.0208] 2.13  0.0774
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.0223]; tau = 0.0017 [0.0000; 0.1494]
-##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+##  tau^2 < 0.0001 [0.0000; 0.0120]; tau = 0.0008 [0.0000; 0.1094]
+##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.32    5  0.5044
+##  4.69    6  0.5848
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
 ```
 
 ```r
@@ -3534,6 +3342,30 @@ second_part <- df_sg_age_mort28[16:nrow(df_sg_age_mort28), ]
 # Insert the empty row before/after
 df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
 
+# Insert RECOVERY title
+empty_row <- data.frame(
+  variable = "RECOVERY",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_age_mort28[1:18, ]
+second_part <- df_sg_age_mort28[19:nrow(df_sg_age_mort28), ]
+# Insert the empty row before/after
+df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
+
+
+
 # Create a forest plot
 # pdf("sg_age_mort28.pdf", width=10, height=8)
 forest(df_sg_age_mort28$hazard_odds_ratio,
@@ -3542,7 +3374,7 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
        slab = df_sg_age_mort28$variable,
        alim = c(0, 3),
        xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.8,
+       cex = 0.5,
        refline = 1,
        annotate = F,
        lwd.ci = 1,
@@ -3560,22 +3392,7 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
 # Interaction: Comorbidity on primary endpoint
 
 ```r
-str(df_comorb_mort28)
-```
-
-```
-## 'data.frame':	6 obs. of  8 variables:
-##  $ variable      : chr  "comorbidity" "comorbidity" "comorbidity" "comorbidity_firth" ...
-##  $ log_odds_ratio: num  1.099 0.808 1.914 0.606 1.508 ...
-##  $ ci_lower      : num  0.4299 0.33599 0.32782 0.00546 0.02342 ...
-##  $ ci_upper      : num  2.9 1.95 16.49 88.27 5786.07 ...
-##  $ standard_error: num  0.481 0.445 0.95 1.381 1.266 ...
-##  $ p_value       : num  0.845 0.632 0.494 0.777 0.788 ...
-##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_comorb_mort28)
 comorb.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -3583,11 +3400,11 @@ comorb.mort28 <- metagen(TE = log(log_odds_ratio),
                       # n.e = n_intervention + n_control,
                       # n.c = n_control,
                       sm = "log(Ratio of OR)",
-                      fixed = T, # the true interaction is assumed the same in all trials 
+                      fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
@@ -3598,33 +3415,33 @@ summary(comorb.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Comorbidity
 ## 
-##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct           0.0940 [-0.8479; 1.0359]       14.8       14.8
-## ACTT-2                 -0.2127 [-1.0842; 0.6589]       17.2       17.2
-## Ghazaeian               0.6492 [-1.2128; 2.5111]        3.8        3.8
-## TOFACOV                -0.5007 [-3.2076; 2.2062]        1.8        1.8
-## COVINIB                 0.4110 [-2.0709; 2.8929]        2.1        2.1
-## COV-BARRIER            -0.1635 [-0.6294; 0.3023]       60.3       60.3
+##               log(Ratio of OR)            95%-CI %W(random)
+## Bari-SolidAct           0.0940 [-0.8479; 1.0359]        3.0
+## ACTT-2                 -0.2127 [-1.0842; 0.6589]        3.5
+## Ghazaeian               0.6492 [-1.2128; 2.5111]        0.8
+## TOFACOV                -0.5007 [-3.2076; 2.2062]        0.4
+## COVINIB                 0.4110 [-2.0709; 2.8929]        0.4
+## COV-BARRIER            -0.1635 [-0.6294; 0.3023]       12.3
+## RECOVERY                0.2680 [ 0.0846; 0.4514]       79.6
 ## 
-## Number of studies: k = 6
+## Number of studies: k = 7
 ## 
-##                              log(Ratio of OR)            95%-CI   z|t p-value
-## Common effect model                   -0.0971 [-0.4589; 0.2647] -0.53  0.5988
-## Random effects model (HK-SE)          -0.0971 [-0.5717; 0.3774] -0.53  0.6213
+##                           log(Ratio of OR)           95%-CI    t p-value
+## Random effects model (HK)           0.1934 [0.0209; 0.3658] 2.74  0.0336
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1895]; tau = 0 [0.0000; 0.4353]
-##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+##  tau^2 = 0 [0.0000; 0.1626]; tau = 0 [0.0000; 0.4032]
+##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.17    5  0.9480
+##  4.28    6  0.6389
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
 ```
 
 ```r
@@ -3633,7 +3450,7 @@ forest.meta(comorb.mort28,
             # rightcols = c("w.random"),
             leftcols = c("studlab", "TE", "seTE"),
             leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
-            text.common = "Average interaction effect (common effect model)*",
+            # text.common = "Average interaction effect (common effect model)*",
             text.random = "Average interaction effect (random effect model)*",
             title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
             # xlim = c(0.15,5),
@@ -3647,22 +3464,7 @@ Discussion points
 # Interaction: Comedication on primary endpoint
 
 ```r
-str(df_comed_mort28)
-```
-
-```
-## 'data.frame':	6 obs. of  8 variables:
-##  $ variable      : chr  "comedication_firth" "comedication" "comedication_firth" "comedication_firth" ...
-##  $ log_odds_ratio: num  1.636 1.476 0.994 1.901 1.364 ...
-##  $ ci_lower      : num  0.308395 0.451998 0.000715 0.09537 0.073829 ...
-##  $ ci_upper      : num  21.52 4.83 7.84 48.5 31.58 ...
-##  $ standard_error: num  0.9068 0.5757 0.0342 1.2141 1.2185 ...
-##  $ p_value       : num  0.575 0.499 0.951 0.636 0.812 ...
-##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_comed_mort28)
 ## "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
 comed.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -3671,11 +3473,11 @@ comed.mort28 <- metagen(TE = log(log_odds_ratio),
                       # n.e = n_intervention + n_control,
                       # n.c = n_control,
                       sm = "log(Ratio of OR)",
-                      fixed = T, # the true interaction is assumed the same in all trials 
+                      fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Comedication",
                       subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
@@ -3686,18 +3488,17 @@ summary(comed.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Comedication
 ## 
-##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct           0.4922 [-1.2850; 2.2695]        5.5        5.5
-## ACTT-2                  0.3891 [-0.7393; 1.5175]       13.7       13.7
-## TOFACOV                 0.6425 [-1.7371; 3.0221]        3.1        3.1
-## COVINIB                 0.3102 [-2.0781; 2.6984]        3.0        3.0
-## COV-BARRIER             0.1782 [-0.3043; 0.6608]       74.7       74.7
+##               log(Ratio of OR)            95%-CI %W(random)
+## Bari-SolidAct           0.4922 [-1.2850; 2.2695]        5.5
+## ACTT-2                  0.3891 [-0.7393; 1.5175]       13.7
+## TOFACOV                 0.6425 [-1.7371; 3.0221]        3.1
+## COVINIB                 0.3102 [-2.0781; 2.6984]        3.0
+## COV-BARRIER             0.1782 [-0.3043; 0.6608]       74.7
 ## 
 ## Number of studies: k = 5
 ## 
-##                              log(Ratio of OR)            95%-CI  z|t p-value
-## Common effect model                    0.2426 [-0.1745; 0.6597] 1.14  0.2543
-## Random effects model (HK-SE)           0.2426 [-0.3482; 0.8334] 1.14  0.3179
+##                           log(Ratio of OR)           95%-CI    t p-value
+## Random effects model (HK)           0.2426 [0.0754; 0.4098] 4.03  0.0158
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
@@ -3708,7 +3509,7 @@ summary(comed.mort28)
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Hartung-Knapp adjustment for random effects model (df = 4)
 ```
 
@@ -3718,7 +3519,7 @@ forest.meta(comed.mort28,
             # rightcols = c("w.random"),
             leftcols = c("studlab", "TE", "seTE"),
             leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
-            text.common = "Average interaction effect (common effect model)*",
+            # text.common = "Average interaction effect (common effect model)*",
             text.random = "Average interaction effect (random effect model)*",
             title = "Treatment-covariate interaction on primary endpoint: Comedication",
             # xlim = c(0.15,5),
@@ -3732,22 +3533,7 @@ Discussion points
 # Interaction: Vaccination on AEs
 
 ```r
-str(df_vacc_ae28)
-```
-
-```
-## 'data.frame':	3 obs. of  8 variables:
-##  $ variable      : chr  "vaccination on AEs" "vaccination on AEs_firth" "vaccination on AEs_firth"
-##  $ log_odds_ratio: num  1.75 2.65 1
-##  $ ci_lower      : num  5.14e-01 9.71e-03 5.63e-205
-##  $ ci_upper      : num  6.04 7.65e+02 1.77e+204
-##  $ standard_error: num  0.627 2.358 2.4
-##  $ p_value       : num  0.371 0.684 1
-##  $ trial         : chr  "Bari-SolidAct" "TOFACOV" "COVINIB"
-##  $ JAKi          : chr  "Baricitinib" "Tofacitinib" "Baricitinib"
-```
-
-```r
+# str(df_vacc_ae28)
 vacc.ae28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -3755,11 +3541,11 @@ vacc.ae28 <- metagen(TE = log(log_odds_ratio),
                       # n.e = n_intervention + n_control,
                       # n.c = n_control,
                       sm = "log(Ratio of OR)",
-                      fixed = T, # the true interaction is assumed the same in all trials 
+                      fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on AEs: vaccination",
                       # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
@@ -3770,30 +3556,30 @@ summary(vacc.ae28)
 ```
 ## Review:     Treatment-covariate interaction on AEs: vaccination
 ## 
-##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct           0.5606 [-0.6675; 1.7886]       87.8       87.8
-## TOFACOV                 0.9745 [-3.6477; 5.5967]        6.2        6.2
-## COVINIB                 0.0000 [-4.7030; 4.7030]        6.0        6.0
+##               log(Ratio of OR)            95%-CI %W(random)
+## Bari-SolidAct           0.5606 [-0.6675; 1.7886]        9.1
+## TOFACOV                 0.9745 [-3.6477; 5.5967]        0.6
+## COVINIB                 0.0000 [-4.7030; 4.7030]        0.6
+## RECOVERY               -0.0530 [-0.4431; 0.3371]       89.7
 ## 
-## Number of studies: k = 3
+## Number of studies: k = 4
 ## 
-##                              log(Ratio of OR)            95%-CI  z|t p-value
-## Common effect model                    0.5527 [-0.5981; 1.7035] 0.94  0.3466
-## Random effects model (HK-SE)           0.5527 [-1.9737; 3.0790] 0.94  0.4459
+##                           log(Ratio of OR)            95%-CI    t p-value
+## Random effects model (HK)           0.0094 [-0.3437; 0.3626] 0.08  0.9377
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 3.8158]; tau = 0 [0.0000; 1.9534]
-##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
+##  tau^2 = 0 [0.0000; 1.2476]; tau = 0 [0.0000; 1.1169]
+##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.09    2  0.9583
+##  1.04    3  0.7917
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 2)
+## - Hartung-Knapp adjustment for random effects model (df = 3)
 ```
 
 ```r
@@ -3802,7 +3588,7 @@ forest.meta(vacc.ae28,
             # rightcols = c("w.random"),
             leftcols = c("studlab", "TE", "seTE"),
             leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
-            text.common = "Average interaction effect (common effect model)*",
+            # text.common = "Average interaction effect (common effect model)*",
             text.random = "Average interaction effect (random effect model)*",
             title = "Treatment-covariate interaction on AEs: vaccination",
             # xlim = c(0.15,5),
@@ -3816,22 +3602,7 @@ Discussion points
 # Interaction: Symptom onset on primary endpoint
 
 ```r
-str(df_symp_mort28)
-```
-
-```
-## 'data.frame':	6 obs. of  8 variables:
-##  $ variable      : chr  "symptom duration" "symptom duration" "symptom duration" "symptom duration_firth" ...
-##  $ log_odds_ratio: num  0.809 0.953 1.196 0.824 1.266 ...
-##  $ ci_lower      : num  0.6375 0.8246 0.6407 0.3883 0.0575 ...
-##  $ ci_upper      : num  1.02 1.09 2.36 3.74 106.92 ...
-##  $ standard_error: num  0.1184 0.0711 0.3233 0.259 0.5253 ...
-##  $ p_value       : num  0.0742 0.4962 0.5804 0.6358 0.7624 ...
-##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_symp_mort28)
 ## "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
 symp.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -3840,11 +3611,11 @@ symp.mort28 <- metagen(TE = log(log_odds_ratio),
                       # n.e = n_intervention + n_control,
                       # n.c = n_control,
                       sm = "log(Ratio of OR)",
-                      fixed = T, # the true interaction is assumed the same in all trials 
+                      fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Symptom duration",
                       # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
@@ -3855,33 +3626,33 @@ summary(symp.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Symptom dur ...
 ## 
-##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct          -0.2114 [-0.4436; 0.0207]        6.1       15.5
-## ACTT-2                 -0.0484 [-0.1877; 0.0910]       16.9       29.2
-## Ghazaeian               0.1787 [-0.4549; 0.8123]        0.8        2.7
-## TOFACOV                -0.1941 [-0.7017; 0.3135]        1.3        4.1
-## COVINIB                 0.2361 [-0.7935; 1.2656]        0.3        1.1
-## COV-BARRIER             0.0395 [-0.0269; 0.1059]       74.5       47.4
+##               log(Ratio of OR)            95%-CI %W(random)
+## Bari-SolidAct          -0.2114 [-0.4436; 0.0207]        1.3
+## ACTT-2                 -0.0484 [-0.1877; 0.0910]        3.5
+## Ghazaeian               0.1787 [-0.4549; 0.8123]        0.2
+## TOFACOV                -0.1941 [-0.7017; 0.3135]        0.3
+## COVINIB                 0.2361 [-0.7935; 1.2656]        0.1
+## COV-BARRIER             0.0395 [-0.0269; 0.1059]       15.3
+## RECOVERY               -0.0031 [-0.0322; 0.0261]       79.5
 ## 
-## Number of studies: k = 6
+## Number of studies: k = 7
 ## 
-##                              log(Ratio of OR)            95%-CI   z|t p-value
-## Common effect model                    0.0081 [-0.0493; 0.0654]  0.28  0.7829
-## Random effects model (HK-SE)          -0.0289 [-0.1690; 0.1112] -0.53  0.6191
+##                           log(Ratio of OR)            95%-CI     t p-value
+## Random effects model (HK)          -0.0008 [-0.0336; 0.0320] -0.06  0.9543
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0051 [0.0000; 0.1137]; tau = 0.0715 [0.0000; 0.3372]
-##  I^2 = 16.7% [0.0%; 61.5%]; H = 1.10 [1.00; 1.61]
+##  tau^2 = 0 [0.0000; 0.0591]; tau = 0 [0.0000; 0.2430]
+##  I^2 = 1.9% [0.0%; 71.4%]; H = 1.01 [1.00; 1.87]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.00    5  0.3060
+##  6.12    6  0.4101
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
 ```
 
 ```r
@@ -3890,7 +3661,7 @@ forest.meta(symp.mort28,
             # rightcols = c("w.random"),
             leftcols = c("studlab", "TE", "seTE"),
             leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
-            text.common = "Average interaction effect (common effect model)*",
+            # text.common = "Average interaction effect (common effect model)*",
             text.random = "Average interaction effect (random effect model)*",
             title = "Treatment-covariate interaction on primary endpoint: Symptom duration",
             # xlim = c(0.15,5),
@@ -3904,22 +3675,7 @@ Discussion points
 # Interaction: CRP on primary endpoint
 
 ```r
-str(df_crp_mort28)
-```
-
-```
-## 'data.frame':	6 obs. of  8 variables:
-##  $ variable      : chr  "crp" "crp" "crp" "crp_firth" ...
-##  $ log_odds_ratio: num  1 0.998 0.997 0.989 1.022 ...
-##  $ ci_lower      : num  0.995 0.993 0.955 0.483 0.909 ...
-##  $ ci_upper      : num  1 1 1.03 1.05 1.11 ...
-##  $ standard_error: num  0.00154 0.00247 0.01962 0.02457 0.0156 ...
-##  $ p_value       : num  0.933 0.491 0.864 0.695 0.367 ...
-##  $ trial         : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
-##  $ JAKi          : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
-```
-
-```r
+# str(df_crp_mort28)
 ## "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
 crp.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -3928,11 +3684,11 @@ crp.mort28 <- metagen(TE = log(log_odds_ratio),
                       # n.e = n_intervention + n_control,
                       # n.c = n_control,
                       sm = "log(Ratio of OR)",
-                      fixed = T, # the true interaction is assumed the same in all trials 
+                      fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "REML", # same results with ML (-> see one-stage!)
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "se", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: CRP",
                       # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
@@ -3943,33 +3699,33 @@ summary(crp.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: CRP
 ## 
-##               log(Ratio of OR)            95%-CI %W(common) %W(random)
-## Bari-SolidAct           0.0001 [-0.0029; 0.0031]       42.8       42.8
-## ACTT-2                 -0.0017 [-0.0065; 0.0031]       16.6       16.6
-## Ghazaeian              -0.0034 [-0.0418; 0.0351]        0.3        0.3
-## TOFACOV                -0.0108 [-0.0589; 0.0374]        0.2        0.2
-## COVINIB                 0.0213 [-0.0093; 0.0519]        0.4        0.4
-## COV-BARRIER             0.0005 [-0.0026; 0.0036]       39.7       39.7
+##               log(Ratio of OR)            95%-CI %W(random)
+## Bari-SolidAct           0.0001 [-0.0029; 0.0031]       18.6
+## ACTT-2                 -0.0017 [-0.0065; 0.0031]        7.2
+## Ghazaeian              -0.0034 [-0.0418; 0.0351]        0.1
+## TOFACOV                -0.0108 [-0.0589; 0.0374]        0.1
+## COVINIB                 0.0213 [-0.0093; 0.0519]        0.2
+## COV-BARRIER             0.0005 [-0.0026; 0.0036]       17.3
+## RECOVERY                0.0001 [-0.0016; 0.0019]       56.5
 ## 
-## Number of studies: k = 6
+## Number of studies: k = 7
 ## 
-##                              log(Ratio of OR)            95%-CI  z|t p-value
-## Common effect model                    0.0000 [-0.0019; 0.0020] 0.04  0.9704
-## Random effects model (HK-SE)           0.0000 [-0.0025; 0.0026] 0.04  0.9719
+##                           log(Ratio of OR)            95%-CI    t p-value
+## Random effects model (HK)           0.0001 [-0.0010; 0.0012] 0.20  0.8509
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0004]; tau = 0 [0.0000; 0.0203]
-##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+##  tau^2 = 0 [0.0000; 0.0002]; tau = 0 [0.0000; 0.0143]
+##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.66    5  0.7516
+##  2.67    6  0.8491
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
-## - Restricted maximum-likelihood estimator for tau^2
+## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
 ```
 
 ```r
@@ -3978,7 +3734,7 @@ forest.meta(crp.mort28,
             # rightcols = c("w.random"),
             leftcols = c("studlab", "TE", "seTE"),
             leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
-            text.common = "Average interaction effect (common effect model)*",
+            # text.common = "Average interaction effect (common effect model)*",
             text.random = "Average interaction effect (random effect model)*",
             title = "Treatment-covariate interaction on primary endpoint: CRP",
             # xlim = c(0.15,5),
@@ -4052,14 +3808,14 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |variable            | log_odds_ratio| ci_lower| ci_upper| standard_error| p_value|approach  |
 |:-------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
-|respiratory support |          0.997|    0.153|    6.484|          0.435|   0.996|two-stage |
-|ventilation         |          1.138|    0.002|  582.242|          0.491|   0.837|two-stage |
-|age                 |          1.016|    0.987|    1.045|          0.011|   0.219|two-stage |
-|comorbidity         |          0.907|    0.565|    1.459|          0.185|   0.621|two-stage |
-|comedication        |          1.275|    0.706|    2.301|          0.213|   0.318|two-stage |
-|vaccination on AEs  |          1.738|    0.139|   21.737|          0.587|   0.446|two-stage |
-|symptom duration    |          0.972|    0.845|    1.118|          0.055|   0.619|two-stage |
-|crp                 |          1.000|    0.997|    1.003|          0.001|   0.972|two-stage |
+|respiratory support |          0.887|    0.578|    1.361|          0.135|   0.438|two-stage |
+|ventilation         |          0.787|    0.409|    1.514|          0.152|   0.256|two-stage |
+|age                 |          1.010|    0.999|    1.021|          0.005|   0.077|two-stage |
+|comorbidity         |          1.213|    1.021|    1.442|          0.070|   0.034|two-stage |
+|comedication        |          1.275|    1.078|    1.507|          0.060|   0.016|two-stage |
+|vaccination on AEs  |          1.009|    0.709|    1.437|          0.111|   0.938|two-stage |
+|symptom duration    |          0.999|    0.967|    1.032|          0.013|   0.954|two-stage |
+|crp                 |          1.000|    0.999|    1.001|          0.000|   0.851|two-stage |
 
 ```r
 # Save
