@@ -664,9 +664,12 @@ df_ae34_unique$ae_28 <- 1
 df <- left_join(df, df_ae34_unique[, c("ae_28", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge variable to main df
 # the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
 df <- df %>% 
-  mutate(ae_28 = case_when(is.na(ae_28) ~ 0, # the LTFU were discharged
-                           mort_28 == 1 ~ NA, # exclude the deaths
-                                TRUE ~ ae_28))
+  mutate(ae_28 = case_when(is.na(ae_28) & mort_28 == 0 ~ 0,
+                           is.na(ae_28) & mort_28 == 1 ~ NA,
+                           TRUE ~ ae_28))
+df <- df %>% 
+  mutate(ae_28 = case_when(mort_28 == 1 ~ NA,
+                           TRUE ~ ae_28))
 # table(df$ae_28, df$mort_28, useNA = "always")
 # addmargins(table(df$ae_28, df$trt, useNA = "always"))
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
@@ -676,9 +679,12 @@ ae_npp <- df_ae34 %>%
 df <- left_join(df, ae_npp[, c("ae_28_sev", "USUBJID")], by = join_by(USUBJID == USUBJID)) # merge variable to main df
 # the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
 df <- df %>% 
-  mutate(ae_28_sev = case_when(is.na(ae_28_sev) ~ 0, # the LTFU were discharged
-                           mort_28 == 1 ~ NA, # exclude the deaths
-                                TRUE ~ ae_28_sev))
+  mutate(ae_28_sev = case_when(is.na(ae_28_sev) & mort_28 == 0 ~ 0,
+                           is.na(ae_28_sev) & mort_28 == 1 ~ NA,
+                           TRUE ~ ae_28_sev))
+df <- df %>% 
+  mutate(ae_28_sev = case_when(mort_28 == 1 ~ NA,
+                           TRUE ~ ae_28_sev))
 # table(df$ae_28_sev, df$mort_28, useNA = "always")
 # addmargins(table(df$ae_28_sev, df$trt, useNA = "always"))
 
