@@ -1229,6 +1229,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
        x = "Endpoints",
        y = "aOR/aHR/aIRR") +
   theme_minimal() +
+  scale_y_continuous(limits = c(0.4, 1.6), breaks = seq(0.4, 1.6, 0.1)) +
   coord_flip()
 
 ```
@@ -1245,7 +1246,6 @@ df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 # df_int_murugesan <- readRDS("int_effects_murugesan.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
-
 
 ```
 
