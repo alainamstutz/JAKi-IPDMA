@@ -1255,10 +1255,10 @@ age.mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   , data = df_tot, family = binomial)
 summary(age.mort28)
 
-# age.mort28 <- glmmTMB(mort_28 ~ trt + (1|trial) + clinstatus_baseline
-#                     + trt*age
-#                   , data = df_tot, family = binomial)
-# summary(age.mort28) ## traditional common effects model
+age.mort28 <- glmmTMB(mort_28 ~ trt + (1|trial) + clinstatus_baseline
+                    + trt*age
+                  , data = df_tot, family = binomial)
+summary(age.mort28) ## traditional common effects model
 
 # effect by subgroup
 df_tot <- df_tot %>% 
