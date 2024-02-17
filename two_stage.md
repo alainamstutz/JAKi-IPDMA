@@ -2475,21 +2475,21 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
 |:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
-|death at day 28                            |         0.6957313| 0.5439897| 0.8897999|      0.1005484| 0.0112562|            125|               1684|       193|          1687|two-stage |
-|death at day 60                            |         0.7469343| 0.6180689| 0.9026678|      0.0773944| 0.0092886|            152|               1684|       214|          1687|two-stage |
-|death within fup                           |         0.7510062| 0.6051414| 0.9320307|      0.0777800| 0.0211774|            153|               1684|       214|          1687|two-stage |
-|new MV or death within 28d                 |         0.8079745| 0.7192738| 0.9076137|      0.0475245| 0.0041629|            268|               1684|       333|          1687|two-stage |
-|new MV within 28d                          |         0.9016036| 0.6286949| 1.2929787|      0.1402519| 0.4933779|            143|               1470|       140|          1413|two-stage |
-|clinical status at day 28                  |         0.7987556| 0.7365536| 0.8662106|      0.0331328| 0.0005026|           1684|               1684|      1687|          1687|two-stage |
-|discharge within 28 days, death=comp.event |         1.1044247| 1.0443920| 1.1679081|      0.0228409| 0.0048302|           1350|               1684|      1305|          1687|two-stage |
-|discharge within 28 days, death=hypo.event |         1.1395304| 1.0802160| 1.2021018|      0.0218460| 0.0009825|           1350|               1684|      1305|          1687|two-stage |
-|discharge within 28 days, death=censored   |         1.1230654| 1.0534490| 1.1972824|      0.0261523| 0.0043856|           1350|               1684|      1305|          1687|two-stage |
-|sustained discharge within 28 days         |         1.1213678| 1.0503570| 1.1971794|      0.0267354| 0.0051797|           1342|               1684|      1303|          1687|two-stage |
-|viral clearance until day 5                |         0.9549876| 0.6459928| 1.4117825|      0.0908532| 0.6625652|            136|                554|       138|           545|two-stage |
-|viral clearance until day 10               |         0.9717526| 0.8371022| 1.1280620|      0.0346659| 0.4953915|            236|                604|       228|           583|two-stage |
-|viral clearance until day 15               |         0.9334866| 0.7720192| 1.1287249|      0.0441396| 0.2592637|            292|                618|       291|           606|two-stage |
-|Any AE grade 3,4 within 28 days            |         0.9457488| 0.8487112| 1.0538811|      0.0442427| 0.2542109|             89|                943|        75|           896|two-stage |
-|AEs grade 3,4 within 28 days               |         0.9616221| 0.7276780| 1.2707779|      0.1139244| 0.7429348|            943|                943|       896|           896|two-stage |
+|death at day 28                            |         0.6957313| 0.5439897| 0.8897999|      0.1005484| 0.0112562|            638|               5657|       738|          5550|two-stage |
+|death at day 60                            |         0.7469343| 0.6180689| 0.9026678|      0.0773944| 0.0092886|            665|               5647|       759|          5535|two-stage |
+|death within fup                           |         0.7510062| 0.6051414| 0.9320307|      0.0777800| 0.0211774|            666|               5745|       759|          5627|two-stage |
+|new MV or death within 28d                 |         0.8079745| 0.7192738| 0.9076137|      0.0475245| 0.0041629|            968|               5690|      1068|          5579|two-stage |
+|new MV within 28d                          |         0.9016036| 0.6286949| 1.2929787|      0.1402519| 0.4933779|            299|               4883|       309|          4695|two-stage |
+|clinical status at day 28                  |         0.7987556| 0.7365536| 0.8662106|      0.0331328| 0.0005026|           5820|               5820|      5681|          5681|two-stage |
+|discharge within 28 days, death=comp.event |         1.1044247| 1.0443920| 1.1679081|      0.0228409| 0.0048302|           4678|               5820|      4429|          5681|two-stage |
+|discharge within 28 days, death=hypo.event |         1.1395304| 1.0802160| 1.2021018|      0.0218460| 0.0009825|           4678|               5820|      4429|          5681|two-stage |
+|discharge within 28 days, death=censored   |         1.1230654| 1.0534490| 1.1972824|      0.0261523| 0.0043856|           4678|               5820|      4429|          5681|two-stage |
+|sustained discharge within 28 days         |         1.1213678| 1.0503570| 1.1971794|      0.0267354| 0.0051797|           4670|               5820|      4427|          5681|two-stage |
+|viral clearance until day 5                |         0.9549876| 0.6459928| 1.4117825|      0.0908532| 0.6625652|            311|               4739|       313|          4624|two-stage |
+|viral clearance until day 10               |         0.9717526| 0.8371022| 1.1280620|      0.0346659| 0.4953915|            446|               4894|       452|          4758|two-stage |
+|viral clearance until day 15               |         0.9334866| 0.7720192| 1.1287249|      0.0441396| 0.2592637|            544|               4949|       550|          4817|two-stage |
+|Any AE grade 3,4 within 28 days            |         0.9457488| 0.8487112| 1.0538811|      0.0442427| 0.2542109|            652|               5124|       640|          4902|two-stage |
+|AEs grade 3,4 within 28 days               |         0.9616221| 0.7276780| 1.2707779|      0.1139244| 0.7429348|              5|                  5|         3|             3|two-stage |
 
 ```r
 # Save
@@ -2531,6 +2531,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
        x = "Endpoints",
        y = "aOR/aHR/aIRR") +
   theme_minimal() +
+  scale_y_continuous(limits = c(0.4, 1.6), breaks = seq(0.4, 1.6, 0.1)) +
   coord_flip()
 ```
 
