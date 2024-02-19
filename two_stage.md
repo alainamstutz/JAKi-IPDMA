@@ -319,9 +319,39 @@ funnel(mort28, common = TRUE,
 # par(oldpar)
 ```
 
-# (i.i) Primary outcome: Mortality at day 28 / including the non-IPD RCTs
+# (i.i) Primary outcome: Including the non-IPD RCTs
 
 ```r
+# first, add more columns to df_mort28
+df_mort28 <- df_mort28 %>% 
+  mutate(recruitment_period = case_when(trial == "Bari-SolidAct" ~ "06.2021-03.2022",
+                                        trial == "ACTT-2" ~ "05.2020-07.2020",
+                                        trial == "Ghazaeian" ~ "08.2021-11.2021",
+                                        trial == "TOFACOV" ~ "09.2020-12.2021",
+                                        trial == "COVINIB" ~ "09.2020-06.2021",
+                                        trial == "COV-BARRIER" ~ "06.2020-01.2021",
+                                        trial == "RECOVERY" ~ "02.2021-12.2021",
+                                        ))
+df_mort28 <- df_mort28 %>% 
+  mutate(recruitment_period_cat = case_when(trial == "ACTT-2" ~ "mid2020",
+                                            trial == "COV-BARRIER" ~ "mid2020",
+                                            trial == "RECOVERY" ~ "beg2021",
+                                            trial == "TOFACOV" ~ "beg2021",
+                                            trial == "COVINIB" ~ "beg2021",
+                                            trial == "Ghazaeian" ~ "mid2021",
+                                            trial == "Bari-SolidAct" ~ "mid2021",
+                                        ))
+
+df_mort28 <- df_mort28 %>% 
+  mutate(rob_mort28 = case_when(trial == "ACTT-2" ~ "low risk",
+                                            trial == "COV-BARRIER" ~ "low risk",
+                                            trial == "RECOVERY" ~ "low risk",
+                                            trial == "TOFACOV" ~ "low risk",
+                                            trial == "COVINIB" ~ "low risk",
+                                            trial == "Ghazaeian" ~ "Some concerns",
+                                            trial == "Bari-SolidAct" ~ "low risk",
+                                        ))
+
 #### read in aggregate data
 ## PRE-VENT
 df_prevent <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "PRE-VENT")
@@ -413,7 +443,10 @@ row_prevent <- tibble(
   n_intervention = addmargins(table(df_prevent$mort_28, df_prevent$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_prevent$mort_28, df_prevent$trt, useNA = "always"))[4,1],
   trial = "PRE-VENT*",
-  JAKi = "Pacritinib")
+  JAKi = "Pacritinib",
+  recruitment_period = "06.2020-02.2021",
+  recruitment_period_cat = "mid2020",
+  rob_mort28 = "low risk")
 ```
 
 ```
@@ -474,7 +507,10 @@ row_cao <- tibble(
   n_intervention = addmargins(table(df_cao$mort_28, df_cao$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_cao$mort_28, df_cao$trt, useNA = "always"))[4,1],
   trial = "CAO*",
-  JAKi = "Ruxolitinib")
+  JAKi = "Ruxolitinib",
+  recruitment_period = "02.2020",
+  recruitment_period_cat = "beg2020",
+  rob_mort28 = "low risk")
 
 ## Pancovid
 df_pancovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Pancovid")
@@ -566,7 +602,10 @@ row_pancovid <- tibble(
   n_intervention = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,1],
   trial = "Pancovid*",
-  JAKi = "Baricitinib")
+  JAKi = "Baricitinib",
+  recruitment_period = "10.2020-09.2021",
+  recruitment_period_cat = "beg2021",
+  rob_mort28 = "low risk")
 ```
 
 ```
@@ -665,7 +704,10 @@ row_stopcovid <- tibble(
   n_intervention = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))[4,1],
   trial = "STOP-COVID*",
-  JAKi = "Tofacitinib")
+  JAKi = "Tofacitinib",
+  recruitment_period = "09.2020-12.2020",
+  recruitment_period_cat = "mid2020",
+  rob_mort28 = "low risk")
 ```
 
 ```
@@ -764,7 +806,10 @@ row_ruxcoviddevent <- tibble(
   n_intervention = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))[4,1],
   trial = "RUXCOVID-DEVENT*",
-  JAKi = "Ruxolitinib")
+  JAKi = "Ruxolitinib",
+  recruitment_period = "05.2020-12.2020",
+  recruitment_period_cat = "mid2020",
+  rob_mort28 = "low risk")
 ```
 
 ```
@@ -863,7 +908,10 @@ row_ruxcovid <- tibble(
   n_intervention = addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))[4,1],
   trial = "RUXCOVID*",
-  JAKi = "Ruxolitinib")
+  JAKi = "Ruxolitinib",
+  recruitment_period = "04.2020-09.2020",
+  recruitment_period_cat = "mid2020",
+  rob_mort28 = "low risk")
 ```
 
 ```
@@ -962,7 +1010,10 @@ row_tacticr <- tibble(
   n_intervention = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,1],
   trial = "TACTIC-R*",
-  JAKi = "Baricitinib")
+  JAKi = "Baricitinib",
+  recruitment_period = "05.2020-05.2021",
+  recruitment_period_cat = "beg2021",
+  rob_mort28 = "low risk")
 ```
 
 ```
@@ -1023,7 +1074,10 @@ row_dastan <- tibble(
   n_intervention = addmargins(table(df_dastan$mort_28, df_dastan$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_dastan$mort_28, df_dastan$trt, useNA = "always"))[4,1],
   trial = "Dastan*",
-  JAKi = "Baricitinib")
+  JAKi = "Baricitinib",
+  recruitment_period = "03.2022-08.2022",
+  recruitment_period_cat = "beg2022",
+  rob_mort28 = "Some concerns")
 
 ## Singh
 df_singh <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Singh")
@@ -1115,7 +1169,10 @@ row_singh <- tibble(
   n_intervention = addmargins(table(df_singh$mort_28, df_singh$trt, useNA = "always"))[4,2],
   n_control = addmargins(table(df_singh$mort_28, df_singh$trt, useNA = "always"))[4,1],
   trial = "Singh*",
-  JAKi = "Nezulcitinib")
+  JAKi = "Nezulcitinib",
+  recruitment_period = "06.2020-04.2021",
+  recruitment_period_cat = "mid2021",
+  rob_mort28 = "low risk")
 ```
 
 ```
@@ -1257,7 +1314,7 @@ funnel(mort28.agg, common = TRUE,
 # par(oldpar)
 ```
 
-# (i.i) Primary outcome: Mortality at day 28 / including the non-IPD RCTs // meta-regression by JAKi
+# (i.i) Primary outcome: Meta-regression by JAKi, including the non-IPD RCTs
 
 ```r
 # meta-regression by JAKi
@@ -1287,6 +1344,58 @@ forest.meta(mort28.agg.jaki,
 # Print only subgroup results
 # forest(mort28.agg.jaki, layout = "subgroup", calcwidth.hetstat = TRUE)
 ```
+
+# (i.i) Primary outcome: Meta-regression by Recruitment Period, including the non-IPD RCTs
+
+```r
+# meta-regression by recruitment period
+mort28.agg.rec <- update.meta(mort28.agg, 
+                               subgroup = recruitment_period_cat)
+forest.meta(mort28.agg.rec,
+            leftcols = c("studlab", 
+                         # "TE", 
+                         # "seTE", 
+                         "n.e"),
+            leftlabs = c("Trial", 
+                         # "log(OR)", 
+                         # "Standard Error", 
+                         "Sample Size"),
+            sortvar = +TE,
+            test.subgroup.random = TRUE,
+            text.random = "Average treatment effect (RE model)",
+            title = "Average treatment effect - mortality 28 days",
+            xlim = c(0.03,30),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+
+# (i.i) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs
+
+```r
+# meta-regression by RoB
+mort28.agg.rob <- update.meta(mort28.agg, 
+                               subgroup = rob_mort28)
+forest.meta(mort28.agg.rob,
+            leftcols = c("studlab", 
+                         # "TE", 
+                         # "seTE", 
+                         "n.e"),
+            leftlabs = c("Trial", 
+                         # "log(OR)", 
+                         # "Standard Error", 
+                         "Sample Size"),
+            sortvar = +TE,
+            test.subgroup.random = TRUE,
+            text.random = "Average treatment effect (RE model)",
+            title = "Average treatment effect - mortality 28 days", 
+            xlim = c(0.03,30),
+            # xlab = "Average treatment effect (95% CI)"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 # (ii) Mortality at day 60
 
@@ -1361,7 +1470,7 @@ forest.meta(mort60,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 Discussion points
 
 # (iii) Time to death within max. follow-up time
@@ -1435,7 +1544,7 @@ forest.meta(ttdeath,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 Discussion points
 
 # (iv) New mechanical ventilation or death within 28 days
@@ -1511,7 +1620,7 @@ forest.meta(new.mvd28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 Discussion points
 
 # (iv.i) New mechanical ventilation among survivors within 28 days
@@ -1586,7 +1695,7 @@ forest.meta(new.mv28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 Discussion points
 
 # (v) Clinical status at day 28
@@ -1662,7 +1771,7 @@ forest.meta(clin28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
@@ -1738,7 +1847,7 @@ forest.meta(ttdischarge.comp,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 Discussion points
 
 # (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
@@ -1814,7 +1923,7 @@ forest.meta(ttdischarge.hypo,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 Discussion points
 
 # (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -1890,7 +1999,7 @@ forest.meta(ttdischarge.cens,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 Discussion points
 
 # (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -1966,7 +2075,7 @@ forest.meta(ttdischarge.sus,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 Discussion points
 
 # (vii) Viral clearance up to day 5
@@ -2038,7 +2147,7 @@ forest.meta(vir.clear5,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 Discussion points
 
 # (viii) Viral clearance up to day 10
@@ -2110,7 +2219,7 @@ forest.meta(vir.clear10,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
 Discussion points
 
 # (ix) Viral clearance up to day 15
@@ -2182,7 +2291,7 @@ forest.meta(vir.clear15,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 Discussion points
 
 # (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
@@ -2258,7 +2367,7 @@ forest.meta(ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
 Discussion points
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
@@ -2334,7 +2443,7 @@ forest.meta(ae28sev,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
 Discussion points
 
 # Collect all treatment effect estimates across endpoints
@@ -2543,7 +2652,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 ## generated.
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 
 
 # TREATMENT-COVARIATE INTERACTIONS
@@ -2886,7 +2995,7 @@ forest.meta(rs.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
 Discussion points
 
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
@@ -2957,7 +3066,7 @@ forest.meta(vb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3137,7 +3246,7 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3213,7 +3322,7 @@ forest.meta(age.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3394,7 +3503,7 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3470,7 +3579,7 @@ forest.meta(comorb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
 
 ```r
 # str(df_comorb_count_mort28)
@@ -3539,7 +3648,7 @@ forest.meta(comorb.count.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-34-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-36-2.png)<!-- -->
 Discussion points
 
 # Interaction: Comedication on primary endpoint
@@ -3608,7 +3717,7 @@ forest.meta(comed.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
 Discussion points
 
 # Interaction: Vaccination on AEs
@@ -3677,7 +3786,7 @@ forest.meta(vacc.ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
 Discussion points
 
 # Interaction: Symptom onset on primary endpoint
@@ -3750,7 +3859,7 @@ forest.meta(symp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
 Discussion points
 
 # Interaction: CRP on primary endpoint
@@ -3823,7 +3932,7 @@ forest.meta(crp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
 Discussion points
 
 # Collect all interaction effect estimates
