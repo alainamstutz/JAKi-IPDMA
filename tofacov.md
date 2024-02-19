@@ -1248,7 +1248,7 @@ mort.28.dimp <- df %>%
 ```
 
 ```r
-summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -1259,7 +1259,7 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> mort_28 </td>
+   <td style="text-align:right;"> mort_28_dimp </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Type </td>
@@ -3297,6 +3297,42 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 </table>
 
 ```r
+mort.28.comorb.count.firth <- df %>%
+  logistf(mort_28 ~ trt*comorb_count 
+      + age 
+      + clinstatus_baseline
+      , data=.)
+summary(mort.28.comorb.count.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * comorb_count + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                            coef  se(coef)  lower 0.95 upper 0.95      Chisq
+## (Intercept)          -6.3418276 3.2644175 -19.0373714  1.7710427 2.27603806
+## trt                   1.1189731 1.6891517  -3.1226259 10.4442309 0.28157734
+## comorb_count          0.3616077 0.9993201  -4.2478169  4.3671173 0.06710516
+## age                   0.0403858 0.0527170  -0.1047694  0.2346446 0.27521893
+## clinstatus_baseline3 -0.2385988 1.3503602  -3.6783412  4.8058317 0.01858253
+## trt:comorb_count     -0.5460109 1.1610445  -4.4989836  4.2722550 0.12290283
+##                              p method
+## (Intercept)          0.1313871      2
+## trt                  0.5956692      2
+## comorb_count         0.7955993      2
+## age                  0.5998522      2
+## clinstatus_baseline3 0.8915701      2
+## trt:comorb_count     0.7259072      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.6816019 on 5 df, p=0.9839631, n=116
+## Wald test = 40.88568 on 5 df, p = 9.895196e-08
+```
+
+```r
 # effect by subgroup
 mort.28.comorb.1 <- df %>% 
   filter(comorb_cat == 1) %>% # no comorbidity
@@ -4573,13 +4609,14 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth")
-# result_list[[x]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
-result_list[[2]] <- extract_interaction(mort.28.age.firth, "age_firth")
-result_list[[3]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
-result_list[[4]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
-result_list[[5]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
-result_list[[6]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
-result_list[[7]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
+# result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
+result_list[[3]] <- extract_interaction(mort.28.age.firth, "age_firth")
+result_list[[4]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
+result_list[[5]] <- extract_interaction(mort.28.comorb.count.firth, "comorbidity_count_firth")
+result_list[[6]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
+result_list[[7]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
+result_list[[8]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
+result_list[[9]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -4600,6 +4637,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:clinstatus_baseline_n |respiratory support_firth |      1.1883509| 0.0031529| 689.752137|      2.4621311| 0.9487548|TOFACOV |Tofacitinib |
 |trt:age                   |age_firth                 |      1.0470785| 0.6614695|   1.665865|      0.0973369| 0.7745284|TOFACOV |Tofacitinib |
 |trt:comorb_cat            |comorbidity_firth         |      0.6061082| 0.0054610|  88.272626|      1.3811009| 0.7773835|TOFACOV |Tofacitinib |
+|trt:comorb_count          |comorbidity_count_firth   |      0.5792559| 0.0111203|  71.683097|      1.1610445| 0.7259072|TOFACOV |Tofacitinib |
 |trt:comed_cat             |comedication_firth        |      1.9011940| 0.0953702|  48.504965|      1.2141126| 0.6361043|TOFACOV |Tofacitinib |
 |trt:vacc                  |vaccination on AEs_firth  |      2.6499354| 0.0097053| 765.212989|      2.3583074| 0.6837461|TOFACOV |Tofacitinib |
 |trt:sympdur               |symptom duration_firth    |      0.8235629| 0.3882541|   3.740741|      0.2589834| 0.6358318|TOFACOV |Tofacitinib |
