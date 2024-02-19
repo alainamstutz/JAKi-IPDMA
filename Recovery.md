@@ -213,8 +213,11 @@ df <- df %>%
 
 # toci, incl. planned to be given
 df_toci <- df_in %>% 
-  filter(INDECOD %in% c("TOCILIZUMAB", "INTERLEUKIN INHIBITORS") |
-           INTRT %in% c("Tocilizumab planned to be given in next 24h", "Tocilizumab", "Tocilizumab or sarilumab")) %>%
+  filter(INDECOD %in% c("TOCILIZUMAB", "INTERLEUKIN INHIBITORS"
+                        ) |
+           INTRT %in% c("Tocilizumab", "Tocilizumab or sarilumab"
+             # "Tocilizumab planned to be given in next 24h", 
+                        )) %>%
   filter(VISIT == "RANDOMIZATION") %>% 
   filter(INOCCUR == "Y")
 # df_in %>% # these codes were only given during follow-up!
@@ -229,7 +232,7 @@ df <- left_join(df, df_toci[, c("comed_toci", "id_pat")], by = join_by(id_pat ==
 df <- df %>% 
   mutate(comed_toci = case_when(is.na(comed_toci) ~ 0,
                           TRUE ~ comed_toci))
-# table(df$comed_toci, df$trt, useNA = "always") ## corresponds to trial publication!
+# addmargins(table(df$comed_toci, df$trt, useNA = "always")) ## corresponds to trial publication!
 
 # cortico
 df_dexa <- df_in %>% 
@@ -250,7 +253,7 @@ df <- left_join(df, df_dexa[, c("comed_dexa", "id_pat")], by = join_by(id_pat ==
 df <- df %>% 
   mutate(comed_dexa = case_when(is.na(comed_dexa) ~ 0,
                           TRUE ~ comed_dexa))
-# table(df$comed_dexa, df$trt, useNA = "always") ## corresponds to trial publication!
+# addmargins(table(df$comed_dexa, df$trt, useNA = "always")) ## corresponds to trial publication!
 
 # anticoa
 df_acoa <- df_in %>% 
@@ -312,25 +315,14 @@ df <- df %>%
                           TRUE ~ comed_other))
 
 # group them for the subgroup analysis, according to protocol
-df <- df %>% 
-  mutate(comed_cat = case_when(comed_dexa == 0 & (comed_toci == 0 | is.na(comed_toci)) ~ 1, # patients without Dexa nor Toci
+df <- df %>% # there are no missings in comed_dexa and comed_toci
+  mutate(comed_cat = case_when(comed_dexa == 0 & comed_toci == 0 ~ 1, # patients without Dexa nor Toci
                                comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexa and Toci
-                               comed_dexa == 1 & (comed_toci == 0 | is.na(comed_toci)) ~ 3, # patients with Dexa but no Toci
+                               comed_dexa == 1 & comed_toci == 0 ~ 3, # patients with Dexa but no Toci
                                comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Toci but no Dexa
-table(df$comed_cat, df$trt, useNA = "always")
-```
+# table(df$comed_toci, df$trt, useNA = "always") 
 
-```
-##       
-##           0    1 <NA>
-##   1     182  167    0
-##   2    1267 1323    0
-##   3    2529 2628    0
-##   4      16   18    0
-##   <NA>    0    0    0
-```
 
-```r
 ### Comorbidity at baseline, including immunocompromised
 # id_pat
 df_sa <- df_sa %>% 
@@ -4937,7 +4929,7 @@ mort.28.comed <- df %>%
       + age 
       + clinstatus_baseline
       , family = "binomial", data=.)
-summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+summ(mort.28.comed, exp = F, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -4967,7 +4959,7 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
  <thead>
   <tr>
    <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> Est. </th>
    <th style="text-align:right;"> 2.5% </th>
    <th style="text-align:right;"> 97.5% </th>
    <th style="text-align:right;"> z val. </th>
@@ -4977,65 +4969,65 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> -7.75 </td>
+   <td style="text-align:right;"> -8.45 </td>
+   <td style="text-align:right;"> -7.06 </td>
    <td style="text-align:right;"> -21.97 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.45 </td>
-   <td style="text-align:right;"> 0.23 </td>
-   <td style="text-align:right;"> 0.87 </td>
+   <td style="text-align:right;"> -0.81 </td>
+   <td style="text-align:right;"> -1.47 </td>
+   <td style="text-align:right;"> -0.14 </td>
    <td style="text-align:right;"> -2.38 </td>
    <td style="text-align:right;"> 0.02 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comed_cat </td>
-   <td style="text-align:right;"> 0.95 </td>
-   <td style="text-align:right;"> 0.80 </td>
-   <td style="text-align:right;"> 1.14 </td>
+   <td style="text-align:right;"> -0.05 </td>
+   <td style="text-align:right;"> -0.23 </td>
+   <td style="text-align:right;"> 0.13 </td>
    <td style="text-align:right;"> -0.54 </td>
    <td style="text-align:right;"> 0.59 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 1.09 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 0.09 </td>
    <td style="text-align:right;"> 26.28 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 1.85 </td>
-   <td style="text-align:right;"> 1.24 </td>
-   <td style="text-align:right;"> 2.74 </td>
+   <td style="text-align:right;"> 0.61 </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 1.01 </td>
    <td style="text-align:right;"> 3.05 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 6.76 </td>
-   <td style="text-align:right;"> 4.55 </td>
-   <td style="text-align:right;"> 10.05 </td>
+   <td style="text-align:right;"> 1.91 </td>
+   <td style="text-align:right;"> 1.51 </td>
+   <td style="text-align:right;"> 2.31 </td>
    <td style="text-align:right;"> 9.44 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 19.07 </td>
-   <td style="text-align:right;"> 11.71 </td>
-   <td style="text-align:right;"> 31.05 </td>
+   <td style="text-align:right;"> 2.95 </td>
+   <td style="text-align:right;"> 2.46 </td>
+   <td style="text-align:right;"> 3.44 </td>
    <td style="text-align:right;"> 11.86 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
-   <td style="text-align:right;"> 1.26 </td>
-   <td style="text-align:right;"> 0.98 </td>
-   <td style="text-align:right;"> 1.62 </td>
+   <td style="text-align:right;"> 0.23 </td>
+   <td style="text-align:right;"> -0.02 </td>
+   <td style="text-align:right;"> 0.48 </td>
    <td style="text-align:right;"> 1.80 </td>
    <td style="text-align:right;"> 0.07 </td>
   </tr>
@@ -5576,6 +5568,13 @@ summ(mort.28.comed.4, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# tab_model(mort.28.comed.1) # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
+# tab_model(mort.28.comed.2) # 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
+# tab_model(mort.28.comed.3) # 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# tab_model(mort.28.comed.4)# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only
+```
 
 # Subgroup analysis: Vaccination on adverse events
 
@@ -6801,6 +6800,7 @@ interaction_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
+
 # Extract and format results for the interaction term
 extract_interaction <- function(model, variable_name) {
   if (inherits(model, "glm") || inherits(model, "clm")) {
@@ -6829,6 +6829,7 @@ extract_interaction <- function(model, variable_name) {
       )
     return(result)
 }
+
 # Loop through
 result_list <- list()
 
@@ -6836,11 +6837,12 @@ result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # a
 result_list[[2]] <- extract_interaction(mort.28.vent.vb, "ventilation") # adj: age, clinstatus
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[5]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # adj: age, clinstatus
-result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(mort.28.var, "variant") # variant not available
+result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
+result_list[[6]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+result_list[[7]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[9]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[10]] <- extract_interaction(mort.28.var, "variant") # variant not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -6862,6 +6864,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:vbaseline             |ventilation         |      0.7462126| 0.5605528| 0.9930332|      0.1458505| 0.0447330|RECOVERY |Baricitinib |
 |trt:age                   |age                 |      1.0080396| 0.9967378| 1.0194950|      0.0057570| 0.1642554|RECOVERY |Baricitinib |
 |trt:comorb_cat            |comorbidity         |      1.3073433| 1.0885552| 1.5709743|      0.0935633| 0.0041788|RECOVERY |Baricitinib |
+|trt:comorb_count          |comorbidity_count   |      1.1785783| 1.0084527| 1.3779300|      0.0796135| 0.0390336|RECOVERY |Baricitinib |
 |trt:comed_cat             |comedication        |      1.2587759| 0.9799876| 1.6183011|      0.1279102| 0.0719826|RECOVERY |Baricitinib |
 |trt:vacc                  |vaccination on AEs  |      0.9483684| 0.6418187| 1.4012354|      0.1990351| 0.7899724|RECOVERY |Baricitinib |
 |trt:sympdur               |symptom duration    |      0.9969161| 0.9682696| 1.0263879|      0.0148674| 0.8354261|RECOVERY |Baricitinib |

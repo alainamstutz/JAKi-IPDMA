@@ -210,8 +210,11 @@ df <- df %>%
 
 # toci, incl. planned to be given
 df_toci <- df_in %>% 
-  filter(INDECOD %in% c("TOCILIZUMAB", "INTERLEUKIN INHIBITORS") |
-           INTRT %in% c("Tocilizumab planned to be given in next 24h", "Tocilizumab", "Tocilizumab or sarilumab")) %>%
+  filter(INDECOD %in% c("TOCILIZUMAB", "INTERLEUKIN INHIBITORS"
+                        ) |
+           INTRT %in% c("Tocilizumab", "Tocilizumab or sarilumab"
+             # "Tocilizumab planned to be given in next 24h", 
+                        )) %>%
   filter(VISIT == "RANDOMIZATION") %>% 
   filter(INOCCUR == "Y")
 # df_in %>% # these codes were only given during follow-up!
@@ -226,7 +229,7 @@ df <- left_join(df, df_toci[, c("comed_toci", "id_pat")], by = join_by(id_pat ==
 df <- df %>% 
   mutate(comed_toci = case_when(is.na(comed_toci) ~ 0,
                           TRUE ~ comed_toci))
-# table(df$comed_toci, df$trt, useNA = "always") ## corresponds to trial publication!
+# addmargins(table(df$comed_toci, df$trt, useNA = "always")) ## corresponds to trial publication!
 
 # cortico
 df_dexa <- df_in %>% 
@@ -247,7 +250,7 @@ df <- left_join(df, df_dexa[, c("comed_dexa", "id_pat")], by = join_by(id_pat ==
 df <- df %>% 
   mutate(comed_dexa = case_when(is.na(comed_dexa) ~ 0,
                           TRUE ~ comed_dexa))
-# table(df$comed_dexa, df$trt, useNA = "always") ## corresponds to trial publication!
+# addmargins(table(df$comed_dexa, df$trt, useNA = "always")) ## corresponds to trial publication!
 
 # anticoa
 df_acoa <- df_in %>% 
@@ -309,12 +312,12 @@ df <- df %>%
                           TRUE ~ comed_other))
 
 # group them for the subgroup analysis, according to protocol
-df <- df %>% 
-  mutate(comed_cat = case_when(comed_dexa == 0 & (comed_toci == 0 | is.na(comed_toci)) ~ 1, # patients without Dexa nor Toci
+df <- df %>% # there are no missings in comed_dexa and comed_toci
+  mutate(comed_cat = case_when(comed_dexa == 0 & comed_toci == 0 ~ 1, # patients without Dexa nor Toci
                                comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexa and Toci
-                               comed_dexa == 1 & (comed_toci == 0 | is.na(comed_toci)) ~ 3, # patients with Dexa but no Toci
+                               comed_dexa == 1 & comed_toci == 0 ~ 3, # patients with Dexa but no Toci
                                comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Toci but no Dexa
-table(df$comed_cat, df$trt, useNA = "always")
+# table(df$comed_toci, df$trt, useNA = "always") 
 
 
 ### Comorbidity at baseline, including immunocompromised
@@ -1846,7 +1849,7 @@ mort.28.comed <- df %>%
       + age 
       + clinstatus_baseline
       , family = "binomial", data=.)
-summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+summ(mort.28.comed, exp = F, confint = T, model.info = T, model.fit = F, digits = 2)
 # comedication as ordinal factor
 df$comed_cat_f <- factor(df$comed_cat, levels = 1:4)
 # table(df$comed_cat_f, df$mort_28, useNA = "always") 
@@ -1889,6 +1892,12 @@ mort.28.comed.4 <- df %>%
       + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.comed.4, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+
+# tab_model(mort.28.comed.1) # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
+# tab_model(mort.28.comed.2) # 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
+# tab_model(mort.28.comed.3) # 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# tab_model(mort.28.comed.4)# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only
+
 ```
 
 # Subgroup analysis: Vaccination on adverse events
@@ -2133,6 +2142,7 @@ interaction_df <- data.frame(
   standard_error = numeric(),
   p_value = numeric()
 )
+
 # Extract and format results for the interaction term
 extract_interaction <- function(model, variable_name) {
   if (inherits(model, "glm") || inherits(model, "clm")) {
@@ -2161,6 +2171,7 @@ extract_interaction <- function(model, variable_name) {
       )
     return(result)
 }
+
 # Loop through
 result_list <- list()
 
@@ -2168,11 +2179,12 @@ result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # a
 result_list[[2]] <- extract_interaction(mort.28.vent.vb, "ventilation") # adj: age, clinstatus
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[5]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # adj: age, clinstatus
-result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(mort.28.var, "variant") # variant not available
+result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
+result_list[[6]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+result_list[[7]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[9]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[10]] <- extract_interaction(mort.28.var, "variant") # variant not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
