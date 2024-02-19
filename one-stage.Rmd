@@ -53,7 +53,7 @@ df_barisolidact <- df_barisolidact %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
          crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -68,7 +68,7 @@ df_actt2 <- df_actt2 %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
          crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -83,7 +83,7 @@ df_ghazaeian <- df_ghazaeian %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
          crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -98,7 +98,7 @@ df_tofacov <- df_tofacov %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
          crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -113,7 +113,7 @@ df_covinib <- df_covinib %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
          crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -128,7 +128,7 @@ df_covbarrier <- df_covbarrier %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
          crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -143,7 +143,7 @@ df_murugesan <- df_murugesan %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
          crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -158,7 +158,7 @@ df_recovery <- df_recovery %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_count,
          crp, sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -171,6 +171,7 @@ df_tot_Muru <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_cov
 
 # Save
 saveRDS(df_tot, file = "df_tot.RData")
+write_xlsx(df_tot, path = "df_tot.xlsx")
 saveRDS(df_tot_Muru, file = "df_tot_Muru.RData")
 
 ```
@@ -178,12 +179,12 @@ saveRDS(df_tot_Muru, file = "df_tot_Muru.RData")
 
 # (i) Primary outcome: Mortality at day 28
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$trial, df_tot_Muru$mort_28, useNA = "always"))
-addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt, useNA = "always"))
-# table(df_tot_Muru$age, df_tot_Muru$trt, useNA = "always")
-table(df_tot_Muru$clinstatus_baseline, df_tot_Muru$trt, useNA = "always")
-table(df_tot_Muru$clinstatus_baseline, df_tot_Muru$trial, useNA = "always")
-table(df_tot_Muru$vbaseline, df_tot_Muru$trial, useNA = "always")
+addmargins(table(df_tot$trial, df_tot$mort_28, useNA = "always"))
+addmargins(table(df_tot$mort_28, df_tot$trt, useNA = "always"))
+# table(df_tot$age, df_tot$trt, useNA = "always")
+table(df_tot$clinstatus_baseline, df_tot$trt, useNA = "always")
+table(df_tot$clinstatus_baseline, df_tot$trial, useNA = "always")
+table(df_tot$vbaseline, df_tot$trial, useNA = "always")
 
 # reformatting
 df_tot$trt_f <- as.factor(df_tot$trt)
@@ -547,8 +548,8 @@ tab_model(mort28)
 
 # (ii) Mortality at day 60
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt, useNA = "always"))
-addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trial, useNA = "always"))
+addmargins(table(df_tot$mort_60, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$mort_60, df_tot$trial, useNA = "always"))
 
 mort60 <- glmmTMB(mort_60 ~ trt_centered_n 
                   + trial_f 
@@ -625,8 +626,8 @@ tab_model(ttdeath)
 
 # (iv) New mechanical ventilation or death within 28 days
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt, useNA = "always"))
-addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trial, useNA = "always"))
+addmargins(table(df_tot$new_mvd_28, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$new_mvd_28, df_tot$trial, useNA = "always"))
 
 new.mvd28 <- glmmTMB(new_mvd_28 ~ trt_centered_n 
                   + trial_f 
@@ -640,8 +641,8 @@ tab_model(new.mvd28)
 
 # (iv.i) New mechanical ventilation among survivors within 28 days
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt, useNA = "always"))
-addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trial, useNA = "always"))
+addmargins(table(df_tot$new_mv_28, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$new_mv_28, df_tot$trial, useNA = "always"))
 
 new.mv28 <- glmmTMB(new_mv_28 ~ trt_centered_n 
                   + trial_f 
@@ -655,8 +656,8 @@ tab_model(new.mv28)
 
 # (v) Clinical status at day 28
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt, useNA = "always"))
-addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trial, useNA = "always"))
+addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$clinstatus_28_imp, df_tot$trial, useNA = "always"))
 
 # Ordinal regression model adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
 clin28 <- df_tot %>% 
@@ -854,8 +855,8 @@ tab_model(ttdischarge.sus)
 
 # (vii) Viral clearance up to day 5
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt, useNA = "always"))
-addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trial, useNA = "always"))
+addmargins(table(df_tot$vir_clear_5, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$vir_clear_5, df_tot$trial, useNA = "always"))
 
 vir.clear5 <- glmmTMB(vir_clear_5 ~ trt_centered_n 
                   + trial_f 
@@ -873,8 +874,8 @@ tab_model(vir.clear5)
 
 # (viii) Viral clearance up to day 10
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt, useNA = "always"))
-addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trial, useNA = "always"))
+addmargins(table(df_tot$vir_clear_10, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$vir_clear_10, df_tot$trial, useNA = "always"))
 
 vir.clear10 <- glmmTMB(vir_clear_10 ~ trt_centered_n 
                   + trial_f 
@@ -892,8 +893,8 @@ tab_model(vir.clear10)
 
 # (ix) Viral clearance up to day 15
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt, useNA = "always"))
-addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trial, useNA = "always"))
+addmargins(table(df_tot$vir_clear_15, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$vir_clear_15, df_tot$trial, useNA = "always"))
 
 vir.clear15 <- glmmTMB(vir_clear_15 ~ trt_centered_n 
                   + trial_f 
@@ -911,8 +912,8 @@ tab_model(vir.clear15)
 
 # (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt, useNA = "always"))
-addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trial, useNA = "always"))
+addmargins(table(df_tot$ae_28, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$ae_28, df_tot$trial, useNA = "always"))
 
 ae28 <- glmmTMB(ae_28 ~ trt_centered_n 
                   + trial_f 
@@ -930,8 +931,8 @@ tab_model(ae28)
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
 ```{r warning=FALSE}
-addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt, useNA = "always"))
-addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trial, useNA = "always"))
+addmargins(table(df_tot$ae_28_sev, df_tot$trt, useNA = "always"))
+addmargins(table(df_tot$ae_28_sev, df_tot$trial, useNA = "always"))
 
 ae28sev <- glmmTMB(ae_28_sev ~ trt_centered_n 
                   + trial_f 
@@ -1012,80 +1013,80 @@ extract_trt_results <- function(model, variable_name, n_int, n_int_tot, n_cont, 
 result_list <- list()
 
 result_list[[1]] <- extract_trt_results(mort28, "death at day 28",
-                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 result_list[[2]] <- extract_trt_results(mort60, "death at day 60",
-                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$mort_60, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$mort_60, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$mort_60, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$mort_60, df_tot$trt))[3,1])
 result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
-                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$death_reached, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$death_reached, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$death_reached, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$death_reached, df_tot$trt))[3,1])
 result_list[[4]] <- extract_trt_results(new.mvd28, "new MV or death within 28d",
-                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$new_mvd_28, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$new_mvd_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$new_mvd_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$new_mvd_28, df_tot$trt))[3,1])
 result_list[[5]] <- extract_trt_results(new.mv28, "new MV within 28d",
-                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$new_mv_28, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$new_mv_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$new_mv_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$new_mv_28, df_tot$trt))[3,1])
 result_list[[6]] <- extract_trt_results(clin28, "clinical status at day 28",
-                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,2], 
-                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,2],
-                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,1],
-                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,1])
+                                        addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,2], 
+                                        addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,2],
+                                        addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,1],
+                                        addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,1])
 result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,1])
 result_list[[8]] <- extract_trt_results(ttdischarge.hypo, "discharge within 28 days, death=hypo.event",
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,1])
 result_list[[9]] <- extract_trt_results(ttdischarge.cens, "discharge within 28 days, death=censored",
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,1])
 result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
-                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[3,1])
 result_list[[11]] <- extract_trt_results(vir.clear5, "viral clearance until day 5",
-                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$vir_clear_5, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$vir_clear_5, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$vir_clear_5, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$vir_clear_5, df_tot$trt))[3,1])
 result_list[[12]] <- extract_trt_results(vir.clear10, "viral clearance until day 10",
-                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$vir_clear_10, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$vir_clear_10, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$vir_clear_10, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$vir_clear_10, df_tot$trt))[3,1])
 result_list[[13]] <- extract_trt_results(vir.clear15, "viral clearance until day 15",
-                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$vir_clear_15, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$vir_clear_15, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$vir_clear_15, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$vir_clear_15, df_tot$trt))[3,1])
 result_list[[14]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days",
-                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$ae_28, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$ae_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$ae_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$ae_28, df_tot$trt))[3,1])
 result_list[[15]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
-                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,2], 
-                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,2],
-                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,1],
-                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,1])
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2], 
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,1],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,1])
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -1141,18 +1142,13 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 
 # Interaction: Respiratory support (proxy for disease severity) on primary endpoint
 ```{r}
-df_tot <- df_tot %>% 
-  mutate(ws_interaction_rs_cent = trt*clinstatus_baseline_centered)
-# df_tot <- df_tot %>% 
-#   mutate(ws_interaction_rs = trt*clinstatus_baseline_n)
-
-rs.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+rs.mort28 <- glmmTMB(mort_28 ~ 
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
-                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + ws_interaction_rs_cent # interaction term (common effect)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
+                  # + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + trt_centered_n*clinstatus_baseline_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(rs.mort28)
 
@@ -1205,20 +1201,31 @@ df_tot <- left_join(df_tot, proportions[, c("proportion_ventilated", "trial")], 
 # create the centered vbaseline variable
 df_tot$vbaseline_centered_n <- df_tot$vbaseline - df_tot$proportion_ventilated
 
-df_tot <- df_tot %>% 
-  mutate(ws_interaction_vb_cent = trt*vbaseline_centered_n)
-# df_tot <- df_tot %>% 
-#   mutate(ws_interaction_vb = trt*vbaseline)
-
-vb.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+vb.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + ws_interaction_vb_cent # interaction term (common effect)
+                  + trt_centered_n*vbaseline_centered_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(vb.mort28)
+
+# vb.mort28 <- glmmTMB(mort_28 ~
+#                   + trial_f # stratified intercept
+#                   + (trt_centered_n - 1 | trial_f) - 1 # random treatment effect (and centered)
+#                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+#                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
+#                   + (clinstatus_baseline_n - 1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+#                   + (trt_centered_n - 1 | trial_f) * (vbaseline_centered_n - 1 | trial_f) # random interaction term
+#                   , data = df_tot, family = binomial)
+# summary(vb.mort28) ## but where is my p-value interaction now?
+
+# # Using the common effect, random intercept model
+# vb.mort28 <- glmmTMB(mort_28 ~ (1|trial) + age + trt*vbaseline
+#                   , data = df_tot, family = binomial)
+# summary(vb.mort28)
+
 
 table(df_tot$vbaseline, df_tot$mort_28)
 # effect by subgroup
@@ -1242,23 +1249,34 @@ Discussion points
 
 # Interaction: Age on primary endpoint
 ```{r}
-df_tot <- df_tot %>% 
-  mutate(ws_interaction_age_cent = trt*age_centered)
-
-age.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+# primary model: random and centered treatment effect, stratified intercept, stratified and centered age, random clinstatus_baseline, and the interaction term
+age.mort28 <- glmmTMB(mort_28 ~ 
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + ws_interaction_age_cent # interaction term (common effect), centered
+                  + trt_centered_n*age_centered # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(age.mort28)
 
-age.mort28 <- glmmTMB(mort_28 ~ trt + (1|trial) + clinstatus_baseline
-                    + trt*age
-                  , data = df_tot, family = binomial)
-summary(age.mort28) ## traditional common effects model
+# If adjustments are not centered and stratified
+# age.mort28 <- glmmTMB(mort_28 ~  
+#                   + trial_f # stratified intercept
+#                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+#                   + clinstatus_baseline_n
+#                   + trt_centered_n*age_centered # interaction term (common effect), centered
+#                   , data = df_tot, family = binomial)
+# summary(age.mort28)
+# 
+# # Using the common effect, random intercept model
+# age.mort28 <- glmmTMB(mort_28 ~ (1|trial) + clinstatus_baseline + trt*age
+#                   , data = df_tot, family = binomial)
+# summary(age.mort28)
+# # Using the common effect, random intercept model, but with treatment centering (does not make the difference)
+# age.mort28 <- glmmTMB(mort_28 ~ (1|trial) + clinstatus_baseline + trt_centered_n*age_centered
+#                   , data = df_tot, family = binomial)
+# summary(age.mort28)
 
 # effect by subgroup
 df_tot <- df_tot %>% 
@@ -1294,27 +1312,47 @@ comorb_means <- df_tot %>%
 # Merge back
 df_tot <- df_tot %>% left_join(comorb_means, by = "trial")
 # Center comorb variables
-df_tot <- df_tot %>%
-  mutate(comorb_centered = comorb_cat - mean_comorb)
+# df_tot <- df_tot %>%
+#   mutate(comorb_centered = comorb_cat - mean_comorb)
+# table(df_tot$comorb_cat_n)
+df_tot$comorb_cat_n <- as.numeric(df_tot$comorb_cat)
 
-# interaction term
-df_tot <- df_tot %>% 
-  mutate(ws_interaction_comorb_cent = trt*comorb_centered)
-
-comorb.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+comorb.mort28 <- glmmTMB(mort_28 ~ 
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + ws_interaction_comorb_cent # interaction term (common effect), centered
+                  + trt_centered_n*comorb_cat_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(comorb.mort28)
-# (1) common treatment effect, random trial intercept, common prognostic factors, ML
-# comorb.mort28.trad <- glmer(mort_28 ~ (1|trial) + trt*comorb_centered
-#                               + age + clinstatus_baseline_n
-#                               , data = df_tot, family = binomial)
-# tab_model(comorb.mort28.trad) # glmmTMB & no centering yields ~the same, 
+
+# # If adjustments are not centered and stratified (does not make the big difference)
+# comorb.mort28 <- glmmTMB(mort_28 ~
+#                   + trial_f # stratified intercept
+#                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+#                   + clinstatus_baseline_n
+#                   + age
+#                   + trt_centered_n*comorb_cat_n # interaction term (common effect), centered
+#                   , data = df_tot, family = binomial)
+# summary(comorb.mort28)
+# 
+# # Using the common effect, random intercept model
+# comorb.mort28 <- glmmTMB(mort_28 ~ (1|trial) + clinstatus_baseline_n + age + trt*comorb_cat_n
+#                   , data = df_tot, family = binomial)
+# summary(comorb.mort28)
+
+# Comorbidity Count
+comorb.count.mort28 <- glmmTMB(mort_28 ~ 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + trt_centered_n*comorb_count # interaction term (common effect), centered
+                  , data = df_tot, family = binomial)
+summary(comorb.count.mort28)
+
 
 # effect by subgroup
 table(df_tot$comorb_cat, df_tot$mort_28, useNA = "always") 
@@ -1361,22 +1399,24 @@ comed_means <- df_tot %>%
 # Merge back
 df_tot <- df_tot %>% left_join(comed_means, by = "trial")
 # Center comed variables
-df_tot <- df_tot %>%
-  mutate(comed_centered = comed_cat - mean_comed)
+# df_tot <- df_tot %>%
+#   mutate(comed_centered = comed_cat - mean_comed)
+df_tot$comed_cat_n <- as.numeric(df_tot$comed_cat)
 
-# interaction term
-df_tot <- df_tot %>% 
-  mutate(ws_interaction_comed_cent = trt*comed_centered)
-
-comed.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+comed.mort28 <- glmmTMB(mort_28 ~ 
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + ws_interaction_comed_cent # interaction term (common effect), centered
+                  + + trt_centered_n*comed_cat_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(comed.mort28)
+
+# # Using the common effect, random intercept model
+# comed.mort28 <- glmmTMB(mort_28 ~ (1|trial) + clinstatus_baseline_n + age + trt*comed_cat_n
+#                   , data = df_tot, family = binomial)
+# summary(comed.mort28)
 
 # effect by subgroup
 table(df_tot$comed_cat, df_tot$trt, useNA = "always")
@@ -1430,19 +1470,20 @@ df_tot <- left_join(df_tot, proportions[, c("proportion_vacc", "trial")], by = j
 # create the centered vacc variable
 df_tot$vacc_centered_n <- df_tot$vacc - df_tot$proportion_vacc
 
-df_tot <- df_tot %>% 
-  mutate(ws_interaction_vacc_cent = trt*vacc_centered_n)
-
-vacc.ae28 <- glmmTMB(ae_28 ~ trt_centered_n 
+vacc.ae28 <- glmmTMB(ae_28 ~  
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + ws_interaction_vacc_cent # interaction term (common effect)
+                  + trt_centered_n*vacc_centered_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(vacc.ae28)
 
+# # Using the common effect, random intercept model
+# comed.ae28 <- glmmTMB(ae_28 ~ (1|trial) + clinstatus_baseline_n + age + trt*vacc_centered_n
+#                   , data = df_tot, family = binomial)
+# summary(comed.ae28)
 
 # effect by subgroup
 table(df_tot$vacc, df_tot$trt, useNA = "always") 
@@ -1477,20 +1518,18 @@ df_tot <- df_tot %>% left_join(sympdur_means, by = "trial")
 df_tot <- df_tot %>%
   mutate(sympdur_centered = sympdur - mean_sympdur)
 
-df_tot <- df_tot %>% 
-  mutate(ws_interaction_sympdur_cent = trt*sympdur_centered)
-
-symp.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+symp.mort28 <- glmmTMB(mort_28 ~ 
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + ws_interaction_sympdur_cent # interaction term (common effect), centered
+                  + trt_centered_n*sympdur_centered # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(symp.mort28)
 
-# symp.mort28 <- glmer(mort_28 ~ trt + (1|trial) + age + clinstatus_baseline + trt*sympdur
+# # Using the common effect, random intercept model
+# symp.mort28 <- glmmTMB(mort_28 ~ (1|trial) + clinstatus_baseline_n + age + trt*sympdur_centered
 #                   , data = df_tot, family = binomial)
 # summary(symp.mort28)
 
@@ -1539,18 +1578,20 @@ df_tot <- df_tot %>% left_join(crp_means, by = "trial")
 df_tot <- df_tot %>%
   mutate(crp_centered = crp - mean_crp)
 
-df_tot <- df_tot %>% 
-  mutate(ws_interaction_crp_cent = trt*crp_centered)
-
-crp.mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
+crp.mort28 <- glmmTMB(mort_28 ~ 
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + ws_interaction_crp_cent # interaction term (common effect), centered
+                  + trt_centered_n*crp_centered # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(crp.mort28)
+
+# # Using the common effect, random intercept model
+# crp.mort28 <- glmmTMB(mort_28 ~ (1|trial) + clinstatus_baseline_n + age + trt*crp_centered
+#                   , data = df_tot, family = binomial)
+# summary(crp.mort28)
 
 # effect by subgroup
 df_tot <- df_tot %>% 
@@ -1589,11 +1630,11 @@ interaction_df <- data.frame(
 # Extract and format results for the interaction term
 extract_interaction <- function(model, variable_name) {
   if (inherits(model, "glmmTMB")) {
-    trt_coef <- fixef(model)$cond[grep("^ws_interaction_", names(fixef(model)$cond))]
+    trt_coef <- fixef(model)$cond[grep("^trt_centered_n:", names(fixef(model)$cond))]
     log_odds_ratio <- exp(trt_coef)
-    ci <- exp(confint(model)[grep("^ws_interaction_", rownames(confint(model))), ])
-    se <- summary(model)$coefficients$cond[grep("^ws_interaction_", rownames(summary(model)$coefficients$cond)), "Std. Error"]
-    p_value <- summary(model)$coefficients$cond[grep("^ws_interaction_", rownames(summary(model)$coefficients$cond)), "Pr(>|z|)"]
+    ci <- exp(confint(model)[grep("^trt_centered_n:", rownames(confint(model))), ])
+    se <- summary(model)$coefficients$cond[grep("^trt_centered_n:", rownames(summary(model)$coefficients$cond)), "Std. Error"]
+    p_value <- summary(model)$coefficients$cond[grep("^trt_centered_n:", rownames(summary(model)$coefficients$cond)), "Pr(>|z|)"]
   } else {
     stop("Unsupported model class")
   }
@@ -1616,10 +1657,11 @@ result_list[[1]] <- extract_interaction(rs.mort28, "respiratory support")
 result_list[[2]] <- extract_interaction(vb.mort28, "ventilation") 
 result_list[[3]] <- extract_interaction(age.mort28, "age")
 result_list[[4]] <- extract_interaction(comorb.mort28, "comorbidity") 
-result_list[[5]] <- extract_interaction(comed.mort28, "comedication")
-result_list[[6]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
-result_list[[7]] <- extract_interaction(symp.mort28, "symptom duration") 
-result_list[[8]] <- extract_interaction(crp.mort28, "crp") 
+result_list[[5]] <- extract_interaction(comorb.count.mort28, "comorbidity count") 
+result_list[[6]] <- extract_interaction(comed.mort28, "comedication")
+result_list[[7]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
+result_list[[8]] <- extract_interaction(symp.mort28, "symptom duration") 
+result_list[[9]] <- extract_interaction(crp.mort28, "crp") 
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
