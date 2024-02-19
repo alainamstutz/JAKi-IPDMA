@@ -1198,6 +1198,7 @@ proportions <- df_tot %>%
   group_by(trial) %>%
   summarize(proportion_ventilated = sum(vbaseline, na.rm = TRUE) / sum(!is.na(vbaseline)))
 df_tot <- left_join(df_tot, proportions[, c("proportion_ventilated", "trial")], by = join_by(trial == trial))
+
 # create the centered vbaseline variable
 df_tot$vbaseline_centered_n <- df_tot$vbaseline - df_tot$proportion_ventilated
 
@@ -1409,7 +1410,7 @@ comed.mort28 <- glmmTMB(mort_28 ~
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + + trt_centered_n*comed_cat_n # interaction term (common effect), centered
+                  + trt_centered_n*comed_cat_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
 summary(comed.mort28)
 
