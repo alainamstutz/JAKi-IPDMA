@@ -1431,14 +1431,15 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
+# result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[5]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
-# result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
-result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(mort.28.var, "variant") # not available
+result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
+result_list[[6]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
+# result_list[[7]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
+result_list[[8]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[9]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[10]] <- extract_interaction(mort.28.var, "variant") # not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))

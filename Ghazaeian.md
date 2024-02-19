@@ -4156,14 +4156,15 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
+# result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[5]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
-# result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
-result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[x]] <- extract_interaction(mort.28.var, "variant") # not available
+result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
+result_list[[6]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
+# result_list[[7]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
+result_list[[8]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[9]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[10]] <- extract_interaction(mort.28.var, "variant") # not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -4184,6 +4185,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:clinstatus_baseline_n |respiratory support_firth |      1.0000000| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
 |trt:age                   |age                       |      1.0504721| 0.9508741|   1.180266|      0.0531186| 0.3539392|Ghazaeian |Tofacitinib |
 |trt:comorb_cat            |comorbidity               |      1.9139158| 0.3278192|  16.486883|      0.9500040| 0.4944083|Ghazaeian |Tofacitinib |
+|trt:comorb_count          |comorbidity_count         |      1.6527667| 0.4561498|   7.127619|      0.6797149| 0.4597807|Ghazaeian |Tofacitinib |
 |trt:comed_cat             |comedication_firth        |      0.9943421| 0.0007150|   7.837039|      0.0341823| 0.9508452|Ghazaeian |Tofacitinib |
 |trt:sympdur               |symptom duration          |      1.1956574| 0.6406956|   2.362071|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
 |trt:crp                   |crp                       |      0.9966468| 0.9552354|   1.034729|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
