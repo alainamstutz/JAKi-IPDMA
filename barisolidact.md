@@ -1353,7 +1353,7 @@ clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-50 # set number of iterations
+nimp<-30 # set number of iterations
 
 ## run jomo
 # dry run
@@ -1403,7 +1403,7 @@ clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-50 # set number of iterations
+nimp<-30 # set number of iterations
 
 # run jomo
 set.seed(1569)
@@ -1647,7 +1647,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 </table>
 
 ```r
-# # Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
+# Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
 # mort.28.mi <- imp.list %>%
 #   with(glm(mort_28 ~ trt
 #            + age
@@ -5728,11 +5728,12 @@ result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support") # a
 result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # adj: age, clinstatus
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
-result_list[[5]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # adj: age, clinstatus
-result_list[[7]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[8]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[9]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
+result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
+result_list[[6]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
+result_list[[7]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[9]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[10]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -5754,6 +5755,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:vbaseline             |ventilation_firth   |      0.7731991| 0.0000000|  1.633974|      0.0717185| 0.2422306|Bari-SolidAct |Baricitinib |
 |trt:age                   |age                 |      1.0266420| 0.9543445|  1.108300|      0.0376993| 0.4855233|Bari-SolidAct |Baricitinib |
 |trt:comorb_cat            |comorbidity         |      1.0985344| 0.4298968|  2.902199|      0.4805639| 0.8449580|Bari-SolidAct |Baricitinib |
+|trt:comorb_count          |comorbidity_count   |      1.2400296| 0.7033591|  2.235382|      0.2921383| 0.4614777|Bari-SolidAct |Baricitinib |
 |trt:comed_cat             |comedication_firth  |      1.6359499| 0.3083945| 21.520663|      0.9067796| 0.5745899|Bari-SolidAct |Baricitinib |
 |trt:vacc                  |vaccination on AEs  |      1.7516814| 0.5137703|  6.042949|      0.6265740| 0.3709642|Bari-SolidAct |Baricitinib |
 |trt:sympdur               |symptom duration    |      0.8094195| 0.6375130|  1.018851|      0.1184351| 0.0742183|Bari-SolidAct |Baricitinib |
