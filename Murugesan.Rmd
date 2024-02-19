@@ -217,6 +217,7 @@ Discussion points BASELINE data
 ```{r echo=TRUE}
 # (i) Primary outcome: Mortality at day 28 // CAVE: WE HAVE WITHDRAWALS!!!! at the same time variable "death"...
 df$mort_28 <- 0 # no deaths recorded
+df$mort_28_dimp <- df$mort_28
 
 # (ii) Mortality at day 60
 df$mort_60 <- df$mort_28 # max fup time was 28 days; thus mort_60 imputed from mort_28
@@ -288,7 +289,7 @@ df <- df %>%
          any_comorb, comorb_cat, comorb_count,
          crp, 
          # sero, vl_baseline, variant,
-         mort_28, mort_60, death_reached, death_time,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
          clinstatus_28_imp,
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
@@ -798,6 +799,7 @@ Discussion points
 # result_list[[1]] <- extract_interaction(mort.28.vent, "respiratory support")
 # result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 # result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
+# result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count")
 # result_list[[x]] <- extract_interaction(mort.28.comed, "comedication") # not possible
 # result_list[[x]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
 # result_list[[5]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
