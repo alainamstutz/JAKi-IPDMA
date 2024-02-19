@@ -1220,6 +1220,12 @@ mort.28.comorb.count <- df %>%
       + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+mort.28.comorb.count.firth <- df %>%
+  logistf(mort_28 ~ trt*comorb_count 
+      + age 
+      + clinstatus_baseline
+      , data=.)
+summary(mort.28.comorb.count.firth)
 
 # effect by subgroup
 mort.28.comorb.1 <- df %>% 
@@ -1624,13 +1630,14 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth")
-# result_list[[x]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
-result_list[[2]] <- extract_interaction(mort.28.age.firth, "age_firth")
-result_list[[3]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
-result_list[[4]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
-result_list[[5]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
-result_list[[6]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
-result_list[[7]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
+# result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
+result_list[[3]] <- extract_interaction(mort.28.age.firth, "age_firth")
+result_list[[4]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
+result_list[[5]] <- extract_interaction(mort.28.comorb.count.firth, "comorbidity_count_firth")
+result_list[[6]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
+result_list[[7]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
+result_list[[8]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
+result_list[[9]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))

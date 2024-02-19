@@ -3207,6 +3207,42 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 </table>
 
 ```r
+mort.28.comorb.count.firth <- df %>%
+  logistf(mort_28 ~ trt*comorb_count 
+      + age 
+      + clinstatus_baseline
+      , data=.)
+summary(mort.28.comorb.count.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * comorb_count + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)   lower 0.95  upper 0.95     Chisq
+## (Intercept)          -7.28101903 3.21351080 -18.57806258 -0.05867312 3.9224938
+## trt                  -1.91016881 1.74704915 -17.60451063  1.69459060 0.9762809
+## comorb_count         -0.06519741 0.44204608  -1.25351758  0.93409864 0.0161866
+## age                   0.07657548 0.05578957  -0.07423539  0.25103554 0.9134421
+## clinstatus_baseline3  0.36084677 1.37077952  -2.60066861  5.37654291 0.0491284
+## trt:comorb_count      0.38759081 0.68443947  -2.63772624  3.79682893 0.1878809
+##                               p method
+## (Intercept)          0.04764416      2
+## trt                  0.32311871      2
+## comorb_count         0.89876109      2
+## age                  0.33920278      2
+## clinstatus_baseline3 0.82458692      2
+## trt:comorb_count     0.66468621      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=3.06992 on 5 df, p=0.6892069, n=107
+## Wald test = 35.31899 on 5 df, p = 1.299431e-06
+```
+
+```r
 # effect by subgroup
 mort.28.comorb.1 <- df %>% 
   filter(comorb_cat == 1) %>% # no comorbidity
@@ -4451,13 +4487,14 @@ extract_interaction <- function(model, variable_name) {
 result_list <- list()
 
 result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support_firth")
-# result_list[[x]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
-result_list[[2]] <- extract_interaction(mort.28.age.firth, "age_firth")
-result_list[[3]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
-result_list[[4]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
-result_list[[5]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
-result_list[[6]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
-result_list[[7]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
+# result_list[[2]] <- extract_interaction(mort.28.vent.vb.firth, "ventilation_firth") # does not converge
+result_list[[3]] <- extract_interaction(mort.28.age.firth, "age_firth")
+result_list[[4]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
+result_list[[5]] <- extract_interaction(mort.28.comorb.count.firth, "comorbidity_count_firth")
+result_list[[6]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
+result_list[[7]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
+result_list[[8]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
+result_list[[9]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -4478,6 +4515,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:clinstatus_baseline_n |respiratory support_firth |      0.2524142| 0.0004994|  8.030618e+01|      2.4418058| 0.5899644|COVINIB |Baricitinib |
 |trt:age                   |age_firth                 |      0.8660242| 0.5581487|  1.539408e+00|      0.1063739| 0.4253310|COVINIB |Baricitinib |
 |trt:comorb_cat            |comorbidity_firth         |      1.5083366| 0.0234199|  5.786072e+03|      1.2663027| 0.7880265|COVINIB |Baricitinib |
+|trt:comorb_count          |comorbidity_count_firth   |      1.4734268| 0.0715237|  4.455966e+01|      0.6844395| 0.6646862|COVINIB |Baricitinib |
 |trt:comed_cat             |comedication_firth        |      1.3636355| 0.0738293|  3.157788e+01|      1.2185055| 0.8119091|COVINIB |Baricitinib |
 |trt:vacc                  |vaccination on AEs_firth  |      1.0000000| 0.0000000| 1.774721e+204|      2.3995390| 0.9999999|COVINIB |Baricitinib |
 |trt:sympdur               |symptom duration_firth    |      1.2662547| 0.0574558|  1.069158e+02|      0.5252723| 0.7623855|COVINIB |Baricitinib |
