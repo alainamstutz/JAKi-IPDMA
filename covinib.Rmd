@@ -159,6 +159,9 @@ df <- df %>% # no missing
                                 comorb_count == 0 ~ 1, # no comorbidity
                                 comorb_count == 1 ~ 2, # one comorbidity
                                 comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
+df <- df %>%
+  mutate(comorb_any = case_when(comorb_count == 0 ~ 0, # no comorbidity
+                                comorb_count >0 ~ 1)) # any comorbidity
 
 # CRP
 df$crp <- as.numeric(df$Crp) ## 1 missing
@@ -370,7 +373,7 @@ df <- df %>%
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
-         any_comorb, comorb_cat, comorb_count,
+         any_comorb, comorb_cat, comorb_any, comorb_count,
          crp, 
          # sero, variant, vl_baseline, 
          mort_28, mort_28_dimp,
@@ -429,7 +432,7 @@ df_core <- df_all %>%
          comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other, comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
-         any_comorb, comorb_cat, comorb_count,
+         any_comorb, comorb_cat, comorb_any, comorb_count,
          crp, 
          # sero, variant, vl_baseline, 
          Clinstatus_1, Clinstatus_2, Clinstatus_3, Clinstatus_4, Clinstatus_5, Clinstatus_6, Clinstatus_7, Clinstatus_8, Clinstatus_9, Clinstatus_10, Clinstatus_11, Clinstatus_12, Clinstatus_13, Clinstatus_14, Clinstatus_15, Clinstatus_16, Clinstatus_17, Clinstatus_18, Clinstatus_19, Clinstatus_20, Clinstatus_21, Clinstatus_22, Clinstatus_23, Clinstatus_24, Clinstatus_25, Clinstatus_26, Clinstatus_27, clinstatus_28,
@@ -444,7 +447,7 @@ df_core <- df_all %>%
 # Convert character variables to factors
 char_vars <- c("id_pat", "sex", "trial", "JAKi", "ethn", "vacc", "country", "icu", "clinstatus_baseline", "vbaseline", 
                "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
-               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb", "comorb_cat", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28")
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb", "comorb_cat", "comorb_any", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28")
 df_core <- df_core %>%
   mutate(across(all_of(char_vars), factor))
 
@@ -494,7 +497,7 @@ df_core$resp<-ifelse(is.na(df_core$mort_28), 0, 1);table(df_core$resp) # only mo
 
 # Assign variable list
 vars.list <- c("resp", "age", "sympdur", "trt", "sex", "trial", "JAKi", "ethn", "vacc", "country", "icu", "sympdur", "clinstatus_baseline", "vbaseline", "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
-               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp"
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_any", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp"
                , "mort_28", "mort_28_dimp", "mort_60", "death_reached","death_time", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_time", "discharge_reached_sus", "discharge_time_sus", "ae_28", "ae_28_sev")
 
 # By completeness (only mort_28)
@@ -533,7 +536,8 @@ df_imp <- df_core %>%
          , "comed_other" 
          # , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese",
          # "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb",
-         # "comorb_count",  
+         # "comorb_count", 
+         # "comorb_any", 
          ,"comorb_cat" # derived from above, contains most information, and needed as interaction term
          ,"crp"
          # ,"vl_baseline"
@@ -855,6 +859,94 @@ Discussion points
 -- Add 0.5 correction to crosstab, calculate ORs and then inverse variance pooling in second stage?
 -- 2x2 directly into Mantel-Haenszel across several trials (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5297998/)?
 -- Firth regression according to R.Riley IPDMA Handbook (page 99): "Traditionally 0.5 is the value added, but Sweeting et al. suggest that a ‘treatment arm’ continuity correction is more appropriate, which adds 1/(sample size of the opposite treatment group) to the number of event and non-events. In the IPD context, a similar approach is to add two extra participants to each group in a trial if it has zero events in either of the groups; one of the added participants has the event and the other does not have the event in each group. Then, a weighted regression analysis can be performed to analyse the extended IPD, with all participants weighted equally except the four added participants, who are given a weight according to Sweeting correction (i.e. 1/(sample size of the opposite treat- ment group)). However, this approach becomes problematic when adjusting for prognostic factors or extending to non-binary variables. For this reason, a more general approach is to adopt Firth regression, which is a penalisation method that reduces small sample bias for non-linear models such as logistic regression, and resolves problems related to separation. Alternatively, researchers may revert to a one-stage IPD meta-analysis approach and placing random effects on parameters (rather than stratifying parameters by trial) so that estimation of trial-specific terms are avoided."
+
+# (i.i) Covariate adjustment for primary endpoint: Mortality at day 28
+```{r warning=FALSE}
+# unadjusted estimator for the (absolute) risk difference
+with(df, table(trt, mort_28))
+# mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
+# print(mort.28.prop.test)
+# # Estimate
+# -diff(mort.28.prop.test$estimate)
+# # Confidence Interval
+# mort.28.prop.test$conf.int
+# # P-Value
+# mort.28.prop.test$p.value
+
+# Covariate-Adjusted Analysis
+# Fit the `glm` object
+# Same as Complete case analysis, substantive model // but don't use piping, otherwise problem in margins::margins
+df_mort28_comp <- df %>% filter(!is.na(mort_28))
+mort.28.cov.adj <-
+  glm(formula = mort_28 ~ trt + age + clinstatus_baseline,
+      data = df_mort28_comp,
+      family = binomial(link = "logit")
+      )
+# Print a summary of the `glm` object
+summary(mort.28.cov.adj)
+# Predict Pr{Y = 1 | Z = 1, X} // equals: E(Y|Z=1,X)
+pr_y1_z1 <-
+  predict(
+    object = mort.28.cov.adj,
+    newdata =
+      df_mort28_comp %>%
+      dplyr::mutate(
+        trt = 1
+      ),
+    type = "response"
+  )
+# Predict Pr{Y = 1 | Z = 0, X} // equals: E(Y|Z=0,X)
+pr_y1_z0 <-
+  predict(
+    object = mort.28.cov.adj,
+    newdata =
+      df_mort28_comp %>%
+      dplyr::mutate(
+        trt = 0
+      ),
+    type = "response"
+  )
+
+# Estimate RD
+adj_mean = mean(pr_y1_z1) - mean(pr_y1_z0)
+print(adj_mean)
+# Standard Error RD
+# The variance/standard error can be calculted as 1/n times the sample variance of:
+# Z/P(Z=1)*[Y-E(Y|Z=1,X)] + E(Y|Z=1,X) - ((1-Z)/(1-P(1=Z))*[Y-E(Y|Z=0,X)] + E(Y|Z=0,X))
+p_arm = mean(df_mort28_comp$trt==1)
+adj_se = sqrt(
+  var((df_mort28_comp$trt==1)/p_arm * (df_mort28_comp$mort_28 - pr_y1_z1) + pr_y1_z1 -
+      ((df_mort28_comp$trt==0)/(1-p_arm) * (df_mort28_comp$mort_28-pr_y1_z0) + pr_y1_z0))/
+    nrow(df_mort28_comp))
+print(adj_se)
+# Confidence Interval
+c(adj_mean-qnorm(0.975)*adj_se, adj_mean+qnorm(0.975)*adj_se)
+
+# Or, we can obtain the standard error of the estimate two ways. The first way is using the margins::margins() command, using the robust standard errors from sandwich::vcovHC // The second way to obtain these would be the bias corrected and accelerated (BCa) non-parametric bootstrap
+# You’ll see that we now have a standard error, p-value under the hypothesis that the marginal effect is 0, and a 95% Confidence Interval for the estimate. 
+
+library(sandwich)
+library(margins)
+mort.28.cov.adj.ame <-
+  margins::margins(
+    model = mort.28.cov.adj,
+    # Specify treatment variable
+    variables = "trt",
+    # Convert to outcome scale, not link scale
+    type = "response",
+    # Obtain robust standard errors
+    vcov = sandwich::vcovHC(x = mort.28.cov.adj, type = "HC3")
+  )
+summary(object = mort.28.cov.adj.ame, level = 0.95)
+mort.28.ame <- summary(object = mort.28.cov.adj.ame, level = 0.95)
+# replace with manually calculated values above
+mort.28.ame$AME <- adj_mean
+mort.28.ame$SE <- adj_se
+mort.28.ame$lower <- c(adj_mean-qnorm(0.975)*adj_se)
+mort.28.ame$upper <- c(adj_mean+qnorm(0.975)*adj_se)
+mort.28.ame$p <- NA
+
+```
 
 # (ii) Mortality at day 60
 ```{r message=FALSE, warning=FALSE}
@@ -1202,6 +1294,14 @@ mort.28.comorb.firth <- df %>%
       + clinstatus_baseline
       , data=.)
 summary(mort.28.comorb.firth)
+# any comorbidity
+# table(df$comorb_any, df$mort_28, useNA = "always") 
+mort.28.comorb.any.firth <- df %>%
+  logistf(mort_28 ~ trt*comorb_any 
+      + age 
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+summary(mort.28.comorb.any.firth)
 
 # 4 comorbidity categories as factor
 df$comorb_cat_f <- as.factor(df$comorb_cat)
@@ -1473,6 +1573,11 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
     se <- sqrt(diag(vcov(model)))["trt"]
     p_value <- model$prob["trt"]
+  } else if (inherits(model, "summary.margins")) {
+    hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
+    ci <- c(model$lower, model$upper)
+    se <- model$SE
+    p_value <- model$p
   } else if (inherits(model, "data.frame")) {
     hazard_odds_ratio <- model$estimate[2]
     ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
@@ -1504,27 +1609,29 @@ result_list[[2]] <- extract_trt_results(mort.28.dimp.firth, "death at day 28_dim
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
 # result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
 #                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[4]] <- extract_trt_results(mort.60.firth, "death at day 60_firth", 
+result_list[[4]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[5]] <- extract_trt_results(mort.60.firth, "death at day 60_firth", 
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-# result_list[[5]] <- extract_trt_results(ttdeath, "death within fup", 
+# result_list[[6]] <- extract_trt_results(ttdeath, "death within fup", 
 #                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[6]] <- extract_trt_results(new.mv.28, "new MV within 28d", 
+result_list[[7]] <- extract_trt_results(new.mv.28, "new MV within 28d", 
                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d", 
+result_list[[8]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d", 
                                         addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[8]] <- extract_trt_results(clin.28, "clinical status at day 28", 
+result_list[[9]] <- extract_trt_results(clin.28, "clinical status at day 28", 
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
-result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days", 
+result_list[[10]] <- extract_trt_results(ttdischarge, "discharge within 28 days", 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[10]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event", 
+result_list[[11]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event", 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age
-result_list[[11]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event", 
+result_list[[12]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event", 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[12]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days", 
+result_list[[13]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days", 
                                          addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[13]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days", 
+result_list[[14]] <- extract_trt_results(ae.28, "any AE grade 3,4 within 28 days", 
                                          addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[14]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days", 
+result_list[[15]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days", 
                                          addmargins(table(df$ae_28_sev, df$trt))[8,2], addmargins(table(df$ae_28_sev, df$trt))[8,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
@@ -1634,10 +1741,11 @@ result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support
 result_list[[3]] <- extract_interaction(mort.28.age.firth, "age_firth")
 result_list[[4]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
 result_list[[5]] <- extract_interaction(mort.28.comorb.count.firth, "comorbidity_count_firth")
-result_list[[6]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
-result_list[[7]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
-result_list[[8]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
-result_list[[9]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
+result_list[[6]] <- extract_interaction(mort.28.comorb.any.firth, "comorbidity_any_firth")
+result_list[[7]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
+result_list[[8]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
+result_list[[9]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
+result_list[[10]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
