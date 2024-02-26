@@ -864,14 +864,14 @@ Discussion points
 ```{r warning=FALSE}
 # unadjusted estimator for the (absolute) risk difference
 with(df, table(trt, mort_28))
-# mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
+mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
 # print(mort.28.prop.test)
-# # Estimate
-# -diff(mort.28.prop.test$estimate)
-# # Confidence Interval
-# mort.28.prop.test$conf.int
-# # P-Value
-# mort.28.prop.test$p.value
+# Estimate
+-diff(mort.28.prop.test$estimate)
+# Confidence Interval
+mort.28.prop.test$conf.int
+# P-Value
+mort.28.prop.test$p.value
 
 # Covariate-Adjusted Analysis
 # Fit the `glm` object
