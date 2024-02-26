@@ -1481,7 +1481,6 @@ mort.28.cov.adj.ame <-
 summary(object = mort.28.cov.adj.ame, level = 0.95)
 mort.28.ame <- summary(object = mort.28.cov.adj.ame, level = 0.95)
 ```
-Discussion point
 
 # (ii) Mortality at day 60
 ```{r warning=FALSE}
