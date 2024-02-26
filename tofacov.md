@@ -161,6 +161,9 @@ df <- df %>% # no missing
                                 comorb_count == 0 ~ 1, # no comorbidity
                                 comorb_count == 1 ~ 2, # one comorbidity
                                 comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
+df <- df %>%
+  mutate(comorb_any = case_when(comorb_count == 0 ~ 0, # no comorbidity
+                                comorb_count >0 ~ 1)) # any comorbidity
 
 # CRP
 df$crp <- as.numeric(df$`crp mg/L`) ## 1 missing
@@ -294,7 +297,7 @@ df <- df %>%
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
-         any_comorb, comorb_cat, comorb_count,
+         any_comorb, comorb_cat, comorb_any, comorb_count,
          crp, 
          # sero, vl_baseline, variant,
          mort_28, mort_28_dimp, mort_60, death_reached, death_time,
@@ -358,7 +361,7 @@ df_core <- df_all %>%
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
-         any_comorb, comorb_cat, comorb_count,
+         any_comorb, comorb_cat, comorb_any, comorb_count,
          crp, 
          # sero, vl_baseline, variant,
          clinstatus_2, clinstatus_7, clinstatus_14,
@@ -373,7 +376,7 @@ df_core <- df_all %>%
 # Convert character variables to factors
 char_vars <- c("id_pat", "sex", "trial", "JAKi", "ethn", "vacc", "country", "icu", "clinstatus_baseline", "vbaseline", 
                "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
-               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb", "comorb_cat", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28")
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb", "comorb_cat", "comorb_any", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28")
 df_core <- df_core %>%
   mutate(across(all_of(char_vars), factor))
 
@@ -445,7 +448,7 @@ df_core$resp<-ifelse(is.na(df_core$crp), 0, 1);table(df_core$resp) # only mort_2
 ```r
 # Assign variable list
 vars.list <- c("resp", "age", "sympdur", "trt", "sex", "trial", "JAKi", "ethn", "vacc", "country", "icu", "sympdur", "clinstatus_baseline", "vbaseline", "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
-               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp"
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_any", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp"
                , "mort_28", "mort_28_dimp", "mort_60", "death_reached","death_time", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_time", "discharge_reached_sus", "discharge_time_sus", "ae_28", "ae_28_sev")
 
 # By completeness (only mort_28)
@@ -529,6 +532,8 @@ Table: By completeness (only crp)
 |comorb_cat (%)                    |1           |44 ( 37.9)           |0 (  0.0)            |44 ( 38.3)           |0.464 |        |0.0     |
 |                                  |2           |46 ( 39.7)           |1 (100.0)            |45 ( 39.1)           |      |        |        |
 |                                  |3           |26 ( 22.4)           |0 (  0.0)            |26 ( 22.6)           |      |        |        |
+|comorb_any (%)                    |0           |44 ( 37.9)           |0 (  0.0)            |44 ( 38.3)           |1.000 |        |0.0     |
+|                                  |1           |72 ( 62.1)           |1 (100.0)            |71 ( 61.7)           |      |        |        |
 |comorb_count (median [IQR])       |            |1.00 [0.00, 1.00]    |1.00 [1.00, 1.00]    |1.00 [0.00, 1.00]    |0.774 |nonnorm |0.0     |
 |crp (median [IQR])                |            |4.90 [2.40, 9.75]    |NA [NA, NA]          |4.90 [2.40, 9.75]    |NA    |nonnorm |0.9     |
 |mort_28 (%)                       |0           |115 ( 99.1)          |1 (100.0)            |114 ( 99.1)          |1.000 |        |0.0     |
@@ -576,7 +581,8 @@ df_imp <- df_core %>%
          # , "comed_other" # no info
          # , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese",
          # "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb",
-         # "comorb_count",  
+         # "comorb_count", 
+         # "comorb_any", 
          ,"comorb_cat" # derived from above, contains most information, and needed as interaction term
          ,"crp"
          # ,"vl_baseline"
@@ -1452,6 +1458,184 @@ Discussion points
 -- 2x2 directly into Mantel-Haenszel across several trials (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5297998/)?
 -- Firth regression according to R.Riley IPDMA Handbook (page 99): "Traditionally 0.5 is the value added, but Sweeting et al. suggest that a ‘treatment arm’ continuity correction is more appropriate, which adds 1/(sample size of the opposite treatment group) to the number of event and non-events. In the IPD context, a similar approach is to add two extra participants to each group in a trial if it has zero events in either of the groups; one of the added participants has the event and the other does not have the event in each group. Then, a weighted regression analysis can be performed to analyse the extended IPD, with all participants weighted equally except the four added participants, who are given a weight according to Sweeting correction (i.e. 1/(sample size of the opposite treat- ment group)). However, this approach becomes problematic when adjusting for prognostic factors or extending to non-binary variables. For this reason, a more general approach is to adopt Firth regression, which is a penalisation method that reduces small sample bias for non-linear models such as logistic regression, and resolves problems related to separation. Alternatively, researchers may revert to a one-stage IPD meta-analysis approach and placing random effects on parameters (rather than stratifying parameters by trial) so that estimation of trial-specific terms are avoided."
 
+# (i.i) Covariate adjustment for primary endpoint: Mortality at day 28
+
+```r
+# unadjusted estimator for the (absolute) risk difference
+with(df, table(trt, mort_28))
+```
+
+```
+##    mort_28
+## trt  0  1
+##   0 58  0
+##   1 57  1
+```
+
+```r
+mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
+# print(mort.28.prop.test)
+# # Estimate
+-diff(mort.28.prop.test$estimate)
+```
+
+```
+##     prop 2 
+## 0.01724138
+```
+
+```r
+# # Confidence Interval
+mort.28.prop.test$conf.int
+```
+
+```
+## [1] -0.03349990  0.06798266
+## attr(,"conf.level")
+## [1] 0.95
+```
+
+```r
+# # P-Value
+mort.28.prop.test$p.value
+```
+
+```
+## [1] 1
+```
+
+```r
+# Covariate-Adjusted Analysis
+# Fit the `glm` object
+# Same as Complete case analysis, substantive model // but don't use piping, otherwise problem in margins::margins
+df_mort28_comp <- df %>% filter(!is.na(mort_28))
+mort.28.cov.adj <-
+  glm(formula = mort_28 ~ trt + age + clinstatus_baseline,
+      data = df_mort28_comp,
+      family = binomial(link = "logit")
+      )
+# Print a summary of the `glm` object
+summary(mort.28.cov.adj)
+```
+
+```
+## 
+## Call:
+## glm(formula = mort_28 ~ trt + age + clinstatus_baseline, family = binomial(link = "logit"), 
+##     data = df_mort28_comp)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -0.32137  -0.17332  -0.00003  -0.00002   2.73242  
+## 
+## Coefficients:
+##                        Estimate Std. Error z value Pr(>|z|)
+## (Intercept)            -42.3638 10294.0418  -0.004    0.997
+## trt                     18.1042  5924.7052   0.003    0.998
+## age                      0.0551     0.1013   0.544    0.586
+## clinstatus_baseline3    16.8593  8418.1442   0.002    0.998
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 11.4985  on 115  degrees of freedom
+## Residual deviance:  9.4455  on 112  degrees of freedom
+## AIC: 17.446
+## 
+## Number of Fisher Scoring iterations: 21
+```
+
+```r
+# Predict Pr{Y = 1 | Z = 1, X} // equals: E(Y|Z=1,X)
+pr_y1_z1 <-
+  predict(
+    object = mort.28.cov.adj,
+    newdata =
+      df_mort28_comp %>%
+      dplyr::mutate(
+        trt = 1
+      ),
+    type = "response"
+  )
+# Predict Pr{Y = 1 | Z = 0, X} // equals: E(Y|Z=0,X)
+pr_y1_z0 <-
+  predict(
+    object = mort.28.cov.adj,
+    newdata =
+      df_mort28_comp %>%
+      dplyr::mutate(
+        trt = 0
+      ),
+    type = "response"
+  )
+
+# Estimate RD
+adj_mean = mean(pr_y1_z1) - mean(pr_y1_z0)
+print(adj_mean)
+```
+
+```
+## [1] 0.01503258
+```
+
+```r
+# Standard Error RD
+# The variance/standard error can be calculted as 1/n times the sample variance of:
+# Z/P(Z=1)*[Y-E(Y|Z=1,X)] + E(Y|Z=1,X) - ((1-Z)/(1-P(1=Z))*[Y-E(Y|Z=0,X)] + E(Y|Z=0,X))
+p_arm = mean(df_mort28_comp$trt==1)
+adj_se = sqrt(
+  var((df_mort28_comp$trt==1)/p_arm * (df_mort28_comp$mort_28 - pr_y1_z1) + pr_y1_z1 -
+      ((df_mort28_comp$trt==0)/(1-p_arm) * (df_mort28_comp$mort_28-pr_y1_z0) + pr_y1_z0))/
+    nrow(df_mort28_comp))
+print(adj_se)
+```
+
+```
+## [1] 0.01715212
+```
+
+```r
+# Confidence Interval
+c(adj_mean-qnorm(0.975)*adj_se, adj_mean+qnorm(0.975)*adj_se)
+```
+
+```
+## [1] -0.01858497  0.04865012
+```
+
+```r
+# Or, we can obtain the standard error of the estimate two ways. The first way is using the margins::margins() command, using the robust standard errors from sandwich::vcovHC // The second way to obtain these would be the bias corrected and accelerated (BCa) non-parametric bootstrap
+# You’ll see that we now have a standard error, p-value under the hypothesis that the marginal effect is 0, and a 95% Confidence Interval for the estimate. 
+
+library(sandwich)
+library(margins)
+mort.28.cov.adj.ame <-
+  margins::margins(
+    model = mort.28.cov.adj,
+    # Specify treatment variable
+    variables = "trt",
+    # Convert to outcome scale, not link scale
+    type = "response",
+    # Obtain robust standard errors
+    vcov = sandwich::vcovHC(x = mort.28.cov.adj, type = "HC3")
+  )
+summary(object = mort.28.cov.adj.ame, level = 0.95)
+```
+
+```
+##  factor    AME     SE      z      p   lower  upper
+##     trt 0.1518 0.1585 0.9578 0.3382 -0.1589 0.4625
+```
+
+```r
+mort.28.ame <- summary(object = mort.28.cov.adj.ame, level = 0.95)
+# replace with manually calculated values above
+mort.28.ame$AME <- adj_mean
+mort.28.ame$SE <- adj_se
+mort.28.ame$lower <- c(adj_mean-qnorm(0.975)*adj_se)
+mort.28.ame$upper <- c(adj_mean+qnorm(0.975)*adj_se)
+mort.28.ame$p <- NA
+```
+
 # (ii) Mortality at day 60
 
 ```r
@@ -1658,7 +1842,7 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](tofacov_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](tofacov_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 ```r
 # # testing: cox ph
@@ -2037,7 +2221,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](tofacov_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](tofacov_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -2131,7 +2315,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
   add_risktable()
 ```
 
-![](tofacov_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
+![](tofacov_files/figure-html/unnamed-chunk-14-2.png)<!-- -->
 
 ```r
 # in int only
@@ -2147,7 +2331,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_int) %>%
   add_risktable()
 ```
 
-![](tofacov_files/figure-html/unnamed-chunk-13-3.png)<!-- -->
+![](tofacov_files/figure-html/unnamed-chunk-14-3.png)<!-- -->
 
 ```r
 # in cont only
@@ -2191,7 +2375,7 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](tofacov_files/figure-html/unnamed-chunk-13-4.png)<!-- -->
+![](tofacov_files/figure-html/unnamed-chunk-14-4.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -2253,7 +2437,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](tofacov_files/figure-html/unnamed-chunk-13-5.png)<!-- -->
+![](tofacov_files/figure-html/unnamed-chunk-14-5.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -3330,6 +3514,44 @@ summary(mort.28.comorb.count.firth)
 ## 
 ## Likelihood ratio test=0.6816019 on 5 df, p=0.9839631, n=116
 ## Wald test = 40.88568 on 5 df, p = 9.895196e-08
+```
+
+```r
+# any comorbidity
+# table(df$comorb_any, df$mort_28, useNA = "always") 
+mort.28.comorb.any.firth <- df %>%
+  logistf(mort_28 ~ trt*comorb_any 
+      + age 
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+summary(mort.28.comorb.any.firth)
+```
+
+```
+## logistf(formula = mort_28 ~ trt * comorb_any + age + clinstatus_baseline, 
+##     data = ., family = "binomial")
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95 upper 0.95       Chisq
+## (Intercept)          -3.86683689 2.92543871 -15.3187258  3.3754200 0.983760788
+## trt                   0.15751270 1.77626627  -5.1268094  5.4274678 0.005848955
+## comorb_any           -0.24274576 1.70473430  -5.5301500  5.0194269 0.014010311
+## age                   0.01310893 0.04781847  -0.1247921  0.1989576 0.032924538
+## clinstatus_baseline3 -0.68068026 1.25718576  -4.3781970  4.4929394 0.121189018
+## trt:comorb_any        0.70885026 2.33893168  -5.3729206  7.4915038 0.060879949
+##                              p method
+## (Intercept)          0.3212721      2
+## trt                  0.9390385      2
+## comorb_any           0.9057783      2
+## age                  0.8560134      2
+## clinstatus_baseline3 0.7277485      2
+## trt:comorb_any       0.8051105      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=0.3863851 on 5 df, p=0.9956963, n=116
+## Wald test = 42.66118 on 5 df, p = 4.32792e-08
 ```
 
 ```r
@@ -4416,6 +4638,11 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
     se <- sqrt(diag(vcov(model)))["trt"]
     p_value <- model$prob["trt"]
+  } else if (inherits(model, "summary.margins")) {
+    hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
+    ci <- c(model$lower, model$upper)
+    se <- model$SE
+    p_value <- model$p
   } else {
     stop("Unsupported model class")
   }
@@ -4440,7 +4667,9 @@ result_list[[1]] <- extract_trt_results(mort.28.firth, "death at day 28_firth",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.28.dimp.firth, "death at day 28_dimp_firth",
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[3]] <- extract_trt_results(mort.60.firth, "death at day 60_firth",
+result_list[[3]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[4]] <- extract_trt_results(mort.60.firth, "death at day 60_firth",
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
 # result_list[[5]] <- extract_trt_results(ttdeath, "death within fup", 
 #                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1])
@@ -4542,23 +4771,24 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |JAKi        |
-|:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:-------|:-----------|
-|trt   |death at day 28_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
-|trt1  |death at day 28_dimp_firth                 |         2.5365726| 0.1271530| 380.134092|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
-|trt2  |death at day 60_firth                      |         2.5365726| 0.1271530| 380.134092|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
-|trt3  |new MV within 28d_firth                    |         0.2174501| 0.0015447|   2.877308|      1.3853829| 0.2687398|             57|        58|TOFACOV |Tofacitinib |
-|trt4  |new MV or death within 28d                 |         0.5033582| 0.0222146|   5.794909|      1.2708458| 0.5890904|             58|        58|TOFACOV |Tofacitinib |
-|trt5  |clinical status at day 28                  |         0.5089991| 0.0666734|   2.843006|      0.9065891| 0.4563383|             58|        58|TOFACOV |Tofacitinib |
-|trt6  |discharge within 28 days                   |         1.2836003| 0.8804226|   1.871408|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
-|trt7  |discharge within 28 days, death=comp.event |         1.2562193| 0.8760345|   1.801398|      0.1839098| 0.2100000|             58|        58|TOFACOV |Tofacitinib |
-|trt8  |discharge within 28 days, death=hypo.event |         1.2836003| 0.8804226|   1.871408|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
-|trt9  |sustained discharge within 28 days         |         1.2836003| 0.8804226|   1.871408|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
-|trt10 |any AE grade 3,4 within 28 days            |         0.6936245| 0.2408177|   1.956966|      0.5287298| 0.4890045|             58|        58|TOFACOV |Tofacitinib |
-|trt11 |AEs grade 3,4 within 28 days               |         0.6936245| 0.2408177|   1.956966|      0.5287298| 0.4890045|             58|        58|TOFACOV |Tofacitinib |
-|1     |death at day 28_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
-|11    |death at day 60_0.5-corr                   |         3.0521739| 0.1218000|  76.480000|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
-|12    |new MV within 28d_0.5-corr                 |         0.1965217| 0.0092280|   4.185000|      1.0652480| 0.1266797|             57|        58|TOFACOV |Tofacitinib |
+|      |variable                                   | hazard_odds_ratio|   ci_lower|    ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |JAKi        |
+|:-----|:------------------------------------------|-----------------:|----------:|-----------:|--------------:|---------:|--------------:|---------:|:-------|:-----------|
+|trt   |death at day 28_firth                      |         2.5365726|  0.1271530| 380.1340920|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
+|trt1  |death at day 28_dimp_firth                 |         2.5365726|  0.1271530| 380.1340920|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
+|1     |death at day 28_marginal                   |         0.0150326| -0.0185850|   0.0486501|      0.0171521|        NA|             58|        58|TOFACOV |Tofacitinib |
+|trt2  |death at day 60_firth                      |         2.5365726|  0.1271530| 380.1340920|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
+|trt3  |new MV within 28d_firth                    |         0.2174501|  0.0015447|   2.8773084|      1.3853829| 0.2687398|             57|        58|TOFACOV |Tofacitinib |
+|trt4  |new MV or death within 28d                 |         0.5033582|  0.0222146|   5.7949089|      1.2708458| 0.5890904|             58|        58|TOFACOV |Tofacitinib |
+|trt5  |clinical status at day 28                  |         0.5089991|  0.0666734|   2.8430057|      0.9065891| 0.4563383|             58|        58|TOFACOV |Tofacitinib |
+|trt6  |discharge within 28 days                   |         1.2836003|  0.8804226|   1.8714078|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
+|trt7  |discharge within 28 days, death=comp.event |         1.2562193|  0.8760345|   1.8013982|      0.1839098| 0.2100000|             58|        58|TOFACOV |Tofacitinib |
+|trt8  |discharge within 28 days, death=hypo.event |         1.2836003|  0.8804226|   1.8714078|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
+|trt9  |sustained discharge within 28 days         |         1.2836003|  0.8804226|   1.8714078|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
+|trt10 |any AE grade 3,4 within 28 days            |         0.6936245|  0.2408177|   1.9569664|      0.5287298| 0.4890045|             58|        58|TOFACOV |Tofacitinib |
+|trt11 |AEs grade 3,4 within 28 days               |         0.6936245|  0.2408177|   1.9569664|      0.5287298| 0.4890045|             58|        58|TOFACOV |Tofacitinib |
+|11    |death at day 28_0.5-corr                   |         3.0521739|  0.1218000|  76.4800000|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
+|12    |death at day 60_0.5-corr                   |         3.0521739|  0.1218000|  76.4800000|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
+|13    |new MV within 28d_0.5-corr                 |         0.1965217|  0.0092280|   4.1850000|      1.0652480| 0.1266797|             57|        58|TOFACOV |Tofacitinib |
 
 ```r
 # Save
@@ -4613,10 +4843,11 @@ result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support
 result_list[[3]] <- extract_interaction(mort.28.age.firth, "age_firth")
 result_list[[4]] <- extract_interaction(mort.28.comorb.firth, "comorbidity_firth")
 result_list[[5]] <- extract_interaction(mort.28.comorb.count.firth, "comorbidity_count_firth")
-result_list[[6]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
-result_list[[7]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
-result_list[[8]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
-result_list[[9]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
+result_list[[6]] <- extract_interaction(mort.28.comorb.any.firth, "comorbidity_any_firth")
+result_list[[7]] <- extract_interaction(mort.28.comed.firth, "comedication_firth")
+result_list[[8]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
+result_list[[9]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
+result_list[[10]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -4632,16 +4863,17 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                          |variable                  | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial   |JAKi        |
-|:-------------------------|:-------------------------|--------------:|---------:|----------:|--------------:|---------:|:-------|:-----------|
-|trt:clinstatus_baseline_n |respiratory support_firth |      1.1883509| 0.0031529| 689.752137|      2.4621311| 0.9487548|TOFACOV |Tofacitinib |
-|trt:age                   |age_firth                 |      1.0470785| 0.6614695|   1.665865|      0.0973369| 0.7745284|TOFACOV |Tofacitinib |
-|trt:comorb_cat            |comorbidity_firth         |      0.6061082| 0.0054610|  88.272626|      1.3811009| 0.7773835|TOFACOV |Tofacitinib |
-|trt:comorb_count          |comorbidity_count_firth   |      0.5792559| 0.0111203|  71.683097|      1.1610445| 0.7259072|TOFACOV |Tofacitinib |
-|trt:comed_cat             |comedication_firth        |      1.9011940| 0.0953702|  48.504965|      1.2141126| 0.6361043|TOFACOV |Tofacitinib |
-|trt:vacc                  |vaccination on AEs_firth  |      2.6499354| 0.0097053| 765.212989|      2.3583074| 0.6837461|TOFACOV |Tofacitinib |
-|trt:sympdur               |symptom duration_firth    |      0.8235629| 0.3882541|   3.740741|      0.2589834| 0.6358318|TOFACOV |Tofacitinib |
-|trt:crp                   |crp_firth                 |      0.9892815| 0.4830348|   1.046442|      0.0245673| 0.6953879|TOFACOV |Tofacitinib |
+|                          |variable                  | log_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value|trial   |JAKi        |
+|:-------------------------|:-------------------------|--------------:|---------:|-----------:|--------------:|---------:|:-------|:-----------|
+|trt:clinstatus_baseline_n |respiratory support_firth |      1.1883509| 0.0031529|  689.752137|      2.4621311| 0.9487548|TOFACOV |Tofacitinib |
+|trt:age                   |age_firth                 |      1.0470785| 0.6614695|    1.665865|      0.0973369| 0.7745284|TOFACOV |Tofacitinib |
+|trt:comorb_cat            |comorbidity_firth         |      0.6061082| 0.0054610|   88.272626|      1.3811009| 0.7773835|TOFACOV |Tofacitinib |
+|trt:comorb_count          |comorbidity_count_firth   |      0.5792559| 0.0111203|   71.683097|      1.1610445| 0.7259072|TOFACOV |Tofacitinib |
+|trt:comorb_any            |comorbidity_any_firth     |      2.0316540| 0.0046406| 1792.745926|      2.3389317| 0.8051105|TOFACOV |Tofacitinib |
+|trt:comed_cat             |comedication_firth        |      1.9011940| 0.0953702|   48.504965|      1.2141126| 0.6361043|TOFACOV |Tofacitinib |
+|trt:vacc                  |vaccination on AEs_firth  |      2.6499354| 0.0097053|  765.212989|      2.3583074| 0.6837461|TOFACOV |Tofacitinib |
+|trt:sympdur               |symptom duration_firth    |      0.8235629| 0.3882541|    3.740741|      0.2589834| 0.6358318|TOFACOV |Tofacitinib |
+|trt:crp                   |crp_firth                 |      0.9892815| 0.4830348|    1.046442|      0.0245673| 0.6953879|TOFACOV |Tofacitinib |
 
 ```r
 # Save
