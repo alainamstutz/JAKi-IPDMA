@@ -442,7 +442,9 @@ df <- df %>%
                                 comorb_count == 1 ~ 2, # one comorbidity
                                 comorb_count >1 ~ 3)) # multiple comorbidities
 addmargins(table(df$comorb_cat, df$trt, useNA = "always"))
-
+df <- df %>%
+  mutate(comorb_any = case_when(comorb_count == 0 ~ 0, # no comorbidity
+                                comorb_count >0 ~ 1)) # any comorbidity
 
 ### Days with symptoms prior to randomization
 df_symp <- df_sa %>% 
@@ -453,7 +455,7 @@ df_symp <- df_sa %>%
 # See discussion with RECOVERY DM: SASTDY is the start day of covid-19 symptoms. SADY is the day the data (y/n answers) was captured, which in this case was the day of randomization. And these days are all relative to the day of hospitalization.
 # => SADY - SASTDY = Days with symptoms prior to randomization
 df_symp <- df_symp %>% 
-  mutate(sympdur = (SADY - SASTDY)-1) # -1, see results publication
+  mutate(sympdur = (SADY - SASTDY)) # see results publication
 # summary(df_symp$sympdur)
 df <- left_join(df, df_symp[, c("sympdur", "id_pat")], by = join_by(id_pat == id_pat)) 
 df %>% 
@@ -991,7 +993,7 @@ df <- df %>%
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
-         any_comorb, comorb_cat, comorb_count,
+         any_comorb, comorb_cat, comorb_any, comorb_count,
          crp, 
          sero, 
          # variant,
@@ -1049,7 +1051,7 @@ df_core <- df_all %>%
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
-         any_comorb, comorb_cat, comorb_count,
+         any_comorb, comorb_cat, comorb_any, comorb_count,
          crp, vl_baseline, sero, 
          # variant,
          clinstatus_28_imp,
@@ -1063,7 +1065,7 @@ df_core <- df_all %>%
 # Convert character variables to factors
 char_vars <- c("id_pat", "sex", "trial", "JAKi", "country", "sero", "ethn", "clinstatus_baseline", "vbaseline", 
                "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
-               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_autoimm","comorb_cancer", "comorb_kidney", "vl_baseline", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28", "vir_clear_5", "vir_clear_10", "vir_clear_15")
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_any", "comorb_autoimm","comorb_cancer", "comorb_kidney", "vl_baseline", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28", "vir_clear_5", "vir_clear_10", "vir_clear_15")
 df_core <- df_core %>%
   mutate(across(all_of(char_vars), factor))
 
@@ -1115,7 +1117,7 @@ df_core$resp<-ifelse(is.na(df_core$mort_28), 0, 1);table(df_core$resp) # only mo
 vars.list <- c("resp", "age", "sympdur"
                ,"trt", "sex", "country", "sero", "ethn", "clinstatus_baseline", "vbaseline", 
                "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
-               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp", "vl_baseline"
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_any", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp", "vl_baseline"
                , "mort_28", "mort_28_dimp", "mort_60", "death_reached","death_time", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_time", "discharge_reached_sus", "discharge_time_sus", "ae_28", "ae_28_sev", "vir_clear_5", "vir_clear_10", "vir_clear_15")
 
 # By completeness (only mort_28)
@@ -1155,6 +1157,7 @@ df_imp <- df_core %>%
          # , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese",
          # "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb",
          # "comorb_count",  
+         # "comorb_any", 
          , "comorb_cat" # derived from above, contains most information, and needed as interaction term
          , "crp"
          , "vl_baseline"
@@ -1800,6 +1803,14 @@ mort.28.comorb.count <- df %>%
       + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# any comorbidity
+# table(df$comorb_any, df$mort_28, useNA = "always") 
+mort.28.comorb.any <- df %>%
+  glm(mort_28 ~ trt*comorb_any 
+      + age 
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+summ(mort.28.comorb.any, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # effect by subgroup
 mort.28.comorb.1 <- df %>% 
@@ -2180,11 +2191,12 @@ result_list[[2]] <- extract_interaction(mort.28.vent.vb, "ventilation") # adj: a
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
 result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
-result_list[[7]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # adj: age, clinstatus
-result_list[[8]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[9]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[10]] <- extract_interaction(mort.28.var, "variant") # variant not available
+result_list[[6]] <- extract_interaction(mort.28.comorb.any, "comorbidity_any") # adj: age, clinstatus 
+result_list[[7]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # adj: age, clinstatus
+result_list[[9]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[10]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[11]] <- extract_interaction(mort.28.var, "variant") # variant not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
