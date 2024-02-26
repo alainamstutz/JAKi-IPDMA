@@ -238,6 +238,9 @@ df <- df %>% #
                                 comorb_count == 0 ~ 1, # no comorbidity
                                 comorb_count == 1 ~ 2, # one comorbidity
                                 comorb_count >1 & (immunosupp == 0 | is.na(immunosupp)) ~ 3)) # multiple comorbidities
+df <- df %>%
+  mutate(comorb_any = case_when(comorb_count == 0 ~ 0, # no comorbidity
+                                comorb_count >0 ~ 1)) # any comorbidity
 
 # CRP
 df$crp <- df$CRP ## 1 missing
@@ -378,7 +381,7 @@ df <- df %>%
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
-         any_comorb, comorb_cat, comorb_count,
+         any_comorb, comorb_cat, comorb_any, comorb_count,
          crp, 
          # sero, vl_baseline, variant,
          mort_28, mort_28_dimp, mort_60, death_reached, death_time,
@@ -446,7 +449,7 @@ df_core <- df_all %>%
          comed_cat,
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
-         any_comorb, comorb_cat, comorb_count,
+         any_comorb, comorb_cat, comorb_any, comorb_count,
          crp, 
          # sero, vl_baseline, variant,
          mort_28, mort_28_dimp, mort_60, death_reached, death_time,
@@ -460,7 +463,7 @@ df_core <- df_all %>%
 # Convert character variables to factors
 char_vars <- c("id_pat", "sex", "trial", "JAKi", "ethn", "country", "icu", "clinstatus_baseline", "vbaseline", 
                "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
-               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb", "comorb_cat", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28")
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb", "comorb_cat", "comorb_any", "clinstatus_28_imp", "mort_28", "mort_28_dimp", "mort_60", "death_reached", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_reached_sus", "ae_28")
 df_core <- df_core %>%
   mutate(across(all_of(char_vars), factor))
 
@@ -532,7 +535,7 @@ df_core$resp<-ifelse(is.na(df_core$crp), 0, 1);table(df_core$resp) # only mort_2
 ```r
 # Assign variable list
 vars.list <- c("resp", "age", "sympdur", "trt", "sex", "trial", "JAKi", "ethn", "country", "icu", "sympdur", "clinstatus_baseline", "vbaseline", "comed_dexa", "comed_rdv", "comed_toci", "comed_ab", "comed_acoa", "comed_interferon", "comed_other", "comed_cat",
-               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp"
+               "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese", "comorb_smoker", "immunosupp", "any_comorb", "comorb_cat", "comorb_any", "comorb_count","comorb_autoimm","comorb_cancer", "comorb_kidney", "crp"
                , "mort_28", "mort_28_dimp", "mort_60", "death_reached","death_time", "new_mv_28", "new_mvd_28","discharge_reached", "discharge_time", "discharge_reached_sus", "discharge_time_sus", "ae_28", "ae_28_sev")
 
 # By completeness (only mort_28)
@@ -611,6 +614,8 @@ Table: By completeness (only crp)
 |                                  |2              |22 ( 22.7)           |0 (  0.0)            |22 ( 23.2)           |      |        |        |
 |                                  |3              |32 ( 33.0)           |1 ( 50.0)            |31 ( 32.6)           |      |        |        |
 |                                  |4              |2 (  2.1)            |0 (  0.0)            |2 (  2.1)            |      |        |        |
+|comorb_any (%)                    |0              |41 ( 42.3)           |1 ( 50.0)            |40 ( 42.1)           |1.000 |        |0.0     |
+|                                  |1              |56 ( 57.7)           |1 ( 50.0)            |55 ( 57.9)           |      |        |        |
 |comorb_count (median [IQR])       |               |1.00 [0.00, 2.00]    |1.00 [0.50, 1.50]    |1.00 [0.00, 2.00]    |0.947 |nonnorm |0.0     |
 |comorb_autoimm (%)                |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |0.0     |
 |                                  |1              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
@@ -671,6 +676,7 @@ df_imp <- df_core %>%
          # , "comorb_lung", "comorb_liver", "comorb_cvd", "comorb_aht", "comorb_dm", "comorb_obese",
          # "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb",
          # "comorb_count",  
+         # "comorb_any",
          ,"comorb_cat" # derived from above, contains most information, and needed as interaction term
          ,"crp"
          # ,"vl_baseline"
@@ -1238,6 +1244,166 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 Discussion points
 1. all (intervention + control) also had dexa and rdv. No-one had toci.
 
+# (i.i) Covariate adjustment for primary endpoint: Mortality at day 28
+
+```r
+# unadjusted estimator for the (absolute) risk difference
+mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
+# Estimate
+-diff(mort.28.prop.test$estimate)
+```
+
+```
+##      prop 2 
+## -0.01321398
+```
+
+```r
+# Confidence Interval
+mort.28.prop.test$conf.int
+```
+
+```
+## [1] -0.1290702  0.1026422
+## attr(,"conf.level")
+## [1] 0.95
+```
+
+```r
+# P-Value
+mort.28.prop.test$p.value
+```
+
+```
+## [1] 1
+```
+
+```r
+# Covariate-Adjusted Analysis
+# Fit the `glm` object
+# Same as Complete case analysis, substantive model // but don't use piping, otherwise problem in margins::margins
+df_mort28_comp <- df %>% filter(!is.na(mort_28))
+mort.28.cov.adj <-
+  glm(formula = mort_28 ~ trt + age + clinstatus_baseline,
+      data = df_mort28_comp,
+      family = binomial(link = "logit")
+      )
+# Print a summary of the `glm` object
+summary(mort.28.cov.adj)
+```
+
+```
+## 
+## Call:
+## glm(formula = mort_28 ~ trt + age + clinstatus_baseline, family = binomial(link = "logit"), 
+##     data = df_mort28_comp)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.6118  -0.4373  -0.3465  -0.2961   2.4712  
+## 
+## Coefficients:
+##                        Estimate Std. Error z value Pr(>|z|)
+## (Intercept)           -18.00858 1694.82234  -0.011    0.992
+## trt                    -0.23461    0.79824  -0.294    0.769
+## age                     0.02687    0.02468   1.089    0.276
+## clinstatus_baseline3   14.11698 1694.82190   0.008    0.993
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 50.285  on 96  degrees of freedom
+## Residual deviance: 48.673  on 93  degrees of freedom
+## AIC: 56.673
+## 
+## Number of Fisher Scoring iterations: 15
+```
+
+```r
+# Predict Pr{Y = 1 | Z = 1, X} // equals: E(Y|Z=1,X)
+pr_y1_z1 <-
+  predict(
+    object = mort.28.cov.adj,
+    newdata =
+      df_mort28_comp %>%
+      dplyr::mutate(
+        trt = 1
+      ),
+    type = "response"
+  )
+# Predict Pr{Y = 1 | Z = 0, X} // equals: E(Y|Z=0,X)
+pr_y1_z0 <-
+  predict(
+    object = mort.28.cov.adj,
+    newdata =
+      df_mort28_comp %>%
+      dplyr::mutate(
+        trt = 0
+      ),
+    type = "response"
+  )
+
+# Estimate RD
+adj_mean = mean(pr_y1_z1) - mean(pr_y1_z0)
+print(adj_mean)
+```
+
+```
+## [1] -0.01536538
+```
+
+```r
+# Standard Error RD
+# The variance/standard error can be calculted as 1/n times the sample variance of:
+# Z/P(Z=1)*[Y-E(Y|Z=1,X)] + E(Y|Z=1,X) - ((1-Z)/(1-P(1=Z))*[Y-E(Y|Z=0,X)] + E(Y|Z=0,X))
+p_arm = mean(df_mort28_comp$trt==1)
+adj_se = sqrt(
+  var((df_mort28_comp$trt==1)/p_arm * (df_mort28_comp$mort_28 - pr_y1_z1) + pr_y1_z1 -
+      ((df_mort28_comp$trt==0)/(1-p_arm) * (df_mort28_comp$mort_28-pr_y1_z0) + pr_y1_z0))/
+    nrow(df_mort28_comp))
+print(adj_se)
+```
+
+```
+## [1] 0.05225375
+```
+
+```r
+# Confidence Interval
+c(adj_mean-qnorm(0.975)*adj_se, adj_mean+qnorm(0.975)*adj_se)
+```
+
+```
+## [1] -0.11778086  0.08705009
+```
+
+```r
+# Or, we can obtain the standard error of the estimate two ways. The first way is using the margins::margins() command, using the robust standard errors from sandwich::vcovHC // The second way to obtain these would be the bias corrected and accelerated (BCa) non-parametric bootstrap
+# You’ll see that we now have a standard error, p-value under the hypothesis that the marginal effect is 0, and a 95% Confidence Interval for the estimate. 
+
+library(sandwich)
+library(margins)
+mort.28.cov.adj.ame <-
+  margins::margins(
+    model = mort.28.cov.adj,
+    # Specify treatment variable
+    variables = "trt",
+    # Convert to outcome scale, not link scale
+    type = "response",
+    # Obtain robust standard errors
+    vcov = sandwich::vcovHC(x = mort.28.cov.adj, type = "HC3")
+  )
+summary(object = mort.28.cov.adj.ame, level = 0.95)
+```
+
+```
+##  factor     AME     SE       z      p   lower  upper
+##     trt -0.0155 0.0548 -0.2818 0.7781 -0.1229 0.0920
+```
+
+```r
+mort.28.ame <- summary(object = mort.28.cov.adj.ame, level = 0.95)
+```
+
 # (ii) Mortality at day 60
 
 ```r
@@ -1402,7 +1568,7 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -1698,7 +1864,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
 ```r
 # table(df$discharge_reached, df$discharge_time)
@@ -1772,7 +1938,7 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-14-2.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -1813,7 +1979,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Ghazaeian_files/figure-html/unnamed-chunk-13-3.png)<!-- -->
+![](Ghazaeian_files/figure-html/unnamed-chunk-14-3.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -2872,6 +3038,105 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
    <td style="text-align:right;"> 6.26 </td>
    <td style="text-align:right;"> 0.74 </td>
    <td style="text-align:right;"> 0.46 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# any comorbidity
+# table(df$comorb_any, df$mort_28, useNA = "always") 
+mort.28.comorb.any <- df %>%
+  glm(mort_28 ~ trt*comorb_any 
+      + age 
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+summ(mort.28.comorb.any, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 97 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> mort_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 8.74 </td>
+   <td style="text-align:right;"> -0.27 </td>
+   <td style="text-align:right;"> 0.79 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comorb_any </td>
+   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> 6.35 </td>
+   <td style="text-align:right;"> -0.20 </td>
+   <td style="text-align:right;"> 0.84 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 1.09 </td>
+   <td style="text-align:right;"> 0.28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 1376910.86 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:comorb_any </td>
+   <td style="text-align:right;"> 1.24 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 32.05 </td>
+   <td style="text-align:right;"> 0.13 </td>
+   <td style="text-align:right;"> 0.90 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -4005,6 +4270,11 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
     se <- sqrt(diag(vcov(model)))["trt"]
     p_value <- model$prob["trt"]
+  } else if (inherits(model, "summary.margins")) {
+    hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
+    ci <- c(model$lower, model$upper)
+    se <- model$SE
+    p_value <- model$p
   } else {
     stop("Unsupported model class")
   }
@@ -4029,27 +4299,29 @@ result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[3]] <- extract_trt_results(mort.60, "death at day 60",
+result_list[[3]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[4]] <- extract_trt_results(mort.60, "death at day 60",
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[4]] <- extract_trt_results(ttdeath, "death within fup",
+result_list[[5]] <- extract_trt_results(ttdeath, "death within fup",
                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
-# result_list[[x]] <- extract_trt_results(new.mv.28, "new MV within 28d",
+# result_list[[6]] <- extract_trt_results(new.mv.28, "new MV within 28d",
 #                                       addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # not possible
-result_list[[5]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
+result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
                                         addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[6]] <- extract_trt_results(clin.28, "clinical status at day 28",
+result_list[[8]] <- extract_trt_results(clin.28, "clinical status at day 28",
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age
-result_list[[7]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
+result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[8]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+result_list[[10]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[9]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
+result_list[[11]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+result_list[[12]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[11]] <- extract_trt_results(ae.28.firth, "any AE grade 3,4 within 28 days_firth",
+result_list[[13]] <- extract_trt_results(ae.28.firth, "any AE grade 3,4 within 28 days_firth",
                                          addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[12]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days_firth",
+result_list[[14]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days_firth",
                                          addmargins(table(df$ae_28_sev, df$trt))[3,2], addmargins(table(df$ae_28_sev, df$trt))[3,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
@@ -4089,21 +4361,22 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial     |JAKi        |
-|:-----|:------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|---------:|:---------|:-----------|
-|trt   |death at day 28                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
-|trt1  |death at day 28_dimp                       |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
-|trt2  |death at day 60                            |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
-|trt3  |death within fup                           |         0.8379501| 0.1873973|   3.746907|      0.7641607| 0.8170346|             46|        51|Ghazaeian |Tofacitinib |
-|trt4  |new MV or death within 28d                 |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
-|trt5  |clinical status at day 28                  |         0.8256311| 0.1539462|   3.988879|      0.7975917| 0.8101502|             46|        51|Ghazaeian |Tofacitinib |
-|trt6  |discharge within 28 days                   |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
-|trt7  |discharge within 28 days, death=comp.event |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
-|trt8  |discharge within 28 days, death=hypo.event |         0.8231640| 0.5400812|   1.254624|      0.2150223| 0.3654539|             46|        51|Ghazaeian |Tofacitinib |
-|trt9  |sustained discharge within 28 days         |         0.7381029| 0.4797810|   1.135510|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
-|trt10 |any AE grade 3,4 within 28 days_firth      |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
-|trt11 |AEs grade 3,4 within 28 days_firth         |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
-|1     |any AE grade 3,4 within 28 days_0.5-corr   |         3.3956044| 0.1349000|  85.440000|     21.7615051| 0.9552013|             46|        51|Ghazaeian |Tofacitinib |
+|      |variable                                   | hazard_odds_ratio|   ci_lower|    ci_upper| standard_error|   p_value| n_intervention| n_control|trial     |JAKi        |
+|:-----|:------------------------------------------|-----------------:|----------:|-----------:|--------------:|---------:|--------------:|---------:|:---------|:-----------|
+|trt   |death at day 28                            |         0.7908805|  0.1472786|   3.8263828|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt1  |death at day 28_dimp                       |         0.7908805|  0.1472786|   3.8263828|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt2  |death at day 28_marginal                   |        -0.0154566| -0.1229478|   0.0920345|      0.0548434| 0.7780722|             46|        51|Ghazaeian |Tofacitinib |
+|trt3  |death at day 60                            |         0.7908805|  0.1472786|   3.8263828|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt4  |death within fup                           |         0.8379501|  0.1873973|   3.7469068|      0.7641607| 0.8170346|             46|        51|Ghazaeian |Tofacitinib |
+|trt5  |new MV or death within 28d                 |         0.7908805|  0.1472786|   3.8263828|      0.7982351| 0.7688275|             46|        51|Ghazaeian |Tofacitinib |
+|trt6  |clinical status at day 28                  |         0.8256311|  0.1539462|   3.9888785|      0.7975917| 0.8101502|             46|        51|Ghazaeian |Tofacitinib |
+|trt7  |discharge within 28 days                   |         0.7381029|  0.4797810|   1.1355096|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
+|trt8  |discharge within 28 days, death=comp.event |         0.7381029|  0.4797810|   1.1355096|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
+|trt9  |discharge within 28 days, death=hypo.event |         0.8231640|  0.5400812|   1.2546243|      0.2150223| 0.3654539|             46|        51|Ghazaeian |Tofacitinib |
+|trt10 |sustained discharge within 28 days         |         0.7381029|  0.4797810|   1.1355096|      0.2197763| 0.1670538|             46|        51|Ghazaeian |Tofacitinib |
+|trt11 |any AE grade 3,4 within 28 days_firth      |         3.2247381|  0.1701822| 472.4508978|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
+|trt12 |AEs grade 3,4 within 28 days_firth         |         3.2247381|  0.1701822| 472.4508978|      1.4759989| 0.4412199|             46|        51|Ghazaeian |Tofacitinib |
+|1     |any AE grade 3,4 within 28 days_0.5-corr   |         3.3956044|  0.1349000|  85.4400000|     21.7615051| 0.9552013|             46|        51|Ghazaeian |Tofacitinib |
 
 ```r
 # Save
@@ -4160,11 +4433,12 @@ result_list[[1]] <- extract_interaction(mort.28.vent.firth, "respiratory support
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
 result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
-# result_list[[7]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
-result_list[[8]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[9]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[10]] <- extract_interaction(mort.28.var, "variant") # not available
+result_list[[6]] <- extract_interaction(mort.28.comorb.any, "comorbidity_any") # adj: age, clinstatus
+result_list[[7]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
+# result_list[[8]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
+result_list[[9]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[10]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[11]] <- extract_interaction(mort.28.var, "variant") # not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -4186,6 +4460,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:age                   |age                       |      1.0504721| 0.9508741|   1.180266|      0.0531186| 0.3539392|Ghazaeian |Tofacitinib |
 |trt:comorb_cat            |comorbidity               |      1.9139158| 0.3278192|  16.486883|      0.9500040| 0.4944083|Ghazaeian |Tofacitinib |
 |trt:comorb_count          |comorbidity_count         |      1.6527667| 0.4561498|   7.127619|      0.6797149| 0.4597807|Ghazaeian |Tofacitinib |
+|trt:comorb_any            |comorbidity_any           |      1.2376379| 0.0481126|  47.600700|      1.6602489| 0.8978188|Ghazaeian |Tofacitinib |
 |trt:comed_cat             |comedication_firth        |      0.9943421| 0.0007150|   7.837039|      0.0341823| 0.9508452|Ghazaeian |Tofacitinib |
 |trt:sympdur               |symptom duration          |      1.1956574| 0.6406956|   2.362071|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
 |trt:crp                   |crp                       |      0.9966468| 0.9552354|   1.034729|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
