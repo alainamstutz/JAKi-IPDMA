@@ -1884,6 +1884,8 @@ summ(mort.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 </table>
 
 ```r
+# tab_model(mort.28)
+
 # Deterministic imputation
 mort.28.dimp <- df %>% 
   glm(mort_28_dimp ~ trt 
@@ -1995,6 +1997,205 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 Discussion points:
 * Without any adjustment, we get the exact same result as results publication (see appendix), of course, for mort_28_dimp
 * For their primary analysis, RECOVERY adjusted only for age, in 3 categories (instead of linear)
+
+# (i.i) Covariate adjustment for primary endpoint: Mortality at day 28
+We uses a logistic regression to adjust for baseline covariates with a binary outcome. 
+
+However, the coefficient in a logistic regression is a conditional association: it is the associated change in the log odds of the outcome with a unit change in the predictor when holding all other variables constant. 
+
+The average treatment effect is a marginal, not a conditional quantity. 
+
+*In order to obtain the average treatment effect, we must marginalize by averaging over the covariates.*
+
+Covariate-Adjusted Analysis for Marginal Estimands based on https://arxiv.org/abs/2306.05823 & see FDA guidance: https://www.fda.gov/media/148910/download 
+
+(1) Fit a logistic model with maximum likelihood that regresses the outcome on treatment assignments and prespecified baseline covariates.
+(2) For each subject, regardless of treatment group assignment, compute the model-based prediction of the probability of response under treatment using the subject’s specific baseline covariates.
+(3) Estimate the average response under treatment by averaging (across all subjects in the trial) the probabilities estimated in Step 2.
+(4) For each subject, regardless of treatment group assignment, compute the model-based prediction of the probability of response under control using the subject’s specific baseline covariates.
+(5) Estimate the average response under control by averaging (across all subjects in the trial) the probabilities estimated in Step 4.
+(6) The estimates of average responses rates in the two treatment groups from Steps 3 and 5 can be used to estimate an unconditional treatment effect, such as the risk difference, relative risk, or odds ratio.
+
+```r
+# unadjusted estimator for the (absolute) risk difference
+mort.28.prop.test <- prop.test(x = with(df, table(mort_28, trt)))
+print(mort.28.prop.test)
+```
+
+```
+## 
+## 	2-sample test for equality of proportions with continuity correction
+## 
+## data:  with(df, table(mort_28, trt))
+## X-squared = 2.4066, df = 1, p-value = 0.1208
+## alternative hypothesis: two.sided
+## 95 percent confidence interval:
+##  -0.059014408  0.006732078
+## sample estimates:
+##    prop 1    prop 2 
+## 0.4889817 0.5151229
+```
+
+```r
+# Estimate
+-diff(mort.28.prop.test$estimate)
+```
+
+```
+##      prop 2 
+## -0.02614117
+```
+
+```r
+# Confidence Interval
+mort.28.prop.test$conf.int
+```
+
+```
+## [1] -0.059014408  0.006732078
+## attr(,"conf.level")
+## [1] 0.95
+```
+
+```r
+# P-Value
+mort.28.prop.test$p.value
+```
+
+```
+## [1] 0.1208215
+```
+
+```r
+# Covariate-Adjusted Analysis
+# Fit the `glm` object
+# Same as Complete case analysis, substantive model // but don't use piping, otherwise problem in margins::margins
+df_mort28_comp <- df %>% filter(!is.na(mort_28))
+mort.28.cov.adj <-
+  glm(formula = mort_28 ~ trt + age + clinstatus_baseline,
+      data = df_mort28_comp,
+      family = binomial(link = "logit")
+      )
+# Print a summary of the `glm` object
+summary(mort.28.cov.adj)
+```
+
+```
+## 
+## Call:
+## glm(formula = mort_28 ~ trt + age + clinstatus_baseline, family = binomial(link = "logit"), 
+##     data = df_mort28_comp)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.7214  -0.5347  -0.3202  -0.1751   3.2512  
+## 
+## Coefficients:
+##                       Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)          -7.910312   0.296052 -26.719  < 2e-16 ***
+## trt                  -0.209605   0.072591  -2.887 0.003884 ** 
+## age                   0.079242   0.003009  26.339  < 2e-16 ***
+## clinstatus_baseline3  0.649082   0.195050   3.328 0.000875 ***
+## clinstatus_baseline4  1.926303   0.199983   9.632  < 2e-16 ***
+## clinstatus_baseline5  2.953344   0.247364  11.939  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 6250.5  on 8000  degrees of freedom
+## Residual deviance: 5047.0  on 7995  degrees of freedom
+## AIC: 5059
+## 
+## Number of Fisher Scoring iterations: 6
+```
+
+```r
+# Predict Pr{Y = 1 | Z = 1, X} // equals: E(Y|Z=1,X)
+pr_y1_z1 <-
+  predict(
+    object = mort.28.cov.adj,
+    newdata =
+      df_mort28_comp %>%
+      dplyr::mutate(
+        trt = 1
+      ),
+    type = "response"
+  )
+# Predict Pr{Y = 1 | Z = 0, X} // equals: E(Y|Z=0,X)
+pr_y1_z0 <-
+  predict(
+    object = mort.28.cov.adj,
+    newdata =
+      df_mort28_comp %>%
+      dplyr::mutate(
+        trt = 0
+      ),
+    type = "response"
+  )
+
+# Estimate RD
+adj_mean = mean(pr_y1_z1) - mean(pr_y1_z0)
+print(adj_mean)
+```
+
+```
+## [1] -0.01998633
+```
+
+```r
+# Standard Error RD
+# The variance/standard error can be calculted as 1/n times the sample variance of:
+# Z/P(Z=1)*[Y-E(Y|Z=1,X)] + E(Y|Z=1,X) - ((1-Z)/(1-P(1=Z))*[Y-E(Y|Z=0,X)] + E(Y|Z=0,X))
+p_arm = mean(df_mort28_comp$trt==1)
+adj_se = sqrt(
+  var((df_mort28_comp$trt==1)/p_arm * (df_mort28_comp$mort_28 - pr_y1_z1) + pr_y1_z1 -
+      ((df_mort28_comp$trt==0)/(1-p_arm) * (df_mort28_comp$mort_28-pr_y1_z0) + pr_y1_z0))/
+    nrow(df_mort28_comp))
+print(adj_se)
+```
+
+```
+## [1] 0.006939707
+```
+
+```r
+# Confidence Interval
+c(adj_mean-qnorm(0.975)*adj_se, adj_mean+qnorm(0.975)*adj_se)
+```
+
+```
+## [1] -0.033587901 -0.006384751
+```
+
+```r
+# Or, we can obtain the standard error of the estimate two ways. The first way is using the margins::margins() command, using the robust standard errors from sandwich::vcovHC // The second way to obtain these would be the bias corrected and accelerated (BCa) non-parametric bootstrap
+# You’ll see that we now have a standard error, p-value under the hypothesis that the marginal effect is 0, and a 95% Confidence Interval for the estimate. 
+
+library(sandwich)
+library(margins)
+mort.28.cov.adj.ame <-
+  margins::margins(
+    model = mort.28.cov.adj,
+    # Specify treatment variable
+    variables = "trt",
+    # Convert to outcome scale, not link scale
+    type = "response",
+    # Obtain robust standard errors
+    vcov = sandwich::vcovHC(x = mort.28.cov.adj, type = "HC3")
+  )
+summary(object = mort.28.cov.adj.ame, level = 0.95)
+```
+
+```
+##  factor     AME     SE       z      p   lower   upper
+##     trt -0.0200 0.0069 -2.8738 0.0041 -0.0336 -0.0063
+```
+
+```r
+mort.28.ame <- summary(object = mort.28.cov.adj.ame, level = 0.95)
+```
+Discussion point
 
 # (ii) Mortality at day 60
 
@@ -2157,7 +2358,7 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Recovery_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](Recovery_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
 ```r
 # testing: simple log-rank
@@ -2497,7 +2698,7 @@ survfit2(Surv(discharge_time, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Recovery_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](Recovery_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -2586,7 +2787,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df) %>%
   add_risktable()
 ```
 
-![](Recovery_files/figure-html/unnamed-chunk-14-2.png)<!-- -->
+![](Recovery_files/figure-html/unnamed-chunk-15-2.png)<!-- -->
 
 ```r
 # in int only
@@ -2602,7 +2803,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_int) %>%
   add_risktable()
 ```
 
-![](Recovery_files/figure-html/unnamed-chunk-14-3.png)<!-- -->
+![](Recovery_files/figure-html/unnamed-chunk-15-3.png)<!-- -->
 
 ```r
 # in cont only
@@ -2618,7 +2819,7 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ trt, data = df_cont) %>%
   add_risktable()
 ```
 
-![](Recovery_files/figure-html/unnamed-chunk-14-4.png)<!-- -->
+![](Recovery_files/figure-html/unnamed-chunk-15-4.png)<!-- -->
 
 ```r
 # testing: Fine-Gray regression
@@ -2651,7 +2852,7 @@ survfit2(Surv(discharge_time_sens, discharge_reached) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Recovery_files/figure-html/unnamed-chunk-14-5.png)<!-- -->
+![](Recovery_files/figure-html/unnamed-chunk-15-5.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -2692,7 +2893,7 @@ survfit2(Surv(discharge_time_sus, discharge_reached_sus) ~ trt, data=df) %>%
   add_risktable()
 ```
 
-![](Recovery_files/figure-html/unnamed-chunk-14-6.png)<!-- -->
+![](Recovery_files/figure-html/unnamed-chunk-15-6.png)<!-- -->
 
 ```r
 # testing: cox ph
@@ -6817,6 +7018,11 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
+  } else if (inherits(model, "summary.margins")) {
+    hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
+    ci <- c(model$lower, model$upper)
+    se <- model$SE
+    p_value <- model$p
   } else {
     stop("Unsupported model class")
   }
@@ -6843,33 +7049,35 @@ result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
 # result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
 #                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[4]] <- extract_trt_results(mort.60, "death at day 60",
+result_list[[4]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
+                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[5]] <- extract_trt_results(mort.60, "death at day 60",
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[5]] <- extract_trt_results(ttdeath, "death within fup",
+result_list[[6]] <- extract_trt_results(ttdeath, "death within fup",
                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[6]] <- extract_trt_results(new.mv.28, "new MV within 28d",
+result_list[[7]] <- extract_trt_results(new.mv.28, "new MV within 28d",
                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
+result_list[[8]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
                                         addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[8]] <- extract_trt_results(clin.28, "clinical status at day 28",
+result_list[[9]] <- extract_trt_results(clin.28, "clinical status at day 28",
                                         addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
-result_list[[9]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
+result_list[[10]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[10]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+result_list[[11]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age
-result_list[[11]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
+result_list[[12]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[12]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+result_list[[13]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[13]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5",
+result_list[[14]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5",
                                         addmargins(table(df$vir_clear_5, df$trt))[3,2], addmargins(table(df$vir_clear_5, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[14]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10",
+result_list[[15]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10",
                                         addmargins(table(df$vir_clear_10, df$trt))[3,2], addmargins(table(df$vir_clear_10, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[15]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15",
+result_list[[16]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15",
                                         addmargins(table(df$vir_clear_15, df$trt))[3,2], addmargins(table(df$vir_clear_15, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[16]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
+result_list[[17]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[17]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
+result_list[[18]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
                                         addmargins(table(df$ae_28_sev, df$trt))[6,2], addmargins(table(df$ae_28_sev, df$trt))[6,1]) # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
@@ -6886,24 +7094,25 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_control|trial    |JAKi        |
-|:-----|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|---------:|:--------|:-----------|
-|trt   |death at day 28                            |         0.8109044| 0.7032412| 0.9347835|      0.0725913| 0.0038835|           4061|      3940|RECOVERY |Baricitinib |
-|trt1  |death at day 28_dimp                       |         0.8030429| 0.6968020| 0.9252111|      0.0723122| 0.0024187|           4136|      3994|RECOVERY |Baricitinib |
-|trt2  |death at day 60                            |         0.8109044| 0.7032412| 0.9347835|      0.0725913| 0.0038835|           4061|      3940|RECOVERY |Baricitinib |
-|trt3  |death within fup                           |         0.8531458| 0.7561615| 0.9625693|      0.0615703| 0.0098924|           4061|      3940|RECOVERY |Baricitinib |
-|trt4  |new MV within 28d                          |         0.8228684| 0.6570718| 1.0296929|      0.1145031| 0.0886331|           3481|      3338|RECOVERY |Baricitinib |
-|trt5  |new MV or death within 28d                 |         0.8153498| 0.7199695| 0.9231650|      0.0634090| 0.0012847|           4077|      3952|RECOVERY |Baricitinib |
-|trt6  |clinical status at day 28                  |         0.7987406| 0.7117768| 0.8961529|      0.0587555| 0.0001310|           4136|      3994|RECOVERY |Baricitinib |
-|trt7  |discharge within 28 days                   |         1.1216980| 1.0682008| 1.1778744|      0.0249330| 0.0000041|           4136|      3994|RECOVERY |Baricitinib |
-|trt8  |discharge within 28 days, death=comp.event |         1.0929595| 1.0428902| 1.1454326|      0.0239256| 0.0002000|           4136|      3994|RECOVERY |Baricitinib |
-|trt9  |discharge within 28 days, death=hypo.event |         1.1327442| 1.0787118| 1.1894830|      0.0249370| 0.0000006|           4136|      3994|RECOVERY |Baricitinib |
-|trt10 |sustained discharge within 28 days         |         1.1216980| 1.0682008| 1.1778744|      0.0249330| 0.0000041|           4136|      3994|RECOVERY |Baricitinib |
-|trt11 |viral clearance until day 5                |         0.9712782| 0.6519952| 1.4461904|      0.2025879| 0.8856187|           3810|      3707|RECOVERY |Baricitinib |
-|trt12 |viral clearance until day 10               |         0.9141180| 0.6490415| 1.2856883|      0.1739792| 0.6057646|           3912|      3798|RECOVERY |Baricitinib |
-|trt13 |viral clearance until day 15               |         0.8550711| 0.6171853| 1.1819956|      0.1654235| 0.3439017|           3951|      3832|RECOVERY |Baricitinib |
-|trt14 |Any AE grade 3,4 within 28 days            |         0.9093754| 0.7511848| 1.1007845|      0.0974199| 0.3294946|           3559|      3399|RECOVERY |Baricitinib |
-|trt15 |AEs grade 3,4 within 28 days               |         0.8576196| 0.7201617| 1.0209676|      0.0889837| 0.0843297|           3559|      3399|RECOVERY |Baricitinib |
+|      |variable                                   | hazard_odds_ratio|   ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_control|trial    |JAKi        |
+|:-----|:------------------------------------------|-----------------:|----------:|----------:|--------------:|---------:|--------------:|---------:|:--------|:-----------|
+|trt   |death at day 28                            |         0.8109044|  0.7032412|  0.9347835|      0.0725913| 0.0038835|           4061|      3940|RECOVERY |Baricitinib |
+|trt1  |death at day 28_dimp                       |         0.8030429|  0.6968020|  0.9252111|      0.0723122| 0.0024187|           4136|      3994|RECOVERY |Baricitinib |
+|trt2  |death at day 28_marginal                   |        -0.0199695| -0.0335891| -0.0063500|      0.0069489| 0.0040560|           4061|      3940|RECOVERY |Baricitinib |
+|trt3  |death at day 60                            |         0.8109044|  0.7032412|  0.9347835|      0.0725913| 0.0038835|           4061|      3940|RECOVERY |Baricitinib |
+|trt4  |death within fup                           |         0.8531458|  0.7561615|  0.9625693|      0.0615703| 0.0098924|           4061|      3940|RECOVERY |Baricitinib |
+|trt5  |new MV within 28d                          |         0.8228684|  0.6570718|  1.0296929|      0.1145031| 0.0886331|           3481|      3338|RECOVERY |Baricitinib |
+|trt6  |new MV or death within 28d                 |         0.8153498|  0.7199695|  0.9231650|      0.0634090| 0.0012847|           4077|      3952|RECOVERY |Baricitinib |
+|trt7  |clinical status at day 28                  |         0.7987406|  0.7117768|  0.8961529|      0.0587555| 0.0001310|           4136|      3994|RECOVERY |Baricitinib |
+|trt8  |discharge within 28 days                   |         1.1216980|  1.0682008|  1.1778744|      0.0249330| 0.0000041|           4136|      3994|RECOVERY |Baricitinib |
+|trt9  |discharge within 28 days, death=comp.event |         1.0929595|  1.0428902|  1.1454326|      0.0239256| 0.0002000|           4136|      3994|RECOVERY |Baricitinib |
+|trt10 |discharge within 28 days, death=hypo.event |         1.1327442|  1.0787118|  1.1894830|      0.0249370| 0.0000006|           4136|      3994|RECOVERY |Baricitinib |
+|trt11 |sustained discharge within 28 days         |         1.1216980|  1.0682008|  1.1778744|      0.0249330| 0.0000041|           4136|      3994|RECOVERY |Baricitinib |
+|trt12 |viral clearance until day 5                |         0.9712782|  0.6519952|  1.4461904|      0.2025879| 0.8856187|           3810|      3707|RECOVERY |Baricitinib |
+|trt13 |viral clearance until day 10               |         0.9141180|  0.6490415|  1.2856883|      0.1739792| 0.6057646|           3912|      3798|RECOVERY |Baricitinib |
+|trt14 |viral clearance until day 15               |         0.8550711|  0.6171853|  1.1819956|      0.1654235| 0.3439017|           3951|      3832|RECOVERY |Baricitinib |
+|trt15 |Any AE grade 3,4 within 28 days            |         0.9093754|  0.7511848|  1.1007845|      0.0974199| 0.3294946|           3559|      3399|RECOVERY |Baricitinib |
+|trt16 |AEs grade 3,4 within 28 days               |         0.8576196|  0.7201617|  1.0209676|      0.0889837| 0.0843297|           3559|      3399|RECOVERY |Baricitinib |
 
 ```r
 # Save
