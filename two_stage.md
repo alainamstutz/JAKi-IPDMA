@@ -87,6 +87,15 @@ for (df in list_df) {
   df_ttdeath <- rbind(df_ttdeath, selected_rows)
 }
 
+## Mortality at day 28: average marginal effect
+outcomes <- "death at day 28_marginal"
+outcomes.firth <- "death at day 28_marginal_firth"
+df_mort28_ame <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_mort28_ame <- rbind(df_mort28_ame, selected_rows)
+}
+
 ## new MV within 28d
 outcomes <- "new MV within 28d"
 outcomes.firth <- "new MV within 28d_firth"
@@ -1314,7 +1323,7 @@ funnel(mort28.agg, common = TRUE,
 # par(oldpar)
 ```
 
-# (i.i) Primary outcome: Meta-regression by JAKi, including the non-IPD RCTs
+# (i.ii) Primary outcome: Meta-regression by JAKi, including the non-IPD RCTs
 
 ```r
 # meta-regression by JAKi
@@ -1345,7 +1354,7 @@ forest.meta(mort28.agg.jaki,
 # forest(mort28.agg.jaki, layout = "subgroup", calcwidth.hetstat = TRUE)
 ```
 
-# (i.i) Primary outcome: Meta-regression by Recruitment Period, including the non-IPD RCTs
+# (i.iii) Primary outcome: Meta-regression by Recruitment Period, including the non-IPD RCTs
 
 ```r
 # meta-regression by recruitment period
@@ -1371,31 +1380,104 @@ forest.meta(mort28.agg.rec,
 
 ![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
-# (i.i) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs
+# (i.iv) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs
 
 ```r
 # meta-regression by RoB
-mort28.agg.rob <- update.meta(mort28.agg, 
-                               subgroup = rob_mort28)
-forest.meta(mort28.agg.rob,
-            leftcols = c("studlab", 
-                         # "TE", 
-                         # "seTE", 
-                         "n.e"),
-            leftlabs = c("Trial", 
-                         # "log(OR)", 
-                         # "Standard Error", 
-                         "Sample Size"),
+# mort28.agg.rob <- update.meta(mort28.agg, 
+#                                subgroup = rob_mort28)
+# forest.meta(mort28.agg.rob,
+#             leftcols = c("studlab", 
+#                          # "TE", 
+#                          # "seTE", 
+#                          "n.e"),
+#             leftlabs = c("Trial", 
+#                          # "log(OR)", 
+#                          # "Standard Error", 
+#                          "Sample Size"),
+#             sortvar = +TE,
+#             test.subgroup.random = TRUE,
+#             text.random = "Average treatment effect (RE model)",
+#             title = "Average treatment effect - mortality 28 days", 
+#             xlim = c(0.03,30),
+#             # xlab = "Average treatment effect (95% CI)"
+#             )
+```
+
+# (i.v) Primary outcome: Covariate-adjusted Average marginal effects (RDs)
+
+```r
+# str(df_mort60)
+mort28.ame <- metagen(TE = hazard_odds_ratio,
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_ame,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      # sm = "SMD",
+                      fixed = T,
+                      random = T,
+                      prediction = F,
+                      method.tau = "ML", 
+                      hakn = T,
+                      adhoc.hakn.ci = "", 
+                      title = "Covariate-adjusted average marginal effect - mortality 28 days",
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(mort28.ame)
+```
+
+```
+## Review:     Covariate-adjusted average marginal effect - mortality 28 days
+## 
+##                                   95%-CI %W(common) %W(random)
+## Bari-SolidAct -0.0411 [-0.1170;  0.0348]        1.9        5.2
+## ACTT-2        -0.0177 [-0.0465;  0.0111]       13.1       19.0
+## Ghazaeian     -0.0155 [-0.1229;  0.0920]        0.9        2.8
+## TOFACOV        0.0150 [-0.0186;  0.0487]        9.7       16.3
+## COVINIB       -0.0377 [-0.0879;  0.0125]        4.3        9.9
+## COV-BARRIER   -0.0621 [-0.0934; -0.0308]       11.1       17.6
+## RECOVERY      -0.0200 [-0.0336; -0.0063]       58.9       29.3
+## 
+## Number of studies: k = 7
+## Number of observations: o = 11107
+## 
+##                                               95%-CI   z|t  p-value
+## Common effect model       -0.0221 [-0.0326; -0.0117] -4.15 < 0.0001
+## Random effects model (HK) -0.0239 [-0.0474; -0.0005] -2.50   0.0468
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0003 [0.0000; 0.0025]; tau = 0.0162 [0.0000; 0.0501]
+##  I^2 = 49.1% [0.0%; 78.4%]; H = 1.40 [1.00; 2.15]
+## 
+## Test of heterogeneity:
+##      Q d.f. p-value
+##  11.78    6  0.0671
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+```
+
+```r
+forest.meta(mort28.ame,
+            hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "Risk Difference", "Standard Error", "Sample Size"),
+            text.common = "Average marginal effect (common effects model)*",
+            text.random = "Average marginal effect (random effects model)*",
+            title = "Covariate-adjusted average marginal effect - mortality 28 days",
+            # xlim = c(-0.01,0.1),
             sortvar = +TE,
-            test.subgroup.random = TRUE,
-            text.random = "Average treatment effect (RE model)",
-            title = "Average treatment effect - mortality 28 days", 
-            xlim = c(0.03,30),
-            # xlab = "Average treatment effect (95% CI)"
+            # xlab = "Covariate-adjusted average marginal effect (95% CI)"
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+*Covariate-Adjusted Analysis for Marginal Estimands based on https://arxiv.org/abs/2306.05823 & FDA guidance https://www.fda.gov/media/148910/download
 
 # (ii) Mortality at day 60
 
@@ -1470,7 +1552,7 @@ forest.meta(mort60,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 Discussion points
 
 # (iii) Time to death within max. follow-up time
@@ -1544,7 +1626,7 @@ forest.meta(ttdeath,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 Discussion points
 
 # (iv) New mechanical ventilation or death within 28 days
@@ -1620,7 +1702,7 @@ forest.meta(new.mvd28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 Discussion points
 
 # (iv.i) New mechanical ventilation among survivors within 28 days
@@ -1695,7 +1777,7 @@ forest.meta(new.mv28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 Discussion points
 
 # (v) Clinical status at day 28
@@ -1771,7 +1853,7 @@ forest.meta(clin28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
@@ -1847,7 +1929,7 @@ forest.meta(ttdischarge.comp,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 Discussion points
 
 # (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
@@ -1923,7 +2005,7 @@ forest.meta(ttdischarge.hypo,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 Discussion points
 
 # (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -1999,7 +2081,7 @@ forest.meta(ttdischarge.cens,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 Discussion points
 
 # (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -2075,7 +2157,7 @@ forest.meta(ttdischarge.sus,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 Discussion points
 
 # (vii) Viral clearance up to day 5
@@ -2147,7 +2229,7 @@ forest.meta(vir.clear5,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
 Discussion points
 
 # (viii) Viral clearance up to day 10
@@ -2219,7 +2301,7 @@ forest.meta(vir.clear10,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 Discussion points
 
 # (ix) Viral clearance up to day 15
@@ -2291,7 +2373,7 @@ forest.meta(vir.clear15,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
 Discussion points
 
 # (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
@@ -2322,28 +2404,28 @@ summary(ae28)
 ## Review:     Average treatment effect - dverse event(s) grade 3 or 4, or a se ...
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.9051 [0.5070;  1.6157]        4.9
-## ACTT-2        0.9024 [0.6896;  1.1808]       22.9
+## Bari-SolidAct 0.9098 [0.5319;  1.5559]        5.7
+## ACTT-2        0.9024 [0.6896;  1.1808]       22.7
 ## Ghazaeian     3.2247 [0.1787; 58.1925]        0.2
 ## TOFACOV       0.6936 [0.2461;  1.9552]        1.5
 ## COVINIB       0.7969 [0.3127;  2.0306]        1.9
-## COV-BARRIER   1.1048 [0.8458;  1.4432]       23.2
-## RECOVERY      0.9094 [0.7513;  1.1007]       45.4
+## COV-BARRIER   1.1048 [0.8458;  1.4432]       23.0
+## RECOVERY      0.9094 [0.7513;  1.1007]       45.0
 ## 
 ## Number of studies: k = 7
-## Number of observations: o = 9833
+## Number of observations: o = 9829
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-CI) 0.9455 [0.8314; 1.0753] -0.85  0.3932
-## Prediction interval                 [0.7987; 1.1193]              
+## Random effects model (HK-CI) 0.9454 [0.8318; 1.0747] -0.86  0.3907
+## Prediction interval                 [0.7992; 1.1184]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1019]; tau = 0 [0.0000; 0.3193]
+##  tau^2 = 0 [0.0000; 0.1015]; tau = 0 [0.0000; 0.3186]
 ##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.76    6  0.8377
+##  2.76    6  0.8380
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -2367,7 +2449,7 @@ forest.meta(ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
 Discussion points
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
@@ -2398,28 +2480,28 @@ summary(ae28sev)
 ## Review:     Average treatment effect - Adverse event(s) grade 3 or 4, or a s ...
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 1.2857 [0.9250;  1.7870]       16.2
-## ACTT-2        0.8105 [0.7196;  0.9129]       24.6
+## Bari-SolidAct 1.2667 [0.9501;  1.6887]       17.6
+## ACTT-2        0.8105 [0.7196;  0.9129]       24.2
 ## Ghazaeian     3.2247 [0.1787; 58.1925]        0.5
 ## TOFACOV       0.6936 [0.2461;  1.9552]        3.6
-## COVINIB       0.5880 [0.3295;  1.0494]        8.9
-## COV-BARRIER   1.2980 [1.1155;  1.5104]       23.5
-## RECOVERY      0.8576 [0.7204;  1.0210]       22.6
+## COVINIB       0.5880 [0.3295;  1.0494]        8.8
+## COV-BARRIER   1.2980 [1.1155;  1.5104]       23.1
+## RECOVERY      0.8576 [0.7204;  1.0210]       22.2
 ## 
 ## Number of studies: k = 7
-## Number of observations: o = 9833
+## Number of observations: o = 9577
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.9619 [0.7275; 1.2718] -0.34  0.7452
-## Prediction interval              [0.5243; 1.7647]              
+## Random effects model (HK) 0.9639 [0.7309; 1.2713] -0.32  0.7564
+## Prediction interval              [0.5261; 1.7662]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0440 [0.0096; 0.6902]; tau = 0.2098 [0.0981; 0.8308]
-##  I^2 = 80.9% [61.3%; 90.5%]; H = 2.29 [1.61; 3.25]
+##  tau^2 = 0.0440 [0.0099; 0.6800]; tau = 0.2097 [0.0995; 0.8246]
+##  I^2 = 81.2% [62.2%; 90.7%]; H = 2.31 [1.63; 3.28]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f.  p-value
-##  31.39    6 < 0.0001
+##  31.97    6 < 0.0001
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -2443,7 +2525,7 @@ forest.meta(ae28sev,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 Discussion points
 
 # Collect all treatment effect estimates across endpoints
@@ -2597,8 +2679,8 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |viral clearance until day 5                |         0.9549876| 0.6459928| 1.4117825|      0.0908532| 0.6625652|            311|               4739|       313|          4624|two-stage |
 |viral clearance until day 10               |         0.9717526| 0.7999144| 1.1805052|      0.0992858| 0.7728864|            446|               4894|       452|          4758|two-stage |
 |viral clearance until day 15               |         0.9334866| 0.7720192| 1.1287249|      0.0441396| 0.2592637|            544|               4949|       550|          4817|two-stage |
-|Any AE grade 3,4 within 28 days            |         0.9455019| 0.8313790| 1.0752905|      0.0656289| 0.3931698|            652|               5073|       640|          4860|two-stage |
-|AEs grade 3,4 within 28 days               |         0.9618896| 0.7274779| 1.2718348|      0.1141505| 0.7451647|              5|                  5|         3|             3|two-stage |
+|Any AE grade 3,4 within 28 days            |         0.9454432| 0.8317619| 1.0746620|      0.0653622| 0.3907180|            652|               5073|       640|          4860|two-stage |
+|AEs grade 3,4 within 28 days               |         0.9639312| 0.7308620| 1.2713254|      0.1131203| 0.7563974|              5|                  5|         3|             3|two-stage |
 
 ```r
 # Save
@@ -2652,7 +2734,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 ## generated.
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
 
 # TREATMENT-COVARIATE INTERACTIONS
@@ -2728,6 +2810,17 @@ df_comorb_count_mort28 <- data.frame()
 for (df in list_int_df) {
   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
   df_comorb_count_mort28 <- rbind(df_comorb_count_mort28, selected_rows)
+}
+
+## Any Comorbidity on Mortality at day 28
+outcomes <- "comorbidity_any"
+outcomes.firth <- "comorbidity_any_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_comorb_any_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_comorb_any_mort28 <- rbind(df_comorb_any_mort28, selected_rows)
 }
 
 ## Comedication on Mortality at day 28
@@ -2995,7 +3088,7 @@ forest.meta(rs.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
 Discussion points
 
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
@@ -3066,7 +3159,7 @@ forest.meta(vb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3246,7 +3339,7 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3322,7 +3415,7 @@ forest.meta(age.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3503,7 +3596,7 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3579,7 +3672,7 @@ forest.meta(comorb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
 
 ```r
 # str(df_comorb_count_mort28)
@@ -3648,7 +3741,76 @@ forest.meta(comorb.count.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-36-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-37-2.png)<!-- -->
+
+```r
+# str(df_comorb_any_mort28)
+comorb.any.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_comorb_any_mort28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = F, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on primary endpoint: Any Comorbidity",
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(comorb.any.mort28)
+```
+
+```
+## Review:     Treatment-covariate interaction on primary endpoint: Any Comorbidity
+## 
+##               log(Ratio of OR)            95%-CI %W(random)
+## Bari-SolidAct          -0.2150 [-2.4303; 2.0003]        1.6
+## ACTT-2                 -1.2414 [-3.8112; 1.3284]        1.2
+## Ghazaeian               0.2132 [-3.0408; 3.4672]        0.8
+## TOFACOV                 0.7089 [-3.8754; 5.2931]        0.4
+## COVINIB                 0.9599 [-3.5178; 5.4376]        0.4
+## COV-BARRIER            -0.1863 [-1.2229; 0.8503]        7.5
+## RECOVERY                0.4639 [ 0.1619; 0.7659]       88.1
+## 
+## Number of studies: k = 7
+## 
+##                              log(Ratio of OR)           95%-CI    t p-value
+## Random effects model (HK-CI)           0.3844 [0.1009; 0.6679] 2.66  0.0079
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.6986]; tau = 0 [0.0000; 0.8358]
+##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  3.34    6  0.7648
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = )
+```
+
+```r
+forest.meta(comorb.any.mort28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            # text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on primary endpoint: Any Comorbidity",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-37-3.png)<!-- -->
 Discussion points
 
 # Interaction: Comedication on primary endpoint
@@ -3717,7 +3879,7 @@ forest.meta(comed.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
 Discussion points
 
 # Interaction: Vaccination on AEs
@@ -3747,23 +3909,23 @@ summary(vacc.ae28)
 ## Review:     Treatment-covariate interaction on AEs: vaccination
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.5606 [-0.6675; 1.7886]        9.1
+## Bari-SolidAct           0.3383 [-0.8210; 1.4976]       10.0
 ## TOFACOV                 0.9745 [-3.6477; 5.5967]        0.6
 ## COVINIB                 0.0000 [-4.7030; 4.7030]        0.6
-## RECOVERY               -0.0530 [-0.4431; 0.3371]       89.7
+## RECOVERY               -0.0530 [-0.4431; 0.3371]       88.7
 ## 
 ## Number of studies: k = 4
 ## 
-##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.0094 [-0.3600; 0.3789] 0.05  0.9602
+##                              log(Ratio of OR)            95%-CI     t p-value
+## Random effects model (HK-CI)          -0.0069 [-0.3743; 0.3605] -0.04  0.9707
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 1.2476]; tau = 0 [0.0000; 1.1169]
+##  tau^2 = 0 [0.0000; 0.5989]; tau = 0 [0.0000; 0.7739]
 ##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.04    3  0.7917
+##  0.57    3  0.9038
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -3786,7 +3948,7 @@ forest.meta(vacc.ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
 Discussion points
 
 # Interaction: Symptom onset on primary endpoint
@@ -3859,7 +4021,7 @@ forest.meta(symp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
 Discussion points
 
 # Interaction: CRP on primary endpoint
@@ -3932,7 +4094,7 @@ forest.meta(crp.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-41-1.png)<!-- -->
 Discussion points
 
 # Collect all interaction effect estimates
@@ -3979,10 +4141,11 @@ result_list[[2]] <- extract_interaction(vb.mort28, "ventilation")
 result_list[[3]] <- extract_interaction(age.mort28, "age")
 result_list[[4]] <- extract_interaction(comorb.mort28, "comorbidity") 
 result_list[[5]] <- extract_interaction(comorb.count.mort28, "comorbidity count") 
-result_list[[6]] <- extract_interaction(comed.mort28, "comedication")
-result_list[[7]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
-result_list[[8]] <- extract_interaction(symp.mort28, "symptom duration") 
-result_list[[9]] <- extract_interaction(crp.mort28, "crp") 
+result_list[[6]] <- extract_interaction(comorb.any.mort28, "any comorbidity") 
+result_list[[7]] <- extract_interaction(comed.mort28, "comedication")
+result_list[[8]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
+result_list[[9]] <- extract_interaction(symp.mort28, "symptom duration") 
+result_list[[10]] <- extract_interaction(crp.mort28, "crp") 
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -4004,8 +4167,9 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |age                 |          1.010|    0.999|    1.021|          0.005|   0.077|two-stage |
 |comorbidity         |          1.213|    1.021|    1.442|          0.070|   0.034|two-stage |
 |comorbidity count   |          1.107|    0.974|    1.257|          0.052|   0.099|two-stage |
+|any comorbidity     |          1.469|    1.106|    1.950|          0.145|   0.008|two-stage |
 |comedication        |          1.275|    0.840|    1.934|          0.213|   0.254|two-stage |
-|vaccination on AEs  |          1.009|    0.698|    1.461|          0.188|   0.960|two-stage |
+|vaccination on AEs  |          0.993|    0.688|    1.434|          0.187|   0.971|two-stage |
 |symptom duration    |          0.999|    0.967|    1.032|          0.013|   0.954|two-stage |
 |crp                 |          1.000|    0.999|    1.001|          0.001|   0.896|two-stage |
 

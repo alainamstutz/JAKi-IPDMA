@@ -86,6 +86,15 @@ for (df in list_df) {
   df_ttdeath <- rbind(df_ttdeath, selected_rows)
 }
 
+## Mortality at day 28: average marginal effect
+outcomes <- "death at day 28_marginal"
+outcomes.firth <- "death at day 28_marginal_firth"
+df_mort28_ame <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_mort28_ame <- rbind(df_mort28_ame, selected_rows)
+}
+
 ## new MV within 28d
 outcomes <- "new MV within 28d"
 outcomes.firth <- "new MV within 28d_firth"
@@ -586,7 +595,7 @@ funnel(mort28.agg, common = TRUE,
 # par(oldpar)
 ```
 
-# (i.i) Primary outcome: Meta-regression by JAKi, including the non-IPD RCTs
+# (i.ii) Primary outcome: Meta-regression by JAKi, including the non-IPD RCTs
 ```{r warning=FALSE, fig.width=11, fig.height=8}
 # meta-regression by JAKi
 mort28.agg.jaki <- update.meta(mort28.agg, 
@@ -612,7 +621,7 @@ forest.meta(mort28.agg.jaki,
 
 ```
 
-# (i.i) Primary outcome: Meta-regression by Recruitment Period, including the non-IPD RCTs
+# (i.iii) Primary outcome: Meta-regression by Recruitment Period, including the non-IPD RCTs
 ```{r warning=FALSE, fig.width=11, fig.height=8}
 # meta-regression by recruitment period
 mort28.agg.rec <- update.meta(mort28.agg, 
@@ -636,29 +645,65 @@ forest.meta(mort28.agg.rec,
 
 ```
 
-# (i.i) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs
+# (i.iv) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs
 ```{r warning=FALSE, fig.width=11, fig.height=8}
 # meta-regression by RoB
-mort28.agg.rob <- update.meta(mort28.agg, 
-                               subgroup = rob_mort28)
-forest.meta(mort28.agg.rob,
-            leftcols = c("studlab", 
-                         # "TE", 
-                         # "seTE", 
-                         "n.e"),
-            leftlabs = c("Trial", 
-                         # "log(OR)", 
-                         # "Standard Error", 
-                         "Sample Size"),
+# mort28.agg.rob <- update.meta(mort28.agg, 
+#                                subgroup = rob_mort28)
+# forest.meta(mort28.agg.rob,
+#             leftcols = c("studlab", 
+#                          # "TE", 
+#                          # "seTE", 
+#                          "n.e"),
+#             leftlabs = c("Trial", 
+#                          # "log(OR)", 
+#                          # "Standard Error", 
+#                          "Sample Size"),
+#             sortvar = +TE,
+#             test.subgroup.random = TRUE,
+#             text.random = "Average treatment effect (RE model)",
+#             title = "Average treatment effect - mortality 28 days", 
+#             xlim = c(0.03,30),
+#             # xlab = "Average treatment effect (95% CI)"
+#             )
+
+```
+
+# (i.v) Primary outcome: Covariate-adjusted Average marginal effects (RDs)
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# str(df_mort60)
+mort28.ame <- metagen(TE = hazard_odds_ratio,
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_ame,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      # sm = "SMD",
+                      fixed = T,
+                      random = T,
+                      prediction = F,
+                      method.tau = "ML", 
+                      hakn = T,
+                      adhoc.hakn.ci = "", 
+                      title = "Covariate-adjusted average marginal effect - mortality 28 days",
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(mort28.ame)
+forest.meta(mort28.ame,
+            hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "Risk Difference", "Standard Error", "Sample Size"),
+            text.common = "Average marginal effect (common effects model)*",
+            text.random = "Average marginal effect (random effects model)*",
+            title = "Covariate-adjusted average marginal effect - mortality 28 days",
+            # xlim = c(-0.01,0.1),
             sortvar = +TE,
-            test.subgroup.random = TRUE,
-            text.random = "Average treatment effect (RE model)",
-            title = "Average treatment effect - mortality 28 days", 
-            xlim = c(0.03,30),
-            # xlab = "Average treatment effect (95% CI)"
+            # xlab = "Covariate-adjusted average marginal effect (95% CI)"
             )
 
 ```
+*Covariate-Adjusted Analysis for Marginal Estimands based on https://arxiv.org/abs/2306.05823 & FDA guidance https://www.fda.gov/media/148910/download
 
 # (ii) Mortality at day 60
 ```{r warning=FALSE, fig.width=13, fig.height=4}
@@ -1414,6 +1459,17 @@ for (df in list_int_df) {
   df_comorb_count_mort28 <- rbind(df_comorb_count_mort28, selected_rows)
 }
 
+## Any Comorbidity on Mortality at day 28
+outcomes <- "comorbidity_any"
+outcomes.firth <- "comorbidity_any_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_comorb_any_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_comorb_any_mort28 <- rbind(df_comorb_any_mort28, selected_rows)
+}
+
 ## Comedication on Mortality at day 28
 outcomes <- "comedication"
 outcomes.firth <- "comedication_firth" # depends on which estimates to include
@@ -2136,6 +2192,36 @@ forest.meta(comorb.count.mort28,
             xlab = "95% CI for interaction effect"
             )
 
+# str(df_comorb_any_mort28)
+comorb.any.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_comorb_any_mort28,
+                      # n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "log(Ratio of OR)",
+                      fixed = F, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Treatment-covariate interaction on primary endpoint: Any Comorbidity",
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      )
+summary(comorb.any.mort28)
+forest.meta(comorb.any.mort28,
+            # hetstat = F,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE"),
+            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            # text.common = "Average interaction effect (common effect model)*",
+            text.random = "Average interaction effect (random effect model)*",
+            title = "Treatment-covariate interaction on primary endpoint: Any Comorbidity",
+            # xlim = c(0.15,5),
+            xlab = "95% CI for interaction effect"
+            )
+
 ```
 Discussion points
 
@@ -2325,10 +2411,11 @@ result_list[[2]] <- extract_interaction(vb.mort28, "ventilation")
 result_list[[3]] <- extract_interaction(age.mort28, "age")
 result_list[[4]] <- extract_interaction(comorb.mort28, "comorbidity") 
 result_list[[5]] <- extract_interaction(comorb.count.mort28, "comorbidity count") 
-result_list[[6]] <- extract_interaction(comed.mort28, "comedication")
-result_list[[7]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
-result_list[[8]] <- extract_interaction(symp.mort28, "symptom duration") 
-result_list[[9]] <- extract_interaction(crp.mort28, "crp") 
+result_list[[6]] <- extract_interaction(comorb.any.mort28, "any comorbidity") 
+result_list[[7]] <- extract_interaction(comed.mort28, "comedication")
+result_list[[8]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
+result_list[[9]] <- extract_interaction(symp.mort28, "symptom duration") 
+result_list[[10]] <- extract_interaction(crp.mort28, "crp") 
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
