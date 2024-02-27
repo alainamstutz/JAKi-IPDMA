@@ -1355,7 +1355,7 @@ comorb.count.mort28 <- glmmTMB(mort_28 ~
 summary(comorb.count.mort28)
 
 # Any Comorbidity
-comorb.any.mort28 <- glmmTMB(mort_28 ~ 
+comorb.any.mort28 <- glmer(mort_28 ~ 
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
