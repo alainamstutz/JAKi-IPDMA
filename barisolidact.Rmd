@@ -21,7 +21,6 @@ library(tableone)
 library(haven) # Read sas files
 library(here)
 library(kableExtra)
-
 library(jtools) # for summ() and plot_summs
 library(sjPlot) # for tab_model
 library(ggplot2) # survival/TTE analyses and other graphs
@@ -37,6 +36,8 @@ library(finalfit) # missing data exploration
 library(mice) # multiple imputation
 library(jomo) # multiple imputation
 library(mitools) # multiple imputation
+
+(1)R Packages: abind arm asypow bayesm bayesSurv BBmisc bitops bspmma Cairo cairoDevice car caret chron clinfun coda coin colorspace copas data.table dichromat digest doBy doParallel e1071 ellipse epicalc fields foreach fork Formula gam GAMBoost ggplot2 gridBase gridExtra gsl gtable HH Hmisc HTMLUtils hwriter hwriterPlus iterators kernlab labeling latticeExtra leaps lme4 lubridate mcmc MCMCpack memoise meta metacor metafor metagen metaLik metamisc MSToolkit muhaz multcomp munsell mvmeta mvtnorm outliers pcaPP plotrix plyr proto R2HTML R2WinBUGS randomForest RColorBrewer reshape2 RGraphics rmeta robust robustbase rrcov RUnit rworldmap sas7bdat scales scatterplot3d smoothSurv sp spam ssanv stringr TeachingDemos xtable survival
 
 ```
 
