@@ -433,7 +433,7 @@ df <- df %>%
 # table(df_ae$AE_28) # any grade 3 or 4 or serious
 df_ae34 <- df_ae %>% 
   rename(id_pat = PARTICIPANT_ID) %>% 
-  filter(AE_28 == 1)
+  filter(AE_28 == 1) # contains only grade 3 or 4
 # Keep just 1 id_pat (-> ANY adverse event grade 3 (severe), 4 (serious)) 
 df_ae34_unique <- df_ae34 %>% distinct(id_pat, .keep_all = TRUE)
 # Assign the outcome
@@ -463,16 +463,84 @@ df <- df %>%
                                 TRUE ~ ae_28_sev))
 # addmargins(table(df$ae_28_sev, df$trt, useNA = "always"))
 
-# (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
+# (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiac events (excl. hypertension), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4), i) Multiple organ dysfunction syndrome and septic shock
 
-# (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+a<-as.data.frame(unique(df_ae$MeddraPT)) # contains standardized categories
+# unique(df_ae$MeddraLLT) 
+# df_ae <- df_ae %>% 
+#   mutate(dupl = duplicated(MeddraLLT, MeddraPT))
+# df_ae %>% 
+#   select(dupl, MeddraPT, MeddraLLT) %>% 
+#   filter(dupl == F) %>% 
+#   View() # does not contain more information
+
+df_ae <- df_ae %>%
+  rename(id_pat = PARTICIPANT_ID,
+         trt = arm)
+df_thrombo <- df_ae %>% # a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis)
+  filter(MeddraPT %in% c("Pulmonary embolism", "Cerebral infarction", "Vena cava thrombosis", "Deep vein thrombosis", "Catheter site thrombosis", "Peripheral artery thrombosis")) %>% 
+  mutate(aesi = "thrombo")
+df_sec_inf <- df_ae %>% # b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), but not COVID-19 pneumonia! First extract all infections, then reclassify.
+  filter(MeddraPT %in% c("Pneumonia bacterial", "Pneumonia", # these are all ventilator-associated pneumonia not covid-19
+                         "Septic arthritis staphylococcal", "Mediastinitis", "Pneumonitis", "Infectious pleural effusion",
+                         "Superinfection bacterial", "Staphylococcal bacteraemia", "Bacterial infection", "Bacterial infection",
+                         "Bacteraemia", "Fungaemia", "Disseminated aspergillosis", "URINARY TRACT INFECTION", "PYELONEPHRITIS", 
+                         "Device related bacteraemia", "SEPSIS", "Sepis", "FUNGAL INFECTION", "ORAL CANDIDIASIS", 
+                         "CANDIDA INFECTION","BRONCHOPULMONARY ASPERGILLOSIS", "VULVOVAGINAL MYCOTIC INFECTION", 
+                         "FUNGAL SKIN INFECTION", "TOOTH INFECTION", "PAROTITIS", "CELLULITIS", "ORAL FUNGAL INFECTION",
+                         "Bronchopulmonary aspergillosis", "Prostatitis Escherichia coli", "ABDOMINAL INFECTION", 
+                         "Candida pneumonia", "PHLEBITIS", "CANDIDA PNEUMONIA", "BURSITIS", "CHOLECYSTITIS ACUTE")) %>% 
+  mutate(aesi = "sec_inf")
+df_reactivate <- df_ae %>% # c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B.
+  filter(MeddraPT %in% c("Herpes simplex reactivation", "Herpes simplex", "Cytomegalovirus infection reactivation", "Hepatitis B reactivation")) %>% 
+  mutate(aesi = "reactivate")
+df_cardiac <- df_ae %>% # d) serious cardiac events (excl. not hypertension)
+  filter(MeddraPT %in% c("BRADYCARDIA", "Cardiac failure", "Bradycardia", "Acute myocardial infarction", 
+                         "SUPRAVENTRICULAR TACHYCARDIA", "TACHYCARDIA", "VENTRICULAR EXTRASYSTOLES", "ATRIAL FIBRILLATION", 
+                         "Acute coronary syndrome","Cardiac arrest", "SINUS ARRHYTHMIA")) %>% 
+  mutate(aesi = "cardiac")
+df_penia <- df_ae %>% # e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia)
+  filter(MeddraPT %in% c("Anaemia", "LYMPHOCYTE COUNT DECREASED", "BLOOD CREATININE DECREASED", "THROMBOCYTOPENIA",
+                         "LYMPHOPENIA", "LEUKOPENIA", "NEUTROPENIA", "Thrombocytopenia", "Bicytopenia")) %>% 
+  mutate(aesi = "penia")
+# df_malig <- NA
+df_git_bl <- df_ae %>% # g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis)
+  filter(MeddraPT %in% c("Gastrointestinal haemorrhage", "Rectal haemorrhage", "ABDOMINAL WALL HAEMORRHAGE", "DIVERTICULUM GASTRIC")) %>% 
+  mutate(aesi = "git_bl")
+df_hepatox <- df_ae %>% # h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+  filter(MeddraPT %in% c("Hepatotoxicity", "Hepatocellular injury") |
+           (MeddraPT %in% c("HEPATIC ENZYME INCREASED", "ALANINE AMINOTRANSFERASE INCREASED", "HYPERTRANSAMINASAEMIA",
+                         "Alanine aminotransferase increased", "TRANSAMINASES INCREASED", "Transaminases increased",
+                         "Aspartate aminotransferase increased", "Blood bilirubin increased") & 
+              AE_28 == 1)) %>% # only grade 3 and 4 for the liver function tests
+  mutate(aesi = "hepatox")
+df_mods <- df_ae %>% # i) Multiple organ dysfunction syndrome and septic shock
+  filter(MeddraPT %in% c("Multiple organ dysfunction syndrome", "Septic shock")) %>% 
+  mutate(aesi = "mods")
+
+df_aesi <- rbind(df_mods, df_hepatox, df_git_bl, df_penia, df_cardiac, df_reactivate, df_sec_inf, df_thrombo)
+df_aesi <- df_aesi %>% rename(desc = MeddraPT)
+df_aesi <- df_aesi %>% 
+  select(trt, aesi, desc)
+table(df_aesi$trt, df_aesi$aesi)
+```
+
+```
+##    
+##     cardiac git_bl hepatox mods penia reactivate sec_inf thrombo
+##   0       7      2      18    9    15          3      67      23
+##   1       7      2      13   18     9          3      73      13
+```
+
+```r
+# Save
+saveRDS(df_aesi, file = "df_aesi_barisolidact.RData")
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-
-# df_ae <- df %>% 
-#   select(id_pat, trt, x, ae_28_list, aesi_28)
-# # Save
-# saveRDS(df_ae, file = "df_ae_barisolidact.RData")
+df_ae <- df_ae %>% 
+  select(trt, MeddraLLT, MeddraPT, MeddraSOC, Grade)
+# Save
+saveRDS(df_ae, file = "df_ae_barisolidact.RData")
 ```
 Discussion points OUTCOME data:
 1. Re QoL: Wait for other trials first. Find out more about the QoL measure used.
