@@ -6556,9 +6556,9 @@ summary(crp.mort28)
 ## Random effects:
 ## 
 ## Conditional model:
-##  Groups    Name                  Variance Std.Dev. 
-##  trial_f   trt_centered_n        7.32e-08 0.0002706
-##  trial_f.1 clinstatus_baseline_n 6.88e-01 0.8294787
+##  Groups    Name                  Variance  Std.Dev. 
+##  trial_f   trt_centered_n        7.321e-08 0.0002706
+##  trial_f.1 clinstatus_baseline_n 6.880e-01 0.8294788
 ## Number of obs: 10680, groups:  trial_f, 7
 ## 
 ## Conditional model:
@@ -7373,6 +7373,9 @@ plot(het, sequence = T) # plot tree with heterogeneous effects
 ```
 
 ![](one-stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-2.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-3.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-4.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-5.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-6.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-7.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-8.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-9.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-10.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-11.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-12.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-13.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-14.png)<!-- -->
-Notes: Nodes are colored using a diverging palette. Nodes with predictions smaller (in our case: more effect on mortality) than the ATE (i.e., the root prediction) are colored in blue shades, and nodes with predictions larger than the ATE are colored in red shades. Moreover, predictions that are more distant in absolute value from the ATE get darker shades.
+Notes: Nodes with predictions smaller (in our case: more effect on mortality) than the ATE (i.e., the root prediction) are colored in blue shades, and nodes with predictions larger than the ATE are colored in red shades. Moreover, predictions that are more distant in absolute value from the ATE get darker shades.
 
-build_aggtree (Aggregation Trees): Nonparametric data-driven approach to discovering heterogeneous subgroups in a selection-on-observables framework. The approach constructs a sequence of groupings, one for each level of granularity. Groupings are nested and feature an optimality property. For each grouping, we obtain point estimation and standard errors for the group average treatment effects (GATEs). Additionally, we assess whether systematic heterogeneity is found by testing the hypotheses that the differences in the GATEs across all pairs of groups are zero. Finally, we investigate the driving mechanisms of effect heterogeneity by computing the average characteristics of units in each group.
+Aggregation Trees: Nonparametric data-driven approach to discovering heterogeneous subgroups in a selection-on-observables framework, i.e. to define groups whereby each group has similar treatment effects, but across groups distinct differences in treatment effect. The approach constructs a sequence of groupings, one for each level of granularity. Groupings are nested and feature an optimality property. For each grouping, we obtain point estimation and standard errors for the group average treatment effects (GATEs). Additionally, we assess whether systematic heterogeneity is found by testing the hypotheses that the differences in the GATEs across all pairs of groups are zero. Finally, we investigate the driving mechanisms of effect heterogeneity by computing the average characteristics of units in each group. Aggregation trees are a three-step procedure. First, the conditional average treatment effects (CATEs) are estimated using any estimator. Second, a tree is grown to approximate the CATEs. Third, the tree is pruned to derive a nested sequence of optimal groupings, one for each granularity level. For each level of granularity, we can obtain point estimation and inference about the GATEs. Hypothesis testing: inference_aggtree uses the standard errors obtained by fitting the linear models above to test the hypotheses that the GATEs are different across all pairs of leaves. Here, we adjust p-values to account for multiple hypotheses testing using Holm’s procedure. inference_aggtree takes as input an aggTrees object constructed by build_aggtree. Then, for the desired granularity level, chosen via the n_groups argument, it provides point estimation and standard errors for the GATEs. Additionally, it performs some hypothesis testing to assess whether we find systematic heterogeneity and computes the average characteristics of the units in each group to investigate the driving mechanisms.
+
+https://riccardo-df.github.io/aggTrees/articles/aggTrees-vignette.html
+
