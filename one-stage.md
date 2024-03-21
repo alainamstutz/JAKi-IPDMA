@@ -6837,6 +6837,14 @@ extract_interaction <- function(model, variable_name) {
 # Loop through
 result_list <- list()
 
+class(comorb.any.mort28)
+```
+
+```
+## [1] "glmmTMB"
+```
+
+```r
 result_list[[1]] <- extract_interaction(rs.mort28, "respiratory support") 
 result_list[[2]] <- extract_interaction(vb.mort28, "ventilation") 
 result_list[[3]] <- extract_interaction(age.mort28, "age")
@@ -7202,3 +7210,169 @@ Second, the interaction estimates were combined across trials in a random-effect
 Sizing of all squares are in proportion to the inverse of the variance of the estimates. 
 For continuous covariates (age, symptom duration, CRP), a cut-off was chosen for descriptive purpose, but they were included as a continuous treatment-covariate interaction, assuming linearity. 
 Similarly, ordinal covariates (detailed respiratory support, comorbidities) were included as a continuous treatment-covariate interaction, assuming linearity. 
+
+# Exploratory: Explore treatment heterogeneity using causal trees
+
+```r
+library(causalweight)
+```
+
+```
+## Loading required package: ranger
+```
+
+```r
+library(aggTrees)
+
+df_ctree <- df_tot %>% 
+  select(mort_28_dimp, trt
+         , "age"
+         , "sex"
+         , "clinstatus_baseline"
+         , "comorb_cat"
+         , "JAKi"
+         , "trial"
+         , "comed_cat"
+         , "sympdur"
+         , "vacc"
+         , "crp"
+         , "ethn"
+         )
+
+# Remove attributes
+attributes(df_ctree$trt) <- NULL
+attributes(df_ctree$age) <- NULL 
+attributes(df_ctree$sex) <- NULL
+# str(df_ctree)
+
+# Sex
+df_ctree <- df_ctree %>%
+  mutate(sex = case_when(sex == "male" | sex == "M" | sex == "2" ~ 0,
+                         sex == "female" | sex == "F" | sex == "1" ~ 1))
+
+# clinstatus_baseline
+df_ctree$clinstatus_baseline <- as.numeric(df_ctree$clinstatus_baseline)
+
+# JAKi
+df_ctree <- df_ctree %>%
+  mutate(JAKi = case_when(JAKi == "Baricitinib" ~ 1,
+                         JAKi == "Tofacitinib" ~ 0))
+# Ethnicity
+df_ctree <- df_ctree %>%
+  mutate(ethn = case_when(ethn == "AMERICAN INDIAN OR ALASKA NATIVE" ~ 1,
+                             ethn == "BLACK OR AFRICAN AMERICAN" ~ 2,
+                             ethn == "Asian" | ethn == "ASIAN" ~ 3,
+                             ethn == "caucasian" | ethn == "White" | ethn == "WHITE" ~ 4,
+                             ethn == "HISPANIC OR LATINO" | ethn == "Latino" ~ 5,
+                             ethn == "MIXED" | ethn == "MULTIPLE" ~ 6,
+                             ethn == "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER" ~ 7,
+                             ethn == "Persian/Mazani" ~ 8))
+# trial
+df_ctree <- df_ctree %>%
+  mutate(trial = case_when(trial == "Bari-Solidact" ~ 1,
+                             trial == "ACTT2" ~ 2,
+                             trial == "Ghazaeian" ~ 3,
+                             trial == "TOFACOV" ~ 4,
+                             trial == "COVINIB" ~ 5,
+                             trial == "COV-BARRIER" ~ 6,
+                             trial == "RECOVERY" ~ 7,
+                             # trial == "Murugesan" ~ 8
+                             ))
+# summary(df_ctree)
+df_ctree <- na.omit(df_ctree)
+df_ctree <- as.data.frame(df_ctree)
+# str(df_ctree)
+
+Y=df_ctree[,1] # outcome, binary, numeric
+D=df_ctree[,2] # treatment, binary, numeric
+X=as.matrix(df_ctree[,3:13]) # define covariates, all as numeric
+set.seed(1) # set seed
+het=build_aggtree(y=Y, D=D, X=X) # estimate effect heterogeneity based on tree
+# summary(het)
+print(het)
+```
+
+```
+## Honest estimates: TRUE 
+## n= 4191 
+## 
+## node), split, n, deviance, yval
+##       * denotes terminal node
+## 
+##   1) root 4191 0.312654400 -0.0106558200  
+##     2) clinstatus_baseline>=3.5 1066 0.081537730 -0.0530330800  
+##       4) sympdur>=9.5 568 0.043855920 -0.0608666500  
+##         8) comorb_cat< 1.5 285 0.017031450 -0.0510581200  
+##          16) crp< 72.5 130 0.006293810 -0.0468558700 *
+##          17) crp>=72.5 155 0.006878279 -0.0548351400 *
+##         9) comorb_cat>=1.5 283 0.018255490 -0.0715092500  
+##          18) crp< 17 36 0.002800495  0.0823793200 *
+##          19) crp>=17 247 0.011016710 -0.0883498900 *
+##       5) sympdur< 9.5 498 0.022447100 -0.0428809100  
+##        10) age< 73.5 425 0.013952460 -0.0008513915 *
+##        11) age>=73.5 73 0.002903766 -0.2242217000 *
+##     3) clinstatus_baseline< 3.5 3125 0.158848000  0.0041659870  
+##       6) age< 74.5 2642 0.086871660  0.0045370200  
+##        12) vacc>=0.5 852 0.024880320  0.0241118000  
+##          24) age< 67.5 656 0.011733290  0.0403451900 *
+##          25) age>=67.5 196 0.009974903 -0.0228334100 *
+##        13) vacc< 0.5 1790 0.046520630 -0.0049858460  
+##          26) crp>=125.35 507 0.009417529 -0.0316140700 *
+##          27) crp< 125.35 1283 0.029171560  0.0052749520  
+##            54) comorb_cat< 1.5 751 0.012750560  0.0017923960  
+##             108) age>=53.5 276 0.003583620 -0.0002918956 *
+##             109) age< 53.5 475 0.005717998  0.0028884840 *
+##            55) comorb_cat>=1.5 532 0.011955880  0.0099843900 *
+##       7) age>=74.5 483 0.035482100  0.0020594740  
+##        14) crp>=114.5 179 0.006266835  0.0545848200 *
+##        15) crp< 114.5 304 0.015444360 -0.0249731200  
+##          30) sex< 0.5 187 0.007365630  0.0010929710 *
+##          31) sex>=0.5 117 0.004717827 -0.0639662800 *
+```
+
+```r
+results <- inference_aggtree(het, n_groups = 15)
+summary(results$model) # Coefficient of leafk is GATE in k-th leaf.
+```
+
+```
+## 
+## Call:
+## estimatr::lm_robust(formula = scores ~ 0 + leaf, data = data.frame(scores = scores, 
+##     leaf = leaves), se_type = "HC1")
+## 
+## Standard error type:  HC1 
+## 
+## Coefficients:
+##          Estimate Std. Error  t value Pr(>|t|)  CI Lower CI Upper   DF
+## leaf1  -0.2242217    0.10657 -2.10404  0.03543 -0.433151 -0.01529 4176
+## leaf2  -0.0883499    0.05184 -1.70427  0.08840 -0.189984  0.01328 4176
+## leaf3  -0.0639663    0.07646 -0.83656  0.40289 -0.213875  0.08594 4176
+## leaf4  -0.0548351    0.05764 -0.95135  0.34148 -0.167838  0.05817 4176
+## leaf5  -0.0468559    0.06185 -0.75754  0.44877 -0.168120  0.07441 4176
+## leaf6  -0.0316141    0.01869 -1.69189  0.09074 -0.068248  0.00502 4176
+## leaf7  -0.0228334    0.04685 -0.48734  0.62605 -0.114691  0.06902 4176
+## leaf8  -0.0008514    0.03995 -0.02131  0.98300 -0.079173  0.07747 4176
+## leaf9  -0.0002919    0.02448 -0.01193  0.99049 -0.048278  0.04769 4176
+## leaf10  0.0010930    0.06752  0.01619  0.98709 -0.131285  0.13347 4176
+## leaf11  0.0028885    0.01060  0.27251  0.78524 -0.017892  0.02367 4176
+## leaf12  0.0099844    0.01950  0.51202  0.60867 -0.028246  0.04822 4176
+## leaf13  0.0403452    0.01609  2.50754  0.01220  0.008801  0.07189 4176
+## leaf14  0.0545848    0.07089  0.77000  0.44134 -0.084396  0.19357 4176
+## leaf15  0.0823793    0.15645  0.52656  0.59853 -0.224345  0.38910 4176
+## 
+## Multiple R-squared:  0.006552 ,	Adjusted R-squared:  0.002984 
+## F-statistic:  1.34 on 15 and 4176 DF,  p-value: 0.1686
+```
+
+```r
+# results$gates_diff_pairs$gates_diff # GATEs differences.
+# results$gates_diff_pairs$holm_pvalues # p-values
+
+plot(het, sequence = T) # plot tree with heterogeneous effects
+```
+
+![](one-stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-2.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-3.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-4.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-5.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-6.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-7.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-8.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-9.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-10.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-11.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-12.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-13.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-14.png)<!-- -->
+Notes: Nodes are colored using a diverging palette. Nodes with predictions smaller (in our case: more effect on mortality) than the ATE (i.e., the root prediction) are colored in blue shades, and nodes with predictions larger than the ATE are colored in red shades. Moreover, predictions that are more distant in absolute value from the ATE get darker shades.
+
+build_aggtree (Aggregation Trees): Nonparametric data-driven approach to discovering heterogeneous subgroups in a selection-on-observables framework. The approach constructs a sequence of groupings, one for each level of granularity. Groupings are nested and feature an optimality property. For each grouping, we obtain point estimation and standard errors for the group average treatment effects (GATEs). Additionally, we assess whether systematic heterogeneity is found by testing the hypotheses that the differences in the GATEs across all pairs of groups are zero. Finally, we investigate the driving mechanisms of effect heterogeneity by computing the average characteristics of units in each group.
