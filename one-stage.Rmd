@@ -1446,7 +1446,7 @@ mort.28.comed.1 <- df_tot %>%
 summ(mort.28.comed.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 mort.28.comed.2 <- df_tot %>%
-  filter(comed_cat == 2) %>% # without Dexamethasone nor Tocilizumab
+  filter(comed_cat == 2) %>% # Dexamethasone but no Tocilizumab
   glm(mort_28 ~ trt
       + age
       # + clinstatus_baseline
@@ -1454,7 +1454,7 @@ mort.28.comed.2 <- df_tot %>%
 summ(mort.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 mort.28.comed.3 <- df_tot %>% 
-  filter(comed_cat == 3) %>% # Dexamethasone but no Tocilizumab
+  filter(comed_cat == 3) %>% # Dexamethasone and Tocilizumab
   glm(mort_28 ~ trt
       + age 
       + clinstatus_baseline 
@@ -1462,7 +1462,7 @@ mort.28.comed.3 <- df_tot %>%
 summ(mort.28.comed.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 mort.28.comed.4 <- df_tot %>% 
-  filter(comed_cat == 4) %>% # Dexamethasone but no Tocilizumab
+  filter(comed_cat == 4) %>% # Tocilizumab but no Dexamethasone
   glm(mort_28 ~ trt
       + age 
       + clinstatus_baseline 
