@@ -460,6 +460,7 @@ Discussion points:
 
 # Endpoints
 ```{r echo=TRUE}
+### FIRST, extract all status info from dataframe 1
 # transform all resp scores
 point7_transform <- function(df, clinstatus_var, pos_var) {
   df <- df %>%
@@ -482,34 +483,62 @@ df <- point7_transform(df, clinstatus_7, POINT7_OS_POS7)
 df <- point7_transform(df, clinstatus_8, POINT7_OS_POS8)
 df <- point7_transform(df, clinstatus_9, POINT7_OS_POS9)
 
+# table(df$clinstatus_2, df$RESP_DELIVER4) # the scores corresponds quite well with the resp_deliver variable. Take the ordinal score first and double-check with PI: E.g. those with clinstatus == 4 (NIV) but resp_deliver == 1 (Nasal cannula) or == 2 (mask)
+# table(df$clinstatus_5, df$RESP_DELIVER7, useNA = "always") # and resp_deliver unfortunately does not contain more info, i.e., to fill up clinstatus
+
 status_columns <- grep("^PART_STATUS", names(df), value = TRUE)
 withdraw_columns <- grep("^CONSENT_CONT", names(df), value = TRUE)
 discharge_columns <- grep("^VISIT_DISCHARGE", names(df), value = TRUE)
 
-df %>% 
-  select(id_pat,
-         contains("RESP_DELIVER"), # RESP_DELIVER3 = D2 = POINT7_OS_POS1 = clinstatus_1 // corresponds well
-         contains("clinstatus_"),
-         contains("PART_STATUS"),
-         # contains("VISIT_DAY"), # does not any info
-         # contains("VISIT_TYPE"), # does not contain more info
-         # contains("CONSENT_CONT"),
-         contains("VISIT_DISCHARGE"),
-         ) %>%
-  # filter(is.na(clinstatus_1)) %>% # RESP_DELIVER3 and onwards unfortunately also missing if clinstatus_1 and onwards missing
-  # PART_STATUS (alive/dead) and onwards unfortunately also missing if clinstatus_1 and onwards missing
-  # filter_at(vars(status_columns), any_vars(. == 0)) %>% # PART_STATUSx (alive=1/dead=0) corresponds well with clinstatus_ (PART_STATUS2 = clinstatus_1) and does not contain more info - except id 590013 -> died at baseline?
-  # filter_at(vars(withdraw_columns), any_vars(. == 1)) %>% # CONSENT_CONTx (withdrew=1) corresponds well with NA in clinstatus_ (CONSENT_CONT2 = clinstatus_1) and does not contain more info
-  filter_at(vars(discharge_columns), any_vars(. == 1)) %>% # VISIT_DISCHARGEx (discharged=1) corresponds well with score in clinstatus_ (VISIT_DISCHARGE2 = clinstatus_1) - except 020040 -> discharged with NIV?
-  View()
+# df %>% 
+#   select(id_pat,
+#          contains("RESP_DELIVER"), # RESP_DELIVER3 = D2 = POINT7_OS_POS1 = clinstatus_1 // corresponds well
+#          contains("clinstatus_"),
+#          contains("PART_STATUS"),
+#          # contains("VISIT_DAY"), # does not any info
+#          # contains("VISIT_TYPE"), # does not contain more info
+#          # contains("CONSENT_CONT"),
+#          contains("VISIT_DISCHARGE"),
+#          ) %>%
+#   # filter(is.na(clinstatus_1)) %>% # RESP_DELIVER3 and onwards unfortunately also missing if clinstatus_1 and onwards missing
+#   # PART_STATUS (alive/dead) and onwards unfortunately also missing if clinstatus_1 and onwards missing
+#   # filter_at(vars(status_columns), any_vars(. == 0)) %>% # PART_STATUSx (alive=1/dead=0) corresponds well with clinstatus_ (PART_STATUS2 = clinstatus_1) and does not contain more info - except id 590013 -> died at baseline?
+#   # filter_at(vars(withdraw_columns), any_vars(. == 1)) %>% # CONSENT_CONTx (withdrew=1) corresponds well with NA in clinstatus_ (CONSENT_CONT2 = clinstatus_1) and does not contain more info
+#   filter_at(vars(discharge_columns), any_vars(. == 1)) %>% # VISIT_DISCHARGEx (discharged=1) corresponds well with score in clinstatus_ (VISIT_DISCHARGE2 = clinstatus_1) - except 020040 -> discharged with NIV?
+#   View()
 
-df %>% 
-  filter(id_pat == "590013") %>% 
-  View()
+# df %>% 
+#   filter(id_pat == "590013") %>% 
+#   View()
 
-# => 1) find out about 590013, 2) use PART_STATUS == 0 to count deaths and clinstatus_ for time to death, 3) use CONSENT_CONTx to mark withdrawals and time to withdrawal (CONSENT_CONT2 = clinstatus_1 = time to withdrawal = 1 day), 4) use VISIT_DISCHARGEx to mark discharge and time to discharge (VISIT_DISCHARGE2 = clinstatus_1, i.e. time to discharge = 1 day)
+# => 1) find out about 590013, 2) use PART_STATUS == 0 to count deaths and clinstatus_ for time to death, 3) use CONSENT_CONTx to mark withdrawals and time to withdrawal (CONSENT_CONT2 = clinstatus_1 = time to withdrawal = 1 day), 4) use VISIT_DISCHARGEx or VISDATx to mark discharge and time to discharge (VISIT_DISCHARGE2 = clinstatus_1, i.e. time to discharge = 1 day)
 
-# Add info from df2:
+df <- df %>%
+  rename(discharge_bas = VISIT_DISCHARGE,
+         discharge_bas_date = VISDAT1,
+         discharge_0 = VISIT_DISCHARGE1,
+         discharge_0_date = VISDAT2,
+         discharge_1 = VISIT_DISCHARGE2,
+         discharge_1_date = VISDAT3,
+         discharge_2 = VISIT_DISCHARGE3,
+         discharge_2_date = VISDAT4,
+         discharge_3 = VISIT_DISCHARGE4,
+         discharge_3_date = VISDAT5,
+         discharge_4 = VISIT_DISCHARGE5,
+         discharge_4_date = VISDAT6,
+         discharge_5 = VISIT_DISCHARGE6,
+         discharge_5_date = VISDAT7,
+         discharge_6 = VISIT_DISCHARGE7,
+         discharge_6_date = VISDAT8,
+         discharge_7 = VISIT_DISCHARGE8,
+         discharge_7_date = VISDAT9,
+         discharge_8 = VISIT_DISCHARGE9,
+         discharge_8_date = VISDAT10,
+         discharge_9 = VISIT_DISCHARGE10,
+         discharge_9_date = VISDAT11)
+
+
+### SECOND, extract all status info from dataframe 2
 df2$death_date <- as.Date(df2$DATE_DEATH, format = "%d/%m/%Y") # unique entries (distinct(id_pat))
 df2$withdraw_date <- as.Date(df2$CONS_WITHDAT, format = "%d/%m/%Y") # unique entries (distinct(id_pat))
 df2 <- df2 %>% 
@@ -517,53 +546,235 @@ df2 <- df2 %>%
                                EOS_LV == "DIS1" ~ "discharge",
                                TRUE ~ EOS_LV)) # unique entries (distinct(id_pat)), missing for 11
 df2 <- df2 %>% 
-  mutate(lastvisit_status = case_when(EOS_LV == "2" ~ "baseline",
-                               EOS_LV == "DIS1" ~ "discharge",
-                               TRUE ~ EOS_LV)) # unique entries (distinct(id_pat)), missing for 11
+  mutate(lastvisit_status = case_when(EOS_RSN == 1 ~ "completed",
+                                      EOS_RSN == 2 ~ "withdrawal",
+                                      EOS_RSN == 3 ~ "withdrawal_phys",
+                                      EOS_RSN == 4 ~ "withdrawal_ae",
+                                      EOS_RSN == 5 ~ "death",
+                                      EOS_RSN == 98 ~ "other",
+                                      EOS_RSN == 99 ~ "withdrawal_other"
+                                      )) # unique entries (distinct(id_pat)), missing for 11
+df2 <- df2 %>% mutate(lastvisit_status_other = EOS_RSNOTH)
+df2$lastvisit_status_date <- as.Date(df2$ET_EOSDAT, format = "%d/%m/%Y") # unique entries (distinct(id_pat))
+df2 <- df2 %>% 
+  mutate(treat_stop_status = case_when(TREAT_CESSATION == 1 ~ "noCOVID",
+                                      TREAT_CESSATION == 2 ~ "progress_primendpoint",
+                                      TREAT_CESSATION == 3 ~ "sar",
+                                      TREAT_CESSATION == 4 ~ "dvt",
+                                      TREAT_CESSATION == 5 ~ "withdrawal",
+                                      ))
+df2 <- df2 %>% 
+  mutate(sae_outcome = case_when(SAEOUT == 1 ~ "recovered",
+                                      SAEOUT == 2 ~ "ongoing",
+                                      SAEOUT == 3 ~ "recovered_seq",
+                                      SAEOUT == 4 ~ "worsening",
+                                      SAEOUT == 5 ~ "death",
+                                      SAEOUT == 6 ~ "unknown",
+                                      ))
+df2$sae_outcome_date <- as.Date(df2$SAERESDAT, format = "%d/%m/%Y") # unique entries (distinct(id_pat))
 
-table(df2$EOS_RSN)
-df_death <- df2 %>% 
-  filter(!is.na(death_date)) %>% 
-  distinct(id_pat)
+df2 <- point7_transform(df2, clinstatus_10, POINT7_OS_POS) 
+df2 <- point7_transform(df2, clinstatus_11, POINT7_OS_POS1)
+df2 <- point7_transform(df2, clinstatus_12, POINT7_OS_POS2)
+df2 <- point7_transform(df2, clinstatus_13, POINT7_OS_POS3)
+df2 <- point7_transform(df2, clinstatus_dis, POINT7_OS_POS4)
+df2 <- point7_transform(df2, clinstatus_28, POINT7_OS_POS5)
+df2 <- point7_transform(df2, clinstatus_90, POINT7_OS_POS6)
+
+# table(df2$clinstatus_11, df2$RESP_DELIVER1, useNA = "always") # the scores corresponds quite well with the resp_deliver variable. Take the ordinal score first and double-check with PI: E.g. those with clinstatus == 4 (NIV) but resp_deliver == 1 (Nasal cannula) or == 2 (mask) and resp_deliver unfortunately does not contain more info, i.e., to fill up clinstatus
+
+df_status <- df2 %>% 
+  select(id_pat, death_date, withdraw_date, lastvisit, lastvisit_status, lastvisit_status_other, lastvisit_status_date, treat_stop_status, sae_outcome, sae_outcome_date, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28, clinstatus_90, PART_STATUS, PART_STATUS1, PART_STATUS2, PART_STATUS3, PART_STATUS4, PART_STATUS5, PART_STATUS6, VISIT_DISCHARGE3, VISDAT3, SUBJID_DER36, VISIT_DISCHARGE4, VISDAT4, SUBJID_DER57, PARTIC_ICU, PARTIC_ICU1, PARTIC_ICU2, PARTIC_ICU3, PARTIC_ICU4, PARTUP_READMIT) %>% 
+  filter(!(is.na(death_date) & is.na(withdraw_date) & is.na(lastvisit) & is.na(lastvisit_status) & is.na(lastvisit_status_other) & is.na(lastvisit_status_date) & is.na(treat_stop_status) & is.na(sae_outcome) & is.na(sae_outcome_date) & is.na(clinstatus_10) & is.na(clinstatus_11) & is.na(clinstatus_12) & is.na(clinstatus_13) & is.na(clinstatus_dis) & is.na(clinstatus_28) & is.na(clinstatus_90) & is.na(VISIT_DISCHARGE3) & is.na(VISIT_DISCHARGE4) & is.na(PART_STATUS) & is.na(PART_STATUS1) & is.na(PART_STATUS2) & is.na(PART_STATUS3) & is.na(PART_STATUS4) & is.na(PART_STATUS5) & is.na(PART_STATUS6) & is.na(PARTIC_ICU) & is.na(PARTIC_ICU1) & is.na(PARTIC_ICU2) & is.na(PARTIC_ICU3) & is.na(PARTIC_ICU4)))
+
+df_status <- df_status %>% 
+  mutate(duplicate_id = duplicated(id_pat) | duplicated(id_pat, fromLast = TRUE))
+df_status <- df_status %>% 
+  filter(!(sae_outcome == "death" & is.na(lastvisit_status) & is.na(death_date) & duplicate_id == T)) # the sae column does not contain more info than the other death variables, just creates 10 dupl
+df_status <- df_status %>% 
+  mutate(duplicate_id2 = duplicated(id_pat) | duplicated(id_pat, fromLast = TRUE))
+df_status <- df_status %>% 
+  filter(!(duplicate_id2 == T & sae_outcome == "recovered_seq")) # the sae column does not contain more info than the other death variables, just creates 2 dupl
+df_status <- df_status %>% 
+  mutate(duplicate_id3 = duplicated(id_pat) | duplicated(id_pat, fromLast = TRUE))
+df_status <- df_status %>% 
+  filter(!(duplicate_id3 == T & id_pat == "020035" & sae_outcome_date == "2021-04-29")) # for this pat, the sae_outcome_date does not add more info, just creates 2 dupl
+df_status <- df_status %>% 
+  mutate(duplicate_id4 = duplicated(id_pat) | duplicated(id_pat, fromLast = TRUE))
+df_status <- df_status %>% # clean each duplicate case => we land exactly at n=282
+  filter(!(duplicate_id4 == T & id_pat == "020052" & sae_outcome_date == "2021-02-06")) %>% 
+  filter(!(duplicate_id4 == T & id_pat == "080002" & is.na(death_date))) %>% 
+  filter(!(duplicate_id4 == T & id_pat == "080011" & is.na(death_date))) %>%
+  filter(!(duplicate_id4 == T & id_pat == "080026" & is.na(death_date))) %>%
+  filter(!(duplicate_id4 == T & id_pat == "090005" & is.na(lastvisit_status))) %>%
+  filter(!(duplicate_id4 == T & id_pat == "090006" & sae_outcome_date == "2020-10-10")) %>%
+  filter(!(duplicate_id4 == T & id_pat == "090006" & sae_outcome_date == "2020-10-10")) %>%
+  filter(!(duplicate_id4 == T & id_pat == "090028" & is.na(death_date))) %>%
+  filter(!(duplicate_id4 == T & id_pat == "090047" & is.na(death_date))) %>%
+  filter(!(duplicate_id4 == T & id_pat == "240002" & is.na(lastvisit_status)))
+
+# df_status %>%
+#   # filter(duplicate_id4 == T) %>%
+#   filter(lastvisit_status == "death" | sae_outcome == "death" | !is.na(death_date) | PART_STATUS == 0 | PART_STATUS1 == 0 | PART_STATUS2 == 0 | PART_STATUS3 == 0 | PART_STATUS4 == 0 | PART_STATUS5 == 0 | PART_STATUS6 == 0) %>% # PART_STATUS does not add any additional info
+#   View()
+
+df_status <- df_status %>%
+  rename(death_date_df2 = death_date,
+         withdraw_date_df2 = withdraw_date,
+         discharge_11_df2 = VISIT_DISCHARGE3,
+         discharge_11_date_df2 = VISDAT3,
+         discharge_12_df2 = VISIT_DISCHARGE4,
+         discharge_12_date_df2 = VISDAT4,
+         icu_10_df2 = PARTIC_ICU,
+         icu_11_df2 = PARTIC_ICU1,
+         icu_12_df2 = PARTIC_ICU2,
+         icu_13_df2 = PARTIC_ICU3,
+         icu_14_df2 = PARTIC_ICU4)
+
+df <- left_join(df, df_status[, c("id_pat", "death_date_df2", "withdraw_date_df2", "lastvisit", "lastvisit_status", "lastvisit_status_other", "lastvisit_status_date", "treat_stop_status", "sae_outcome", "sae_outcome_date", "clinstatus_10", "clinstatus_11", "clinstatus_12", "clinstatus_13", "clinstatus_dis", "clinstatus_28", "clinstatus_90", "discharge_11_df2", "discharge_11_date_df2", "discharge_12_df2", "discharge_12_date_df2", "icu_10_df2", "icu_11_df2", "icu_12_df2", "icu_13_df2", "icu_14_df2", "PARTUP_READMIT")], by = join_by(id_pat == id_pat)) ## merge to main df
+
+df_status <- df %>% 
+  select(id_pat, randdate, trt, death_date_df2, withdraw_date_df2, lastvisit, lastvisit_status, lastvisit_status_other, lastvisit_status_date, treat_stop_status, sae_outcome, sae_outcome_date, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28, clinstatus_90, CONSENT_CONT, CONSENT_CONT1, CONSENT_CONT2, CONSENT_CONT3, CONSENT_CONT4, CONSENT_CONT5, CONSENT_CONT6, CONSENT_CONT7, CONSENT_CONT8, CONSENT_CONT9, CONSENT_CONT10, discharge_bas, discharge_bas_date, discharge_0, discharge_0_date, discharge_1, discharge_1_date, discharge_2, discharge_2_date, discharge_3, discharge_3_date, discharge_4, discharge_4_date, discharge_5, discharge_5_date, discharge_6, discharge_6_date, discharge_7, discharge_7_date, discharge_8, discharge_8_date, discharge_9, discharge_9_date, discharge_11_df2, discharge_11_date_df2, discharge_12_df2, discharge_12_date_df2, PARTIC_ICU, PARTIC_ICU1, PARTIC_ICU2, PARTIC_ICU3, PARTIC_ICU4, PARTIC_ICU5, PARTIC_ICU6, PARTIC_ICU7, PARTIC_ICU8, PARTIC_ICU9, PARTIC_ICU10, icu_10_df2, icu_11_df2, icu_12_df2, icu_13_df2, icu_14_df2, PARTUP_READMIT)
+
+# df_status %>%
+#   # filter(!is.na(death_date_df2) | lastvisit_status == "death" | sae_outcome == "death" | clinstatus_baseline == "6" | clinstatus_1 == "6" | clinstatus_2 == "6" | clinstatus_3 == "6" | clinstatus_4 == "6" | clinstatus_5 == "6" | clinstatus_6 == "6" | clinstatus_7 == "6" | clinstatus_8 == "6" | clinstatus_9 == "6" | clinstatus_10 == "6" | clinstatus_11 == "6" | clinstatus_12 == "6" | clinstatus_13 == "6" | clinstatus_dis == "6" | clinstatus_28 == "6" | clinstatus_90 == "6"
+#   #        ) %>%
+#   filter(!is.na(withdraw_date_df2) | lastvisit_status == "withdrawal" | lastvisit_status == "withdrawal_ae" | lastvisit_status == "withdrawal_phys" | CONSENT_CONT == 1 | CONSENT_CONT1 == 1 | CONSENT_CONT2 == 1 | CONSENT_CONT3 == 1 | CONSENT_CONT4 == 1 | CONSENT_CONT5 == 1 | CONSENT_CONT6 == 1 | CONSENT_CONT7 == 1 | CONSENT_CONT8 == 1 | CONSENT_CONT9 == 1 | CONSENT_CONT10 == 1
+#          ) %>%
+#   # filter(!is.na(discharge_12_date_df2) | discharge_12_df2 == 1
+#   #        ) %>%
+#   View()
+
+# 1) use death_date_df2 to indicate deaths and time to death (the one who died after day 90 is NA)
+# 2) use withdraw_date_df2 to indicate withdrawals (due to self and investigator) and time to withdrawal
+# except for 020095 add 2021-01-27 as withdraw_date_df2 (D1 physician withdrew consent) 
+# and for 520021 add 2021-02-07 as withdraw_date_df2 (D11 AE withdrawal, went to ICU) but recovered on 2021-02-12 but probably still at hospital => add clinstatus 2
+# some withdrew consent but data was collected afterwards, i.e. include in time to discharge / clinstatus
+# 3) use discharge_12_df2 and discharge_12_date_df2 for time to discharge (all other discharge variables do not contain more info!) and then combine with clinstatus
+
+df_status <- df_status %>%
+  mutate(withdraw_date = case_when(id_pat == "020095" ~ as.Date("2021-01-27"),
+                                   id_pat == "520021" ~ as.Date("2021-02-07"),
+                                   TRUE ~ withdraw_date_df2)) %>% 
+  mutate(withdraw_d = as.numeric(withdraw_date - randdate)) %>%
+  rename(death_date = death_date_df2) %>% 
+  mutate(death_d = as.numeric(death_date - randdate)) %>%
+  mutate(discharge_date = as.Date(discharge_12_date_df2, format = "%d/%m/%Y")) %>% 
+  mutate(discharge_d = as.numeric(discharge_date - randdate))
+
+df_status <- df_status %>% 
+  select(id_pat, trt, randdate, death_date, death_d, withdraw_date, withdraw_d, discharge_date, discharge_d, lastvisit, lastvisit_status, lastvisit_status_other, lastvisit_status_date, treat_stop_status, sae_outcome, sae_outcome_date, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28, clinstatus_90, PARTIC_ICU, PARTIC_ICU1, PARTIC_ICU2, PARTIC_ICU3, PARTIC_ICU4, PARTIC_ICU5, PARTIC_ICU6, PARTIC_ICU7, PARTIC_ICU8, PARTIC_ICU9, PARTIC_ICU10, icu_10_df2, icu_11_df2, icu_12_df2, icu_13_df2, icu_14_df2, PARTUP_READMIT)
+
+df_status <- df_status %>% # if discharge date = death date => set discharge variables to missing
+  mutate(discharge_d = case_when(discharge_date == death_date ~ NA,
+                                    TRUE ~ discharge_d)) %>% 
+  mutate(discharge_date = case_when(discharge_date == death_date ~ NA,
+                                    TRUE ~ discharge_date))
+df_status <- df_status %>% 
+  mutate(discharge_reached = case_when(!is.na(discharge_d) & discharge_d <= 28 ~ 1,
+                                       TRUE ~ 0))
+df_status <- df_status %>% 
+  mutate(death_reached = case_when(!is.na(death_d) ~ 1,
+                                       TRUE ~ 0))
+
+# df_status %>% 
+#   filter(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date)) %>% 
+#   View()
+
+# 1) if clinstatus_28 more than 1, then add 28 to time to discharge_d (discharge_reached is correct = 0)
+# 2) if clinstatus_28 = 1, but ICU variables = 1, then add 28 to time to discharge_d (but change discharge_reached to 1)
+
+df_status <- df_status %>% 
+  mutate(discharge_d = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & 
+                                   clinstatus_28 %in% c("2","3","4","5") ~ 28,
+                                       TRUE ~ discharge_d)) %>% 
+  mutate(discharge_d = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & 
+                                   clinstatus_28 == "1" & (icu_13_df2 == 1 | icu_14_df2 == 1) ~ 28,
+                                       TRUE ~ discharge_d)) %>% 
+  mutate(discharge_reached = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & 
+                                   clinstatus_28 == "1" & (icu_13_df2 == 1 | icu_14_df2 == 1) ~ 1,
+                                       TRUE ~ discharge_reached))
+
+# df_status %>% 
+#   filter(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date)) %>% 
+#   View()
+
+# 1) if clinstatus_28 = 1, no ICU, add latest clinstatus info to discharge_d and change discharge_reached to 1 // always change discharge_reached first, before filling up discharge_d
+
+df_status <- df_status %>% 
+  mutate(discharge_reached = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & is.na(discharge_d) 
+                                  & is.na(clinstatus_3) & clinstatus_28 == 1 ~ 1,
+                                       TRUE ~ discharge_reached)) %>%
+  mutate(discharge_d = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & is.na(discharge_d) 
+                                  & is.na(clinstatus_3) & clinstatus_28 == 1 ~ 3,
+                                       TRUE ~ discharge_d)) %>%
+  mutate(discharge_reached = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & is.na(discharge_d) 
+                                  & is.na(clinstatus_dis) & clinstatus_28 == 1 ~ 1,
+                                       TRUE ~ discharge_reached)) %>% 
+  mutate(discharge_d = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & is.na(discharge_d) 
+                                  & is.na(clinstatus_dis) & clinstatus_28 == 1 ~ 14,
+                                       TRUE ~ discharge_d))
+
+# df_status %>%
+#   filter(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date)) %>%
+#   View()
+
+# 1) if clinstatus_28 is missing, no ICU, they are probably LTFU, i.e. change to discharge_reached = 1, and add latest clinstatus info to discharge_d
+
+df_status <- df_status %>% 
+  mutate(discharge_reached = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & is.na(discharge_d) 
+                                  & is.na(clinstatus_28) ~ 1,
+                                       TRUE ~ discharge_reached)) %>%
+  mutate(ltfu = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & is.na(discharge_d) 
+                                  & is.na(clinstatus_28) ~ 1,
+                                       TRUE ~ 0)) %>%
+  mutate(discharge_d = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & is.na(discharge_d) 
+                                  & is.na(clinstatus_28) & is.na(clinstatus_5) ~ 5,
+                                       TRUE ~ discharge_d)) %>%
+  mutate(discharge_d = case_when(is.na(discharge_date) & is.na(death_date) & is.na(withdraw_date) & is.na(discharge_d) 
+                                  & is.na(clinstatus_28) & is.na(clinstatus_4) ~ 4,
+                                       TRUE ~ discharge_d))
+
+df_status <- df_status %>% 
+  select(id_pat, trt, randdate, ltfu, discharge_reached, discharge_date, discharge_d, death_reached, death_date, death_d, withdraw_date, withdraw_d, lastvisit, lastvisit_status, lastvisit_status_other, lastvisit_status_date, treat_stop_status, sae_outcome, sae_outcome_date, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28, clinstatus_90, PARTIC_ICU, PARTIC_ICU1, PARTIC_ICU2, PARTIC_ICU3, PARTIC_ICU4, PARTIC_ICU5, PARTIC_ICU6, PARTIC_ICU7, PARTIC_ICU8, PARTIC_ICU9, PARTIC_ICU10, icu_10_df2, icu_11_df2, icu_12_df2, icu_13_df2, icu_14_df2, PARTUP_READMIT)
+
+# all lastvisit_status == other were LTFU after dischargem but some of these do have clinstatus_28 info!
+df_status <- df_status %>% 
+  mutate(ltfu = case_when(lastvisit_status == "other" ~ 1,
+                                       TRUE ~ ltfu))
+
+df <- left_join(df, df_status[, c("id_pat", "ltfu", "discharge_reached", "discharge_date", "discharge_d", "death_reached", "death_date", "death_d", "withdraw_date", "withdraw_d")], by = join_by(id_pat == id_pat)) ## merge to main df
 
 
-df2 %>%
-  select(id_pat, death_date, CONS_WITHDAT, EOS_LV, EOS_RSN, TREAT_CESSATION, TREAT_CESS_RSN, everything()) %>% 
-  View()
+# 590013: died at baseline
+# 020040: discharged "with NIV" // all other info overwrites this data entry mistake
+# 020104: Died after 90 day follow-up due to a newly diagnosed cancer
+# 020035: was the one transferred to different hospital for ECMO and recovered 3 months later => discharge_reached == 0 / discharge_d == 28 / death_reached == 0 / death_d == 90
+df <- df %>% 
+  mutate(discharge_reached = case_when(id_pat == "020035" ~ 0,
+                                       TRUE ~ discharge_reached)) %>% 
+  mutate(discharge_d = case_when(id_pat == "020035" ~ 28,
+                                       TRUE ~ discharge_d)) %>%
+  mutate(death_d = case_when(id_pat == "020035" ~ 90,
+                                       TRUE ~ death_d))
 
-investigate:
-CONS_WITHDAT
-EOS_LV
-EOS_RSN
-TREAT_CESS 
-TREAT_CESS_RSN == 5 = withdrawal
-TREAT_CESSATION
-
-
-# Filter the dataframe if any of the PART_STATUS columns is equal to 0
-filtered_df <- df %>%
-  filter_at(vars(part_status_columns), any_vars(. == 0))
-
-
-# time to event data
-df$death_d <- as.numeric(df$deathdated1_DROP - df$randdate) 
-df$discharge_d <- as.numeric(df$visitdated1_DISCH - df$randdate)
-df$withdraw_d <- as.numeric(df$withdrawdated1_DROP - df$randdate)
-df$withdrawi_d <- as.numeric(df$invdecisdated1_DROP - df$randdate)
-# df$ltfu_d <- as.numeric(df$ltfudated1_DROP - df$randdate) ## there were no LTFU
-df$readmission_d <- as.numeric(df$readmdate - df$randdate)
-df$maxfup_d <- as.numeric(df$lastdate - df$randdate)
-
+# df %>% 
+#   select(id_pat, trt, randdate, ltfu, discharge_reached, discharge_date, discharge_d, death_reached, death_date, death_d, withdraw_date, withdraw_d, lastvisit, lastvisit_status, lastvisit_status_other, lastvisit_status_date, treat_stop_status, sae_outcome, sae_outcome_date, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28, clinstatus_90, PARTIC_ICU, PARTIC_ICU1, PARTIC_ICU2, PARTIC_ICU3, PARTIC_ICU4, PARTIC_ICU5, PARTIC_ICU6, PARTIC_ICU7, PARTIC_ICU8, PARTIC_ICU9, PARTIC_ICU10, icu_10_df2, icu_11_df2, icu_12_df2, icu_13_df2, icu_14_df2) %>% 
+#   View()
 
 
 # (i) Primary outcome: Mortality at day 28
-df <- df %>% # 12 have no outcome data and withdrew or were withdrawn, but have clinstatus_baseline and fup clinstatus data 
-  mutate(mort_28 = case_when(death_d <29 ~ 1,
-                             discharge_d <29 ~ 0, # all discharged were discharged alive and not to hospice
-                             clinstatus_28 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
-                             discharge_d >28 ~ 0)) # discharged later, proof of still alive
+df <- df %>% # 9 early withdrawals / 5 early discharged without any follow-up info (LTFU)
+  mutate(mort_28 = case_when(death_reached == 1 & death_d <29 ~ 1, # this includes those discharged and then died (as long as within 28 days)
+                             death_reached == 1 & death_d >28 ~ 0, # alive at day 28 but died later, i.e. info available
+                             discharge_d >= 28 ~ 0, # discharged at day 28 or later, proof of still alive at day 28
+                             discharge_d < 28 & death_reached == 0 & ltfu == 0 & is.na(withdraw_date) ~ 0, # all discharged were discharged alive and not to hospice
+                             clinstatus_28 == 1 ~ 0, # info available at 28d fup
+                             clinstatus_90 == 1 ~ 0, # info available at 90d fup
+                             sae_outcome == "recovered" & sae_outcome_date > randdate + 28 ~ 0, # SAE info available after 28d -> proof still alive
+                             )) 
 # df %>%
-#   select(mort_28, clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28, clinstatus_35) %>%
+#   select(id_pat, mort_28, trt, randdate, ltfu, discharge_reached, discharge_date, discharge_d, death_reached, death_date, death_d, withdraw_date, withdraw_d, lastvisit, lastvisit_status, lastvisit_status_other, lastvisit_status_date, treat_stop_status, sae_outcome, sae_outcome_date, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28, clinstatus_90, PARTIC_ICU, PARTIC_ICU1, PARTIC_ICU2, PARTIC_ICU3, PARTIC_ICU4, PARTIC_ICU5, PARTIC_ICU6, PARTIC_ICU7, PARTIC_ICU8, PARTIC_ICU9, PARTIC_ICU10, icu_10_df2, icu_11_df2, icu_12_df2, icu_13_df2, icu_14_df2) %>%
 #   filter(is.na(mort_28)) %>%
 #   View()
 
@@ -571,67 +782,69 @@ df <- df %>% # 12 have no outcome data and withdrew or were withdrawn, but have 
 
 # Second, use multiple imputation (see below)
 
-# Third, apply a deterministic imputation (see notes): we use the same rules as ACTT2 => No transfer to hospice happened in bari-solidact -> assign "alive"
+# Third, apply a deterministic imputation (see notes): we use the same rules as ACTT2 => No transfer to hospice happened -> assign "alive"
 df <- df %>%
   mutate(mort_28_dimp = case_when(is.na(mort_28) ~ 0,
                              TRUE ~ c(mort_28)))
-
+# table(df$mort_28, useNA = "always")
 
 # (ii) Mortality at day 60
-df <- df %>% # same 12 that have no outcome data and withdrew or were withdrawn -> see above
-  mutate(mort_60 = case_when(death_d <61 ~ 1,
-                             discharge_d <61 ~ 0, # all discharged were discharged alive and not to hospice
-                             clinstatus_35 %in% c(2,3,4,5) ~ 0, # still at hospital but alive
-                             discharge_d >60 ~ 0)) # discharged later, proof of still alive
+df <- df %>% # 10 early withdrawals (before day 60) and no info later / 8 early discharge (before day 60) and no info later
+  mutate(mort_60 = case_when(death_reached == 1 & death_d <61 ~ 1, # this includes those discharged and then died (as long as within 60 days)
+                             death_reached == 1 & death_d >60 ~ 0, # alive at day 60 but died later, i.e. info available
+                             discharge_d >= 60 ~ 0, # discharged at day 60 or later, proof of still alive at day 60
+                             discharge_d < 60 & death_reached == 0 & ltfu == 0 & is.na(withdraw_date) ~ 0, # all discharged were discharged alive and not to hospice
+                             clinstatus_28 == 1 ~ 0, # info available at 28d fup
+                             clinstatus_90 == 1 ~ 0, # info available at 90d fup
+                             sae_outcome == "recovered" & sae_outcome_date > randdate + 60 ~ 0, # SAE info available after 60d -> proof still alive
+                             )) 
+# df %>%
+#   select(id_pat, mort_28, mort_60, trt, randdate, ltfu, discharge_reached, discharge_date, discharge_d, death_reached, death_date, death_d, withdraw_date, withdraw_d, lastvisit, lastvisit_status, lastvisit_status_other, lastvisit_status_date, treat_stop_status, sae_outcome, sae_outcome_date, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28, clinstatus_90, PARTIC_ICU, PARTIC_ICU1, PARTIC_ICU2, PARTIC_ICU3, PARTIC_ICU4, PARTIC_ICU5, PARTIC_ICU6, PARTIC_ICU7, PARTIC_ICU8, PARTIC_ICU9, PARTIC_ICU10, icu_10_df2, icu_11_df2, icu_12_df2, icu_13_df2, icu_14_df2, PARTUP_READMIT) %>%
+#   filter(is.na(mort_60)) %>%
+#   # filter(id_pat == "020035") %>% 
+#   View()
 
 
-# (iii) Time to death within max. follow-up time 
-df$death_reached <- df$death_yn # do not bother about missings in mort_28
-df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
-  mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
-                                discharge_d >=0 & (is.na(withdraw_d) | withdraw_d >28) & (is.na(withdrawi_d) | withdrawi_d >28) ~ 28, # 28d for all those who were discharged alive and not withdrawn before, then...
-                                discharge_d >= withdraw_d ~ c(discharge_d), # time to discharge if this was greater than time to withdrawal
-                                discharge_d >= withdrawi_d ~ c(discharge_d), # see above
-                                maxfup_d >=0 & is.na(withdraw_d) & is.na(withdrawi_d) ~ c(maxfup_d), # max fup for the remaining ones not withdrawn
-                                withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal for those withdrawn (and not discharged before)
-                                withdrawi_d >=0 ~ c(withdrawi_d))) # time to investigator withdrawal for those inv-withdrawn (and not discharged before)
+# (iii) Time to death within max. follow-up time (90 days)
+df <- df %>% # first, death_d, then withdraw_d, then discharge_d, then max follow-up
+  mutate(death_time = case_when(!is.na(death_d) ~ death_d, 
+                                !is.na(withdraw_d) ~ withdraw_d, 
+                                !is.na(discharge_d) ~ discharge_d))
 
-# (iv) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.
-df <- df %>% # The NAs are not eligible (died or clinstatus_baseline == 5) and thus are excluded from denominator
-  mutate(new_mv_28 = case_when(clinstatus_baseline == 4 & (mort_28 == 0 | is.na(mort_28)) 
-                               & (clinstatus_2 == 5 | clinstatus_4 == 5 | clinstatus_7 == 5 | clinstatus_14 == 5 
-                                  | clinstatus_21 == 5 | clinstatus_28 == 5)
-                               ~ 1,
-                               clinstatus_baseline == 4 & mort_28 == 0
-                               ~ 0))
+
+# (iv) New mechanical ventilation among survivors within 28 days. TACTIC included across all clinstatus.
+df <- df %>% # The NAs are not eligible (died -> 35 or clinstatus_baseline == 5 -> 2) and thus are excluded from denominator. The missing mort_28 were not ventilated (LTFU after discharge)
+  mutate(new_mv_28 = case_when((clinstatus_baseline %in% c("2","3","4")) & (mort_28 == 0 | is.na(mort_28)) 
+                               & (clinstatus_1 == 5 | clinstatus_2 == 5 | clinstatus_3 == 5 | clinstatus_4 == 5 
+                                  | clinstatus_5 == 5 | clinstatus_6 == 5 | clinstatus_7 == 5 | clinstatus_8 == 5
+                                  | clinstatus_9 == 5 | clinstatus_10 == 5 | clinstatus_11 == 5 | clinstatus_12 == 5
+                                  | clinstatus_13 == 5 | clinstatus_dis == 5 | clinstatus_28 == 5) ~ 1,
+                               (clinstatus_baseline %in% c("2","3","4")) & (mort_28 == 0 | is.na(mort_28)) ~ 0))
+
 # (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days => include all in denominator.
-df <- df %>% # no missing
+df <- df %>% 
   mutate(new_mvd_28 = case_when(new_mv_28 == 1 | mort_28 == 1 ~ 1,
                                 new_mv_28 == 0 | mort_28 == 0 ~ 0))
-# table(df$new_mvd_28, useNA = "always") # 11 missing
+# table(df$new_mvd_28, useNA = "always") # no missing
 
 
 # (v) Clinical status at day 28
-df <- df %>% # Adapt clinstatus_28, since currently excluding those discharged or died or missing data.
-  mutate(clinstatus_28 = case_when(clinstatus_28 == 6 ~ 6,
+df <- df %>% # same 14 missing as in mort_28
+  mutate(clinstatus_28 = case_when(mort_28 == 1 ~ 6, # died within 28d
+                                   clinstatus_28 == 6 ~ 6,
                                    clinstatus_28 == 5 ~ 5,
                                    clinstatus_28 == 4 ~ 4,
                                    clinstatus_28 == 3 ~ 3,
                                    clinstatus_28 == 2 ~ 2,
                                    clinstatus_28 == 1 ~ 1,
-                                   mort_28 == 1 ~ 6, # died within 28d
-                                   discharge_d <29 ~ 1 # discharged alive / reached discharge criteria within 28d
-                                   )) 
-df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6) # 18 missing -> for some I know they did not die, but I don't know exact clinicalstatus -> LOVCF
-# table(df$clinstatus_28, useNA = "always")
-# df %>%
-#   select(mort_28, clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28, clinstatus_35) %>%
-#   filter(is.na(clinstatus_28)) %>%
-#   View()
+                                   discharge_d <29 & !is.na(mort_28) ~ 1 # discharged alive / discharge criteria within 28d
+  ))
+df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6)
 
-## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days) -> no window data in Bari-Solidact => LVCF
+## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days) -> no window data => LVCF
+df$clinstatus_baseline <- factor(df$clinstatus_baseline, levels = 1:6) # function needs factor
 dfcs <- df %>% 
-    select(id_pat, clinstatus_baseline, clinstatus_2, clinstatus_4, clinstatus_7, clinstatus_14, clinstatus_21, clinstatus_28)
+    select(id_pat, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28)
 impute_last_forw = function(df){
   first = which(names(df)%in%c("clinstatus_baseline"))
   last = which(names(df)%in%c("clinstatus_28"))
@@ -647,21 +860,17 @@ impute_last_forw = function(df){
 dfcs <- impute_last_forw(dfcs)
 dfcs <- dfcs %>% # To control, don't overwrite
   rename(clinstatus_28_imp = clinstatus_28)
-df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat)) ## Merge imputed variable back // re-admissions already correctly incorporated
+df <- left_join(df, dfcs[, c("clinstatus_28_imp", "id_pat")], by = join_by(id_pat == id_pat))
 # table(df$clinstatus_28_imp, useNA = "always")
 
-# (vi) Time to discharge or reaching discharge criteria up to day 28 // Patients who died prior to day 28 are assumed not having reached discharge, i.e. counted as 28 days. 
-df <- df %>% 
-  mutate(discharge_reached = case_when(discharge_d <29 ~ 1,
-                                       TRUE ~ 0))
-df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
-  mutate(discharge_time = case_when(discharge_d >=0 & (is.na(withdraw_d) | withdraw_d >28) & (is.na(withdrawi_d) | withdrawi_d >28) ~ c(discharge_d), # time to discharge in case no withdrawal or withdrawal after 28d. If no time to discharge, then...
-                                    death_d >=0 ~ c(death_d), # time to death, then...
-                                    discharge_d >= withdraw_d ~ c(discharge_d), # add time to discharge where time to discharge is after time to withdrawal 
-                                    discharge_d >= withdrawi_d ~ c(discharge_d), # see above
-                                    maxfup_d >=0 & is.na(withdraw_d) & is.na(withdrawi_d) ~ c(maxfup_d), # max fup for the remaining ones not withdrawn
-                                withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal for those withdrawn (and not discharged before)
-                                withdrawi_d >=0 ~ c(withdrawi_d))) # time to investigator withdrawal for those inv-withdrawn (and not discharged before)
+
+# (vi) Time to discharge or reaching discharge criteria up to day 28
+# table(df$discharge_reached, useNA = "always")
+df <- df %>% # first, discharge_d, then withdraw_d, then death_d, then max follow-up
+  mutate(discharge_time = case_when(!is.na(discharge_d) ~ discharge_d, 
+                                !is.na(withdraw_d) ~ withdraw_d, 
+                                !is.na(death_d) ~ death_d))
+# table(df$discharge_time, useNA = "always")
 df <- df %>% # restrict to max fup time 28d
   mutate(discharge_time = case_when(discharge_time >28 ~ 28,
                                     TRUE ~ discharge_time))
@@ -669,137 +878,57 @@ df <- df %>% # add 28d for those that died - as a sens-variable
   mutate(discharge_time_sens = case_when(mort_28 == 1 ~ 28,
                                     TRUE ~ discharge_time))
 
-# (vi) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days
-df <- df %>% # there are 6 re-admissions: the one readmitted at day 16 was re-discharged before day ?28?. The ones at d21 & d27 not. And then there are 3 that were readmitted later than d28 => Reclassify d21 and d27 and add 28d, add d20 to the one re-admitted at d16.
-  mutate(discharge_reached_sus = case_when(readmission_d == 21 | readmission_d == 27 ~ 0,
-                                           TRUE ~ discharge_reached))
-df <- df %>%
-  mutate(discharge_time_sus = case_when(readmission_d == 16 ~ 20,
-                                        readmission_d == 21 | readmission_d == 27 ~ 28,
-                                        TRUE ~ discharge_time))
+# (vi) Sens-analysis: Alternative definition/analysis of outcome: time to sustained discharge within 28 days -> cannot be differentiated in dataset
+df$discharge_reached_sus <- df$discharge_reached
+df$discharge_time_sus <- df$discharge_time
 
 
 # (vii) Viral clearance up to day 5, day 10, and day 15 (Viral load value <LOQ and/or undectectable)
-df$vir_clear_5 <- df$vloqundet_yn_D3
+df_vl <- df2 %>% 
+  select(id_pat, COVID19_RECDAT, COVID19_RECDAT1, COVID19_RECDAT2, COVID19_RECDAT3, COVID19_RECDAT4, 
+         COVID19_RESULT, COVID19_RESULT1, COVID19_RESULT2, COVID19_RESULT3, COVID19_RESULT4) %>% 
+  filter(!(is.na(COVID19_RECDAT) & is.na(COVID19_RECDAT1) & is.na(COVID19_RECDAT2) & is.na(COVID19_RECDAT3) & is.na(COVID19_RECDAT4) & is.na(COVID19_RESULT) & is.na(COVID19_RESULT1) & is.na(COVID19_RESULT2) & is.na(COVID19_RESULT3) & is.na(COVID19_RESULT4))) %>% 
+  rename(result_date_12 = COVID19_RECDAT,
+         result_date_13 = COVID19_RECDAT1,
+         result_date_14 = COVID19_RECDAT2,
+         result_date_15 = COVID19_RECDAT3,
+         result_date_16 = COVID19_RECDAT4,
+         COVID19_RESULT12 = COVID19_RESULT,
+         COVID19_RESULT13 = COVID19_RESULT1,
+         COVID19_RESULT14 = COVID19_RESULT2,
+         COVID19_RESULT15 = COVID19_RESULT3,
+         COVID19_RESULT16 = COVID19_RESULT4)
+
+df <- left_join(df, df_vl[, c("id_pat", "result_date_12", "result_date_13", "result_date_14", "result_date_15", "result_date_16", "COVID19_RESULT12", "COVID19_RESULT13", "COVID19_RESULT14", "COVID19_RESULT15", "COVID19_RESULT16")], by = join_by(id_pat == id_pat))
 df <- df %>% 
-  mutate(vir_clear_10 = case_when(vloqundet_yn_D8 == 1 ~ 1,
-                                  vir_clear_5 == 1 & is.na(vloqundet_yn_D8) ~ 1,
-                                  vloqundet_yn_D8 == 0 ~ 0,
-                                  vir_clear_5 == 0 & is.na(vloqundet_yn_D8) ~ 0))
-df <- df %>% 
-  mutate(vir_clear_15 = case_when(vloqundet_yn_D15 == 1 ~ 1,
-                                  vir_clear_10 == 1 & is.na(vloqundet_yn_D15) ~ 1,
-                                  vloqundet_yn_D15 == 0 ~ 0,
-                                  vir_clear_10 == 0 & is.na(vloqundet_yn_D15) ~ 0))
+  rename(result_date_1 = COVID19_RECDAT,
+         result_date_2 = COVID19_RECDAT1,
+         result_date_3 = COVID19_RECDAT2,
+         result_date_4 = COVID19_RECDAT3,
+         result_date_5 = COVID19_RECDAT4,
+         result_date_6 = COVID19_RECDAT5,
+         result_date_7 = COVID19_RECDAT6,
+         result_date_8 = COVID19_RECDAT7,
+         result_date_9 = COVID19_RECDAT8,
+         )
 
+df_vl <- df %>% 
+    select(id_pat, randdate, vl_baseline, result_date_1, COVID19_RESULT1, result_date_2, COVID19_RESULT2, result_date_3, COVID19_RESULT3, result_date_4, COVID19_RESULT4,  result_date_5, COVID19_RESULT5, result_date_6, COVID19_RESULT6, result_date_7, COVID19_RESULT7, result_date_8, COVID19_RESULT8, result_date_9, COVID19_RESULT9,result_date_12, COVID19_RESULT12, result_date_13, COVID19_RESULT13, result_date_14, COVID19_RESULT14, result_date_15, COVID19_RESULT15, result_date_16, COVID19_RESULT16)
 
-# (viii) Quality of life at day 28 // detailed measures available - wait for other trials first
+df_vl <- df_vl %>%
+  mutate_at(vars(starts_with("result_date_")), as.Date, format = "%d/%m/%Y")
 
+# Calculate time difference for each result_date variable relative to 5 days after randdate
+date_cols <- grep("^result_date_", colnames(df_vl), value = TRUE)
+for (col in date_cols) {
+  df_vl <- df_vl %>%
+    mutate(!!paste0("time_diff_", col) := abs(.data[[col]] - (randdate + days(5))))
+}
 
-# (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
-# table(df_ae$AE_28) # any grade 3 or 4 or serious
-df_ae34 <- df_ae %>% 
-  rename(id_pat = PARTICIPANT_ID) %>% 
-  filter(AE_28 == 1) # contains only grade 3 or 4
-# Keep just 1 id_pat (-> ANY adverse event grade 3 (severe), 4 (serious)) 
-df_ae34_unique <- df_ae34 %>% distinct(id_pat, .keep_all = TRUE)
-# Assign the outcome
-df_ae34_unique$ae_28 <- 1
-# table(df_ae34_unique$ae_28)
-# merge
-df <- left_join(df, df_ae34_unique[, c("ae_28", "id_pat")], by = join_by(id_pat == id_pat)) ## merge variable to main df
-# the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
-df <- df %>% 
-  mutate(ae_28 = case_when(is.na(ae_28) ~ 0, # the LTFU were discharged
-                           mort_28 == 1 ~ NA, # exclude the deaths
-                                TRUE ~ ae_28))
-# table(df$ae_28, df$mort_28, useNA = "always")
-# addmargins(table(df$ae_28, df$trt, useNA = "always"))
+# Find the result_date with the minimum time difference for each row
 
-# (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
-ae_npp <- df_ae %>%
-  rename(id_pat = PARTICIPANT_ID) %>%
-  filter(AE_28 == 1) %>% 
-  group_by(id_pat)%>%  
-  summarise(ae_28_sev = n())
-df <- left_join(df, ae_npp[, c("ae_28_sev", "id_pat")], by = join_by(id_pat == id_pat)) # merge variable to main df
-# the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
-df <- df %>% 
-  mutate(ae_28_sev = case_when(is.na(ae_28_sev) ~ 0, # the LTFU were discharged
-                           mort_28 == 1 ~ NA, # exclude the deaths
-                                TRUE ~ ae_28_sev))
-# addmargins(table(df$ae_28_sev, df$trt, useNA = "always"))
-
-# (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiac events (excl. hypertension), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4), i) Multiple organ dysfunction syndrome and septic shock
-
-a<-as.data.frame(unique(df_ae$MeddraPT)) # contains standardized categories
-# unique(df_ae$MeddraLLT) 
-# df_ae <- df_ae %>% 
-#   mutate(dupl = duplicated(MeddraLLT, MeddraPT))
-# df_ae %>% 
-#   select(dupl, MeddraPT, MeddraLLT) %>% 
-#   filter(dupl == F) %>% 
-#   View() # does not contain more information
-
-df_ae <- df_ae %>%
-  rename(id_pat = PARTICIPANT_ID,
-         trt = arm)
-df_thrombo <- df_ae %>% # a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis)
-  filter(MeddraPT %in% c("Pulmonary embolism", "Cerebral infarction", "Vena cava thrombosis", "Deep vein thrombosis", "Catheter site thrombosis", "Peripheral artery thrombosis")) %>% 
-  mutate(aesi = "thrombo")
-df_sec_inf <- df_ae %>% # b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), but not COVID-19 pneumonia! First extract all infections, then reclassify.
-  filter(MeddraPT %in% c("Pneumonia bacterial", "Pneumonia", # these are all ventilator-associated pneumonia not covid-19
-                         "Septic arthritis staphylococcal", "Mediastinitis", "Pneumonitis", "Infectious pleural effusion",
-                         "Superinfection bacterial", "Staphylococcal bacteraemia", "Bacterial infection", "Bacterial infection",
-                         "Bacteraemia", "Fungaemia", "Disseminated aspergillosis", "URINARY TRACT INFECTION", "PYELONEPHRITIS", 
-                         "Device related bacteraemia", "SEPSIS", "Sepis", "FUNGAL INFECTION", "ORAL CANDIDIASIS", 
-                         "CANDIDA INFECTION","BRONCHOPULMONARY ASPERGILLOSIS", "VULVOVAGINAL MYCOTIC INFECTION", 
-                         "FUNGAL SKIN INFECTION", "TOOTH INFECTION", "PAROTITIS", "CELLULITIS", "ORAL FUNGAL INFECTION",
-                         "Bronchopulmonary aspergillosis", "Prostatitis Escherichia coli", "ABDOMINAL INFECTION", 
-                         "Candida pneumonia", "PHLEBITIS", "CANDIDA PNEUMONIA", "BURSITIS", "CHOLECYSTITIS ACUTE")) %>% 
-  mutate(aesi = "sec_inf")
-df_reactivate <- df_ae %>% # c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B.
-  filter(MeddraPT %in% c("Herpes simplex reactivation", "Herpes simplex", "Cytomegalovirus infection reactivation", "Hepatitis B reactivation")) %>% 
-  mutate(aesi = "reactivate")
-df_cardiac <- df_ae %>% # d) serious cardiac events (excl. not hypertension)
-  filter(MeddraPT %in% c("BRADYCARDIA", "Cardiac failure", "Bradycardia", "Acute myocardial infarction", 
-                         "SUPRAVENTRICULAR TACHYCARDIA", "TACHYCARDIA", "VENTRICULAR EXTRASYSTOLES", "ATRIAL FIBRILLATION", 
-                         "Acute coronary syndrome","Cardiac arrest", "SINUS ARRHYTHMIA")) %>% 
-  mutate(aesi = "cardiac")
-df_penia <- df_ae %>% # e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia)
-  filter(MeddraPT %in% c("Anaemia", "LYMPHOCYTE COUNT DECREASED", "BLOOD CREATININE DECREASED", "THROMBOCYTOPENIA",
-                         "LYMPHOPENIA", "LEUKOPENIA", "NEUTROPENIA", "Thrombocytopenia", "Bicytopenia")) %>% 
-  mutate(aesi = "penia")
-# df_malig <- NA
-df_git_bl <- df_ae %>% # g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis)
-  filter(MeddraPT %in% c("Gastrointestinal haemorrhage", "Rectal haemorrhage", "ABDOMINAL WALL HAEMORRHAGE", "DIVERTICULUM GASTRIC")) %>% 
-  mutate(aesi = "git_bl")
-df_hepatox <- df_ae %>% # h) liver dysfunction/hepatotoxicity (grade 3 and 4)
-  filter(MeddraPT %in% c("Hepatotoxicity", "Hepatocellular injury") |
-           (MeddraPT %in% c("HEPATIC ENZYME INCREASED", "ALANINE AMINOTRANSFERASE INCREASED", "HYPERTRANSAMINASAEMIA",
-                         "Alanine aminotransferase increased", "TRANSAMINASES INCREASED", "Transaminases increased",
-                         "Aspartate aminotransferase increased", "Blood bilirubin increased") & 
-              AE_28 == 1)) %>% # only grade 3 and 4 for the liver function tests
-  mutate(aesi = "hepatox")
-df_mods <- df_ae %>% # i) Multiple organ dysfunction syndrome and septic shock
-  filter(MeddraPT %in% c("Multiple organ dysfunction syndrome", "Septic shock")) %>% 
-  mutate(aesi = "mods")
-
-df_aesi <- rbind(df_mods, df_hepatox, df_git_bl, df_penia, df_cardiac, df_reactivate, df_sec_inf, df_thrombo)
-df_aesi <- df_aesi %>% rename(desc = MeddraPT)
-df_aesi <- df_aesi %>% 
-  select(trt, aesi, desc)
-table(df_aesi$trt, df_aesi$aesi)
-# Save
-saveRDS(df_aesi, file = "df_aesi_barisolidact.RData")
-
-# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-df_ae <- df_ae %>% 
-  select(trt, MeddraLLT, MeddraPT, MeddraSOC, Grade)
-# Save
-saveRDS(df_ae, file = "df_ae_barisolidact.RData")
 
 ```
-Discussion points OUTCOME data:
+Discussion points:
 
 
