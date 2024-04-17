@@ -36,7 +36,7 @@ library(logistf) # Firth regression in case of rare events
 
 ```r
 df_tot <- readRDS("df_tot.RData") # without Murugesan
-df_tot_Muru <- readRDS("df_tot_Muru.RData") # with Murugesan
+# df_tot_Muru <- readRDS("df_tot_Muru.RData") # with Murugesan
 ```
 
 # Load treatment effect estimates from all trials
@@ -50,13 +50,14 @@ df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 # df_murugesan <- readRDS("trt_effects_murugesan.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
+df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
 ```
 
 # Reshape dataframes for all treatment effect estimates
 
 ```r
 ### Create a list of all data frames / trials
-list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery) # add all trials
+list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r) # add all trials
 
 ## Mortality at day 28
 outcomes <- "death at day 28"
@@ -244,35 +245,36 @@ summary(mort28)
 ## Review:     Average treatment effect - mortality 28 days
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.6573 [0.3068;  1.4084]        7.4
-## ACTT-2        0.7041 [0.3996;  1.2406]       12.2
-## Ghazaeian     0.7909 [0.1654;  3.7807]        1.9
-## TOFACOV       2.5366 [0.1928; 33.3748]        0.7
-## COVINIB       0.1816 [0.0126;  2.6139]        0.7
-## COV-BARRIER   0.5131 [0.3666;  0.7182]       25.8
-## RECOVERY      0.8109 [0.7034;  0.9349]       51.3
+## Bari-SolidAct 0.6573 [0.3068;  1.4084]        6.5
+## ACTT-2        0.7041 [0.3996;  1.2406]       10.9
+## Ghazaeian     0.7909 [0.1654;  3.7807]        1.7
+## TOFACOV       2.5366 [0.1928; 33.3748]        0.6
+## COVINIB       0.1816 [0.0126;  2.6139]        0.6
+## COV-BARRIER   0.5131 [0.3666;  0.7182]       23.8
+## RECOVERY      0.8109 [0.7034;  0.9349]       50.3
+## TACTIC-R      0.8119 [0.3571;  1.8458]        5.7
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11107
+## Number of studies: k = 8
+## Number of observations: o = 11375
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.6957 [0.5440; 0.8898] -3.61  0.0113
-## Prediction interval              [0.4401; 1.0998]              
+## Random effects model (HK) 0.7052 [0.5703; 0.8720] -3.89  0.0060
+## Prediction interval              [0.4711; 1.0556]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0192 [0.0000; 1.2657]; tau = 0.1385 [0.0000; 1.1250]
-##  I^2 = 26.5% [0.0%; 68.1%]; H = 1.17 [1.00; 1.77]
+##  tau^2 = 0.0163 [0.0000; 0.5993]; tau = 0.1277 [0.0000; 0.7741]
+##  I^2 = 14.6% [0.0%; 57.5%]; H = 1.08 [1.00; 1.53]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  8.17    6  0.2262
+##  8.20    7  0.3153
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
-## - Prediction interval based on t-distribution (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -339,7 +341,8 @@ df_mort28 <- df_mort28 %>%
                                         trial == "TOFACOV" ~ "09.2020-12.2021",
                                         trial == "COVINIB" ~ "09.2020-06.2021",
                                         trial == "COV-BARRIER" ~ "06.2020-01.2021",
-                                        trial == "RECOVERY" ~ "02.2021-12.2021",
+                                        trial == "RECOVERY" ~ "02.2021-12.2021", 
+                                        trial == "TACTIC-R" ~ "05.2020-05.2021",
                                         ))
 df_mort28 <- df_mort28 %>% 
   mutate(recruitment_period_cat = case_when(trial == "ACTT-2" ~ "mid2020",
@@ -349,6 +352,7 @@ df_mort28 <- df_mort28 %>%
                                             trial == "COVINIB" ~ "beg2021",
                                             trial == "Ghazaeian" ~ "mid2021",
                                             trial == "Bari-SolidAct" ~ "mid2021",
+                                            trial == "TACTIC-R" ~ "beg2021",
                                         ))
 
 df_mort28 <- df_mort28 %>% 
@@ -357,8 +361,9 @@ df_mort28 <- df_mort28 %>%
                                             trial == "RECOVERY" ~ "low risk",
                                             trial == "TOFACOV" ~ "low risk",
                                             trial == "COVINIB" ~ "low risk",
-                                            trial == "Ghazaeian" ~ "Some concerns",
+                                            trial == "Ghazaeian" ~ "low risk",
                                             trial == "Bari-SolidAct" ~ "low risk",
+                                trial == "TACTIC-R" ~ "low risk",
                                         ))
 
 #### read in aggregate data
@@ -929,108 +934,30 @@ row_ruxcovid <- tibble(
 ```
 
 ```r
-## TACTIC-R
-df_tacticr <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "TACTIC-R")
-# analyse with same model
-addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))
-```
+# ## TACTIC-R
+# df_tacticr <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "TACTIC-R")
+# # analyse with same model
+# addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))
+# mort.28.tacticr <- df_tacticr %>% 
+#   glm(mort_28 ~ trt
+#       , family = "binomial", data=.)
+# summ(mort.28.tacticr, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# # add effect estimates and other parameters to df_mort28
+# row_tacticr <- tibble(
+#   variable = "death at day 28",
+#   hazard_odds_ratio = exp(coef(mort.28.tacticr)["trt"]),
+#   ci_lower = exp(confint(mort.28.tacticr)["trt", ])[1],
+#   ci_upper = exp(confint(mort.28.tacticr)["trt", ])[2],
+#   standard_error = summary(mort.28.tacticr)$coefficients["trt", "Std. Error"],
+#   p_value = summary(mort.28.tacticr)$coefficients["trt", "Pr(>|z|)"],
+#   n_intervention = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,2],
+#   n_control = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,1],
+#   trial = "TACTIC-R*",
+#   JAKi = "Baricitinib",
+#   recruitment_period = "05.2020-05.2021",
+#   recruitment_period_cat = "beg2021",
+#   rob_mort28 = "low risk")
 
-```
-##       
-##          0   1 <NA> Sum
-##   0    128 118    0 246
-##   1     17  19    0  36
-##   <NA>   0   0    0   0
-##   Sum  145 137    0 282
-```
-
-```r
-mort.28.tacticr <- df_tacticr %>% 
-  glm(mort_28 ~ trt
-      , family = "binomial", data=.)
-summ(mort.28.tacticr, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-```
-
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 282 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> mort_28 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> Generalized linear model </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Family </td>
-   <td style="text-align:right;"> binomial </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Link </td>
-   <td style="text-align:right;"> logit </td>
-  </tr>
-</tbody>
-</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> exp(Est.) </th>
-   <th style="text-align:right;"> 2.5% </th>
-   <th style="text-align:right;"> 97.5% </th>
-   <th style="text-align:right;"> z val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.13 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 0.22 </td>
-   <td style="text-align:right;"> -7.82 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.21 </td>
-   <td style="text-align:right;"> 0.60 </td>
-   <td style="text-align:right;"> 2.44 </td>
-   <td style="text-align:right;"> 0.54 </td>
-   <td style="text-align:right;"> 0.59 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: MLE</td></tr></tfoot>
-</table>
-
-```r
-# add effect estimates and other parameters to df_mort28
-row_tacticr <- tibble(
-  variable = "death at day 28",
-  hazard_odds_ratio = exp(coef(mort.28.tacticr)["trt"]),
-  ci_lower = exp(confint(mort.28.tacticr)["trt", ])[1],
-  ci_upper = exp(confint(mort.28.tacticr)["trt", ])[2],
-  standard_error = summary(mort.28.tacticr)$coefficients["trt", "Std. Error"],
-  p_value = summary(mort.28.tacticr)$coefficients["trt", "Pr(>|z|)"],
-  n_intervention = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,2],
-  n_control = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,1],
-  trial = "TACTIC-R*",
-  JAKi = "Baricitinib",
-  recruitment_period = "05.2020-05.2021",
-  recruitment_period_cat = "beg2021",
-  rob_mort28 = "low risk")
-```
-
-```
-## Waiting for profiling to be done...
-## Waiting for profiling to be done...
-```
-
-```r
 ## Dastan
 df_dastan <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Dastan")
 # analyse with same model
@@ -1191,10 +1118,10 @@ row_singh <- tibble(
 
 ```r
 # Add the new rows to your existing dataframe
-df_mort28_agg <- bind_rows(df_mort28, row_prevent, row_cao, row_pancovid, row_stopcovid, row_ruxcoviddevent, row_ruxcovid, row_tacticr, row_dastan, row_singh)
+df_mort28_agg <- bind_rows(df_mort28, row_prevent, row_cao, row_pancovid, row_stopcovid, row_ruxcoviddevent, row_ruxcovid, row_dastan, row_singh)
 
 
-# Foresplot
+# Forestplot
 # str(df_mort28_agg)
 mort28.agg <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
@@ -1220,37 +1147,37 @@ summary(mort28.agg)
 ## Review:     Average treatment effect - mortality 28 days
 ## 
 ##                      OR            95%-CI %W(random)
-## Bari-SolidAct    0.6573 [0.3068;  1.4084]        5.8
-## ACTT-2           0.7041 [0.3996;  1.2406]        9.4
+## Bari-SolidAct    0.6573 [0.3068;  1.4084]        5.7
+## ACTT-2           0.7041 [0.3996;  1.2406]        9.3
 ## Ghazaeian        0.7909 [0.1654;  3.7807]        1.5
 ## TOFACOV          2.5366 [0.1928; 33.3748]        0.6
 ## COVINIB          0.1816 [0.0126;  2.6139]        0.5
-## COV-BARRIER      0.5131 [0.3666;  0.7182]       19.0
-## RECOVERY         0.8109 [0.7034;  0.9349]       34.7
-## PRE-VENT*        1.3062 [0.4931;  3.4597]        3.7
+## COV-BARRIER      0.5131 [0.3666;  0.7182]       19.3
+## RECOVERY         0.8109 [0.7034;  0.9349]       36.9
+## TACTIC-R         0.8119 [0.3571;  1.8458]        5.0
+## PRE-VENT*        1.3062 [0.4931;  3.4597]        3.6
 ## CAO*             0.1289 [0.0062;  2.6659]        0.4
-## Pancovid*        0.4074 [0.1032;  1.6080]        2.0
+## Pancovid*        0.4074 [0.1032;  1.6080]        1.9
 ## STOP-COVID*      0.4893 [0.1440;  1.6625]        2.4
-## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        6.7
-## RUXCOVID*        1.4049 [0.4394;  4.4914]        2.7
-## TACTIC-R*        1.2124 [0.6017;  2.4426]        6.7
+## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        6.6
+## RUXCOVID*        1.4049 [0.4394;  4.4914]        2.6
 ## Dastan*          0.1884 [0.0087;  4.0746]        0.4
-## Singh*           0.4235 [0.1544;  1.1618]        3.5
+## Singh*           0.4235 [0.1544;  1.1618]        3.4
 ## 
 ## Number of studies: k = 16
-## Number of observations: o = 13122
+## Number of observations: o = 13108
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.6930 [0.5625; 0.8536] -3.75  0.0019
-## Prediction interval              [0.4669; 1.0284]              
+## Random effects model (HK) 0.6750 [0.5572; 0.8178] -4.37  0.0006
+## Prediction interval              [0.4630; 0.9843]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0238 [0.0000; 0.4424]; tau = 0.1543 [0.0000; 0.6651]
-##  I^2 = 21.1% [0.0%; 56.5%]; H = 1.13 [1.00; 1.52]
+##  tau^2 = 0.0212 [0.0000; 0.3393]; tau = 0.1455 [0.0000; 0.5825]
+##  I^2 = 12.6% [0.0%; 49.9%]; H = 1.07 [1.00; 1.41]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f. p-value
-##  19.01   15  0.2132
+##  17.16   15  0.3095
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -1431,34 +1358,35 @@ summary(mort28.ame)
 ## Review:     Covariate-adjusted average marginal effect - mortality 28 days
 ## 
 ##                                   95%-CI %W(common) %W(random)
-## Bari-SolidAct -0.0411 [-0.1170;  0.0348]        1.9        5.2
-## ACTT-2        -0.0177 [-0.0465;  0.0111]       13.1       19.0
-## Ghazaeian     -0.0155 [-0.1229;  0.0920]        0.9        2.8
-## TOFACOV        0.0150 [-0.0186;  0.0487]        9.7       16.3
-## COVINIB       -0.0377 [-0.0879;  0.0125]        4.3        9.9
-## COV-BARRIER   -0.0621 [-0.0934; -0.0308]       11.1       17.6
-## RECOVERY      -0.0200 [-0.0336; -0.0063]       58.9       29.3
+## Bari-SolidAct -0.0411 [-0.1170;  0.0348]        1.9        4.7
+## ACTT-2        -0.0177 [-0.0465;  0.0111]       12.9       18.1
+## Ghazaeian     -0.0155 [-0.1229;  0.0920]        0.9        2.5
+## TOFACOV        0.0150 [-0.0186;  0.0487]        9.5       15.4
+## COVINIB       -0.0377 [-0.0879;  0.0125]        4.3        9.1
+## COV-BARRIER   -0.0621 [-0.0934; -0.0308]       11.0       16.7
+## RECOVERY      -0.0200 [-0.0336; -0.0063]       57.9       29.0
+## TACTIC-R      -0.0183 [-0.0966;  0.0601]        1.7        4.4
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11107
+## Number of studies: k = 8
+## Number of observations: o = 11375
 ## 
 ##                                               95%-CI   z|t  p-value
-## Common effect model       -0.0221 [-0.0326; -0.0117] -4.15 < 0.0001
-## Random effects model (HK) -0.0239 [-0.0474; -0.0005] -2.50   0.0468
+## Common effect model       -0.0220 [-0.0324; -0.0117] -4.17 < 0.0001
+## Random effects model (HK) -0.0236 [-0.0441; -0.0032] -2.73   0.0294
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0003 [0.0000; 0.0025]; tau = 0.0162 [0.0000; 0.0501]
-##  I^2 = 49.1% [0.0%; 78.4%]; H = 1.40 [1.00; 2.15]
+##  tau^2 = 0.0002 [0.0000; 0.0017]; tau = 0.0152 [0.0000; 0.0416]
+##  I^2 = 40.6% [0.0%; 73.8%]; H = 1.30 [1.00; 1.95]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f. p-value
-##  11.78    6  0.0671
+##  11.79    7  0.1078
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
 ```
 
 ```r
@@ -1507,35 +1435,36 @@ summary(mort60)
 ## Review:     Average treatment effect - mortality 60 days
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.9170 [0.4640;  1.8125]        5.2
-## ACTT-2        0.7041 [0.3996;  1.2406]        7.4
-## Ghazaeian     0.7909 [0.1654;  3.7807]        1.0
-## TOFACOV       2.5366 [0.1928; 33.3748]        0.4
-## COVINIB       0.1816 [0.0126;  2.6139]        0.4
-## COV-BARRIER   0.5656 [0.4133;  0.7740]       21.4
-## RECOVERY      0.8109 [0.7034;  0.9349]       64.4
+## Bari-SolidAct 0.9170 [0.4640;  1.8125]        3.2
+## ACTT-2        0.7041 [0.3996;  1.2406]        4.6
+## Ghazaeian     0.7909 [0.1654;  3.7807]        0.6
+## TOFACOV       2.5366 [0.1928; 33.3748]        0.2
+## COVINIB       0.1816 [0.0126;  2.6139]        0.2
+## COV-BARRIER   0.5656 [0.4133;  0.7740]       15.1
+## RECOVERY      0.8109 [0.7034;  0.9349]       73.4
+## TACTIC-R      0.9559 [0.4482;  2.0384]        2.6
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11082
+## Number of studies: k = 8
+## Number of observations: o = 11346
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.7469 [0.6181; 0.9027] -3.77  0.0093
-## Prediction interval              [0.5682; 0.9820]              
+## Random effects model (HK) 0.7687 [0.6647; 0.8889] -4.28  0.0037
+## Prediction interval              [0.6601; 0.8950]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0048 [0.0000; 1.2712]; tau = 0.0695 [0.0000; 1.1275]
-##  I^2 = 7.8% [0.0%; 73.1%]; H = 1.04 [1.00; 1.93]
+##  tau^2 = 0 [0.0000; 0.6459]; tau = 0 [0.0000; 0.8037]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.51    6  0.3686
+##  6.84    7  0.4462
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
-## - Prediction interval based on t-distribution (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -1583,33 +1512,34 @@ summary(ttdeath)
 ## Review:     Average treatment effect - time to death
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 0.7727 [0.4322; 1.3817]        8.6
-## ACTT-2        0.7409 [0.4415; 1.2434]       10.5
-## Ghazaeian     0.8380 [0.1874; 3.7469]        1.5
-## COV-BARRIER   0.5947 [0.4612; 0.7668]       28.8
-## RECOVERY      0.8531 [0.7562; 0.9626]       50.7
+## Bari-SolidAct 0.7727 [0.4322; 1.3817]        8.4
+## ACTT-2        0.7409 [0.4415; 1.2434]       10.1
+## Ghazaeian     0.8380 [0.1874; 3.7469]        1.4
+## COV-BARRIER   0.5947 [0.4612; 0.7668]       26.9
+## RECOVERY      0.8531 [0.7562; 0.9626]       45.4
+## TACTIC-R      1.3103 [0.7133; 2.4068]        7.7
 ## 
-## Number of studies: k = 5
-## Number of observations: o = 11046
+## Number of studies: k = 6
+## Number of observations: o = 11328
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.7510 [0.6051; 0.9320] -3.68  0.0212
-## Prediction interval              [0.4679; 1.2053]              
+## Random effects model (HK) 0.7822 [0.6136; 0.9972] -2.60  0.0482
+## Prediction interval              [0.5096; 1.2007]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0134 [0.0000; 0.1370]; tau = 0.1157 [0.0000; 0.3701]
-##  I^2 = 37.6% [0.0%; 76.8%]; H = 1.27 [1.00; 2.08]
+##  tau^2 = 0.0152 [0.0000; 0.3398]; tau = 0.1233 [0.0000; 0.5830]
+##  I^2 = 44.0% [0.0%; 77.8%]; H = 1.34 [1.00; 2.12]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.41    4  0.1707
+##  8.92    5  0.1121
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 4)
-## - Prediction interval based on t-distribution (df = 3)
+## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Prediction interval based on t-distribution (df = 4)
 ```
 
 ```r
@@ -1657,35 +1587,36 @@ summary(new.mvd28)
 ## Review:     Average treatment effect - New MV or death within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0501 [0.6091; 1.8106]        3.8
-## ACTT-2        0.6874 [0.4680; 1.0096]        7.7
+## Bari-SolidAct 1.0501 [0.6091; 1.8106]        3.7
+## ACTT-2        0.6874 [0.4680; 1.0096]        7.5
 ## Ghazaeian     0.7909 [0.1654; 3.7807]        0.5
 ## TOFACOV       0.5034 [0.0417; 6.0761]        0.2
 ## COVINIB       0.1994 [0.0393; 1.0107]        0.4
-## COV-BARRIER   0.8235 [0.6209; 1.0922]       14.2
-## RECOVERY      0.8153 [0.7201; 0.9232]       73.3
+## COV-BARRIER   0.8235 [0.6209; 1.0922]       13.9
+## RECOVERY      0.8153 [0.7201; 0.9232]       71.5
+## TACTIC-R      0.8714 [0.4408; 1.7225]        2.4
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11169
+## Number of studies: k = 8
+## Number of observations: o = 11451
 ## 
-##                                  OR           95%-CI     t p-value
-## Random effects model (HK-CI) 0.8080 [0.7193; 0.9076] -4.49  0.0042
-## Prediction interval                 [0.7028; 0.9289]              
+##                                  OR           95%-CI     t  p-value
+## Random effects model (HK-CI) 0.8094 [0.7287; 0.8991] -3.94 < 0.0001
+## Prediction interval                 [0.7099; 0.9229]               
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.9358]; tau = 0 [0.0000; 0.9673]
-##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+##  tau^2 = 0 [0.0000; 0.5835]; tau = 0 [0.0000; 0.7639]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.60    6  0.5960
+##  4.65    7  0.7030
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
-## - Prediction interval based on t-distribution (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = )
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -1733,34 +1664,35 @@ summary(new.mv28)
 ## Review:     Average treatment effect - New MV among survivors within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.5355 [0.7471; 3.1562]        8.1
-## ACTT-2        0.6873 [0.4269; 1.1068]       16.9
+## Bari-SolidAct 1.5355 [0.7471; 3.1562]        7.4
+## ACTT-2        0.6873 [0.4269; 1.1068]       15.7
 ## TOFACOV       0.2175 [0.0144; 3.2855]        0.6
-## COVINIB       0.2705 [0.0511; 1.4311]        1.6
-## COV-BARRIER   1.2208 [0.8387; 1.7772]       24.7
-## RECOVERY      0.8229 [0.6575; 1.0299]       48.1
+## COVINIB       0.2705 [0.0511; 1.4311]        1.5
+## COV-BARRIER   1.2208 [0.8387; 1.7772]       23.4
+## RECOVERY      0.8229 [0.6575; 1.0299]       48.4
+## TACTIC-R      0.8583 [0.2765; 2.6645]        3.1
 ## 
-## Number of studies: k = 6
-## Number of observations: o = 9388
+## Number of studies: k = 7
+## Number of observations: o = 9633
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.9016 [0.6287; 1.2930] -0.74  0.4934
-## Prediction interval              [0.5877; 1.3831]              
+## Random effects model (HK) 0.8985 [0.6654; 1.2132] -0.87  0.4165
+## Prediction interval              [0.6273; 1.2868]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0118 [0.0000; 2.9865]; tau = 0.1086 [0.0000; 1.7282]
-##  I^2 = 47.5% [0.0%; 79.2%]; H = 1.38 [1.00; 2.19]
+##  tau^2 = 0.0089 [0.0000; 1.7976]; tau = 0.0942 [0.0000; 1.3407]
+##  I^2 = 37.0% [0.0%; 73.5%]; H = 1.26 [1.00; 1.94]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  9.52    5  0.0900
+##  9.52    6  0.1462
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
-## - Prediction interval based on t-distribution (df = 4)
+## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Prediction interval based on t-distribution (df = 5)
 ```
 
 ```r
@@ -1808,35 +1740,36 @@ summary(clin28)
 ## Review:     Average treatment effect - Clinical status at day 28
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 0.9451 [0.5778; 1.5456]        3.9
-## ACTT-2        0.6928 [0.4970; 0.9659]        8.5
+## Bari-SolidAct 0.9451 [0.5778; 1.5456]        3.8
+## ACTT-2        0.6928 [0.4970; 0.9659]        8.3
 ## Ghazaeian     0.8256 [0.1729; 3.9418]        0.4
 ## TOFACOV       0.5090 [0.0861; 3.0089]        0.3
 ## COVINIB       0.3212 [0.0565; 1.8266]        0.3
-## COV-BARRIER   0.8487 [0.6655; 1.0823]       15.9
-## RECOVERY      0.7987 [0.7119; 0.8962]       70.8
+## COV-BARRIER   0.8487 [0.6655; 1.0823]       15.5
+## RECOVERY      0.7987 [0.7119; 0.8962]       68.9
+## TACTIC-R      0.8437 [0.4686; 1.5188]        2.6
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11401
+## Number of studies: k = 8
+## Number of observations: o = 11683
 ## 
 ##                                  OR           95%-CI     t  p-value
-## Random effects model (HK-CI) 0.7988 [0.7250; 0.8800] -4.55 < 0.0001
-## Prediction interval                 [0.7035; 0.9070]               
+## Random effects model (HK-CI) 0.7999 [0.7270; 0.8801] -4.58 < 0.0001
+## Prediction interval                 [0.7099; 0.9013]               
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1847]; tau = 0 [0.0000; 0.4298]
-##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+##  tau^2 = 0 [0.0000; 0.0667]; tau = 0 [0.0000; 0.2582]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.70    6  0.8459
+##  2.73    7  0.9089
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
 ## - Hartung-Knapp adjustment for random effects model (df = )
-## - Prediction interval based on t-distribution (df = 5)
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -1885,34 +1818,35 @@ summary(ttdischarge.comp)
 ## 
 ##                   OR           95%-CI %W(random)
 ## Bari-SolidAct 1.1133 [0.8468; 1.4636]        2.1
-## ACTT-2        1.1601 [1.0202; 1.3192]        9.5
+## ACTT-2        1.1601 [1.0202; 1.3192]        9.4
 ## Ghazaeian     0.7381 [0.4798; 1.1355]        0.8
 ## TOFACOV       1.2562 [0.8760; 1.8014]        1.2
-## COVINIB       1.5296 [1.0591; 2.2092]        1.2
-## COV-BARRIER   1.1099 [0.9966; 1.2360]       13.6
-## RECOVERY      1.0930 [1.0429; 1.1454]       71.5
+## COVINIB       1.5296 [1.0591; 2.2092]        1.1
+## COV-BARRIER   1.1099 [0.9966; 1.2360]       13.4
+## RECOVERY      1.0930 [1.0429; 1.1454]       69.6
+## TACTIC-R      0.9763 [0.7555; 1.2615]        2.4
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11401
+## Number of studies: k = 8
+## Number of observations: o = 11683
 ## 
 ##                               OR           95%-CI    t p-value
-## Random effects model (HK) 1.1044 [1.0444; 1.1679] 4.35  0.0048
-## Prediction interval              [1.0483; 1.1635]             
+## Random effects model (HK) 1.1013 [1.0451; 1.1605] 4.36  0.0033
+## Prediction interval              [1.0479; 1.1574]             
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.1886]; tau = 0.0009 [0.0000; 0.4342]
-##  I^2 = 21.4% [0.0%; 64.6%]; H = 1.13 [1.00; 1.68]
+##  tau^2 < 0.0001 [0.0000; 0.1388]; tau = 0.0029 [0.0000; 0.3725]
+##  I^2 = 17.7% [0.0%; 60.5%]; H = 1.10 [1.00; 1.59]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  7.63    6  0.2662
+##  8.50    7  0.2904
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
-## - Prediction interval based on t-distribution (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -1960,35 +1894,36 @@ summary(ttdischarge.hypo)
 ## Review:     Average treatment effect - Time to discharge within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0827 [0.8162; 1.4361]        2.2
-## ACTT-2        1.2108 [1.0569; 1.3872]        9.3
-## Ghazaeian     0.8232 [0.5401; 1.2546]        1.0
+## Bari-SolidAct 1.0827 [0.8162; 1.4361]        2.1
+## ACTT-2        1.2108 [1.0569; 1.3872]        9.1
+## Ghazaeian     0.8232 [0.5401; 1.2546]        0.9
 ## TOFACOV       1.2836 [0.8804; 1.8714]        1.2
 ## COVINIB       1.5895 [1.0685; 2.3646]        1.1
-## COV-BARRIER   1.1214 [1.0023; 1.2548]       13.6
-## RECOVERY      1.1327 [1.0787; 1.1895]       71.7
+## COV-BARRIER   1.1214 [1.0023; 1.2548]       13.3
+## RECOVERY      1.1327 [1.0787; 1.1895]       70.0
+## TACTIC-R      0.9920 [0.7589; 1.2967]        2.3
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11401
+## Number of studies: k = 8
+## Number of observations: o = 11683
 ## 
 ##                               OR           95%-CI    t p-value
-## Random effects model (HK) 1.1395 [1.0802; 1.2021] 5.98  0.0010
-## Prediction interval              [1.0790; 1.2035]             
+## Random effects model (HK) 1.1358 [1.0796; 1.1950] 5.93  0.0006
+## Prediction interval              [1.0791; 1.1956]             
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.1480]; tau = 0.0018 [0.0000; 0.3848]
-##  I^2 = 6.2% [0.0%; 72.6%]; H = 1.03 [1.00; 1.91]
+##  tau^2 < 0.0001 [0.0000; 0.1118]; tau = 0.0014 [0.0000; 0.3343]
+##  I^2 = 5.4% [0.0%; 69.3%]; H = 1.03 [1.00; 1.81]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.39    6  0.3805
+##  7.40    7  0.3885
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
-## - Prediction interval based on t-distribution (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -2036,35 +1971,36 @@ summary(ttdischarge.cens)
 ## Review:     Average treatment effect - Time to discharge within 28 days
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0721 [0.8083; 1.4219]        2.2
-## ACTT-2        1.2141 [1.0596; 1.3910]        9.3
+## Bari-SolidAct 1.0721 [0.8083; 1.4219]        2.1
+## ACTT-2        1.2141 [1.0596; 1.3910]        9.1
 ## Ghazaeian     0.7381 [0.4798; 1.1355]        0.9
 ## TOFACOV       1.2836 [0.8804; 1.8714]        1.2
 ## COVINIB       1.5863 [1.0664; 2.3597]        1.1
-## COV-BARRIER   1.0679 [0.9544; 1.1949]       13.6
-## RECOVERY      1.1217 [1.0682; 1.1779]       71.7
+## COV-BARRIER   1.0679 [0.9544; 1.1949]       13.3
+## RECOVERY      1.1217 [1.0682; 1.1779]       70.1
+## TACTIC-R      1.0080 [0.7709; 1.3179]        2.3
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11401
+## Number of studies: k = 8
+## Number of observations: o = 11683
 ## 
 ##                               OR           95%-CI    t p-value
-## Random effects model (HK) 1.1231 [1.0534; 1.1973] 4.44  0.0044
-## Prediction interval              [1.0635; 1.1860]             
+## Random effects model (HK) 1.1202 [1.0567; 1.1876] 4.60  0.0025
+## Prediction interval              [1.0644; 1.1790]             
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.2182]; tau = 0.0015 [0.0000; 0.4671]
-##  I^2 = 34.6% [0.0%; 72.3%]; H = 1.24 [1.00; 1.90]
+##  tau^2 < 0.0001 [0.0000; 0.1561]; tau = 0.0009 [0.0000; 0.3951]
+##  I^2 = 28.4% [0.0%; 67.9%]; H = 1.18 [1.00; 1.77]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  9.17    6  0.1641
+##  9.78    7  0.2012
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
-## - Prediction interval based on t-distribution (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -2113,34 +2049,35 @@ summary(ttdischarge.sus)
 ## 
 ##                   OR           95%-CI %W(random)
 ## Bari-SolidAct 1.0554 [0.7946; 1.4017]        2.1
-## ACTT-2        1.2141 [1.0596; 1.3910]        9.3
+## ACTT-2        1.2141 [1.0596; 1.3910]        9.1
 ## Ghazaeian     0.7381 [0.4798; 1.1355]        0.9
 ## TOFACOV       1.2836 [0.8804; 1.8714]        1.2
 ## COVINIB       1.5863 [1.0664; 2.3597]        1.1
-## COV-BARRIER   1.0582 [0.9454; 1.1845]       13.6
-## RECOVERY      1.1217 [1.0682; 1.1779]       71.7
+## COV-BARRIER   1.0582 [0.9454; 1.1845]       13.2
+## RECOVERY      1.1217 [1.0682; 1.1779]       70.1
+## TACTIC-R      1.0080 [0.7709; 1.3179]        2.3
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11401
+## Number of studies: k = 8
+## Number of observations: o = 11683
 ## 
 ##                               OR           95%-CI    t p-value
-## Random effects model (HK) 1.1214 [1.0504; 1.1972] 4.28  0.0052
-## Prediction interval              [1.0616; 1.1845]             
+## Random effects model (HK) 1.1186 [1.0539; 1.1872] 4.45  0.0030
+## Prediction interval              [1.0625; 1.1776]             
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.2209]; tau = 0.0022 [0.0000; 0.4700]
-##  I^2 = 37.1% [0.0%; 73.5%]; H = 1.26 [1.00; 1.94]
+##  tau^2 < 0.0001 [0.0000; 0.1576]; tau = 0.0019 [0.0000; 0.3970]
+##  I^2 = 31.0% [0.0%; 69.3%]; H = 1.20 [1.00; 1.80]
 ## 
 ## Test of heterogeneity:
-##     Q d.f. p-value
-##  9.55    6  0.1452
+##      Q d.f. p-value
+##  10.14    7  0.1809
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
-## - Prediction interval based on t-distribution (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -2188,31 +2125,32 @@ summary(vir.clear5)
 ## Review:     Average treatment effect - Viral clearance up to day 5
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.4947 [0.6349; 3.5190]        7.0
-## COV-BARRIER   0.8980 [0.6700; 1.2034]       60.2
-## RECOVERY      0.9713 [0.6530; 1.4447]       32.7
+## Bari-SolidAct 1.4947 [0.6349; 3.5190]        6.9
+## COV-BARRIER   0.8980 [0.6700; 1.2034]       58.6
+## RECOVERY      0.9713 [0.6530; 1.4447]       31.9
+## TACTIC-R      0.3945 [0.1009; 1.5426]        2.7
 ## 
-## Number of studies: k = 3
-## Number of observations: o = 8616
+## Number of studies: k = 4
+## Number of observations: o = 8666
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-CI) 0.9550 [0.6460; 1.4118] -0.51  0.6626
-## Prediction interval                 [0.2189; 4.1656]              
+## Random effects model (HK-CI) 0.9325 [0.6561; 1.3253] -0.63  0.5716
+## Prediction interval                 [0.5701; 1.5252]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 2.8393]; tau = 0 [0.0000; 1.6850]
-##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
+##  tau^2 < 0.0001 [0.0000; 3.9330]; tau = 0.0015 [0.0000; 1.9832]
+##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.23    2  0.5410
+##  2.80    3  0.4236
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 2)
-## - Prediction interval based on t-distribution (df = 1)
+## - Hartung-Knapp adjustment for random effects model (df = 3)
+## - Prediction interval based on t-distribution (df = 2)
 ```
 
 ```r
@@ -2260,31 +2198,32 @@ summary(vir.clear10)
 ## Review:     Average treatment effect - Viral clearance up to day 10
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0882 [0.5367; 2.2064]        7.6
-## COV-BARRIER   0.9903 [0.7701; 1.2736]       59.9
-## RECOVERY      0.9141 [0.6500; 1.2856]       32.6
+## Bari-SolidAct 1.0882 [0.5367; 2.2064]        7.3
+## COV-BARRIER   0.9903 [0.7701; 1.2736]       57.9
+## RECOVERY      0.9141 [0.6500; 1.2856]       31.5
+## TACTIC-R      0.8137 [0.2793; 2.3706]        3.2
 ## 
-## Number of studies: k = 3
-## Number of observations: o = 8897
+## Number of studies: k = 4
+## Number of observations: o = 8961
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-CI) 0.9718 [0.7999; 1.1805] -0.29  0.7729
-## Prediction interval                 [0.2752; 3.4311]              
+## Random effects model (HK-CI) 0.9662 [0.7979; 1.1701] -0.35  0.7251
+## Prediction interval                 [0.6347; 1.4710]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.2208]; tau = 0 [0.0000; 0.4699]
-##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
+##  tau^2 = 0 [0.0000; 0.0458]; tau = 0 [0.0000; 0.2141]
+##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.24    2  0.8852
+##  0.35    3  0.9511
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
 ## - Hartung-Knapp adjustment for random effects model (df = )
-## - Prediction interval based on t-distribution (df = 1)
+## - Prediction interval based on t-distribution (df = 2)
 ```
 
 ```r
@@ -2332,31 +2271,32 @@ summary(vir.clear15)
 ## Review:     Average treatment effect - Viral clearance up to day 15
 ## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0042 [0.4970; 2.0290]        7.1
-## COV-BARRIER   0.9717 [0.7630; 1.2375]       59.7
-## RECOVERY      0.8551 [0.6183; 1.1825]       33.2
+## Bari-SolidAct 1.0042 [0.4970; 2.0290]        6.8
+## COV-BARRIER   0.9717 [0.7630; 1.2375]       57.8
+## RECOVERY      0.8551 [0.6183; 1.1825]       32.2
+## TACTIC-R      0.9679 [0.3441; 2.7229]        3.2
 ## 
-## Number of studies: k = 3
-## Number of observations: o = 9007
+## Number of studies: k = 4
+## Number of observations: o = 9072
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-CI) 0.9335 [0.7720; 1.1287] -1.56  0.2593
-## Prediction interval                 [0.2780; 3.1346]              
+## Random effects model (HK-CI) 0.9346 [0.7776; 1.1232] -0.72  0.4706
+## Prediction interval                 [0.6242; 1.3993]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.2336]; tau = 0 [0.0000; 0.4833]
-##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
+##  tau^2 = 0 [0.0000; 0.0277]; tau = 0 [0.0000; 0.1663]
+##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.43    2  0.8070
+##  0.43    3  0.9333
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 2)
-## - Prediction interval based on t-distribution (df = 1)
+## - Hartung-Knapp adjustment for random effects model (df = )
+## - Prediction interval based on t-distribution (df = 2)
 ```
 
 ```r
@@ -2404,35 +2344,36 @@ summary(ae28)
 ## Review:     Average treatment effect - dverse event(s) grade 3 or 4, or a se ...
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.9098 [0.5319;  1.5559]        5.7
-## ACTT-2        0.9024 [0.6896;  1.1808]       22.7
+## Bari-SolidAct 0.9098 [0.5319;  1.5559]        5.5
+## ACTT-2        0.9024 [0.6896;  1.1808]       22.1
 ## Ghazaeian     3.2247 [0.1787; 58.1925]        0.2
 ## TOFACOV       0.6936 [0.2461;  1.9552]        1.5
-## COVINIB       0.7969 [0.3127;  2.0306]        1.9
-## COV-BARRIER   1.1048 [0.8458;  1.4432]       23.0
-## RECOVERY      0.9094 [0.7513;  1.1007]       45.0
+## COVINIB       0.7969 [0.3127;  2.0306]        1.8
+## COV-BARRIER   1.1048 [0.8458;  1.4432]       22.4
+## RECOVERY      0.9094 [0.7513;  1.1007]       43.8
+## TACTIC-R      1.3389 [0.6219;  2.8825]        2.7
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 9829
+## Number of studies: k = 8
+## Number of observations: o = 10076
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-CI) 0.9454 [0.8318; 1.0747] -0.86  0.3907
-## Prediction interval                 [0.7992; 1.1184]              
+## Random effects model (HK-CI) 0.9544 [0.8411; 1.0830] -0.72  0.4693
+## Prediction interval                 [0.8151; 1.1175]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1015]; tau = 0 [0.0000; 0.3186]
-##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+##  tau^2 = 0 [0.0000; 0.1032]; tau = 0 [0.0000; 0.3212]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.76    6  0.8380
+##  3.53    7  0.8318
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
 ## - Hartung-Knapp adjustment for random effects model (df = )
-## - Prediction interval based on t-distribution (df = 5)
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -2480,35 +2421,36 @@ summary(ae28sev)
 ## Review:     Average treatment effect - Adverse event(s) grade 3 or 4, or a s ...
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 1.2667 [0.9501;  1.6887]       17.6
-## ACTT-2        0.8105 [0.7196;  0.9129]       24.2
+## Bari-SolidAct 1.2667 [0.9501;  1.6887]       16.4
+## ACTT-2        0.8105 [0.7196;  0.9129]       22.7
 ## Ghazaeian     3.2247 [0.1787; 58.1925]        0.5
-## TOFACOV       0.6936 [0.2461;  1.9552]        3.6
-## COVINIB       0.5880 [0.3295;  1.0494]        8.8
-## COV-BARRIER   1.2980 [1.1155;  1.5104]       23.1
-## RECOVERY      0.8576 [0.7204;  1.0210]       22.2
+## TOFACOV       0.6936 [0.2461;  1.9552]        3.3
+## COVINIB       0.5880 [0.3295;  1.0494]        8.1
+## COV-BARRIER   1.2980 [1.1155;  1.5104]       21.6
+## RECOVERY      0.8576 [0.7204;  1.0210]       20.8
+## TACTIC-R      1.4542 [0.7426;  2.8476]        6.6
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 9577
+## Number of studies: k = 8
+## Number of observations: o = 9824
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.9639 [0.7309; 1.2713] -0.32  0.7564
-## Prediction interval              [0.5261; 1.7662]              
+## Random effects model (HK) 0.9907 [0.7672; 1.2795] -0.09  0.9339
+## Prediction interval              [0.5617; 1.7476]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0440 [0.0099; 0.6800]; tau = 0.2097 [0.0995; 0.8246]
-##  I^2 = 81.2% [62.2%; 90.7%]; H = 2.31 [1.63; 3.28]
+##  tau^2 = 0.0432 [0.0094; 0.5344]; tau = 0.2078 [0.0969; 0.7310]
+##  I^2 = 79.1% [59.1%; 89.3%]; H = 2.19 [1.56; 3.06]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f.  p-value
-##  31.97    6 < 0.0001
+##  33.45    7 < 0.0001
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
-## - Prediction interval based on t-distribution (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
+## - Prediction interval based on t-distribution (df = 6)
 ```
 
 ```r
@@ -2576,80 +2518,80 @@ extract_trt_results <- function(model, variable_name, n_int, n_int_tot, n_cont, 
 result_list <- list()
 
 result_list[[1]] <- extract_trt_results(mort28, "death at day 28",
-                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$mort_28, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 result_list[[2]] <- extract_trt_results(mort60, "death at day 60",
-                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$mort_60, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$mort_60, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$mort_60, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$mort_60, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$mort_60, df_tot$trt))[3,1])
 result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
-                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$death_reached, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$death_reached, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$death_reached, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$death_reached, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$death_reached, df_tot$trt))[3,1])
 result_list[[4]] <- extract_trt_results(new.mvd28, "new MV or death within 28d",
-                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$new_mvd_28, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$new_mvd_28, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$new_mvd_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$new_mvd_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$new_mvd_28, df_tot$trt))[3,1])
 result_list[[5]] <- extract_trt_results(new.mv28, "new MV within 28d",
-                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$new_mv_28, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$new_mv_28, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$new_mv_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$new_mv_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$new_mv_28, df_tot$trt))[3,1])
 result_list[[6]] <- extract_trt_results(clin28, "clinical status at day 28",
-                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,2], 
-                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,2],
-                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,1],
-                                        addmargins(table(df_tot_Muru$clinstatus_28_imp, df_tot_Muru$trt))[7,1])
+                                        addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,2], 
+                                        addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,2],
+                                        addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,1],
+                                        addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,1])
 result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,1])
 result_list[[8]] <- extract_trt_results(ttdischarge.hypo, "discharge within 28 days, death=hypo.event",
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,1])
 result_list[[9]] <- extract_trt_results(ttdischarge.cens, "discharge within 28 days, death=censored",
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$discharge_reached, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,1])
 result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
-                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$discharge_reached_sus, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[3,1])
 result_list[[11]] <- extract_trt_results(vir.clear5, "viral clearance until day 5",
-                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$vir_clear_5, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$vir_clear_5, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$vir_clear_5, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$vir_clear_5, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$vir_clear_5, df_tot$trt))[3,1])
 result_list[[12]] <- extract_trt_results(vir.clear10, "viral clearance until day 10",
-                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$vir_clear_10, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$vir_clear_10, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$vir_clear_10, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$vir_clear_10, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$vir_clear_10, df_tot$trt))[3,1])
 result_list[[13]] <- extract_trt_results(vir.clear15, "viral clearance until day 15",
-                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$vir_clear_15, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$vir_clear_15, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$vir_clear_15, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$vir_clear_15, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$vir_clear_15, df_tot$trt))[3,1])
 result_list[[14]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days",
-                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[2,2], 
-                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[3,2],
-                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[2,1],
-                                        addmargins(table(df_tot_Muru$ae_28, df_tot_Muru$trt))[3,1])
+                                        addmargins(table(df_tot$ae_28, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$ae_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$ae_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$ae_28, df_tot$trt))[3,1])
 result_list[[15]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
-                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,2], 
-                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,2],
-                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,1],
-                                        addmargins(table(df_tot_Muru$ae_28_sev, df_tot_Muru$trt))[9,1])
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2], 
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,1],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,1])
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2666,21 +2608,21 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
 |:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
-|death at day 28                            |         0.6957313| 0.5439897| 0.8897999|      0.1005484| 0.0112562|            638|               5657|       738|          5550|two-stage |
-|death at day 60                            |         0.7469343| 0.6180689| 0.9026678|      0.0773944| 0.0092886|            665|               5647|       759|          5535|two-stage |
-|death within fup                           |         0.7510062| 0.6051414| 0.9320307|      0.0777800| 0.0211774|            666|               5745|       759|          5627|two-stage |
-|new MV or death within 28d                 |         0.8079745| 0.7192738| 0.9076137|      0.0475245| 0.0041629|            968|               5690|      1068|          5579|two-stage |
-|new MV within 28d                          |         0.9016036| 0.6286949| 1.2929787|      0.1402519| 0.4933779|            299|               4883|       309|          4695|two-stage |
-|clinical status at day 28                  |         0.7987556| 0.7250121| 0.8799999|      0.0494227| 0.0000055|           5820|               5820|      5681|          5681|two-stage |
-|discharge within 28 days, death=comp.event |         1.1044247| 1.0443920| 1.1679081|      0.0228409| 0.0048302|           4678|               5820|      4429|          5681|two-stage |
-|discharge within 28 days, death=hypo.event |         1.1395304| 1.0802160| 1.2021018|      0.0218460| 0.0009825|           4678|               5820|      4429|          5681|two-stage |
-|discharge within 28 days, death=censored   |         1.1230654| 1.0534490| 1.1972824|      0.0261523| 0.0043856|           4678|               5820|      4429|          5681|two-stage |
-|sustained discharge within 28 days         |         1.1213678| 1.0503570| 1.1971794|      0.0267354| 0.0051797|           4670|               5820|      4427|          5681|two-stage |
-|viral clearance until day 5                |         0.9549876| 0.6459928| 1.4117825|      0.0908532| 0.6625652|            311|               4739|       313|          4624|two-stage |
-|viral clearance until day 10               |         0.9717526| 0.7999144| 1.1805052|      0.0992858| 0.7728864|            446|               4894|       452|          4758|two-stage |
-|viral clearance until day 15               |         0.9334866| 0.7720192| 1.1287249|      0.0441396| 0.2592637|            544|               4949|       550|          4817|two-stage |
-|Any AE grade 3,4 within 28 days            |         0.9454432| 0.8317619| 1.0746620|      0.0653622| 0.3907180|            652|               5073|       640|          4860|two-stage |
-|AEs grade 3,4 within 28 days               |         0.9639312| 0.7308620| 1.2713254|      0.1131203| 0.7563974|              5|                  5|         3|             3|two-stage |
+|death at day 28                            |         0.7051957| 0.5703084| 0.8719860|      0.0897809| 0.0059726|            656|               5737|       755|          5638|two-stage |
+|death at day 60                            |         0.7686709| 0.6646810| 0.8889300|      0.0614709| 0.0036556|            688|               5726|       778|          5620|two-stage |
+|death within fup                           |         0.7822076| 0.6135753| 0.9971860|      0.0944600| 0.0482253|            690|               5832|       779|          5722|two-stage |
+|new MV or death within 28d                 |         0.8094275| 0.7286710| 0.8991340|      0.0536259| 0.0000806|            992|               5777|      1092|          5674|two-stage |
+|new MV within 28d                          |         0.8984527| 0.6653801| 1.2131671|      0.1227325| 0.4164926|            305|               4952|       316|          4771|two-stage |
+|clinical status at day 28                  |         0.7999109| 0.7269968| 0.8801379|      0.0487653| 0.0000047|           5907|               5907|      5776|          5776|two-stage |
+|discharge within 28 days, death=comp.event |         1.1013013| 1.0450945| 1.1605309|      0.0221537| 0.0033320|           4734|               5907|      4492|          5776|two-stage |
+|discharge within 28 days, death=hypo.event |         1.1358337| 1.0795656| 1.1950346|      0.0214868| 0.0005830|           4734|               5907|      4492|          5776|two-stage |
+|discharge within 28 days, death=censored   |         1.1202338| 1.0566936| 1.1875947|      0.0246942| 0.0024909|           4734|               5907|      4492|          5776|two-stage |
+|sustained discharge within 28 days         |         1.1185706| 1.0538914| 1.1872193|      0.0251889| 0.0029772|           4726|               5907|      4490|          5776|two-stage |
+|viral clearance until day 5                |         0.9324538| 0.6560726| 1.3252649|      0.1104647| 0.5716321|            317|               4765|       322|          4648|two-stage |
+|viral clearance until day 10               |         0.9662391| 0.7978809| 1.1701220|      0.0976814| 0.7251442|            459|               4928|       465|          4788|two-stage |
+|viral clearance until day 15               |         0.9345554| 0.7775887| 1.1232080|      0.0938146| 0.4706210|            559|               4983|       564|          4848|two-stage |
+|Any AE grade 3,4 within 28 days            |         0.9544166| 0.8411279| 1.0829639|      0.0644688| 0.4692605|            683|               5141|       666|          4935|two-stage |
+|AEs grade 3,4 within 28 days               |         0.9907497| 0.7671885| 1.2794573|      0.1081480| 0.9339268|              5|                  5|         3|             3|two-stage |
 
 ```r
 # Save
@@ -2749,13 +2691,14 @@ df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 # df_int_murugesan <- readRDS("int_effects_murugesan.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
+df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
 ```
 
 # Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint - and vacc.ae)
 
 ```r
 ### Create a list of all data frames / trials
-list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier, df_int_recovery) # add all trials
+list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier, df_int_recovery, df_int_tactic_r) # add all trials
 
 ## Respiratory support on Mortality at day 28
 outcomes <- "respiratory support"
@@ -2878,13 +2821,14 @@ df_subgroup_covinib <- readRDS("subgroup_effects_covinib.RData")
 df_subgroup_tofacov <- readRDS("subgroup_effects_tofacov.RData")
 df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
 df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
+df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
 ```
 
 # Reshape dataframes for all subgroup estimates
 
 ```r
 ### Create a list of all data frames / trials
-list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian, df_subgroup_recovery) # add all trials
+list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian, df_subgroup_recovery, df_subgroup_tactic_r) # add all trials
 
 ## Respiratory support
 outcomes1 <- "No oxygen"
@@ -3039,7 +2983,7 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "RECOVERY"),
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "RECOVERY", "TACTIC-R"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(rs.mort28)
@@ -3050,28 +2994,29 @@ summary(rs.mort28)
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
 ## Bari-SolidAct          -1.5507 [-3.6105; 0.5090]        0.8
-## ACTT-2                  0.5576 [-0.1231; 1.2383]        7.7
-## COV-BARRIER            -0.1312 [-0.5733; 0.3109]       18.2
-## RECOVERY               -0.1719 [-0.3922; 0.0483]       73.3
+## ACTT-2                  0.5576 [-0.1231; 1.2383]        7.6
+## COV-BARRIER            -0.1312 [-0.5733; 0.3109]       17.9
+## RECOVERY               -0.1719 [-0.3922; 0.0483]       72.1
+## TACTIC-R               -0.1375 [-1.6185; 1.3435]        1.6
 ## 
-## Number of studies: k = 4
+## Number of studies: k = 5
 ## 
 ##                           log(Ratio of OR)            95%-CI     t p-value
-## Random effects model (HK)          -0.1201 [-0.5487; 0.3085] -0.89  0.4383
+## Random effects model (HK)          -0.1204 [-0.4415; 0.2008] -1.04  0.3569
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 10.1104]; tau = 0.0024 [0.0000; 3.1797]
-##  I^2 = 48.9% [0.0%; 83.1%]; H = 1.40 [1.00; 2.43]
+##  tau^2 < 0.0001 [0.0000; 4.1265]; tau = 0.0008 [0.0000; 2.0314]
+##  I^2 = 31.9% [0.0%; 74.0%]; H = 1.21 [1.00; 1.96]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  5.88    3  0.1178
+##  5.88    4  0.2086
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 3)
+## - Hartung-Knapp adjustment for random effects model (df = 4)
 ```
 
 ```r
@@ -3109,7 +3054,7 @@ vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY"),
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(vb.mort28)
@@ -3119,28 +3064,29 @@ summary(vb.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Ventilation ...
 ## 
 ##             log(Ratio of OR)             95%-CI %W(random)
-## ACTT-2                0.7867 [-0.4700;  2.0435]        4.2
-## COV-BARRIER          -0.2375 [-0.8952;  0.4202]       15.2
-## RECOVERY             -0.2927 [-0.5786; -0.0069]       80.6
+## ACTT-2                0.7867 [-0.4700;  2.0435]        4.1
+## COV-BARRIER          -0.2375 [-0.8952;  0.4202]       14.9
+## RECOVERY             -0.2927 [-0.5786; -0.0069]       79.0
+## TACTIC-R             -0.4204 [-2.2060;  1.3652]        2.0
 ## 
-## Number of studies: k = 3
+## Number of studies: k = 4
 ## 
 ##                           log(Ratio of OR)            95%-CI     t p-value
-## Random effects model (HK)          -0.2393 [-0.8934; 0.4148] -1.57  0.2561
+## Random effects model (HK)          -0.2430 [-0.6367; 0.1508] -1.96  0.1443
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 14.3036]; tau = 0.0025 [0.0000; 3.7820]
-##  I^2 = 25.8% [0.0%; 92.3%]; H = 1.16 [1.00; 3.60]
+##  tau^2 = 0 [0.0000; 3.8868]; tau = 0 [0.0000; 1.9715]
+##  I^2 = 0.0% [0.0%; 84.7%]; H = 1.00 [1.00; 2.56]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.69    2  0.2599
+##  2.73    3  0.4346
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 2)
+## - Hartung-Knapp adjustment for random effects model (df = 3)
 ```
 
 ```r
@@ -3372,32 +3318,33 @@ summary(age.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Age
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.0263 [-0.0476; 0.1002]        1.9
-## ACTT-2                 -0.0076 [-0.0497; 0.0346]        5.7
+## Bari-SolidAct           0.0263 [-0.0476; 0.1002]        1.8
+## ACTT-2                 -0.0076 [-0.0497; 0.0346]        5.6
 ## Ghazaeian               0.0492 [-0.0549; 0.1534]        0.9
 ## TOFACOV                 0.0460 [-0.1448; 0.2368]        0.3
 ## COVINIB                -0.1438 [-0.3523; 0.0646]        0.2
-## COV-BARRIER             0.0238 [-0.0040; 0.0516]       13.1
-## RECOVERY                0.0080 [-0.0033; 0.0193]       77.9
+## COV-BARRIER             0.0238 [-0.0040; 0.0516]       12.8
+## RECOVERY                0.0080 [-0.0033; 0.0193]       76.9
+## TACTIC-R                0.0530 [-0.0305; 0.1366]        1.4
 ## 
-## Number of studies: k = 7
+## Number of studies: k = 8
 ## 
 ##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.0097 [-0.0014; 0.0208] 2.13  0.0774
+## Random effects model (HK-CI)           0.0103 [-0.0006; 0.0211] 2.23  0.0606
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.0120]; tau = 0.0008 [0.0000; 0.1094]
-##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+##  tau^2 < 0.0001 [0.0000; 0.0082]; tau = 0.0008 [0.0000; 0.0903]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.69    6  0.5848
+##  5.71    7  0.5742
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
 ```
 
 ```r
@@ -3630,32 +3577,33 @@ summary(comorb.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Comorbidity
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.0940 [-0.8479; 1.0359]        3.0
-## ACTT-2                 -0.2127 [-1.0842; 0.6589]        3.5
+## Bari-SolidAct           0.0940 [-0.8479; 1.0359]        2.9
+## ACTT-2                 -0.2127 [-1.0842; 0.6589]        3.4
 ## Ghazaeian               0.6492 [-1.2128; 2.5111]        0.8
 ## TOFACOV                -0.5007 [-3.2076; 2.2062]        0.4
 ## COVINIB                 0.4110 [-2.0709; 2.8929]        0.4
-## COV-BARRIER            -0.1635 [-0.6294; 0.3023]       12.3
-## RECOVERY                0.2680 [ 0.0846; 0.4514]       79.6
+## COV-BARRIER            -0.1635 [-0.6294; 0.3023]       12.0
+## RECOVERY                0.2680 [ 0.0846; 0.4514]       77.5
+## TACTIC-R                0.2240 [-0.7754; 1.2235]        2.6
 ## 
-## Number of studies: k = 7
+## Number of studies: k = 8
 ## 
 ##                              log(Ratio of OR)           95%-CI    t p-value
-## Random effects model (HK-CI)           0.1934 [0.0209; 0.3658] 2.74  0.0336
+## Random effects model (HK-CI)           0.1942 [0.0327; 0.3556] 2.36  0.0184
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1626]; tau = 0 [0.0000; 0.4032]
-##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+##  tau^2 = 0 [0.0000; 0.0887]; tau = 0 [0.0000; 0.2978]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.28    6  0.6389
+##  4.28    7  0.7467
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Hartung-Knapp adjustment for random effects model (df = )
 ```
 
 ```r
@@ -3699,32 +3647,33 @@ summary(comorb.count.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Comorbidity ...
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.2151 [-0.3574; 0.7877]        4.6
-## ACTT-2                 -0.1959 [-0.5972; 0.2054]        9.3
+## Bari-SolidAct           0.2151 [-0.3574; 0.7877]        4.3
+## ACTT-2                 -0.1959 [-0.5972; 0.2054]        8.8
 ## Ghazaeian               0.5025 [-0.8298; 1.8347]        0.8
 ## TOFACOV                -0.5460 [-2.8216; 1.7296]        0.3
 ## COVINIB                 0.3876 [-0.9539; 1.7291]        0.8
-## COV-BARRIER             0.0128 [-0.2439; 0.2696]       22.7
-## RECOVERY                0.1643 [ 0.0083; 0.3203]       61.5
+## COV-BARRIER             0.0128 [-0.2439; 0.2696]       21.6
+## RECOVERY                0.1643 [ 0.0083; 0.3203]       58.5
+## TACTIC-R                0.0284 [-0.5128; 0.5696]        4.9
 ## 
-## Number of studies: k = 7
+## Number of studies: k = 8
 ## 
 ##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.1014 [-0.0260; 0.2288] 1.95  0.0994
+## Random effects model (HK-CI)           0.0979 [-0.0215; 0.2172] 1.61  0.1080
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1542]; tau = 0 [0.0000; 0.3927]
-##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+##  tau^2 = 0 [0.0000; 0.0753]; tau = 0 [0.0000; 0.2744]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.18    6  0.6530
+##  4.24    7  0.7515
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Hartung-Knapp adjustment for random effects model (df = )
 ```
 
 ```r
@@ -3773,21 +3722,22 @@ summary(comorb.any.mort28)
 ## Ghazaeian               0.2132 [-3.0408; 3.4672]        0.8
 ## TOFACOV                 0.7089 [-3.8754; 5.2931]        0.4
 ## COVINIB                 0.9599 [-3.5178; 5.4376]        0.4
-## COV-BARRIER            -0.1863 [-1.2229; 0.8503]        7.5
-## RECOVERY                0.4639 [ 0.1619; 0.7659]       88.1
+## COV-BARRIER            -0.1863 [-1.2229; 0.8503]        7.4
+## RECOVERY                0.4639 [ 0.1619; 0.7659]       87.2
+## TACTIC-R                0.5101 [-2.2618; 3.2819]        1.0
 ## 
-## Number of studies: k = 7
+## Number of studies: k = 8
 ## 
 ##                              log(Ratio of OR)           95%-CI    t p-value
-## Random effects model (HK-CI)           0.3844 [0.1009; 0.6679] 2.66  0.0079
+## Random effects model (HK-CI)           0.3857 [0.1036; 0.6678] 2.68  0.0074
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.6986]; tau = 0 [0.0000; 0.8358]
-##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+##  tau^2 = 0 [0.0000; 0.3464]; tau = 0 [0.0000; 0.5885]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  3.34    6  0.7648
+##  3.35    7  0.8508
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -3831,7 +3781,7 @@ comed.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Comedication",
-                      subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
+                      subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R"), #### ADD NEW TRIALS!
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(comed.mort28)
@@ -3841,23 +3791,25 @@ summary(comed.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Comedication
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.4922 [-1.2850; 2.2695]        5.5
-## ACTT-2                  0.3891 [-0.7393; 1.5175]       13.7
-## TOFACOV                 0.6425 [-1.7371; 3.0221]        3.1
-## COVINIB                 0.3102 [-2.0781; 2.6984]        3.0
-## COV-BARRIER             0.1782 [-0.3043; 0.6608]       74.7
+## Bari-SolidAct           0.4922 [-1.2850; 2.2695]        1.4
+## ACTT-2                  0.3891 [-0.7393; 1.5175]        3.5
+## TOFACOV                 0.6425 [-1.7371; 3.0221]        0.8
+## COVINIB                 0.3102 [-2.0781; 2.6984]        0.8
+## COV-BARRIER             0.1782 [-0.3043; 0.6608]       19.1
+## RECOVERY                0.2301 [-0.0206; 0.4808]       70.6
+## TACTIC-R                0.1283 [-0.9479; 1.2045]        3.8
 ## 
-## Number of studies: k = 5
+## Number of studies: k = 7
 ## 
-##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.2426 [-0.1745; 0.6597] 1.14  0.2543
+##                              log(Ratio of OR)           95%-CI    t p-value
+## Random effects model (HK-CI)           0.2294 [0.0187; 0.4401] 2.13  0.0328
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
+##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.32    4  0.9885
+##  0.36    6  0.9992
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -3979,32 +3931,33 @@ summary(symp.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Symptom dur ...
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct          -0.2114 [-0.4436; 0.0207]        1.3
-## ACTT-2                 -0.0484 [-0.1877; 0.0910]        3.5
+## Bari-SolidAct          -0.2114 [-0.4436; 0.0207]        1.2
+## ACTT-2                 -0.0484 [-0.1877; 0.0910]        3.4
 ## Ghazaeian               0.1787 [-0.4549; 0.8123]        0.2
 ## TOFACOV                -0.1941 [-0.7017; 0.3135]        0.3
 ## COVINIB                 0.2361 [-0.7935; 1.2656]        0.1
-## COV-BARRIER             0.0395 [-0.0269; 0.1059]       15.3
-## RECOVERY               -0.0031 [-0.0322; 0.0261]       79.5
+## COV-BARRIER             0.0395 [-0.0269; 0.1059]       14.8
+## RECOVERY               -0.0031 [-0.0322; 0.0261]       76.9
+## TACTIC-R               -0.0052 [-0.1467; 0.1363]        3.3
 ## 
-## Number of studies: k = 7
+## Number of studies: k = 8
 ## 
 ##                              log(Ratio of OR)            95%-CI     t p-value
-## Random effects model (HK-CI)          -0.0008 [-0.0336; 0.0320] -0.06  0.9543
+## Random effects model (HK-CI)          -0.0009 [-0.0298; 0.0279] -0.08  0.9404
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0591]; tau = 0 [0.0000; 0.2430]
-##  I^2 = 1.9% [0.0%; 71.4%]; H = 1.01 [1.00; 1.87]
+##  tau^2 = 0 [0.0000; 0.0335]; tau = 0 [0.0000; 0.1830]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.12    6  0.4101
+##  6.12    7  0.5256
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
 ```
 
 ```r
@@ -4052,26 +4005,27 @@ summary(crp.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: CRP
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.0001 [-0.0029; 0.0031]       18.6
-## ACTT-2                 -0.0017 [-0.0065; 0.0031]        7.2
+## Bari-SolidAct           0.0001 [-0.0029; 0.0031]       18.4
+## ACTT-2                 -0.0017 [-0.0065; 0.0031]        7.1
 ## Ghazaeian              -0.0034 [-0.0418; 0.0351]        0.1
 ## TOFACOV                -0.0108 [-0.0589; 0.0374]        0.1
 ## COVINIB                 0.0213 [-0.0093; 0.0519]        0.2
-## COV-BARRIER             0.0005 [-0.0026; 0.0036]       17.3
-## RECOVERY                0.0001 [-0.0016; 0.0019]       56.5
+## COV-BARRIER             0.0005 [-0.0026; 0.0036]       17.0
+## RECOVERY                0.0001 [-0.0016; 0.0019]       55.7
+## TACTIC-R                0.0009 [-0.0101; 0.0119]        1.4
 ## 
-## Number of studies: k = 7
+## Number of studies: k = 8
 ## 
 ##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.0001 [-0.0012; 0.0014] 0.13  0.8959
+## Random effects model (HK-CI)           0.0001 [-0.0012; 0.0014] 0.15  0.8817
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0002]; tau = 0 [0.0000; 0.0143]
-##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+##  tau^2 = 0 [0.0000; 0.0001]; tau = 0 [0.0000; 0.0101]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.67    6  0.8491
+##  2.69    7  0.9122
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -4162,16 +4116,16 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |variable            | log_odds_ratio| ci_lower| ci_upper| standard_error| p_value|approach  |
 |:-------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
-|respiratory support |          0.887|    0.578|    1.361|          0.135|   0.438|two-stage |
-|ventilation         |          0.787|    0.409|    1.514|          0.152|   0.256|two-stage |
-|age                 |          1.010|    0.999|    1.021|          0.005|   0.077|two-stage |
-|comorbidity         |          1.213|    1.021|    1.442|          0.070|   0.034|two-stage |
-|comorbidity count   |          1.107|    0.974|    1.257|          0.052|   0.099|two-stage |
-|any comorbidity     |          1.469|    1.106|    1.950|          0.145|   0.008|two-stage |
-|comedication        |          1.275|    0.840|    1.934|          0.213|   0.254|two-stage |
+|respiratory support |          0.887|    0.643|    1.222|          0.116|   0.357|two-stage |
+|ventilation         |          0.784|    0.529|    1.163|          0.124|   0.144|two-stage |
+|age                 |          1.010|    0.999|    1.021|          0.005|   0.061|two-stage |
+|comorbidity         |          1.214|    1.033|    1.427|          0.082|   0.018|two-stage |
+|comorbidity count   |          1.103|    0.979|    1.243|          0.061|   0.108|two-stage |
+|any comorbidity     |          1.471|    1.109|    1.950|          0.144|   0.007|two-stage |
+|comedication        |          1.258|    1.019|    1.553|          0.108|   0.033|two-stage |
 |vaccination on AEs  |          0.993|    0.688|    1.434|          0.187|   0.971|two-stage |
-|symptom duration    |          0.999|    0.967|    1.032|          0.013|   0.954|two-stage |
-|crp                 |          1.000|    0.999|    1.001|          0.001|   0.896|two-stage |
+|symptom duration    |          0.999|    0.971|    1.028|          0.012|   0.940|two-stage |
+|crp                 |          1.000|    0.999|    1.001|          0.001|   0.882|two-stage |
 
 ```r
 # Save
