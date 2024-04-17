@@ -439,7 +439,7 @@ df <- df %>%
 
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiac events (excl. hypertension), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4), i) Multiple organ dysfunction syndrome and septic shock
 
-a<-as.data.frame(unique(df_ae$MeddraPT)) # contains standardized categories
+# a <- as.data.frame(unique(df_ae$MeddraPT)) # contains standardized categories
 # unique(df_ae$MeddraLLT) 
 # df_ae <- df_ae %>% 
 #   mutate(dupl = duplicated(MeddraLLT, MeddraPT))
