@@ -576,6 +576,7 @@ df <- df %>%
                                 TRUE ~ ae_28))
 # table(df$ae_28, df$mort_28, useNA = "always")
 # addmargins(table(df$ae_28, df$trt, useNA = "always"))
+
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 ae_npp <- df_ae %>% 
   group_by(id_pat)%>%  
