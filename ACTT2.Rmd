@@ -48,7 +48,7 @@ df_original <- read_sas("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/D
 df_crp <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/ACTT2/Listing of Clinical Laboratory Results- CRP.csv")
 df_vl <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/ACTT2/Listing of Viral Loading.csv")
 df_comed <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/ACTT2/Listing of Concomitant Medications.csv")
-df_ae <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/ACTT2/Listing of Adverse Events.csv")
+df_ae_tot <- read_csv("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/ACTT2/Listing of Adverse Events.csv")
 ```
 
 # Reshape dataset and define ITT population
@@ -558,10 +558,12 @@ df <- left_join(df, df_vl15[, c("vir_clear_15", "id_pat")], by = join_by(id_pat 
 
 
 # (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
-df_ae <- df_ae %>% 
-  filter(Severity %in% c("Grade 3", "Grade 4", "Grade 5") | (Severity == "Grade 2" & `Serious Adverse Event` == "Yes"))
-df_ae <- df_ae %>% 
+df_ae_tot <- df_ae_tot %>% 
   rename(id_pat = `Subject ID`)
+df_ae_tot$`Study Day` <- as.numeric(df_ae_tot$`Study Day`)
+df_ae <- df_ae_tot %>% 
+  filter(Severity %in% c("Grade 3", "Grade 4", "Grade 5") | (Severity == "Grade 2" & `Serious Adverse Event` == "Yes")) %>% 
+  filter(`Study Day` < 29 | is.na(`Study Day`))
 # Keep just 1 id_pat (-> ANY adverse event grade 3 (severe), 4 (serious)) 
 df_ae34_unique <- df_ae %>% distinct(id_pat, .keep_all = TRUE)
 # Assign the outcome
@@ -593,14 +595,69 @@ df <- df %>%
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days): Not available
 
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+df_ae_tot <- df_ae_tot %>% 
+  rename(ae = `MedDRA Preferred Term`,
+         ae_class = `MedDRA System Organ Class`,
+         ae_desc = `Adverse Event`) %>% 
+  filter(`Study Day` < 29 | is.na(`Study Day`))
+df_ae_tot <- left_join(df_ae_tot, df[, c("trt", "id_pat")], by = join_by(id_pat == id_pat))
 
-# (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
+df_thrombo <- df_ae_tot %>% # a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis)
+  filter(ae %in% c("Axillary vein thrombosis", "Brachiocephalic vein thrombosis", "Deep vein thrombosis", "Embolism venous", "Peripheral artery occlusion", "Peripheral ischaemia", "Thrombosis", "Pulmonary embolism")) %>% 
+  mutate(aesi = "thrombo")
+df_sec_inf <- df_ae_tot %>% # b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), but not COVID-19 pneumonia!
+  filter(ae_class %in% c("Infections and infestations") & !ae == "Septic shock") %>% 
+  mutate(aesi = "sec_inf")
+# df_reactivate <- NA
+# df_ae_tot %>% 
+#   filter(grepl("hepatitis b|zoster|herpes|cytome|tuber|tb", ae, ignore.case = TRUE)) %>%
+#   View()
+df_cardiac <- df_ae_tot %>% # d) serious cardiovascular and cardiac events (including stroke and myocardial infarction) (excl. hypertension)
+  filter(ae_class %in% c("Cardiac disorders") | ae == "Cerebrovascular accident") %>% 
+  mutate(aesi = "cardiac")
+df_penia <- df_ae_tot %>% # e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia)
+  filter(grepl("penia|anemia|anaemia", ae, ignore.case = TRUE)) %>% 
+  mutate(aesi = "penia")
+# df_malig <- NA
+# df_malig <- df_ae_tot %>% # f) malignancy
+#   filter(ae_class %in% c("Neoplasms benign, malignant and unspecified (incl cysts and polyps)")) %>% 
+#   mutate(aesi = "malig")
+df_git_bl <- df_ae_tot %>% # g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis)
+  filter(ae_class %in% c("Hepatobiliary disorders","Gastrointestinal disorders") & grepl("hemor|haemor|bleed", ae, ignore.case = TRUE)) %>% 
+  mutate(aesi = "git_bl")
+df_hepatox <- df_ae_tot %>% # h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+  filter(ae %in% c("Hyperbilirubinaemia", "Hypertransaminasaemia", "Liver injury")) %>%
+  mutate(aesi = "hepatox")
+df_mods <- df_ae_tot %>% # i) Multiple organ dysfunction syndrome and septic shock
+  filter(ae %in% c("Multiple organ dysfunction syndrome", "Septic shock", "Shock")) %>% 
+  mutate(aesi = "mods")
 
-# df_ae <- df %>% 
-#   select(id_pat, trt, x, ae_28_list, aesi_28)
-# # Save
-# saveRDS(df_ae, file = "df_ae_actt2.RData")
+df_aesi <- rbind(df_mods, df_hepatox, df_git_bl, df_penia, df_cardiac, df_sec_inf, df_thrombo)
+df_aesi <- df_aesi %>%
+  select(id_pat, trt, aesi, ae, ae_desc, ae_class)
+# table(df_aesi$trt, df_aesi$aesi)
+# double-check if there are any duplicate AEs within the same person and if it is the same event or distinct ones
+df_aesi <- df_aesi %>% 
+  group_by(id_pat) %>% 
+  mutate(duplicate_id = duplicated(ae) & !is.na(ae)) %>% 
+  ungroup()
+df_aesi <- df_aesi %>% 
+  filter(duplicate_id == F)
+# Save
+saveRDS(df_aesi, file = "df_aesi_actt2.RData")
 
+# (xi) Adverse events, any grade and serious adverse event, within 28 days, grouped by organ classes
+df_ae <- df_ae_tot %>%
+  select(id_pat, trt, ae, ae_desc, ae_class)
+# double-check if there are any duplicate AEs within the same person and if it is the same event or distinct ones
+df_ae <- df_ae %>% 
+  group_by(id_pat) %>% 
+  mutate(duplicate_id = duplicated(ae) & !is.na(ae)) %>% 
+  ungroup()
+df_ae <- df_ae %>% 
+  filter(duplicate_id == F)
+# Save
+saveRDS(df_ae, file = "df_ae_actt2.RData")
 ```
 Discussion points
 
