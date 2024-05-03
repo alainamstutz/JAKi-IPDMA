@@ -159,6 +159,7 @@ capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list_mai
 # print
 kable(table_baseline, format = "markdown", table.attr = 'class="table"', caption = "Main Baseline characteristics, by arm") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
 ```
 
 # Appendix Baseline table, by treatment arm
