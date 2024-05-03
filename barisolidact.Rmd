@@ -21,6 +21,7 @@ library(tableone)
 library(haven) # Read sas files
 library(here)
 library(kableExtra)
+
 library(jtools) # for summ() and plot_summs
 library(sjPlot) # for tab_model
 library(ggplot2) # survival/TTE analyses and other graphs
@@ -36,8 +37,6 @@ library(finalfit) # missing data exploration
 library(mice) # multiple imputation
 library(jomo) # multiple imputation
 library(mitools) # multiple imputation
-
-(1)R Packages: abind arm asypow bayesm bayesSurv BBmisc bitops bspmma Cairo cairoDevice car caret chron clinfun coda coin colorspace copas data.table dichromat digest doBy doParallel e1071 ellipse epicalc fields foreach fork Formula gam GAMBoost ggplot2 gridBase gridExtra gsl gtable HH Hmisc HTMLUtils hwriter hwriterPlus iterators kernlab labeling latticeExtra leaps lme4 lubridate mcmc MCMCpack memoise meta metacor metafor metagen metaLik metamisc MSToolkit muhaz multcomp munsell mvmeta mvtnorm outliers pcaPP plotrix plyr proto R2HTML R2WinBUGS randomForest RColorBrewer reshape2 RGraphics rmeta robust robustbase rrcov RUnit rworldmap sas7bdat scales scatterplot3d smoothSurv sp spam ssanv stringr TeachingDemos xtable survival
 
 ```
 
@@ -494,15 +493,17 @@ df_mods <- df_ae %>% # i) Multiple organ dysfunction syndrome and septic shock
 
 df_aesi <- rbind(df_mods, df_hepatox, df_git_bl, df_penia, df_cardiac, df_reactivate, df_sec_inf, df_thrombo)
 df_aesi <- df_aesi %>% rename(desc = MeddraPT)
-df_aesi <- df_aesi %>% 
-  select(trt, aesi, desc)
+df_aesi <- df_aesi %>%
+  select(id_pat, trt, aesi, desc, STDATE, ENDATE, RANDODATED1, time_to_react) %>% 
+  filter(time_to_react < 29)
 table(df_aesi$trt, df_aesi$aesi)
 # Save
-saveRDS(df_aesi, file = "df_aesi_barisolidact.RData")
+saveRDS(df_aesi, file = "df_aesi_barisolidact.RData") # checked that there were no duplicates within the same person (but some IDs had several of the same AE)
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-df_ae <- df_ae %>% 
-  select(trt, MeddraLLT, MeddraPT, MeddraSOC, Grade)
+df_ae <- df_ae %>%
+  select(trt, MeddraLLT, MeddraPT, MeddraSOC, Grade, time_to_react) %>% 
+  filter(time_to_react < 29)
 # Save
 saveRDS(df_ae, file = "df_ae_barisolidact.RData")
 
@@ -986,7 +987,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 ```{r warning=FALSE}
 # unadjusted estimator for the (absolute) risk difference
 mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
-print(mort.28.prop.test)
+# print(mort.28.prop.test)
 # Estimate
 -diff(mort.28.prop.test$estimate)
 # Confidence Interval
@@ -1536,13 +1537,13 @@ mort.28.comed.f <- df %>%
 summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # effect by subgroup
-mort.28.comed.1 <- df %>% 
+mort.28.comed.1.firth <- df %>% 
   filter(comed_cat == 1) %>% # without Dexamethasone nor Tocilizumab
   logistf(mort_28 ~ trt
       + age 
       + clinstatus_baseline 
       , data=.)
-summary(mort.28.comed.1)
+summary(mort.28.comed.1.firth)
 
 # mort.28.comed.2 <- df %>% 
 #   filter(comed_cat == 2) %>% # with Dexamethasone and Tocilizumab
@@ -1762,8 +1763,8 @@ result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
-# result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
-#                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+ result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
+                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[4]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[5]] <- extract_trt_results(mort.60, "death at day 60",
@@ -1810,7 +1811,6 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_barisolidact.RData")
 ```
 Discussion points
-
 
 # Collect all interaction estimates (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -1882,7 +1882,6 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
-1. Firth regression for zero event analyses
 
 # Collect all subgroup treatment effect estimates
 ```{r message=FALSE, warning=FALSE}
@@ -1996,7 +1995,7 @@ result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromis
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,2], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,1], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,1]) 
-result_list[[13]] <- extract_subgroup_results(mort.28.comed.1, "No Dexa, no Tocilizumab_firth",
+result_list[[13]] <- extract_subgroup_results(mort.28.comed.1.firth, "No Dexa, no Tocilizumab_firth",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,1],
