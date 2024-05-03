@@ -182,7 +182,7 @@ df$vacc <- df$Vacc ## no missing
 
 ```
 Discussion points
-2. MS using Copaxone: immunosupp?
+2. MS using Copaxone: immunosupp? -> NO, but comorb_autoimmun
 
 # Endpoints
 ```{r echo=TRUE}
@@ -353,7 +353,15 @@ df_ae_comb <- df_ae_comb %>%
                              TRUE ~ 0))
 df_ae <- df_ae_comb %>% 
   select(id_pat, trt, ae, note, grade, ae_28_list, aesi_28)
+df_aesi <- df_ae %>% 
+  mutate(aesi = case_when(ae_28_list == "Secondary infections" ~ "sec_inf",
+                          ae_28_list == "Thromboembolic events" ~ "thrombo",
+                          ae_28_list == "Anemia and other hematological disorders" ~ "penia",
+                          ae_28_list == "Liver impairment" & grade == "3 or 4" ~ "hepatox")) %>% 
+  filter(!is.na(aesi)) %>% 
+  select(id_pat, trt, aesi, ae_28_list)
 # Save
+saveRDS(df_aesi, file = "df_aesi_covinib.RData")
 saveRDS(df_ae, file = "df_ae_covinib.RData")
 ```
 
@@ -560,14 +568,14 @@ df_imp %>%
   missing_plot() # from finalfit package
 explanatory = c("age", 
   "clinstatus_baseline", "sex", "vacc",  
-  "ethn", "sympdur", "comorb_cat", "comed_dexa", "comed_ab", "comed_other", "crp", "ae_28_sev")
+  "ethn", "sympdur", "comorb_cat", "comed_dexa", "comed_ab", "comed_other", "crp", "ae_28")
 dependent = "mort_28"
 df_imp %>% # from finalfit package, missing plot
   missing_pairs(dependent, explanatory, position = "fill", )
 # Second, let's explore the missingness patterns
 md.pattern(df_imp[,c("mort_28", "age", 
   "clinstatus_baseline", "sex", "vacc",  
-  "ethn", "sympdur", "comorb_cat", "comed_dexa", "comed_ab", "comed_other", "crp", "ae_28_sev")], rotate.names = T)
+  "ethn", "sympdur", "comorb_cat", "comed_dexa", "comed_ab", "comed_other", "crp", "ae_28")], rotate.names = T)
 # Third, let's explore if the variables from my substantive model plus auxiliary variables are associated with mort_28
 mort28.aux <- glm(mort_28 ~ trt
             + age 
@@ -581,7 +589,7 @@ mort28.aux <- glm(mort_28 ~ trt
             # + comed_ab
             # + comed_other
             + crp
-            # + ae_28_sev
+            # + ae_28
             ,family="binomial"
             ,data=df_imp)
 summary(mort28.aux)
@@ -680,8 +688,7 @@ print(plot_clinstat_cont)
 ```{r eval = FALSE}
 #### INTERVENTION group
 ## jomo only accepts numeric or factors, check and adapt
-# str(df_imp_long_int)
-# table(df_imp_long_cont$mort_28, useNA = "always") # not a single death in intervention
+str(df_imp_long_int)
 df_imp_long_int$timesq <- sqrt(df_imp_long_int$time) # see X below
 attach(df_imp_long_int)
 Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
@@ -696,7 +703,7 @@ Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
                , sympdur
                , sqcrptrunc
                  )
-Y<-data.frame(clinstatus) # level 1 variable within clustering variable
+Y<-data.frame(clinstatus_f) # level 1 variable within clustering variable
 X <- cbind(1, data.frame(clinicalstatus_baseline, time, timesq)) # matrix modelling linearity of clinstatus throughout day 28
 clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
@@ -791,7 +798,6 @@ imputed_combined <- rbind(imputed_cont_wide, imputed_int_wide)
 
 #### Convert combined df to jomo object, split imputations, and exclude original data (imputation "0")
 imp.list <- imputationList(split(imputed_combined, imputed_combined$Imputation)[-1])
-
 
 ### Checks
 round(prop.table(table(imp.list[[1]]$`1`$mort_28, imp.list[[1]]$`1`$trt, useNA = "always"),2)*100,1) # first imputed dataset
@@ -984,25 +990,25 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
   ) + 
   add_confidence_interval() +
   add_risktable()
-# testing: cox ph
-ttdeath <- df %>%
-  coxph(Surv(death_time, death_reached) ~ trt
-        + age + clinstatus_baseline
-        , data =.)
-ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
-
-# ttdeath.firth <- df %>%
-#   logistf(Surv(death_time, death_reached) ~ trt
-#         #+ age + clinstatus_baseline + comed_dexa + comed_rdv + comed_toci
+# testing: cox ph, using firth regression
+# ttdeath <- df %>%
+#   coxph(Surv(death_time, death_reached) ~ trt
+#         + age + clinstatus_baseline
 #         , data =.)
 # ttdeath_reg_tbl <- tbl_regression(ttdeath, exp = TRUE)
 
-# Nicely formatted table
-kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+library(coxphf)
+ttdeath.firth <- df %>%
+  coxphf(Surv(death_time, death_reached) ~ trt
+        + age 
+        # + clinstatus_baseline 
+        # + comed_dexa + comed_rdv + comed_toci
+        , data =.)
+summary(ttdeath.firth)
+
 ```
 Discussion points
-1. R.Riley IPDMA handbook, page 102: "As for binary outcomes, when there are few events in some trials adaptions of Firth’s correction are important to reduce small sample bias in the estimated treatment effect." -> implement
+1. R.Riley IPDMA handbook, page 102: "As for binary outcomes, when there are few events in some trials adaptions of Firth’s correction are important to reduce small sample bias in the estimated treatment effect."
 
 # (iv) New mechanical ventilation among survivors within 28 days
 ```{r message=FALSE, warning=FALSE}
@@ -1555,6 +1561,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- exp(confint(model)["trt", ])
     se <- summary(model)$coefficients["trt", "Std. Error"]
     p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "logistf") || inherits(model, "coxphf")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
+    se <- sqrt(diag(vcov(model)))["trt"]
+    p_value <- model$prob["trt"]
   } else if (inherits(model, "coxph")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -1567,12 +1579,6 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
-  } else if (inherits(model, "logistf")) {
-    trt_coef <- coef(model)["trt"]
-    hazard_odds_ratio <- exp(trt_coef)
-    ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
-    se <- sqrt(diag(vcov(model)))["trt"]
-    p_value <- model$prob["trt"]
   } else if (inherits(model, "summary.margins")) {
     hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
     ci <- c(model$lower, model$upper)
@@ -1613,8 +1619,8 @@ result_list[[4]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[5]] <- extract_trt_results(mort.60.firth, "death at day 60_firth", 
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-# result_list[[6]] <- extract_trt_results(ttdeath, "death within fup", 
-#                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[6]] <- extract_trt_results(ttdeath.firth, "death within fup_firth",
+                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age
 result_list[[7]] <- extract_trt_results(new.mv.28, "new MV within 28d", 
                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[8]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d", 
