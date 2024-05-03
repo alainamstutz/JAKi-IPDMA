@@ -960,15 +960,53 @@ df <- df %>%
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
 # re-discuss
 
-
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+df_ae <- df_sa %>% 
+  filter(SACAT == "COMPLICATIONS") %>% 
+  filter(SAOCCUR == "Y")
+df_ae <- left_join(df_ae, df[, c("trt", "id_pat")], by = join_by(id_pat == id_pat))
+
+# they are all within 28 days
+df_thrombo <- df_ae %>% # a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis)
+  filter(SADECOD %in% c("Thrombosis", "Pulmonary embolism", "Deep venous thrombosis", "Arterial embolism")) %>% 
+  mutate(aesi = "thrombo")
+# df_sec_inf <- NA
+# df_reactivate <- NA
+df_cardiac <- df_ae %>% # d) serious cardiovascular and cardiac events (including stroke and myocardial infarction)
+  filter(SADECOD %in% c("Atrial arrhythmia", "Supraventricular tachycardia", "Ischemic stroke", "Ventricular tachycardia", "Ventricular fibrillation", "Myocardial infarction", "Atrioventricular block", "Cardiac arrhythmia")) %>% 
+  mutate(aesi = "cardiac")
+# df_penia <- NA
+# df_malig <- NA
+df_git_bl <- df_ae %>% # g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis)
+  filter(SADECOD %in% c("Gastrointestinal hemorrhage", "Bleeding")) %>% 
+  mutate(aesi = "git_bl")
+# df_hepatox <- NA
+# df_mods <- NA
+
+df_aesi <- rbind(df_git_bl, df_cardiac, df_thrombo)
+df_aesi <- df_aesi %>%
+  rename(ae_desc = SADECOD) %>%
+  select(id_pat, trt, aesi, ae_desc)
+# table(df_aesi$trt, df_aesi$aesi)
+
+# double-check if there are any duplicate AEs within the same person and if it is the same event or distinct ones
+df_aesi <- df_aesi %>% 
+  group_by(id_pat) %>% 
+  mutate(duplicate_id = duplicated(ae_desc) & !is.na(ae_desc)) %>% 
+  ungroup()
+df_aesi <- df_aesi %>% 
+  filter(duplicate_id == F)
+# Save
+saveRDS(df_aesi, file = "df_aesi_recovery.RData")
+
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-
-# df_ae <- df %>% 
-#   select(id_pat, trt, x, ae_28_list, aesi_28)
-# # Save
-# saveRDS(df_ae, file = "df_ae_recovery.RData")
+df_ae <- df_ae %>%
+  rename(ae = SATERM,
+         ae_desc = SADECOD) %>%
+  select(id_pat, trt, ae, ae_desc)
+# Save
+saveRDS(df_ae, file = "df_ae_recovery.RData")
 
 ```
 Discussion points:
