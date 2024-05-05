@@ -556,7 +556,7 @@ plot_clinstat_cont <- ggplot(df_imp_long_cont, aes(x = time, y = clinstatus)) +
 print(plot_clinstat_cont)
 ```
 
-# Multiple imputation // only CRP is missing: Choose a different imputation model
+# Multiple imputation // only CRP is missing: No MI for CRP, as per protocol
 ```{r eval = FALSE}
 # #### INTERVENTION group
 # ## jomo only accepts numeric or factors, check and adapt
@@ -875,9 +875,19 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 # # Nicely formatted table
 # kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 #   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+library(coxphf)
+ttdeath.firth <- df %>%
+  coxphf(Surv(death_time, death_reached) ~ trt
+        # + age
+        # + clinstatus_baseline
+        # + comed_dexa + comed_rdv + comed_toci
+        , data =.)
+summary(ttdeath.firth)
+
 ```
 Discussion points
-1. Result illogical. Time to event analysis not possible? R.Riley IPDMA handbook, page 102: "As for binary outcomes, when there are few events in some trials adaptions of Firth’s correction are important to reduce small sample bias in the estimated treatment effect." -> implement
+1. Result illogical. R.Riley IPDMA handbook, page 102: "As for binary outcomes, when there are few events in some trials adaptions of Firth’s correction are important to reduce small sample bias in the estimated treatment effect."
 
 # (iv) New mechanical ventilation among survivors within 28 days
 ```{r}
@@ -1472,6 +1482,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- exp(confint(model)["trt", ])
     se <- summary(model)$coefficients["trt", "Std. Error"]
     p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "logistf") || inherits(model, "coxphf")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
+    se <- sqrt(diag(vcov(model)))["trt"]
+    p_value <- model$prob["trt"]
   } else if (inherits(model, "coxph")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -1484,12 +1500,6 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
-  } else if (inherits(model, "logistf")) {
-    trt_coef <- coef(model)["trt"]
-    hazard_odds_ratio <- exp(trt_coef)
-    ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
-    se <- sqrt(diag(vcov(model)))["trt"]
-    p_value <- model$prob["trt"]
   } else if (inherits(model, "summary.margins")) {
     hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
     ci <- c(model$lower, model$upper)
@@ -1523,8 +1533,8 @@ result_list[[3]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[4]] <- extract_trt_results(mort.60.firth, "death at day 60_firth",
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-# result_list[[5]] <- extract_trt_results(ttdeath, "death within fup", 
-#                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1])
+result_list[[5]] <- extract_trt_results(ttdeath.firth, "death within fup_firth",
+                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # no adj
 result_list[[6]] <- extract_trt_results(new.mv.28.firth, "new MV within 28d_firth",
                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",

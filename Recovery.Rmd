@@ -1364,11 +1364,11 @@ round(prop.table(table(df_imp_cont$mort_28, useNA = "always"))*100,1) # original
 #### Add trt back, change from long to wide format, and finally combine the two data frames
 imputed_int$trt <- 1
 imputed_int_s <- imputed_int %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sqsympdurtrunc, mort_28, sex, comorb_cat, sqcrptrunc, clinstatus_baseline, Imputation)
 
 imputed_cont$trt <- 0 # treatment variable
 imputed_cont_s <- imputed_cont %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sqsympdurtrunc, mort_28, sex, comorb_cat, sqcrptrunc, clinstatus_baseline, Imputation)
 
 imputed_combined <- rbind(imputed_cont_s, imputed_int_s)
 
@@ -1414,7 +1414,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 # mort.28.mi <- imp.list %>%
 #   with(glm(mort_28 ~ trt
 #            + age
-#            + clinicalstatus_baseline
+#            + clinstatus_baseline
 #            , family = binomial)) %>%
 #         pool() %>%
 #         summary(conf.int = T, exponentiate = T)
@@ -2195,6 +2195,16 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- exp(confint(model)["trt", ])
     se <- summary(model)$coefficients["trt", "Std. Error"]
     p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "summary.margins")) {
+    hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
+    ci <- c(model$lower, model$upper)
+    se <- model$SE
+    p_value <- model$p
+  } else if (inherits(model, "data.frame")) {
+    hazard_odds_ratio <- model$estimate[2]
+    ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
+    se <- model$std.error[2]
+    p_value <- model$p.value[2]
   } else if (inherits(model, "coxph")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -2207,11 +2217,6 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
-  } else if (inherits(model, "summary.margins")) {
-    hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
-    ci <- c(model$lower, model$upper)
-    se <- model$SE
-    p_value <- model$p
   } else {
     stop("Unsupported model class")
   }

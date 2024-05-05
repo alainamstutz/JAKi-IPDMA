@@ -580,7 +580,7 @@ hist(df_imp$crp, breaks=50) # outliers
 ### Reshape to long format // not possible in Ghazaeian to use clinstatus over time, since this info is not available
 ```
 
-# Multiple imputation // only CRP is missing: Choose a different imputation model
+# Multiple imputation // only CRP is missing: No MI for CRP, as per protocol
 ```{r eval = FALSE}
 # #### INTERVENTION group
 # ## jomo only accepts numeric or factors, check and adapt
@@ -817,7 +817,6 @@ mort.60 <- df %>%
 summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 Discussion points
-1. max fup time was 28 days; thus mort_60 imputed from mort_28
 
 # (iii) Time to death within max. follow-up time
 ```{r}

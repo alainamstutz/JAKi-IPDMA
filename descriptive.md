@@ -26,12 +26,163 @@ library(here)
 library(kableExtra)
 ```
 
-# Load entire dataset (from one-stage.Rmd)
-## Make sure to run one-stage before
+# Load standardized dataset of all trials
 
 ```r
-df_tot <- readRDS("df_tot.RData") # without Murugesan
-# df_tot_Muru <- readRDS("df_tot_Muru.RData") # with Murugesan
+## barisolidact
+df_barisolidact <- readRDS("df_os_barisolidact.RData")
+df_barisolidact <- df_barisolidact %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+## actt2
+df_actt2 <- readRDS("df_os_actt2.RData")
+df_actt2 <- df_actt2 %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+## ghazaeian
+df_ghazaeian <- readRDS("df_os_ghazaeian.RData")
+df_ghazaeian <- df_ghazaeian %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+## tofacov
+df_tofacov <- readRDS("df_os_tofacov.RData")
+df_tofacov <- df_tofacov %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+## covinib
+df_covinib <- readRDS("df_os_covinib.RData")
+df_covinib <- df_covinib %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+## COV-BARRIER
+df_covbarrier <- readRDS("df_os_cov-barrier.RData")
+df_covbarrier <- df_covbarrier %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+## Murugesan
+df_murugesan <- readRDS("df_os_murugesan.RData")
+df_murugesan <- df_murugesan %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+## RECOVERY
+df_recovery <- readRDS("df_os_recovery.RData")
+df_recovery <- df_recovery %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+## TACTIC-R
+df_tactic_r <- readRDS("df_os_tactic-r.RData")
+df_tactic_r <- df_tactic_r %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+
+## RUXCOVID
+df_ruxcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RUXCOVID/RUXCOVID_desc.xlsx", sheet = "RUXCOVID")
+df_tactic_r <- df_tactic_r %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+
+# append
+df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_ruxcovid)
 ```
 
 ## Baseline characteristics, reformatting
@@ -153,12 +304,12 @@ df_baseline <- df_baseline %>%
 df_baseline$ARM <- ifelse(df_baseline$ARM == 0, "No JAK inhibitor", "JAK inhibitor")
 ```
 
-# Main Baseline table, by treatment arm
+# Main Baseline table, by treatment arm (CAVE: RUXCOVID is included but only its categorical covariates, e.g. do not assess missingness of age)
 
 ```r
 vars.list_main <- c("ARM","Age, years", "Sex", "Vaccination", "Time from symptom onset to randomisation, days", "Clinical status on ordinal scale", "Comorbidities", "Dexamethasone and Tocilizumab", "Remdesivir", "C-reactive protein concentration, mg/L", "Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])", "Patients with undetectable viral load")
 table_baseline <- CreateTableOne(data = df_baseline, vars = vars.list_main[!vars.list_main %in% c("ARM")], strata = "ARM", includeNA = F, test = F, addOverall = TRUE)
-capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list_main,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = TRUE))
+capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list_main,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = F))
 ```
 
 ```
@@ -175,41 +326,41 @@ kable(table_baseline, format = "markdown", table.attr = 'class="table"', caption
 
 Table: Main Baseline characteristics, by arm
 
-|                                                                                              |level                                                                                     |Overall               |JAK inhibitor         |No JAK inhibitor      |Missing |
-|:---------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------|:---------------------|:---------------------|:---------------------|:-------|
-|n                                                                                             |                                                                                          |11683                 |5907                  |5776                  |        |
-|Age, years (median [IQR])                                                                     |                                                                                          |58.00 [47.00, 68.00]  |58.00 [47.00, 69.00]  |58.00 [47.00, 68.00]  |0.0     |
-|Sex (%)                                                                                       |Female                                                                                    |4167 (35.7)           |2097 (35.5)           |2070 (35.8)           |0.0     |
-|                                                                                              |Male                                                                                      |7516 (64.3)           |3810 (64.5)           |3706 (64.2)           |        |
-|Vaccination (%)                                                                               |Any SARS CoV-2 vaccine                                                                    |3527 (36.5)           |1809 (36.9)           |1718 (36.0)           |17.2    |
-|                                                                                              |No SARS CoV-2 vaccine                                                                     |6146 (63.5)           |3097 (63.1)           |3049 (64.0)           |        |
-|Time from symptom onset to randomisation, days (median [IQR])                                 |                                                                                          |10.00 [7.00, 12.00]   |10.00 [7.00, 12.00]   |10.00 [7.00, 12.00]   |0.2     |
-|Clinical status on ordinal scale (%)                                                          |2: Hospitalised without need for oxygen therapy (WHO score 4)                             |866 ( 7.4)            |415 ( 7.0)            |451 ( 7.8)            |0.1     |
-|                                                                                              |3: Hospitalised with need for supplemental low-flow oxygen (WHO score 5)                  |7421 (63.6)           |3743 (63.4)           |3678 (63.7)           |        |
-|                                                                                              |4: Hospitalised with need for high-flow oxygen or non- invasive ventilation (WHO score 6) |2895 (24.8)           |1497 (25.4)           |1398 (24.2)           |        |
-|                                                                                              |5: Hospitalised with need for mechanical ventilation or ECMO (WHO score 7–9)              |494 ( 4.2)            |250 ( 4.2)            |244 ( 4.2)            |        |
-|Comorbidities (%)                                                                             |No comorbidity                                                                            |5151 (44.2)           |2573 (43.6)           |2578 (44.7)           |0.2     |
-|                                                                                              |One comorbidity                                                                           |3548 (30.4)           |1801 (30.5)           |1747 (30.3)           |        |
-|                                                                                              |Multiple comorbidities                                                                    |2868 (24.6)           |1475 (25.0)           |1393 (24.2)           |        |
-|                                                                                              |Immunocompromised                                                                         |98 ( 0.8)             |50 ( 0.8)             |48 ( 0.8)             |        |
-|Dexamethasone and Tocilizumab (%)                                                             |No Dexamethasone, no Tocilizumab                                                          |1823 (15.6)           |896 (15.2)            |927 (16.1)            |0.1     |
-|                                                                                              |Dexamethasone but no Tocilizumab                                                          |7216 (61.8)           |3663 (62.0)           |3553 (61.6)           |        |
-|                                                                                              |Dexamethasone and Tocilizumab                                                             |2603 (22.3)           |1328 (22.5)           |1275 (22.1)           |        |
-|                                                                                              |Tocolizumab but no Dexamethasone                                                          |34 ( 0.3)             |18 ( 0.3)             |16 ( 0.3)             |        |
-|Remdesivir (%)                                                                                |No Remdesivir                                                                             |8892 (76.1)           |4216 (71.4)           |4676 (81.0)           |0.0     |
-|                                                                                              |Remdesivir                                                                                |2791 (23.9)           |1691 (28.6)           |1100 (19.0)           |        |
-|C-reactive protein concentration, mg/L (median [IQR])                                         |                                                                                          |85.00 [42.00, 147.00] |84.00 [42.00, 148.00] |86.00 [42.00, 146.00] |4.1     |
-|Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N]) (%) |Not seroconverted                                                                         |594 (33.9)            |285 (33.5)            |309 (34.4)            |85.0    |
-|                                                                                              |Seroconverted                                                                             |1157 (66.1)           |567 (66.5)            |590 (65.6)            |        |
-|Patients with undetectable viral load (%)                                                     |Detectable viral load                                                                     |9594 (97.3)           |4839 (97.4)           |4755 (97.2)           |15.6    |
-|                                                                                              |Undetectable viral load                                                                   |265 ( 2.7)            |129 ( 2.6)            |136 ( 2.8)            |        |
+|                                                                                              |level                                                                                     |Overall               |JAK inhibitor         |No JAK inhibitor      |
+|:---------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------|:---------------------|:---------------------|:---------------------|
+|n                                                                                             |                                                                                          |12115                 |6194                  |5921                  |
+|Age, years (median [IQR])                                                                     |                                                                                          |58.00 [47.00, 68.00]  |58.00 [47.00, 69.00]  |58.00 [47.00, 68.00]  |
+|Sex (%)                                                                                       |Female                                                                                    |4363 (36.0)           |2221 (35.9)           |2142 (36.2)           |
+|                                                                                              |Male                                                                                      |7752 (64.0)           |3973 (64.1)           |3779 (63.8)           |
+|Vaccination (%)                                                                               |Any SARS CoV-2 vaccine                                                                    |3527 (34.9)           |1809 (34.8)           |1718 (35.0)           |
+|                                                                                              |No SARS CoV-2 vaccine                                                                     |6578 (65.1)           |3384 (65.2)           |3194 (65.0)           |
+|Time from symptom onset to randomisation, days (median [IQR])                                 |                                                                                          |10.00 [7.00, 12.00]   |10.00 [7.00, 12.00]   |10.00 [7.00, 12.00]   |
+|Clinical status on ordinal scale (%)                                                          |2: Hospitalised without need for oxygen therapy (WHO score 4)                             |1007 ( 8.3)           |509 ( 8.2)            |498 ( 8.4)            |
+|                                                                                              |3: Hospitalised with need for supplemental low-flow oxygen (WHO score 5)                  |7689 (63.5)           |3918 (63.3)           |3771 (63.7)           |
+|                                                                                              |4: Hospitalised with need for high-flow oxygen or non- invasive ventilation (WHO score 6) |2917 (24.1)           |1514 (24.5)           |1403 (23.7)           |
+|                                                                                              |5: Hospitalised with need for mechanical ventilation or ECMO (WHO score 7–9)              |494 ( 4.1)            |250 ( 4.0)            |244 ( 4.1)            |
+|Comorbidities (%)                                                                             |No comorbidity                                                                            |5257 (43.5)           |2652 (42.9)           |2605 (44.1)           |
+|                                                                                              |One comorbidity                                                                           |3684 (30.5)           |1887 (30.5)           |1797 (30.4)           |
+|                                                                                              |Multiple comorbidities                                                                    |3058 (25.3)           |1597 (25.8)           |1461 (24.7)           |
+|                                                                                              |Immunocompromised                                                                         |98 ( 0.8)             |50 ( 0.8)             |48 ( 0.8)             |
+|Dexamethasone and Tocilizumab (%)                                                             |No Dexamethasone, no Tocilizumab                                                          |2006 (16.6)           |1013 (16.4)           |993 (16.8)            |
+|                                                                                              |Dexamethasone but no Tocilizumab                                                          |7465 (61.7)           |3833 (61.9)           |3632 (61.4)           |
+|                                                                                              |Dexamethasone and Tocilizumab                                                             |2603 (21.5)           |1328 (21.4)           |1275 (21.6)           |
+|                                                                                              |Tocolizumab but no Dexamethasone                                                          |34 ( 0.3)             |18 ( 0.3)             |16 ( 0.3)             |
+|Remdesivir (%)                                                                                |No Remdesivir                                                                             |9296 (76.7)           |4482 (72.4)           |4814 (81.3)           |
+|                                                                                              |Remdesivir                                                                                |2819 (23.3)           |1712 (27.6)           |1107 (18.7)           |
+|C-reactive protein concentration, mg/L (median [IQR])                                         |                                                                                          |85.00 [42.00, 147.00] |84.00 [42.00, 148.00] |86.00 [42.00, 146.00] |
+|Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N]) (%) |Not seroconverted                                                                         |594 (33.9)            |285 (33.5)            |309 (34.4)            |
+|                                                                                              |Seroconverted                                                                             |1157 (66.1)           |567 (66.5)            |590 (65.6)            |
+|Patients with undetectable viral load (%)                                                     |Detectable viral load                                                                     |9594 (97.3)           |4839 (97.4)           |4755 (97.2)           |
+|                                                                                              |Undetectable viral load                                                                   |265 ( 2.7)            |129 ( 2.6)            |136 ( 2.8)            |
 
-# Appendix Baseline table, by treatment arm
+# Appendix Baseline table, by treatment arm (CAVE: RUXCOVID is included but only its categorical covariates, e.g. do not assess missingness of age)
 
 ```r
 vars.list_appendix <- c("ARM", "Ethnicity", "Country", "Patients admitted to intensive care unit")
 table_baseline <- CreateTableOne(data = df_baseline, vars = vars.list_appendix[!vars.list_appendix %in% c("ARM")], strata = "ARM", includeNA = F, test = F, addOverall = TRUE)
-capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list_appendix,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = TRUE))
+capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list_appendix,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = F))
 ```
 
 ```
@@ -226,50 +377,49 @@ kable(table_baseline, format = "markdown", table.attr = 'class="table"', caption
 
 Table: Appendix Baseline characteristics, by arm
 
-|                                             |level                                     |Overall     |JAK inhibitor |No JAK inhibitor |Missing |
-|:--------------------------------------------|:-----------------------------------------|:-----------|:-------------|:----------------|:-------|
-|n                                            |                                          |11683       |5907          |5776             |        |
-|Ethnicity (%)                                |American Indian or Alaska Native          |358 ( 3.4)  |165 ( 3.1)    |193 ( 3.7)       |10.2    |
-|                                             |Asian                                     |796 ( 7.6)  |383 ( 7.2)    |413 ( 8.0)       |        |
-|                                             |Black or African American                 |484 ( 4.6)  |246 ( 4.6)    |238 ( 4.6)       |        |
-|                                             |Caucasian                                 |8395 (80.0) |4276 (80.7)   |4119 (79.3)      |        |
-|                                             |Hispanic or Latino                        |265 ( 2.5)  |137 ( 2.6)    |128 ( 2.5)       |        |
-|                                             |Mixed                                     |80 ( 0.8)   |37 ( 0.7)     |43 ( 0.8)        |        |
-|                                             |Native Hawaiian or other Pacific Islander |16 ( 0.2)   |7 ( 0.1)      |9 ( 0.2)         |        |
-|                                             |Persian/Mazani                            |97 ( 0.9)   |46 ( 0.9)     |51 ( 1.0)        |        |
-|Country (%)                                  |Argentina                                 |229 ( 2.0)  |119 ( 2.1)    |110 ( 2.0)       |2.4     |
-|                                             |Asia*                                     |67 ( 0.6)   |33 ( 0.6)     |34 ( 0.6)        |        |
-|                                             |Austria                                   |6 ( 0.1)    |2 ( 0.0)      |4 ( 0.1)         |        |
-|                                             |Belgium                                   |10 ( 0.1)   |4 ( 0.1)      |6 ( 0.1)         |        |
-|                                             |Brasil                                    |366 ( 3.2)  |187 ( 3.2)    |179 ( 3.2)       |        |
-|                                             |Europe*                                   |13 ( 0.1)   |6 ( 0.1)      |7 ( 0.1)         |        |
-|                                             |France                                    |94 ( 0.8)   |50 ( 0.9)     |44 ( 0.8)        |        |
-|                                             |Germany                                   |21 ( 0.2)   |10 ( 0.2)     |11 ( 0.2)        |        |
-|                                             |India                                     |50 ( 0.4)   |19 ( 0.3)     |31 ( 0.6)        |        |
-|                                             |Iran                                      |97 ( 0.9)   |46 ( 0.8)     |51 ( 0.9)        |        |
-|                                             |Ireland                                   |9 ( 0.1)    |5 ( 0.1)      |4 ( 0.1)         |        |
-|                                             |Italy                                     |166 ( 1.5)  |86 ( 1.5)     |80 ( 1.4)        |        |
-|                                             |Japan                                     |38 ( 0.3)   |19 ( 0.3)     |19 ( 0.3)        |        |
-|                                             |Luxembourg                                |1 ( 0.0)    |1 ( 0.0)      |0 ( 0.0)         |        |
-|                                             |Mexico                                    |312 ( 2.7)  |152 ( 2.6)    |160 ( 2.8)       |        |
-|                                             |North America*                            |953 ( 8.4)  |476 ( 8.2)    |477 ( 8.5)       |        |
-|                                             |Norway                                    |127 ( 1.1)  |61 ( 1.1)     |66 ( 1.2)        |        |
-|                                             |Portugal                                  |3 ( 0.0)    |2 ( 0.0)      |1 ( 0.0)         |        |
-|                                             |Russia                                    |112 ( 1.0)  |58 ( 1.0)     |54 ( 1.0)        |        |
-|                                             |South Korea                               |36 ( 0.3)   |16 ( 0.3)     |20 ( 0.4)        |        |
-|                                             |Spain                                     |210 ( 1.8)  |106 ( 1.8)    |104 ( 1.8)       |        |
-|                                             |United Kingdom                            |8141 (71.4) |4140 (71.8)   |4001 (71.1)      |        |
-|                                             |USA                                       |340 ( 3.0)  |172 ( 3.0)    |168 ( 3.0)       |        |
-|Patients admitted to intensive care unit (%) |No                                        |2278 (90.4) |1129 (89.9)   |1149 (90.9)      |78.4    |
-|                                             |Yes                                       |242 ( 9.6)  |127 (10.1)    |115 ( 9.1)       |        |
+|                                             |level                                     |Overall     |JAK inhibitor |No JAK inhibitor |
+|:--------------------------------------------|:-----------------------------------------|:-----------|:-------------|:----------------|
+|n                                            |                                          |12115       |6194          |5921             |
+|Ethnicity (%)                                |American Indian or Alaska Native          |397 ( 3.6)  |191 ( 3.4)    |206 ( 3.9)       |
+|                                             |Asian                                     |806 ( 7.4)  |388 ( 7.0)    |418 ( 7.8)       |
+|                                             |Black or African American                 |499 ( 4.6)  |252 ( 4.5)    |247 ( 4.6)       |
+|                                             |Caucasian                                 |8746 (80.2) |4518 (81.0)   |4228 (79.3)      |
+|                                             |Hispanic or Latino                        |266 ( 2.4)  |137 ( 2.5)    |129 ( 2.4)       |
+|                                             |Mixed                                     |85 ( 0.8)   |40 ( 0.7)     |45 ( 0.8)        |
+|                                             |Native Hawaiian or other Pacific Islander |16 ( 0.1)   |7 ( 0.1)      |9 ( 0.2)         |
+|                                             |Persian/Mazani                            |97 ( 0.9)   |46 ( 0.8)     |51 ( 1.0)        |
+|Country (%)                                  |Argentina                                 |229 ( 2.0)  |119 ( 2.1)    |110 ( 2.0)       |
+|                                             |Asia*                                     |67 ( 0.6)   |33 ( 0.6)     |34 ( 0.6)        |
+|                                             |Austria                                   |6 ( 0.1)    |2 ( 0.0)      |4 ( 0.1)         |
+|                                             |Belgium                                   |10 ( 0.1)   |4 ( 0.1)      |6 ( 0.1)         |
+|                                             |Brasil                                    |366 ( 3.2)  |187 ( 3.2)    |179 ( 3.2)       |
+|                                             |Europe*                                   |13 ( 0.1)   |6 ( 0.1)      |7 ( 0.1)         |
+|                                             |France                                    |94 ( 0.8)   |50 ( 0.9)     |44 ( 0.8)        |
+|                                             |Germany                                   |21 ( 0.2)   |10 ( 0.2)     |11 ( 0.2)        |
+|                                             |India                                     |50 ( 0.4)   |19 ( 0.3)     |31 ( 0.6)        |
+|                                             |Iran                                      |97 ( 0.9)   |46 ( 0.8)     |51 ( 0.9)        |
+|                                             |Ireland                                   |9 ( 0.1)    |5 ( 0.1)      |4 ( 0.1)         |
+|                                             |Italy                                     |166 ( 1.5)  |86 ( 1.5)     |80 ( 1.4)        |
+|                                             |Japan                                     |38 ( 0.3)   |19 ( 0.3)     |19 ( 0.3)        |
+|                                             |Luxembourg                                |1 ( 0.0)    |1 ( 0.0)      |0 ( 0.0)         |
+|                                             |Mexico                                    |312 ( 2.7)  |152 ( 2.6)    |160 ( 2.8)       |
+|                                             |North America*                            |953 ( 8.4)  |476 ( 8.2)    |477 ( 8.5)       |
+|                                             |Norway                                    |127 ( 1.1)  |61 ( 1.1)     |66 ( 1.2)        |
+|                                             |Portugal                                  |3 ( 0.0)    |2 ( 0.0)      |1 ( 0.0)         |
+|                                             |Russia                                    |112 ( 1.0)  |58 ( 1.0)     |54 ( 1.0)        |
+|                                             |South Korea                               |36 ( 0.3)   |16 ( 0.3)     |20 ( 0.4)        |
+|                                             |Spain                                     |210 ( 1.8)  |106 ( 1.8)    |104 ( 1.8)       |
+|                                             |United Kingdom                            |8141 (71.4) |4140 (71.8)   |4001 (71.1)      |
+|                                             |USA                                       |340 ( 3.0)  |172 ( 3.0)    |168 ( 3.0)       |
+|Patients admitted to intensive care unit (%) |No                                        |2710 (91.8) |1416 (91.8)   |1294 (91.8)      |
+|                                             |Yes                                       |242 ( 8.2)  |127 ( 8.2)    |115 ( 8.2)       |
 
-
-# All Baseline Characteristics, by trial
+# All Baseline Characteristics, by trial (CAVE: RUXCOVID is included but only its categorical covariates, e.g. do not assess missingness of age)
 
 ```r
 # all participants, by trial
 table_baseline_trial <- CreateTableOne(data = df_baseline, vars = vars.list[!vars.list %in% c("Trial", "ARM")], strata = "Trial", includeNA = F, test = F, addOverall = TRUE)
-capture.output(table_baseline_trial <- print(table_baseline_trial, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = TRUE))
+capture.output(table_baseline_trial <- print(table_baseline_trial, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = F))
 ```
 
 ```
@@ -286,72 +436,75 @@ kable(table_baseline_trial, format = "markdown", table.attr = 'class="table"', c
 
 Table: Baseline characteristics, by trial
 
-|                                                                                              |level                                                                                     |Overall               |ACTT2                  |Bari-Solidact         |COV-BARRIER           |COVINIB               |Ghazaeian            |RECOVERY              |TACTIC-R               |TOFACOV              |Missing |
-|:---------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------|:---------------------|:----------------------|:---------------------|:---------------------|:---------------------|:--------------------|:---------------------|:----------------------|:--------------------|:-------|
-|n                                                                                             |                                                                                          |11683                 |1033                   |289                   |1626                  |110                   |97                   |8130                  |282                    |116                  |        |
-|Age, years (median [IQR])                                                                     |                                                                                          |58.00 [47.00, 68.00]  |56.00 [43.00, 67.00]   |60.00 [50.00, 69.00]  |58.00 [48.00, 68.00]  |55.00 [47.25, 62.00]  |51.00 [37.00, 64.00] |58.00 [47.00, 69.00]  |60.00 [52.00, 69.00]   |58.00 [50.75, 66.25] |0.0     |
-|Sex (%)                                                                                       |Female                                                                                    |4167 (35.7)           |381 ( 36.9)            |218 (75.4)            |608 (37.4)            |34 ( 30.9)            |50 ( 51.5)           |2764 ( 34.0)          |76 (27.0)              |36 ( 31.0)           |0.0     |
-|                                                                                              |Male                                                                                      |7516 (64.3)           |652 ( 63.1)            |71 (24.6)             |1018 (62.6)           |76 ( 69.1)            |47 ( 48.5)           |5366 ( 66.0)          |206 (73.0)             |80 ( 69.0)           |        |
-|Ethnicity (%)                                                                                 |American Indian or Alaska Native                                                          |358 ( 3.4)            |10 (  1.0)             |0 ( NaN)              |348 (21.9)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( 0.0)               |0 (  0.0)            |10.2    |
-|                                                                                              |Asian                                                                                     |796 ( 7.6)            |101 (  9.9)            |0 ( NaN)              |175 (11.0)            |1 (  0.9)             |0 (  0.0)            |487 (  6.7)           |32 (12.2)              |0 (  0.0)            |        |
-|                                                                                              |Black or African American                                                                 |484 ( 4.6)            |156 ( 15.3)            |0 ( NaN)              |77 ( 4.8)             |0 (  0.0)             |0 (  0.0)            |220 (  3.0)           |31 (11.8)              |0 (  0.0)            |        |
-|                                                                                              |Caucasian                                                                                 |8395 (80.0)           |496 ( 48.6)            |0 ( NaN)              |982 (61.7)            |90 ( 81.8)            |0 (  0.0)            |6512 ( 89.3)          |199 (75.7)             |116 (100.0)          |        |
-|                                                                                              |Hispanic or Latino                                                                        |265 ( 2.5)            |246 ( 24.1)            |0 ( NaN)              |0 ( 0.0)              |19 ( 17.3)            |0 (  0.0)            |0 (  0.0)             |0 ( 0.0)               |0 (  0.0)            |        |
-|                                                                                              |Mixed                                                                                     |80 ( 0.8)             |0 (  0.0)              |0 ( NaN)              |5 ( 0.3)              |0 (  0.0)             |0 (  0.0)            |74 (  1.0)            |1 ( 0.4)               |0 (  0.0)            |        |
-|                                                                                              |Native Hawaiian or other Pacific Islander                                                 |16 ( 0.2)             |11 (  1.1)             |0 ( NaN)              |5 ( 0.3)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( 0.0)               |0 (  0.0)            |        |
-|                                                                                              |Persian/Mazani                                                                            |97 ( 0.9)             |0 (  0.0)              |0 ( NaN)              |0 ( 0.0)              |0 (  0.0)             |97 (100.0)           |0 (  0.0)             |0 ( 0.0)               |0 (  0.0)            |        |
-|Country (%)                                                                                   |Argentina                                                                                 |229 ( 2.0)            |0 (  0.0)              |0 ( 0.0)              |229 (14.1)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |2.4     |
-|                                                                                              |Asia*                                                                                     |67 ( 0.6)             |67 (  6.5)             |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Austria                                                                                   |6 ( 0.1)              |0 (  0.0)              |6 ( 2.1)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Belgium                                                                                   |10 ( 0.1)             |0 (  0.0)              |10 ( 3.5)             |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Brasil                                                                                    |366 ( 3.2)            |0 (  0.0)              |0 ( 0.0)              |366 (22.5)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Europe*                                                                                   |13 ( 0.1)             |13 (  1.3)             |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |France                                                                                    |94 ( 0.8)             |0 (  0.0)              |94 (32.5)             |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Germany                                                                                   |21 ( 0.2)             |0 (  0.0)              |1 ( 0.3)              |20 ( 1.2)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |India                                                                                     |50 ( 0.4)             |0 (  0.0)              |0 ( 0.0)              |50 ( 3.1)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Iran                                                                                      |97 ( 0.9)             |0 (  0.0)              |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |97 (100.0)           |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Ireland                                                                                   |9 ( 0.1)              |0 (  0.0)              |9 ( 3.1)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Italy                                                                                     |166 ( 1.5)            |0 (  0.0)              |25 ( 8.7)             |25 ( 1.5)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |116 (100.0)          |        |
-|                                                                                              |Japan                                                                                     |38 ( 0.3)             |0 (  0.0)              |0 ( 0.0)              |38 ( 2.3)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Luxembourg                                                                                |1 ( 0.0)              |0 (  0.0)              |1 ( 0.3)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Mexico                                                                                    |312 ( 2.7)            |0 (  0.0)              |0 ( 0.0)              |312 (19.2)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |North America*                                                                            |953 ( 8.4)            |953 ( 92.3)            |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Norway                                                                                    |127 ( 1.1)            |0 (  0.0)              |127 (43.9)            |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Portugal                                                                                  |3 ( 0.0)              |0 (  0.0)              |3 ( 1.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Russia                                                                                    |112 ( 1.0)            |0 (  0.0)              |0 ( 0.0)              |112 ( 6.9)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |South Korea                                                                               |36 ( 0.3)             |0 (  0.0)              |0 ( 0.0)              |36 ( 2.2)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |Spain                                                                                     |210 ( 1.8)            |0 (  0.0)              |13 ( 4.5)             |87 ( 5.4)             |110 (100.0)           |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |United Kingdom                                                                            |8141 (71.4)           |0 (  0.0)              |0 ( 0.0)              |11 ( 0.7)             |0 (  0.0)             |0 (  0.0)            |8130 (100.0)          |0 ( NaN)               |0 (  0.0)            |        |
-|                                                                                              |USA                                                                                       |340 ( 3.0)            |0 (  0.0)              |0 ( 0.0)              |340 (20.9)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 ( NaN)               |0 (  0.0)            |        |
-|Vaccination (%)                                                                               |Any SARS CoV-2 vaccine                                                                    |3527 (36.5)           |0 (  0.0)              |102 (35.9)            |0 ( NaN)              |2 (  1.8)             |0 (  NaN)            |3420 ( 42.1)          |0 ( NaN)               |3 (  2.6)            |17.2    |
-|                                                                                              |No SARS CoV-2 vaccine                                                                     |6146 (63.5)           |1033 (100.0)           |182 (64.1)            |0 ( NaN)              |108 ( 98.2)           |0 (  NaN)            |4710 ( 57.9)          |0 ( NaN)               |113 ( 97.4)          |        |
-|Time from symptom onset to randomisation, days (median [IQR])                                 |                                                                                          |10.00 [7.00, 12.00]   |8.00 [5.00, 10.00]     |9.00 [7.00, 11.00]    |10.00 [8.00, 13.00]   |7.00 [5.00, 9.00]     |7.00 [6.00, 10.00]   |10.00 [7.00, 12.00]   |10.00 [7.00, 13.00]    |8.00 [6.00, 10.00]   |0.2     |
-|Patients admitted to intensive care unit (%)                                                  |No                                                                                        |2278 (90.4)           |0 (  NaN)              |160 (55.4)            |1525 (93.8)           |110 (100.0)           |97 (100.0)           |0 (  NaN)             |270 (95.7)             |116 (100.0)          |78.4    |
-|                                                                                              |Yes                                                                                       |242 ( 9.6)            |0 (  NaN)              |129 (44.6)            |101 ( 6.2)            |0 (  0.0)             |0 (  0.0)            |0 (  NaN)             |12 ( 4.3)              |0 (  0.0)            |        |
-|Clinical status on ordinal scale (%)                                                          |2: Hospitalised without need for oxygen therapy (WHO score 4)                             |866 ( 7.4)            |142 ( 13.7)            |0 ( 0.0)              |186 (11.5)            |35 ( 31.8)            |2 (  2.1)            |465 (  5.7)           |11 ( 3.9)              |25 ( 21.6)           |0.1     |
-|                                                                                              |3: Hospitalised with need for supplemental low-flow oxygen (WHO score 5)                  |7421 (63.6)           |564 ( 54.6)            |0 ( 0.0)              |962 (59.4)            |75 ( 68.2)            |95 ( 97.9)           |5504 ( 67.7)          |130 (46.1)             |91 ( 78.4)           |        |
-|                                                                                              |4: Hospitalised with need for high-flow oxygen or non- invasive ventilation (WHO score 6) |2895 (24.8)           |216 ( 20.9)            |249 (86.2)            |370 (22.9)            |0 (  0.0)             |0 (  0.0)            |1921 ( 23.6)          |139 (49.3)             |0 (  0.0)            |        |
-|                                                                                              |5: Hospitalised with need for mechanical ventilation or ECMO (WHO score 7–9)              |494 ( 4.2)            |111 ( 10.7)            |40 (13.8)             |101 ( 6.2)            |0 (  0.0)             |0 (  0.0)            |240 (  3.0)           |2 ( 0.7)               |0 (  0.0)            |        |
-|Comorbidities (%)                                                                             |No comorbidity                                                                            |5151 (44.2)           |151 ( 14.9)            |106 (36.7)            |370 (22.8)            |37 ( 33.6)            |41 ( 42.3)           |4353 ( 53.5)          |49 (17.4)              |44 ( 37.9)           |0.2     |
-|                                                                                              |One comorbidity                                                                           |3548 (30.4)           |288 ( 28.4)            |73 (25.3)             |477 (29.3)            |40 ( 36.4)            |22 ( 22.7)           |2538 ( 31.2)          |64 (22.7)              |46 ( 39.7)           |        |
-|                                                                                              |Multiple comorbidities                                                                    |2868 (24.6)           |546 ( 53.8)            |99 (34.3)             |761 (46.8)            |31 ( 28.2)            |32 ( 33.0)           |1239 ( 15.2)          |134 (47.5)             |26 ( 22.4)           |        |
-|                                                                                              |Immunocompromised                                                                         |98 ( 0.8)             |30 (  3.0)             |11 ( 3.8)             |18 ( 1.1)             |2 (  1.8)             |2 (  2.1)            |0 (  0.0)             |35 (12.4)              |0 (  0.0)            |        |
-|Dexamethasone and Tocilizumab (%)                                                             |No Dexamethasone, no Tocilizumab                                                          |1823 (15.6)           |991 ( 95.9)            |18 ( 6.2)             |328 (20.3)            |94 ( 85.5)            |0 (  0.0)            |349 (  4.3)           |36 (12.8)              |7 (  6.0)            |0.1     |
-|                                                                                              |Dexamethasone but no Tocilizumab                                                          |7216 (61.8)           |42 (  4.1)             |270 (93.4)            |1291 (79.7)           |16 ( 14.5)            |97 (100.0)           |5157 ( 63.4)          |234 (83.0)             |109 ( 94.0)          |        |
-|                                                                                              |Dexamethasone and Tocilizumab                                                             |2603 (22.3)           |0 (  0.0)              |1 ( 0.3)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |2590 ( 31.9)          |12 ( 4.3)              |0 (  0.0)            |        |
-|                                                                                              |Tocolizumab but no Dexamethasone                                                          |34 ( 0.3)             |0 (  0.0)              |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |34 (  0.4)            |0 ( 0.0)               |0 (  0.0)            |        |
-|Remdesivir (%)                                                                                |No Remdesivir                                                                             |8892 (76.1)           |518 ( 50.1)            |281 (97.2)            |1337 (82.2)           |110 (100.0)           |0 (  0.0)            |6474 ( 79.6)          |159 (56.4)             |13 ( 11.2)           |0.0     |
-|                                                                                              |Remdesivir                                                                                |2791 (23.9)           |515 ( 49.9)            |8 ( 2.8)              |289 (17.8)            |0 (  0.0)             |97 (100.0)           |1656 ( 20.4)          |123 (43.6)             |103 ( 88.8)          |        |
-|C-reactive protein concentration, mg/L (median [IQR])                                         |                                                                                          |85.00 [42.00, 147.00] |125.75 [64.93, 190.50] |89.00 [50.00, 142.00] |65.00 [32.00, 122.90] |79.15 [39.72, 134.60] |68.00 [33.50, 84.00] |86.00 [43.00, 145.00] |109.00 [67.00, 159.00] |4.90 [2.40, 9.75]    |4.1     |
-|Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N]) (%) |Not seroconverted                                                                         |594 (33.9)            |0 (  NaN)              |7 ( 5.0)              |0 ( NaN)              |0 (  NaN)             |0 (  NaN)            |587 ( 36.4)           |0 ( NaN)               |0 (  NaN)            |85.0    |
-|                                                                                              |Seroconverted                                                                             |1157 (66.1)           |0 (  NaN)              |132 (95.0)            |0 ( NaN)              |0 (  NaN)             |0 (  NaN)            |1025 ( 63.6)          |0 ( NaN)               |0 (  NaN)            |        |
-|Patients with undetectable viral load (%)                                                     |Detectable viral load                                                                     |9594 (97.3)           |526 ( 75.9)            |116 (86.6)            |1494 (97.2)           |0 (  NaN)             |0 (  NaN)            |7195 ( 99.8)          |263 (93.3)             |0 (  NaN)            |15.6    |
-|                                                                                              |Undetectable viral load                                                                   |265 ( 2.7)            |167 ( 24.1)            |18 (13.4)             |43 ( 2.8)             |0 (  NaN)             |0 (  NaN)            |18 (  0.2)            |19 ( 6.7)              |0 (  NaN)            |        |
-
+|                                                                                              |level                                                                                     |Overall               |ACTT2                  |Bari-Solidact         |COV-BARRIER           |COVINIB               |Ghazaeian            |RECOVERY              |RUXCOVID    |TACTIC-R               |TOFACOV              |
+|:---------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------|:---------------------|:----------------------|:---------------------|:---------------------|:---------------------|:--------------------|:---------------------|:-----------|:----------------------|:--------------------|
+|n                                                                                             |                                                                                          |12115                 |1033                   |289                   |1626                  |110                   |97                   |8130                  |432         |282                    |116                  |
+|Age, years (median [IQR])                                                                     |                                                                                          |58.00 [47.00, 68.00]  |56.00 [43.00, 67.00]   |60.00 [50.00, 69.00]  |58.00 [48.00, 68.00]  |55.00 [47.25, 62.00]  |51.00 [37.00, 64.00] |58.00 [47.00, 69.00]  |NA [NA, NA] |60.00 [52.00, 69.00]   |58.00 [50.75, 66.25] |
+|Sex (%)                                                                                       |Female                                                                                    |4363 (36.0)           |381 ( 36.9)            |218 (75.4)            |608 (37.4)            |34 ( 30.9)            |50 ( 51.5)           |2764 ( 34.0)          |196 ( 45.4) |76 (27.0)              |36 ( 31.0)           |
+|                                                                                              |Male                                                                                      |7752 (64.0)           |652 ( 63.1)            |71 (24.6)             |1018 (62.6)           |76 ( 69.1)            |47 ( 48.5)           |5366 ( 66.0)          |236 ( 54.6) |206 (73.0)             |80 ( 69.0)           |
+|Ethnicity (%)                                                                                 |American Indian or Alaska Native                                                          |397 ( 3.6)            |10 (  1.0)             |0 ( NaN)              |348 (21.9)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |39 (  9.3)  |0 ( 0.0)               |0 (  0.0)            |
+|                                                                                              |Asian                                                                                     |806 ( 7.4)            |101 (  9.9)            |0 ( NaN)              |175 (11.0)            |1 (  0.9)             |0 (  0.0)            |487 (  6.7)           |10 (  2.4)  |32 (12.2)              |0 (  0.0)            |
+|                                                                                              |Black or African American                                                                 |499 ( 4.6)            |156 ( 15.3)            |0 ( NaN)              |77 ( 4.8)             |0 (  0.0)             |0 (  0.0)            |220 (  3.0)           |15 (  3.6)  |31 (11.8)              |0 (  0.0)            |
+|                                                                                              |Caucasian                                                                                 |8746 (80.2)           |496 ( 48.6)            |0 ( NaN)              |982 (61.7)            |90 ( 81.8)            |0 (  0.0)            |6512 ( 89.3)          |351 ( 83.4) |199 (75.7)             |116 (100.0)          |
+|                                                                                              |Hispanic or Latino                                                                        |266 ( 2.4)            |246 ( 24.1)            |0 ( NaN)              |0 ( 0.0)              |19 ( 17.3)            |0 (  0.0)            |0 (  0.0)             |1 (  0.2)   |0 ( 0.0)               |0 (  0.0)            |
+|                                                                                              |Mixed                                                                                     |85 ( 0.8)             |0 (  0.0)              |0 ( NaN)              |5 ( 0.3)              |0 (  0.0)             |0 (  0.0)            |74 (  1.0)            |5 (  1.2)   |1 ( 0.4)               |0 (  0.0)            |
+|                                                                                              |Native Hawaiian or other Pacific Islander                                                 |16 ( 0.1)             |11 (  1.1)             |0 ( NaN)              |5 ( 0.3)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)   |0 ( 0.0)               |0 (  0.0)            |
+|                                                                                              |Persian/Mazani                                                                            |97 ( 0.9)             |0 (  0.0)              |0 ( NaN)              |0 ( 0.0)              |0 (  0.0)             |97 (100.0)           |0 (  0.0)             |0 (  0.0)   |0 ( 0.0)               |0 (  0.0)            |
+|Country (%)                                                                                   |Argentina                                                                                 |229 ( 2.0)            |0 (  0.0)              |0 ( 0.0)              |229 (14.1)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Asia*                                                                                     |67 ( 0.6)             |67 (  6.5)             |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Austria                                                                                   |6 ( 0.1)              |0 (  0.0)              |6 ( 2.1)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Belgium                                                                                   |10 ( 0.1)             |0 (  0.0)              |10 ( 3.5)             |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Brasil                                                                                    |366 ( 3.2)            |0 (  0.0)              |0 ( 0.0)              |366 (22.5)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Europe*                                                                                   |13 ( 0.1)             |13 (  1.3)             |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |France                                                                                    |94 ( 0.8)             |0 (  0.0)              |94 (32.5)             |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Germany                                                                                   |21 ( 0.2)             |0 (  0.0)              |1 ( 0.3)              |20 ( 1.2)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |India                                                                                     |50 ( 0.4)             |0 (  0.0)              |0 ( 0.0)              |50 ( 3.1)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Iran                                                                                      |97 ( 0.9)             |0 (  0.0)              |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |97 (100.0)           |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Ireland                                                                                   |9 ( 0.1)              |0 (  0.0)              |9 ( 3.1)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Italy                                                                                     |166 ( 1.5)            |0 (  0.0)              |25 ( 8.7)             |25 ( 1.5)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |116 (100.0)          |
+|                                                                                              |Japan                                                                                     |38 ( 0.3)             |0 (  0.0)              |0 ( 0.0)              |38 ( 2.3)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Luxembourg                                                                                |1 ( 0.0)              |0 (  0.0)              |1 ( 0.3)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Mexico                                                                                    |312 ( 2.7)            |0 (  0.0)              |0 ( 0.0)              |312 (19.2)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |North America*                                                                            |953 ( 8.4)            |953 ( 92.3)            |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Norway                                                                                    |127 ( 1.1)            |0 (  0.0)              |127 (43.9)            |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Portugal                                                                                  |3 ( 0.0)              |0 (  0.0)              |3 ( 1.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Russia                                                                                    |112 ( 1.0)            |0 (  0.0)              |0 ( 0.0)              |112 ( 6.9)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |South Korea                                                                               |36 ( 0.3)             |0 (  0.0)              |0 ( 0.0)              |36 ( 2.2)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |Spain                                                                                     |210 ( 1.8)            |0 (  0.0)              |13 ( 4.5)             |87 ( 5.4)             |110 (100.0)           |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |United Kingdom                                                                            |8141 (71.4)           |0 (  0.0)              |0 ( 0.0)              |11 ( 0.7)             |0 (  0.0)             |0 (  0.0)            |8130 (100.0)          |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|                                                                                              |USA                                                                                       |340 ( 3.0)            |0 (  0.0)              |0 ( 0.0)              |340 (20.9)            |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  NaN)   |0 ( NaN)               |0 (  0.0)            |
+|Vaccination (%)                                                                               |Any SARS CoV-2 vaccine                                                                    |3527 (34.9)           |0 (  0.0)              |102 (35.9)            |0 ( NaN)              |2 (  1.8)             |0 (  NaN)            |3420 ( 42.1)          |0 (  0.0)   |0 ( NaN)               |3 (  2.6)            |
+|                                                                                              |No SARS CoV-2 vaccine                                                                     |6578 (65.1)           |1033 (100.0)           |182 (64.1)            |0 ( NaN)              |108 ( 98.2)           |0 (  NaN)            |4710 ( 57.9)          |432 (100.0) |0 ( NaN)               |113 ( 97.4)          |
+|Time from symptom onset to randomisation, days (median [IQR])                                 |                                                                                          |10.00 [7.00, 12.00]   |8.00 [5.00, 10.00]     |9.00 [7.00, 11.00]    |10.00 [8.00, 13.00]   |7.00 [5.00, 9.00]     |7.00 [6.00, 10.00]   |10.00 [7.00, 12.00]   |NA [NA, NA] |10.00 [7.00, 13.00]    |8.00 [6.00, 10.00]   |
+|Patients admitted to intensive care unit (%)                                                  |No                                                                                        |2710 (91.8)           |0 (  NaN)              |160 (55.4)            |1525 (93.8)           |110 (100.0)           |97 (100.0)           |0 (  NaN)             |432 (100.0) |270 (95.7)             |116 (100.0)          |
+|                                                                                              |Yes                                                                                       |242 ( 8.2)            |0 (  NaN)              |129 (44.6)            |101 ( 6.2)            |0 (  0.0)             |0 (  0.0)            |0 (  NaN)             |0 (  0.0)   |12 ( 4.3)              |0 (  0.0)            |
+|Clinical status on ordinal scale (%)                                                          |2: Hospitalised without need for oxygen therapy (WHO score 4)                             |1007 ( 8.3)           |142 ( 13.7)            |0 ( 0.0)              |186 (11.5)            |35 ( 31.8)            |2 (  2.1)            |465 (  5.7)           |141 ( 32.7) |11 ( 3.9)              |25 ( 21.6)           |
+|                                                                                              |3: Hospitalised with need for supplemental low-flow oxygen (WHO score 5)                  |7689 (63.5)           |564 ( 54.6)            |0 ( 0.0)              |962 (59.4)            |75 ( 68.2)            |95 ( 97.9)           |5504 ( 67.7)          |268 ( 62.2) |130 (46.1)             |91 ( 78.4)           |
+|                                                                                              |4: Hospitalised with need for high-flow oxygen or non- invasive ventilation (WHO score 6) |2917 (24.1)           |216 ( 20.9)            |249 (86.2)            |370 (22.9)            |0 (  0.0)             |0 (  0.0)            |1921 ( 23.6)          |22 (  5.1)  |139 (49.3)             |0 (  0.0)            |
+|                                                                                              |5: Hospitalised with need for mechanical ventilation or ECMO (WHO score 7–9)              |494 ( 4.1)            |111 ( 10.7)            |40 (13.8)             |101 ( 6.2)            |0 (  0.0)             |0 (  0.0)            |240 (  3.0)           |0 (  0.0)   |2 ( 0.7)               |0 (  0.0)            |
+|Comorbidities (%)                                                                             |No comorbidity                                                                            |5257 (43.5)           |151 ( 14.9)            |106 (36.7)            |370 (22.8)            |37 ( 33.6)            |41 ( 42.3)           |4353 ( 53.5)          |106 ( 24.5) |49 (17.4)              |44 ( 37.9)           |
+|                                                                                              |One comorbidity                                                                           |3684 (30.5)           |288 ( 28.4)            |73 (25.3)             |477 (29.3)            |40 ( 36.4)            |22 ( 22.7)           |2538 ( 31.2)          |136 ( 31.5) |64 (22.7)              |46 ( 39.7)           |
+|                                                                                              |Multiple comorbidities                                                                    |3058 (25.3)           |546 ( 53.8)            |99 (34.3)             |761 (46.8)            |31 ( 28.2)            |32 ( 33.0)           |1239 ( 15.2)          |190 ( 44.0) |134 (47.5)             |26 ( 22.4)           |
+|                                                                                              |Immunocompromised                                                                         |98 ( 0.8)             |30 (  3.0)             |11 ( 3.8)             |18 ( 1.1)             |2 (  1.8)             |2 (  2.1)            |0 (  0.0)             |0 (  0.0)   |35 (12.4)              |0 (  0.0)            |
+|Dexamethasone and Tocilizumab (%)                                                             |No Dexamethasone, no Tocilizumab                                                          |2006 (16.6)           |991 ( 95.9)            |18 ( 6.2)             |328 (20.3)            |94 ( 85.5)            |0 (  0.0)            |349 (  4.3)           |183 ( 42.4) |36 (12.8)              |7 (  6.0)            |
+|                                                                                              |Dexamethasone but no Tocilizumab                                                          |7465 (61.7)           |42 (  4.1)             |270 (93.4)            |1291 (79.7)           |16 ( 14.5)            |97 (100.0)           |5157 ( 63.4)          |249 ( 57.6) |234 (83.0)             |109 ( 94.0)          |
+|                                                                                              |Dexamethasone and Tocilizumab                                                             |2603 (21.5)           |0 (  0.0)              |1 ( 0.3)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |2590 ( 31.9)          |0 (  0.0)   |12 ( 4.3)              |0 (  0.0)            |
+|                                                                                              |Tocolizumab but no Dexamethasone                                                          |34 ( 0.3)             |0 (  0.0)              |0 ( 0.0)              |0 ( 0.0)              |0 (  0.0)             |0 (  0.0)            |34 (  0.4)            |0 (  0.0)   |0 ( 0.0)               |0 (  0.0)            |
+|Remdesivir (%)                                                                                |No Remdesivir                                                                             |9296 (76.7)           |518 ( 50.1)            |281 (97.2)            |1337 (82.2)           |110 (100.0)           |0 (  0.0)            |6474 ( 79.6)          |404 ( 93.5) |159 (56.4)             |13 ( 11.2)           |
+|                                                                                              |Remdesivir                                                                                |2819 (23.3)           |515 ( 49.9)            |8 ( 2.8)              |289 (17.8)            |0 (  0.0)             |97 (100.0)           |1656 ( 20.4)          |28 (  6.5)  |123 (43.6)             |103 ( 88.8)          |
+|C-reactive protein concentration, mg/L (median [IQR])                                         |                                                                                          |85.00 [42.00, 147.00] |125.75 [64.93, 190.50] |89.00 [50.00, 142.00] |65.00 [32.00, 122.90] |79.15 [39.72, 134.60] |68.00 [33.50, 84.00] |86.00 [43.00, 145.00] |NA [NA, NA] |109.00 [67.00, 159.00] |4.90 [2.40, 9.75]    |
+|Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N]) (%) |Not seroconverted                                                                         |594 (33.9)            |0 (  NaN)              |7 ( 5.0)              |0 ( NaN)              |0 (  NaN)             |0 (  NaN)            |587 ( 36.4)           |0 (  NaN)   |0 ( NaN)               |0 (  NaN)            |
+|                                                                                              |Seroconverted                                                                             |1157 (66.1)           |0 (  NaN)              |132 (95.0)            |0 ( NaN)              |0 (  NaN)             |0 (  NaN)            |1025 ( 63.6)          |0 (  NaN)   |0 ( NaN)               |0 (  NaN)            |
+|Patients with undetectable viral load (%)                                                     |Detectable viral load                                                                     |9594 (97.3)           |526 ( 75.9)            |116 (86.6)            |1494 (97.2)           |0 (  NaN)             |0 (  NaN)            |7195 ( 99.8)          |0 (  NaN)   |263 (93.3)             |0 (  NaN)            |
+|                                                                                              |Undetectable viral load                                                                   |265 ( 2.7)            |167 ( 24.1)            |18 (13.4)             |43 ( 2.8)             |0 (  NaN)             |0 (  NaN)            |18 (  0.2)            |0 (  NaN)   |19 ( 6.7)              |0 (  NaN)            |
 
 # Missing data table for outcomes and adjustment variables, by trial
 
 ```r
+# take out RUXCOVID, add it as its own line below
+df_tot <- df_tot %>% 
+  filter(!trial == "RUXCOVID")
+
 vars.list <- c("trial", "age", "clinstatus_baseline",
                "mort_28", "mort_60", "new_mvd_28", "clinstatus_28_imp", 
                 "ae_28", "vir_clear_5" ,"vir_clear_10", "vir_clear_15")
@@ -453,6 +606,11 @@ missing_summary <- cbind(age_missing_summary, clinstatus_baseline_missing_summar
 
 missing_summary <- missing_summary %>% select(1 | ends_with("_summary"))
 
+## add RUXCOVID
+ruxcovid_missing <- readRDS("missing_summary_ruxcovid.rds")
+
+missing_summary <- rbind(missing_summary, ruxcovid_missing)
+
 #print
 kable(missing_summary, format = "markdown", table.attr = 'class="table"', caption = "Missing values in outcomes and adjustment variables, by trial") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
@@ -472,20 +630,13 @@ Table: Missing values in outcomes and adjustment variables, by trial
 |RECOVERY      |0/8130/0    |0/8130/0                    |129/8130/1.6    |129/8130/1.6    |101/8130/1.2       |0/8130/0                  |1172/8130/14.4 |613/8130/7.5        |420/8130/5.2         |347/8130/4.3         |
 |TACTIC-R      |0/282/0     |0/282/0                     |14/282/5        |18/282/6.4      |0/282/0            |0/282/0                   |35/282/12.4    |232/282/82.3        |218/282/77.3         |217/282/77           |
 |TOFACOV       |0/116/0     |0/116/0                     |0/116/0         |0/116/0         |0/116/0            |0/116/0                   |0/116/0        |116/116/100         |116/116/100          |116/116/100          |
+|RUXCOVID      |0/432/0     |1/432/0.2                   |8/432/1.9       |8/432/1.9       |8/432/1.9          |0/432/0                   |20/432/4.6     |432/432/100         |432/432/100          |432/432/100          |
 
-# Missing data table for all variables, by trial
-
-```r
-table(df_tot$mort_28,useNA = "always")
-```
-
-```
-## 
-##    0    1 <NA> 
-## 9964 1411  308
-```
+# Missing data table for all variables, by trial (excluding RUXCOVID, added separately in next chapter)
 
 ```r
+# table(df_tot$mort_28,useNA = "always")
+
 vars.list <- c("trt", "trial", "age", "sex", "ethn", "country", "vacc", "sympdur", "icu", "clinstatus_baseline", "comorb_cat", "comed_cat", "comed_rdv", "crp", "sero", "vl_baseline", "variant",
                "mort_28", "mort_60", "death_reached", "new_mv_28", "new_mvd_28", "clinstatus_28_imp", "discharge_reached",
                "discharge_reached_sus" , "ae_28","ae_28_sev" ,"vir_clear_5" ,"vir_clear_10", "vir_clear_15")
@@ -642,26 +793,26 @@ Table: Missing data, by trial
 |                          |1                                         |9226 (79.0)           |839 ( 81.2)            |193 ( 66.8)           |1220 ( 75.0)          |103 ( 93.6)           |90 ( 92.8)           |6452 ( 79.4)          |219 ( 77.7)            |110 ( 94.8)          |        |
 |discharge_reached_sus (%) |0                                         |2467 (21.1)           |194 ( 18.8)            |98 ( 33.9)            |414 ( 25.5)           |7 (  6.4)             |7 (  7.2)            |1678 ( 20.6)          |63 ( 22.3)             |6 (  5.2)            |0.0     |
 |                          |1                                         |9216 (78.9)           |839 ( 81.2)            |191 ( 66.1)           |1212 ( 74.5)          |103 ( 93.6)           |90 ( 92.8)           |6452 ( 79.4)          |219 ( 77.7)            |110 ( 94.8)          |        |
-|ae_28 (%)                 |0                                         |8727 (74.7)           |562 ( 54.4)            |165 ( 57.1)           |1011 ( 62.2)          |85 ( 77.3)            |96 ( 99.0)           |6499 ( 79.9)          |215 ( 76.2)            |94 ( 81.0)           |13.8    |
-|                          |1                                         |1349 (11.5)           |410 ( 39.7)            |88 ( 30.4)            |314 ( 19.3)           |23 ( 20.9)            |1 (  1.0)            |459 (  5.6)           |32 ( 11.3)             |22 ( 19.0)           |        |
+|ae_28 (%)                 |0                                         |8737 (74.8)           |572 ( 55.4)            |165 ( 57.1)           |1011 ( 62.2)          |85 ( 77.3)            |96 ( 99.0)           |6499 ( 79.9)          |215 ( 76.2)            |94 ( 81.0)           |13.8    |
+|                          |1                                         |1339 (11.5)           |400 ( 38.7)            |88 ( 30.4)            |314 ( 19.3)           |23 ( 20.9)            |1 (  1.0)            |459 (  5.6)           |32 ( 11.3)             |22 ( 19.0)           |        |
 |                          |NA                                        |1607 (13.8)           |61 (  5.9)             |36 ( 12.5)            |301 ( 18.5)           |2 (  1.8)             |0 (  0.0)            |1172 ( 14.4)          |35 ( 12.4)             |0 (  0.0)            |        |
-|ae_28_sev (%)             |0                                         |8727 (74.7)           |562 ( 54.4)            |165 ( 57.1)           |1011 ( 62.2)          |85 ( 77.3)            |96 ( 99.0)           |6499 ( 79.9)          |215 ( 76.2)            |94 ( 81.0)           |13.8    |
-|                          |1                                         |882 ( 7.5)            |198 ( 19.2)            |49 ( 17.0)            |154 (  9.5)           |14 ( 12.7)            |1 (  1.0)            |419 (  5.2)           |25 (  8.9)             |22 ( 19.0)           |        |
-|                          |2                                         |210 ( 1.8)            |77 (  7.5)             |15 (  5.2)            |77 (  4.7)            |3 (  2.7)             |0 (  0.0)            |34 (  0.4)            |4 (  1.4)              |0 (  0.0)            |        |
-|                          |3                                         |92 ( 0.8)             |38 (  3.7)             |11 (  3.8)            |36 (  2.2)            |1 (  0.9)             |0 (  0.0)            |4 (  0.0)             |2 (  0.7)              |0 (  0.0)            |        |
+|ae_28_sev (%)             |0                                         |8737 (74.8)           |572 ( 55.4)            |165 ( 57.1)           |1011 ( 62.2)          |85 ( 77.3)            |96 ( 99.0)           |6499 ( 79.9)          |215 ( 76.2)            |94 ( 81.0)           |13.8    |
+|                          |1                                         |878 ( 7.5)            |194 ( 18.8)            |49 ( 17.0)            |154 (  9.5)           |14 ( 12.7)            |1 (  1.0)            |419 (  5.2)           |25 (  8.9)             |22 ( 19.0)           |        |
+|                          |2                                         |208 ( 1.8)            |75 (  7.3)             |15 (  5.2)            |77 (  4.7)            |3 (  2.7)             |0 (  0.0)            |34 (  0.4)            |4 (  1.4)              |0 (  0.0)            |        |
+|                          |3                                         |91 ( 0.8)             |37 (  3.6)             |11 (  3.8)            |36 (  2.2)            |1 (  0.9)             |0 (  0.0)            |4 (  0.0)             |2 (  0.7)              |0 (  0.0)            |        |
 |                          |4                                         |57 ( 0.5)             |36 (  3.5)             |4 (  1.4)             |12 (  0.7)            |2 (  1.8)             |0 (  0.0)            |2 (  0.0)             |1 (  0.4)              |0 (  0.0)            |        |
-|                          |5                                         |35 ( 0.3)             |15 (  1.5)             |2 (  0.7)             |17 (  1.0)            |1 (  0.9)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
-|                          |6                                         |19 ( 0.2)             |7 (  0.7)              |3 (  1.0)             |7 (  0.4)             |2 (  1.8)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
-|                          |7                                         |17 ( 0.1)             |13 (  1.3)             |1 (  0.3)             |3 (  0.2)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
-|                          |8                                         |8 ( 0.1)              |7 (  0.7)              |1 (  0.3)             |0 (  0.0)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
+|                          |5                                         |33 ( 0.3)             |13 (  1.3)             |2 (  0.7)             |17 (  1.0)            |1 (  0.9)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
+|                          |6                                         |21 ( 0.2)             |9 (  0.9)              |3 (  1.0)             |7 (  0.4)             |2 (  1.8)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
+|                          |7                                         |14 ( 0.1)             |10 (  1.0)             |1 (  0.3)             |3 (  0.2)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
+|                          |8                                         |10 ( 0.1)             |9 (  0.9)              |1 (  0.3)             |0 (  0.0)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
 |                          |9                                         |11 ( 0.1)             |6 (  0.6)              |1 (  0.3)             |4 (  0.2)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
-|                          |10                                        |6 ( 0.1)              |4 (  0.4)              |1 (  0.3)             |1 (  0.1)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
-|                          |11                                        |3 ( 0.0)              |3 (  0.3)              |0 (  0.0)             |0 (  0.0)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
+|                          |10                                        |5 ( 0.0)              |3 (  0.3)              |1 (  0.3)             |1 (  0.1)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
+|                          |11                                        |2 ( 0.0)              |2 (  0.2)              |0 (  0.0)             |0 (  0.0)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
 |                          |12                                        |2 ( 0.0)              |1 (  0.1)              |0 (  0.0)             |1 (  0.1)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
 |                          |13                                        |3 ( 0.0)              |1 (  0.1)              |0 (  0.0)             |2 (  0.1)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
 |                          |16                                        |1 ( 0.0)              |1 (  0.1)              |0 (  0.0)             |0 (  0.0)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
+|                          |19                                        |1 ( 0.0)              |1 (  0.1)              |0 (  0.0)             |0 (  0.0)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
 |                          |20                                        |1 ( 0.0)              |1 (  0.1)              |0 (  0.0)             |0 (  0.0)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
-|                          |22                                        |1 ( 0.0)              |1 (  0.1)              |0 (  0.0)             |0 (  0.0)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
 |                          |26                                        |1 ( 0.0)              |1 (  0.1)              |0 (  0.0)             |0 (  0.0)             |0 (  0.0)             |0 (  0.0)            |0 (  0.0)             |0 (  0.0)              |0 (  0.0)            |        |
 |                          |NA                                        |1607 (13.8)           |61 (  5.9)             |36 ( 12.5)            |301 ( 18.5)           |2 (  1.8)             |0 (  0.0)            |1172 ( 14.4)          |35 ( 12.4)             |0 (  0.0)            |        |
 |vir_clear_5 (%)           |0                                         |8774 (75.1)           |496 ( 48.0)            |91 ( 31.5)            |734 ( 45.1)           |0 (  0.0)             |0 (  0.0)            |7418 ( 91.2)          |35 ( 12.4)             |0 (  0.0)            |19.4    |
@@ -673,3 +824,120 @@ Table: Missing data, by trial
 |vir_clear_15 (%)          |0                                         |8708 (74.5)           |398 ( 38.5)            |57 ( 19.7)            |584 ( 35.9)           |0 (  0.0)             |0 (  0.0)            |7633 ( 93.9)          |36 ( 12.8)             |0 (  0.0)            |15.9    |
 |                          |1                                         |1123 ( 9.6)           |361 ( 34.9)            |71 ( 24.6)            |512 ( 31.5)           |0 (  0.0)             |0 (  0.0)            |150 (  1.8)           |29 ( 10.3)             |0 (  0.0)            |        |
 |                          |NA                                        |1852 (15.9)           |274 ( 26.5)            |161 ( 55.7)           |530 ( 32.6)           |110 (100.0)           |97 (100.0)           |347 (  4.3)           |217 ( 77.0)            |116 (100.0)          |        |
+# RUXCOVID
+
+```r
+## load RUXCOVID
+ruxcovid_baseline_table <- readRDS("table_baseline_ruxcovid.rds")
+ruxcovid_all_table <- readRDS("table_missing_trial_ruxcovid.rds")
+
+#print
+kable(ruxcovid_baseline_table, format = "markdown", table.attr = 'class="table"', caption = "RUXCOVID baseline table") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+```
+## Warning in kable_styling(., bootstrap_options = "striped", full_width = FALSE):
+## Please specify format in kable. kableExtra can customize either HTML or LaTeX
+## outputs. See https://haozhu233.github.io/kableExtra/ for details.
+```
+
+
+
+Table: RUXCOVID baseline table
+
+|                                             |level                            |Overall     |JAK inhibitor |No JAK inhibitor |Missing |
+|:--------------------------------------------|:--------------------------------|:-----------|:-------------|:----------------|:-------|
+|n                                            |                                 |432         |287           |145              |        |
+|Ethnicity (%)                                |American Indian or Alaska Native |39 (  9.3)  |26 (  9.2)    |13 (  9.4)       |2.5     |
+|                                             |Asian                            |10 (  2.4)  |5 (  1.8)     |5 (  3.6)        |        |
+|                                             |Black or African American        |15 (  3.6)  |6 (  2.1)     |9 (  6.5)        |        |
+|                                             |Caucasian                        |351 ( 83.4) |242 ( 85.8)   |109 ( 78.4)      |        |
+|                                             |Hispanic or Latino               |1 (  0.2)   |0 (  0.0)     |1 (  0.7)        |        |
+|                                             |Mixed                            |5 (  1.2)   |3 (  1.1)     |2 (  1.4)        |        |
+|Patients admitted to intensive care unit (%) |No                               |432 (100.0) |287 (100.0)   |145 (100.0)      |0.0     |
+
+```r
+#print
+kable(ruxcovid_all_table, format = "markdown", table.attr = 'class="table"', caption = "RUXCOVID table, all covariates") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+```
+## Warning in kable_styling(., bootstrap_options = "striped", full_width = FALSE):
+## Please specify format in kable. kableExtra can customize either HTML or LaTeX
+## outputs. See https://haozhu233.github.io/kableExtra/ for details.
+```
+
+
+
+Table: RUXCOVID table, all covariates
+
+|                          |level                            |Overall              |0                    |1                    |Missing |
+|:-------------------------|:--------------------------------|:--------------------|:--------------------|:--------------------|:-------|
+|n                         |                                 |432                  |145                  |287                  |        |
+|trial (%)                 |RUXCOVID                         |432 (100.0)          |145 (100.0)          |287 (100.0)          |0.0     |
+|age (median [IQR])        |                                 |57.00 [47.00, 67.00] |57.00 [52.00, 67.00] |57.00 [47.00, 67.00] |0.0     |
+|sex (%)                   |female                           |197 ( 45.6)          |72 ( 49.7)           |125 ( 43.6)          |0.0     |
+|                          |male                             |235 ( 54.4)          |73 ( 50.3)           |162 ( 56.4)          |        |
+|ethn (%)                  |AMERICAN INDIAN OR ALASKA NATIVE |39 (  9.0)           |13 (  9.0)           |26 (  9.1)           |0.0     |
+|                          |ASIAN                            |10 (  2.3)           |5 (  3.4)            |5 (  1.7)            |        |
+|                          |BLACK OR AFRICAN AMERICAN        |15 (  3.5)           |9 (  6.2)            |6 (  2.1)            |        |
+|                          |HISPANIC OR LATINO               |1 (  0.2)            |1 (  0.7)            |0 (  0.0)            |        |
+|                          |MULTIPLE                         |5 (  1.2)            |2 (  1.4)            |3 (  1.0)            |        |
+|                          |UNKNOWN                          |11 (  2.5)           |6 (  4.1)            |5 (  1.7)            |        |
+|                          |WHITE                            |351 ( 81.2)          |109 ( 75.2)          |242 ( 84.3)          |        |
+|vacc (%)                  |0                                |432 (100.0)          |145 (100.0)          |287 (100.0)          |0.0     |
+|sympdur (median [IQR])    |                                 |11.00 [8.00, 14.00]  |11.00 [8.00, 13.25]  |11.00 [8.00, 14.00]  |0.2     |
+|icu (%)                   |0                                |432 (100.0)          |145 (100.0)          |287 (100.0)          |0.0     |
+|clinstatus_baseline (%)   |2                                |141 ( 32.6)          |47 ( 32.4)           |94 ( 32.8)           |0.2     |
+|                          |3                                |268 ( 62.0)          |93 ( 64.1)           |175 ( 61.0)          |        |
+|                          |4                                |22 (  5.1)           |5 (  3.4)            |17 (  5.9)           |        |
+|                          |NA                               |1 (  0.2)            |0 (  0.0)            |1 (  0.3)            |        |
+|comorb_cat (%)            |1                                |106 ( 24.5)          |27 ( 18.6)           |79 ( 27.5)           |0.0     |
+|                          |2                                |136 ( 31.5)          |50 ( 34.5)           |86 ( 30.0)           |        |
+|                          |3                                |190 ( 44.0)          |68 ( 46.9)           |122 ( 42.5)          |        |
+|comed_cat (%)             |1                                |183 ( 42.4)          |66 ( 45.5)           |117 ( 40.8)          |0.0     |
+|                          |3                                |249 ( 57.6)          |79 ( 54.5)           |170 ( 59.2)          |        |
+|comed_rdv (%)             |0                                |404 ( 93.5)          |138 ( 95.2)          |266 ( 92.7)          |0.0     |
+|                          |1                                |28 (  6.5)           |7 (  4.8)            |21 (  7.3)           |        |
+|crp (median [IQR])        |                                 |44.61 [16.61, 89.95] |45.00 [16.74, 81.60] |42.40 [16.60, 93.20] |2.3     |
+|mort_28 (%)               |0                                |412 ( 95.4)          |139 ( 95.9)          |273 ( 95.1)          |1.9     |
+|                          |1                                |12 (  2.8)           |3 (  2.1)            |9 (  3.1)            |        |
+|                          |NA                               |8 (  1.9)            |3 (  2.1)            |5 (  1.7)            |        |
+|mort_60 (%)               |0                                |412 ( 95.4)          |139 ( 95.9)          |273 ( 95.1)          |1.9     |
+|                          |1                                |12 (  2.8)           |3 (  2.1)            |9 (  3.1)            |        |
+|                          |NA                               |8 (  1.9)            |3 (  2.1)            |5 (  1.7)            |        |
+|death_reached (%)         |0                                |420 ( 97.2)          |142 ( 97.9)          |278 ( 96.9)          |0.0     |
+|                          |1                                |12 (  2.8)           |3 (  2.1)            |9 (  3.1)            |        |
+|new_mv_28 (%)             |0                                |395 ( 91.4)          |134 ( 92.4)          |261 ( 90.9)          |4.6     |
+|                          |1                                |17 (  3.9)           |5 (  3.4)            |12 (  4.2)           |        |
+|                          |NA                               |20 (  4.6)           |6 (  4.1)            |14 (  4.9)           |        |
+|new_mvd_28 (%)            |0                                |395 ( 91.4)          |134 ( 92.4)          |261 ( 90.9)          |1.9     |
+|                          |1                                |29 (  6.7)           |8 (  5.5)            |21 (  7.3)           |        |
+|                          |NA                               |8 (  1.9)            |3 (  2.1)            |5 (  1.7)            |        |
+|clinstatus_28_imp (%)     |1                                |397 ( 91.9)          |135 ( 93.1)          |262 ( 91.3)          |0.0     |
+|                          |2                                |4 (  0.9)            |2 (  1.4)            |2 (  0.7)            |        |
+|                          |3                                |7 (  1.6)            |2 (  1.4)            |5 (  1.7)            |        |
+|                          |4                                |3 (  0.7)            |1 (  0.7)            |2 (  0.7)            |        |
+|                          |5                                |9 (  2.1)            |2 (  1.4)            |7 (  2.4)            |        |
+|                          |6                                |12 (  2.8)           |3 (  2.1)            |9 (  3.1)            |        |
+|discharge_reached (%)     |0                                |30 (  6.9)           |7 (  4.8)            |23 (  8.0)           |1.6     |
+|                          |1                                |395 ( 91.4)          |135 ( 93.1)          |260 ( 90.6)          |        |
+|                          |NA                               |7 (  1.6)            |3 (  2.1)            |4 (  1.4)            |        |
+|discharge_reached_sus (%) |0                                |30 (  6.9)           |7 (  4.8)            |23 (  8.0)           |1.6     |
+|                          |1                                |395 ( 91.4)          |135 ( 93.1)          |260 ( 90.6)          |        |
+|                          |NA                               |7 (  1.6)            |3 (  2.1)            |4 (  1.4)            |        |
+|ae_28 (%)                 |0                                |364 ( 84.3)          |118 ( 81.4)          |246 ( 85.7)          |4.6     |
+|                          |1                                |48 ( 11.1)           |21 ( 14.5)           |27 (  9.4)           |        |
+|                          |NA                               |20 (  4.6)           |6 (  4.1)            |14 (  4.9)           |        |
+|ae_28_sev (%)             |0                                |364 ( 84.3)          |118 ( 81.4)          |246 ( 85.7)          |4.6     |
+|                          |1                                |28 (  6.5)           |11 (  7.6)           |17 (  5.9)           |        |
+|                          |2                                |12 (  2.8)           |7 (  4.8)            |5 (  1.7)            |        |
+|                          |3                                |2 (  0.5)            |1 (  0.7)            |1 (  0.3)            |        |
+|                          |4                                |2 (  0.5)            |1 (  0.7)            |1 (  0.3)            |        |
+|                          |5                                |2 (  0.5)            |0 (  0.0)            |2 (  0.7)            |        |
+|                          |6                                |1 (  0.2)            |0 (  0.0)            |1 (  0.3)            |        |
+|                          |10                               |1 (  0.2)            |1 (  0.7)            |0 (  0.0)            |        |
+|                          |NA                               |20 (  4.6)           |6 (  4.1)            |14 (  4.9)           |        |
+

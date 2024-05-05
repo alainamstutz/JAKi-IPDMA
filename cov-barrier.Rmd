@@ -1100,7 +1100,7 @@ clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-10 # set number of iterations
+nimp<-30 # set number of iterations
 
 ## run jomo
 # dry run
@@ -1154,7 +1154,7 @@ clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-10 # set number of iterations
+nimp<-30 # set number of iterations
 
 # run jomo
 set.seed(1569)
@@ -1242,7 +1242,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 ```{r warning=FALSE}
 # unadjusted estimator for the (absolute) risk difference
 mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
-print(mort.28.prop.test)
+# print(mort.28.prop.test)
 # Estimate
 -diff(mort.28.prop.test$estimate)
 # Confidence Interval

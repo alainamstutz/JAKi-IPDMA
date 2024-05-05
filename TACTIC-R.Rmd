@@ -1628,7 +1628,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 ```{r warning=FALSE}
 # unadjusted estimator for the (absolute) risk difference
 mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
-print(mort.28.prop.test)
+# print(mort.28.prop.test)
 # Estimate
 -diff(mort.28.prop.test$estimate)
 # Confidence Interval

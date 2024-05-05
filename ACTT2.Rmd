@@ -1945,7 +1945,6 @@ saveRDS(result_df, file = "trt_effects_ACTT2.RData")
 ```
 Discussion points
 
-
 # Collect all interaction estimates (stage one)
 ```{r message=FALSE, warning=FALSE}
 # Empty data frame to store the results
