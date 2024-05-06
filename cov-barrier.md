@@ -233,16 +233,7 @@ df_comorb_smoker <- df_substance_use_supp %>%
 df <- left_join(df, df_comorb_smoker[, c("comorb_smoker", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
 
 # the remaining missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
-table(df$PTHIMMSP)
-```
-
-```
-## 
-##         Y 
-## 1623    3
-```
-
-```r
+# table(df$PTHIMMSP)
 df <- df %>% 
   mutate(comorb_cancer = case_when(is.na(comorb_cancer) ~ 0,
                                 TRUE ~ c(comorb_cancer)),
@@ -703,16 +694,7 @@ df <- left_join(df, df_vir_clear_15[, c("vir_clear_15", "USUBJID")], by = join_b
 
 
 # (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
-unique(df_ae_set$ASTDY)
-```
-
-```
-##  [1]  1  2  4  9 10  6 19 23 21 29 30  5 11 14 24 17 20 27 15 22 13  8 18 42 -1
-## [26] 32 16 38 12 25 72  3 NA  7 60 51 52 37 -2 49 35 46 40 44 28 26 57 54 36 33
-## [51] 31 39 56 43 -3 41 48 34 -5 53
-```
-
-```r
+# unique(df_ae_set$ASTDY)
 df_ae34 <- df_ae_set %>% 
   filter(AESEV == "SEVERE" | AESEV == "MODERATE" | AESER == "Y") %>% 
   filter(ASTDY <29)
@@ -753,16 +735,85 @@ df <- df %>%
 # re-discuss
 
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+df_ae_tot <- df_ae_set %>% 
+  filter(ASTDY <29)
+df_ae_tot <- left_join(df_ae_tot, df[, c("trt", "USUBJID")], by = join_by(USUBJID == USUBJID)) 
+df_ae_tot <- df_ae_tot %>% 
+  rename(ae = AEDECOD,
+         ae_class = AESOC,
+         ae_desc = AEHLT)
+
+df_thrombo <- df_ae_tot %>% # a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis)
+  filter(grepl("thrombos|embo|occl", ae, ignore.case = TRUE)) %>% 
+  mutate(aesi = "thrombo")
+df_sec_inf <- df_ae_tot %>% # b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), but not COVID-19 pneumonia!
+  filter(ae_class %in% c("Infections and infestations") & !grepl("shock|herpes|COVID-19|sinusitis", ae, ignore.case = TRUE)) %>% 
+  mutate(aesi = "sec_inf")
+df_reactivate <- df_ae_tot %>% # c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B
+  filter(grepl("hepatitis|zoster|herpes|cytome|tuber|tb", ae, ignore.case = TRUE) | ae_desc %in% c("Herpes viral infections")) %>%
+  mutate(aesi = "reactivate")
+df_cardiac <- df_ae_tot %>% # d) serious cardiovascular and cardiac events (including stroke and myocardial infarction) (excl. hypertension)
+  filter(ae_class %in% c("Cardiac disorders") | grepl("stroke|cerebrovascular|infarction|ischaemia|ischemia", ae, ignore.case = TRUE)) %>% 
+  mutate(aesi = "cardiac")
+df_penia <- df_ae_tot %>% # e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia)
+  filter(grepl("penia|anemia|anaemia", ae, ignore.case = TRUE) | grepl("penia|anemia|anaemia", ae_desc, ignore.case = TRUE)) %>% 
+  mutate(aesi = "penia")
+df_malig <- df_ae_tot %>% # f) malignancy
+  filter(ae_class %in% c("Neoplasms benign, malignant and unspecified (incl cysts and polyps)") 
+         # | grepl("cancer|neopl|malig", ae, ignore.case = TRUE) | grepl("cancer|neopl|malig", ae_desc, ignore.case = TRUE)
+         ) %>%
+  mutate(aesi = "malig")
+df_git_bl <- df_ae_tot %>% # g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis)
+  filter(ae_class %in% c("Hepatobiliary disorders","Gastrointestinal disorders") & (grepl("hemor|haemor|bleed", ae, ignore.case = TRUE) | grepl("hemor|haemor|bleed", ae_desc, ignore.case = TRUE))) %>% 
+  mutate(aesi = "git_bl")
+df_hepatox <- df_ae_tot %>% # h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+  filter(ae_class %in% c("Hepatobiliary disorders") & grepl("hepatox|liver injury|damage|failure|hypertrans|abnormal|hyperbili", ae, ignore.case = TRUE)) %>%
+  mutate(aesi = "hepatox")
+df_mods <- df_ae_tot %>% # i) Multiple organ dysfunction syndrome and septic shock
+  filter(grepl("Multiple organ dysfunction syndrome|mods|shock", ae, ignore.case = TRUE)) %>% 
+  mutate(aesi = "mods")
+
+df_aesi <- rbind(df_mods, df_hepatox, df_git_bl, df_malig, df_penia, df_cardiac, df_reactivate, df_sec_inf, df_thrombo)
+df_aesi <- df_aesi %>%
+  rename(id_pat = USUBJID) %>% 
+  select(id_pat, trt, aesi, ae, ae_desc, ae_class)
+table(df_aesi$trt, df_aesi$aesi)
+```
+
+```
+##    
+##     cardiac git_bl hepatox malig mods penia reactivate sec_inf thrombo
+##   0      60      6      15     0   52    34          8     141      29
+##   1      65     10      18     1   37    53          5     150      31
+```
+
+```r
+# double-check if there are any duplicate AEs within the same person and if it is the same event or distinct ones
+df_aesi <- df_aesi %>% 
+  group_by(id_pat) %>% 
+  mutate(duplicate_id = duplicated(ae) & !is.na(ae)) %>% 
+  ungroup()
+df_aesi <- df_aesi %>% 
+  filter(duplicate_id == F)
+# Save
+saveRDS(df_aesi, file = "df_aesi_cov-barrier.RData")
+
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-
-# df_ae <- df %>% 
-#   select(id_pat, trt, x, ae_28_list, aesi_28)
-# # Save
-# saveRDS(df_ae, file = "df_ae_cov-barrier.RData")
+df_ae <- df_ae_tot %>%
+  rename(id_pat = USUBJID) %>% 
+  select(id_pat, trt, ae, ae_desc, ae_class)
+# double-check if there are any duplicate AEs within the same person and if it is the same event or distinct ones
+df_ae <- df_ae %>% 
+  group_by(id_pat) %>% 
+  mutate(duplicate_id = duplicated(ae) & !is.na(ae)) %>% 
+  ungroup()
+df_ae <- df_ae %>% 
+  filter(duplicate_id == F)
+# Save
+saveRDS(df_ae, file = "df_ae_cov-barrier.RData")
 ```
-Discussion points OUTCOME data:
-1. finalize ae_28_list & aesi_28 -> separate export
+Discussion points OUTCOME data
 
 # Define final datasets
 
@@ -1778,7 +1829,7 @@ clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_int)[1]),df_imp_long_int[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-10 # set number of iterations
+nimp<-30 # set number of iterations
 
 ## run jomo
 # dry run
@@ -1832,7 +1883,7 @@ clus<-data.frame(id_pat) # clustering variable (patient)
 Z<-data.frame(rep(1,dim(df_imp_long_cont)[1]),df_imp_long_cont[,c("time")]) # random intercept and random slope
 colnames(Z)<-c("const", "time") 
 
-nimp<-10 # set number of iterations
+nimp<-30 # set number of iterations
 
 # run jomo
 set.seed(1569)
@@ -2124,24 +2175,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 ```r
 # unadjusted estimator for the (absolute) risk difference
 mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
-print(mort.28.prop.test)
-```
-
-```
-## 
-## 	2-sample test for equality of proportions with continuity correction
-## 
-## data:  with(df, table(trt, mort_28))
-## X-squared = 11.156, df = 1, p-value = 0.0008377
-## alternative hypothesis: two.sided
-## 95 percent confidence interval:
-##  -0.09629979 -0.02459628
-## sample estimates:
-##    prop 1    prop 2 
-## 0.8313725 0.8918206
-```
-
-```r
+# print(mort.28.prop.test)
 # Estimate
 -diff(mort.28.prop.test$estimate)
 ```
