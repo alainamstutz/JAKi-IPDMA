@@ -465,7 +465,7 @@ df <- df %>%
 
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiac events (excl. hypertension), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4), i) Multiple organ dysfunction syndrome and septic shock
 
-a<-as.data.frame(unique(df_ae$MeddraPT)) # contains standardized categories
+# a <- as.data.frame(unique(df_ae$MeddraPT)) # contains standardized categories
 # unique(df_ae$MeddraLLT) 
 # df_ae <- df_ae %>% 
 #   mutate(dupl = duplicated(MeddraLLT, MeddraPT))
@@ -520,25 +520,27 @@ df_mods <- df_ae %>% # i) Multiple organ dysfunction syndrome and septic shock
 
 df_aesi <- rbind(df_mods, df_hepatox, df_git_bl, df_penia, df_cardiac, df_reactivate, df_sec_inf, df_thrombo)
 df_aesi <- df_aesi %>% rename(desc = MeddraPT)
-df_aesi <- df_aesi %>% 
-  select(trt, aesi, desc)
+df_aesi <- df_aesi %>%
+  select(id_pat, trt, aesi, desc, STDATE, ENDATE, RANDODATED1, time_to_react) %>% 
+  filter(time_to_react < 29)
 table(df_aesi$trt, df_aesi$aesi)
 ```
 
 ```
 ##    
 ##     cardiac git_bl hepatox mods penia reactivate sec_inf thrombo
-##   0       7      2      18    9    15          3      67      23
-##   1       7      2      13   18     9          3      73      13
+##   0       6      2      18    7    14          3      52      23
+##   1       6      1      13    9     9          2      57      10
 ```
 
 ```r
 # Save
-saveRDS(df_aesi, file = "df_aesi_barisolidact.RData")
+saveRDS(df_aesi, file = "df_aesi_barisolidact.RData") # checked that there were no duplicates within the same person (but some IDs had several of the same AE)
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-df_ae <- df_ae %>% 
-  select(trt, MeddraLLT, MeddraPT, MeddraSOC, Grade)
+df_ae <- df_ae %>%
+  select(trt, MeddraLLT, MeddraPT, MeddraSOC, Grade, time_to_react) %>% 
+  filter(time_to_react < 29)
 # Save
 saveRDS(df_ae, file = "df_ae_barisolidact.RData")
 ```
@@ -1736,24 +1738,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 ```r
 # unadjusted estimator for the (absolute) risk difference
 mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
-print(mort.28.prop.test)
-```
-
-```
-## 
-## 	2-sample test for equality of proportions with continuity correction
-## 
-## data:  with(df, table(trt, mort_28))
-## X-squared = 0.67863, df = 1, p-value = 0.4101
-## alternative hypothesis: two.sided
-## 95 percent confidence interval:
-##  -0.1266775  0.0456556
-## sample estimates:
-##    prop 1    prop 2 
-## 0.8500000 0.8905109
-```
-
-```r
+# print(mort.28.prop.test)
 # Estimate
 -diff(mort.28.prop.test$estimate)
 ```
@@ -4732,13 +4717,13 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
 
 ```r
 # effect by subgroup
-mort.28.comed.1 <- df %>% 
+mort.28.comed.1.firth <- df %>% 
   filter(comed_cat == 1) %>% # without Dexamethasone nor Tocilizumab
   logistf(mort_28 ~ trt
       + age 
       + clinstatus_baseline 
       , data=.)
-summary(mort.28.comed.1)
+summary(mort.28.comed.1.firth)
 ```
 
 ```
@@ -5967,7 +5952,7 @@ result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
 result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
 # result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
-#                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+#                                          addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[4]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[5]] <- extract_trt_results(mort.60, "death at day 60",
@@ -6038,7 +6023,6 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(result_df, file = "trt_effects_barisolidact.RData")
 ```
 Discussion points
-
 
 # Collect all interaction estimates (stage one)
 
@@ -6128,7 +6112,6 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_barisolidact.RData")
 ```
 Discussion points
-1. Firth regression for zero event analyses
 
 # Collect all subgroup treatment effect estimates
 
@@ -6243,7 +6226,7 @@ result_list[[12]] <- extract_subgroup_results(mort.28.comorb.4, "Immunocompromis
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,2], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,2,1], 
                                              addmargins(table(df$comorb_cat_f, df$mort_28, df$trt))[4,3,1]) 
-result_list[[13]] <- extract_subgroup_results(mort.28.comed.1, "No Dexa, no Tocilizumab_firth",
+result_list[[13]] <- extract_subgroup_results(mort.28.comed.1.firth, "No Dexa, no Tocilizumab_firth",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,1],
