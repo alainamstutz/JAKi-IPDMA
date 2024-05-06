@@ -32,11 +32,10 @@ library(metafor) #forest()
 library(logistf) # Firth regression in case of rare events
 ```
 
-# Load entire dataset (from one-stage.Rmd) for descriptive purpose - make sure to run one-stage before
+# Load tot dataset for descriptive purpose (from descriptive.Rmd -> run before!)
 
 ```r
-df_tot <- readRDS("df_tot.RData") # without Murugesan
-# df_tot_Muru <- readRDS("df_tot_Muru.RData") # with Murugesan
+df_tot <- readRDS("df_tot_rux.RData") # without Murugesan, but with RUXCOVID for descriptive purpose
 ```
 
 # Load treatment effect estimates from all trials
@@ -48,10 +47,12 @@ df_ghazaeian <- readRDS("trt_effects_ghazaeian.RData")
 df_tofacov <- readRDS("trt_effects_tofacov.RData")
 df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
-# df_murugesan <- readRDS("trt_effects_murugesan.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
 df_ruxcovid <- readRDS("trt_effects_ruxcovid.RData")
+df_ruxcovid <- df_ruxcovid %>% 
+  mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib",
+                          TRUE ~ JAKi))
 ```
 
 # Reshape dataframes for all treatment effect estimates
@@ -97,6 +98,26 @@ for (df in list_df) {
   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
   df_mort28_ame <- rbind(df_mort28_ame, selected_rows)
 }
+
+## Mortality at day 28: deterministic imputation
+outcomes <- "death at day 28_dimp"
+outcomes.firth <- "death at day 28_dimp_firth"
+df_mort28_dimp <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_mort28_dimp <- rbind(df_mort28_dimp, selected_rows)
+}
+
+## Mortality at day 28: multiple imputation
+outcomes <- "death at day 28_mi"
+outcomes.firth <- "death at day 28_mi_firth"
+df_mort28_mi <- data.frame()
+for (df in list_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_mort28_mi <- rbind(df_mort28_mi, selected_rows)
+}
+# Save
+saveRDS(df_mort28_mi, file = "trt_effects_mi.RData")
 
 ## new MV within 28d
 outcomes <- "new MV within 28d"
@@ -305,7 +326,7 @@ forest.meta(mort28,
 # dev.off()
 ```
 Discussion points:
-1. REML or ML ? -> Give the exact same result, but the one-stage uses ML (including centering) due to rare events. REML is preferred (see notes), but to correspond with one-stage, a sens-analysis with ML is probably worth it. The choice of estimator might have the biggest influence on the 95%CI, larger than other model parameter choices.
+1. REML or ML -> Give the exact same result, but the one-stage uses ML (including centering) due to rare events. The choice of estimator might have the biggest influence on the 95%CI, larger than other model parameter choices.
 
 # Funnel plot
 
@@ -1239,25 +1260,27 @@ forest.meta(mort28.agg.rec,
 
 ```r
 # meta-regression by RoB
-# mort28.agg.rob <- update.meta(mort28.agg, 
-#                                subgroup = rob_mort28)
-# forest.meta(mort28.agg.rob,
-#             leftcols = c("studlab", 
-#                          # "TE", 
-#                          # "seTE", 
-#                          "n.e"),
-#             leftlabs = c("Trial", 
-#                          # "log(OR)", 
-#                          # "Standard Error", 
-#                          "Sample Size"),
-#             sortvar = +TE,
-#             test.subgroup.random = TRUE,
-#             text.random = "Average treatment effect (RE model)",
-#             title = "Average treatment effect - mortality 28 days", 
-#             xlim = c(0.03,30),
-#             # xlab = "Average treatment effect (95% CI)"
-#             )
+mort28.agg.rob <- update.meta(mort28.agg,
+                               subgroup = rob_mort28)
+forest.meta(mort28.agg.rob,
+            leftcols = c("studlab",
+                         # "TE",
+                         # "seTE",
+                         "n.e"),
+            leftlabs = c("Trial",
+                         # "log(OR)",
+                         # "Standard Error",
+                         "Sample Size"),
+            sortvar = +TE,
+            test.subgroup.random = TRUE,
+            text.random = "Average treatment effect (RE model)",
+            title = "Average treatment effect - mortality 28 days",
+            xlim = c(0.03,30),
+            # xlab = "Average treatment effect (95% CI)"
+            )
 ```
+
+![](two_stage_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 # (i.v) Primary outcome: Covariate-adjusted Average marginal effects (RDs)
 
@@ -1270,7 +1293,7 @@ mort28.ame <- metagen(TE = hazard_odds_ratio,
                       n.e = n_intervention + n_control,
                       # n.c = n_control,
                       # sm = "SMD",
-                      fixed = T,
+                      fixed = F,
                       random = T,
                       prediction = F,
                       method.tau = "ML", 
@@ -1285,23 +1308,22 @@ summary(mort28.ame)
 ```
 ## Review:     Covariate-adjusted average marginal effect - mortality 28 days
 ## 
-##                                   95%-CI %W(common) %W(random)
-## Bari-SolidAct -0.0411 [-0.1170;  0.0348]        1.7        4.4
-## ACTT-2        -0.0177 [-0.0465;  0.0111]       11.6       15.4
-## Ghazaeian     -0.0155 [-0.1229;  0.0920]        0.8        2.4
-## TOFACOV        0.0150 [-0.0186;  0.0487]        8.5       13.4
-## COVINIB       -0.0377 [-0.0879;  0.0125]        3.8        8.3
-## COV-BARRIER   -0.0621 [-0.0934; -0.0308]        9.9       14.4
-## RECOVERY      -0.0200 [-0.0336; -0.0063]       52.0       22.9
-## TACTIC-R      -0.0183 [-0.0966;  0.0601]        1.6        4.2
-## RUXCOVID       0.0094 [-0.0216;  0.0404]       10.0       14.5
+##                                   95%-CI %W(random)
+## Bari-SolidAct -0.0411 [-0.1170;  0.0348]        4.4
+## ACTT-2        -0.0177 [-0.0465;  0.0111]       15.4
+## Ghazaeian     -0.0155 [-0.1229;  0.0920]        2.4
+## TOFACOV        0.0150 [-0.0186;  0.0487]       13.4
+## COVINIB       -0.0377 [-0.0879;  0.0125]        8.3
+## COV-BARRIER   -0.0621 [-0.0934; -0.0308]       14.4
+## RECOVERY      -0.0200 [-0.0336; -0.0063]       22.9
+## TACTIC-R      -0.0183 [-0.0966;  0.0601]        4.2
+## RUXCOVID       0.0094 [-0.0216;  0.0404]       14.5
 ## 
 ## Number of studies: k = 9
 ## Number of observations: o = 11807
 ## 
-##                                               95%-CI   z|t p-value
-## Common effect model       -0.0189 [-0.0287; -0.0091] -3.77  0.0002
-## Random effects model (HK) -0.0190 [-0.0388;  0.0009] -2.20  0.0586
+##                                              95%-CI     t p-value
+## Random effects model (HK) -0.0190 [-0.0388; 0.0009] -2.20  0.0586
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0.0003 [0.0000; 0.0017]; tau = 0.0173 [0.0000; 0.0417]
@@ -1324,7 +1346,7 @@ forest.meta(mort28.ame,
             # rightcols = c("w.random"),
             leftcols = c("studlab", "TE", "seTE", "n.e"),
             leftlabs = c("Trial", "Risk Difference", "Standard Error", "Sample Size"),
-            text.common = "Average marginal effect (common effects model)*",
+            # text.common = "Average marginal effect (common effects model)*",
             text.random = "Average marginal effect (random effects model)*",
             title = "Covariate-adjusted average marginal effect - mortality 28 days",
             # xlim = c(-0.01,0.1),
@@ -1335,6 +1357,165 @@ forest.meta(mort28.ame,
 
 ![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 *Covariate-Adjusted Analysis for Marginal Estimands based on https://arxiv.org/abs/2306.05823 & FDA guidance https://www.fda.gov/media/148910/download
+
+# (i) Primary outcome: Deterministic imputation
+
+```r
+# str(df_mort28_dimp)
+mort28.dimp <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_dimp,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect, deterministic imputation - mortality 28 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(mort28.dimp)
+```
+
+```
+## Review:     Average treatment effect, deterministic imputation - mortality 2 ...
+## 
+##                   OR            95%-CI %W(random)
+## Bari-SolidAct 0.6404 [0.2998;  1.3677]        5.9
+## ACTT-2        0.7368 [0.4197;  1.2933]       10.1
+## Ghazaeian     0.7909 [0.1654;  3.7807]        1.5
+## TOFACOV       2.5366 [0.1928; 33.3748]        0.6
+## COVINIB       0.1822 [0.0127;  2.6082]        0.5
+## COV-BARRIER   0.5122 [0.3674;  0.7141]       22.8
+## RECOVERY      0.8030 [0.6969;  0.9253]       51.4
+## TACTIC-R      0.8966 [0.4011;  2.0045]        5.3
+## RUXCOVID      1.4777 [0.3832;  5.6984]        2.0
+## 
+## Number of studies: k = 9
+## Number of observations: o = 12115
+## 
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.7206 [0.5854; 0.8871] -3.64  0.0066
+## Prediction interval              [0.5026; 1.0332]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0136 [0.0000; 0.6138]; tau = 0.1164 [0.0000; 0.7835]
+##  I^2 = 13.3% [0.0%; 55.2%]; H = 1.07 [1.00; 1.49]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  9.23    8  0.3236
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 8)
+## - Prediction interval based on t-distribution (df = 7)
+```
+
+```r
+forest.meta(mort28.dimp,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect, deterministic imputation - mortality 28 days", # get the title into the figure
+            xlim = c(0.15,5),
+            sortvar = +TE,
+            # xlab = "Average treatment effect (95% CI)"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+Discussion points:
+
+# (i.vii) Primary outcome: Multiple imputation / get covinib, get ruxcovid, get ACTT2
+
+```r
+# str(df_mort28_mi)
+# no MI from ghazaeian, tofacov -> add their df_mort28 estimates
+# check if rather preloading df_mort28_mi from folder!
+df_mort28_mi_add <- df_mort28 %>% 
+  select(-recruitment_period, -recruitment_period_cat, -rob_mort28) %>% 
+  filter(trial == "Ghazaeian" | trial == "TOFACOV")
+df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
+
+mort28.mi <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_mi_ext,
+                      n.e = n_intervention + n_control,
+                      # n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
+                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      title = "Average treatment effect, multiple imputation - mortality 28 days",
+                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      )
+summary(mort28.mi)
+```
+
+```
+## Review:     Average treatment effect, multiple imputation - mortality 28 days
+## 
+##                   OR            95%-CI %W(random)
+## Bari-SolidAct 0.6486 [0.3031;  1.3877]        8.3
+## COV-BARRIER   0.5106 [0.3645;  0.7152]       27.9
+## RECOVERY      0.8118 [0.7040;  0.9361]       53.1
+## TACTIC-R      1.0507 [0.4769;  2.3152]        7.8
+## Ghazaeian     0.7909 [0.1654;  3.7807]        2.2
+## TOFACOV       2.5366 [0.1928; 33.3748]        0.8
+## 
+## Number of studies: k = 6
+## Number of observations: o = 10282
+## 
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.7206 [0.5367; 0.9675] -2.86  0.0355
+## Prediction interval              [0.4258; 1.2194]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0216 [0.0000; 0.9082]; tau = 0.1470 [0.0000; 0.9530]
+##  I^2 = 36.1% [0.0%; 74.5%]; H = 1.25 [1.00; 1.98]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  7.83    5  0.1661
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Prediction interval based on t-distribution (df = 4)
+```
+
+```r
+forest.meta(mort28.mi,
+            # hetstat = T,
+            # rightcols = c("w.random"),
+            leftcols = c("studlab", "TE", "seTE", "n.e"),
+            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            text.random = "Average treatment effect (random effects model)",
+            title = "Average treatment effect, multiple imputation - mortality 28 days", # get the title into the figure
+            xlim = c(0.15,5),
+            sortvar = +TE,
+            # xlab = "Average treatment effect (95% CI)"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 # (ii) Mortality at day 60
 
@@ -1411,7 +1592,7 @@ forest.meta(mort60,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 Discussion points
 
 # (iii) Time to death within max. follow-up time
@@ -1441,36 +1622,38 @@ summary(ttdeath)
 ```
 ## Review:     Average treatment effect - time to death
 ## 
-##                   OR           95%-CI %W(random)
-## Bari-SolidAct 0.7727 [0.4322; 1.3817]        8.2
-## ACTT-2        0.7409 [0.4415; 1.2434]       10.0
-## Ghazaeian     0.8380 [0.1874; 3.7469]        1.4
-## COV-BARRIER   0.5947 [0.4612; 0.7668]       26.4
-## RECOVERY      0.8531 [0.7562; 0.9626]       44.6
-## TACTIC-R      1.3103 [0.7133; 2.4068]        7.6
-## RUXCOVID      1.4336 [0.3855; 5.3314]        1.8
+##                   OR             95%-CI %W(random)
+## Bari-SolidAct 0.7727 [0.4322;   1.3817]        8.1
+## ACTT-2        0.7409 [0.4415;   1.2434]        9.9
+## Ghazaeian     0.8380 [0.1874;   3.7469]        1.4
+## TOFACOV       3.0000 [0.0325; 277.2599]        0.2
+## COVINIB       0.1748 [0.0039;   7.8470]        0.2
+## COV-BARRIER   0.5947 [0.4612;   0.7668]       26.3
+## RECOVERY      0.8531 [0.7562;   0.9626]       44.5
+## TACTIC-R      1.3103 [0.7133;   2.4068]        7.5
+## RUXCOVID      1.4336 [0.3855;   5.3314]        1.8
 ## 
-## Number of studies: k = 7
-## Number of observations: o = 11760
+## Number of studies: k = 9
+## Number of observations: o = 11986
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.7909 [0.6321; 0.9896] -2.56  0.0428
-## Prediction interval              [0.5329; 1.1738]              
+## Random effects model (HK) 0.7899 [0.6492; 0.9611] -2.77  0.0242
+## Prediction interval              [0.5500; 1.1343]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0151 [0.0000; 0.3261]; tau = 0.1231 [0.0000; 0.5711]
-##  I^2 = 37.9% [0.0%; 73.8%]; H = 1.27 [1.00; 1.96]
+##  tau^2 = 0.0150 [0.0000; 0.3097]; tau = 0.1226 [0.0000; 0.5565]
+##  I^2 = 24.5% [0.0%; 64.5%]; H = 1.15 [1.00; 1.68]
 ## 
 ## Test of heterogeneity:
-##     Q d.f. p-value
-##  9.66    6  0.1399
+##      Q d.f. p-value
+##  10.60    8  0.2254
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 6)
-## - Prediction interval based on t-distribution (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 8)
+## - Prediction interval based on t-distribution (df = 7)
 ```
 
 ```r
@@ -1487,7 +1670,7 @@ forest.meta(ttdeath,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 Discussion points
 
 # (iv) New mechanical ventilation or death within 28 days
@@ -1565,7 +1748,7 @@ forest.meta(new.mvd28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 Discussion points
 
 # (iv.i) New mechanical ventilation among survivors within 28 days
@@ -1642,8 +1825,9 @@ forest.meta(new.mv28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+Discussion points:
+1. Ghazaeian: new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => not a single event in either arm!
 
 # (v) Clinical status at day 28
 
@@ -1720,7 +1904,7 @@ forest.meta(clin28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
@@ -1798,7 +1982,7 @@ forest.meta(ttdischarge.comp,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 Discussion points
 
 # (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
@@ -1876,7 +2060,7 @@ forest.meta(ttdischarge.hypo,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 Discussion points
 
 # (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -1954,7 +2138,7 @@ forest.meta(ttdischarge.cens,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
 Discussion points
 
 # (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -2032,7 +2216,7 @@ forest.meta(ttdischarge.sus,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 Discussion points
 
 # (vii) Viral clearance up to day 5
@@ -2105,8 +2289,9 @@ forest.meta(vir.clear5,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
+Discussion points:
+1. No VL data from Ghazaeian, TOFACOV, COVINIB, RUXCOVID
 
 # (viii) Viral clearance up to day 10
 
@@ -2178,8 +2363,9 @@ forest.meta(vir.clear10,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+Discussion points:
+1. No VL data from Ghazaeian, TOFACOV, COVINIB, RUXCOVID
 
 # (ix) Viral clearance up to day 15
 
@@ -2251,8 +2437,9 @@ forest.meta(vir.clear15,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+Discussion points:
+1. No VL data from Ghazaeian, TOFACOV, COVINIB, RUXCOVID
 
 # (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
 
@@ -2283,12 +2470,12 @@ summary(ae28)
 ## 
 ##                   OR            95%-CI %W(random)
 ## Bari-SolidAct 0.9098 [0.5319;  1.5559]        5.3
-## ACTT-2        0.9024 [0.6896;  1.1808]       21.2
+## ACTT-2        0.9214 [0.7034;  1.2070]       21.1
 ## Ghazaeian     3.2247 [0.1787; 58.1925]        0.2
 ## TOFACOV       0.6936 [0.2461;  1.9552]        1.4
 ## COVINIB       0.7969 [0.3127;  2.0306]        1.8
 ## COV-BARRIER   1.1048 [0.8458;  1.4432]       21.5
-## RECOVERY      0.9094 [0.7513;  1.1007]       42.1
+## RECOVERY      0.9094 [0.7513;  1.1007]       42.2
 ## TACTIC-R      1.3389 [0.6219;  2.8825]        2.6
 ## RUXCOVID      0.5830 [0.3116;  1.0908]        3.9
 ## 
@@ -2296,22 +2483,22 @@ summary(ae28)
 ## Number of observations: o = 10488
 ## 
 ##                                  OR           95%-CI     t p-value
-## Random effects model (HK-CI) 0.9362 [0.8268; 1.0601] -1.22  0.2560
-## Prediction interval                 [0.8063; 1.0871]              
+## Random effects model (HK-CI) 0.9404 [0.8307; 1.0645] -0.97  0.3312
+## Prediction interval                 [0.8098; 1.0921]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1878]; tau = 0 [0.0000; 0.4334]
+##  tau^2 = 0 [0.0000; 0.1877]; tau = 0 [0.0000; 0.4332]
 ##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  5.82    8  0.6677
+##  5.75    8  0.6748
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 8)
+## - Hartung-Knapp adjustment for random effects model (df = )
 ## - Prediction interval based on t-distribution (df = 7)
 ```
 
@@ -2329,7 +2516,7 @@ forest.meta(ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 Discussion points
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
@@ -2361,7 +2548,7 @@ summary(ae28sev)
 ## 
 ##                   OR            95%-CI %W(random)
 ## Bari-SolidAct 1.2667 [0.9501;  1.6887]       14.7
-## ACTT-2        0.8105 [0.7196;  0.9129]       18.9
+## ACTT-2        0.8107 [0.7182;  0.9150]       18.9
 ## Ghazaeian     3.2247 [0.1787; 58.1925]        0.5
 ## TOFACOV       0.6936 [0.2461;  1.9552]        3.5
 ## COVINIB       0.5880 [0.3295;  1.0494]        8.1
@@ -2374,16 +2561,16 @@ summary(ae28sev)
 ## Number of observations: o = 10236
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.9316 [0.7146; 1.2144] -0.62  0.5546
-## Prediction interval              [0.4950; 1.7532]              
+## Random effects model (HK) 0.9317 [0.7147; 1.2145] -0.62  0.5552
+## Prediction interval              [0.4951; 1.7533]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0596 [0.0146; 0.5128]; tau = 0.2440 [0.1209; 0.7161]
-##  I^2 = 79.4% [61.5%; 89.0%]; H = 2.20 [1.61; 3.01]
+##  tau^2 = 0.0596 [0.0146; 0.5128]; tau = 0.2440 [0.1208; 0.7161]
+##  I^2 = 79.3% [61.2%; 88.9%]; H = 2.20 [1.60; 3.01]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f.  p-value
-##  38.84    8 < 0.0001
+##  38.60    8 < 0.0001
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -2407,7 +2594,7 @@ forest.meta(ae28sev,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 Discussion points
 
 # Collect all treatment effect estimates across endpoints
@@ -2462,72 +2649,87 @@ result_list[[1]] <- extract_trt_results(mort28, "death at day 28",
                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
-result_list[[2]] <- extract_trt_results(mort60, "death at day 60",
+result_list[[2]] <- extract_trt_results(mort28.dimp, "death at day 28_dimp",
+                                        addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[3,1])
+result_list[[3]] <- extract_trt_results(mort28.mi, "death at day 28_mi",
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], 
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[4]] <- extract_trt_results(mort28.agg, "death at day 28_agg",
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], # CAVE: counts are without non-IPD!
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[5]] <- extract_trt_results(mort60, "death at day 60",
                                         addmargins(table(df_tot$mort_60, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$mort_60, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$mort_60, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$mort_60, df_tot$trt))[3,1])
-result_list[[3]] <- extract_trt_results(ttdeath, "death within fup",
+result_list[[6]] <- extract_trt_results(ttdeath, "death within fup",
                                         addmargins(table(df_tot$death_reached, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$death_reached, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$death_reached, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$death_reached, df_tot$trt))[3,1])
-result_list[[4]] <- extract_trt_results(new.mvd28, "new MV or death within 28d",
+result_list[[7]] <- extract_trt_results(new.mvd28, "new MV or death within 28d",
                                         addmargins(table(df_tot$new_mvd_28, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$new_mvd_28, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$new_mvd_28, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$new_mvd_28, df_tot$trt))[3,1])
-result_list[[5]] <- extract_trt_results(new.mv28, "new MV within 28d",
+result_list[[8]] <- extract_trt_results(new.mv28, "new MV within 28d",
                                         addmargins(table(df_tot$new_mv_28, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$new_mv_28, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$new_mv_28, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$new_mv_28, df_tot$trt))[3,1])
-result_list[[6]] <- extract_trt_results(clin28, "clinical status at day 28",
+result_list[[9]] <- extract_trt_results(clin28, "clinical status at day 28",
                                         addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,2], 
                                         addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,2],
                                         addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,1],
                                         addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))[7,1])
-result_list[[7]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
+result_list[[10]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,1])
-result_list[[8]] <- extract_trt_results(ttdischarge.hypo, "discharge within 28 days, death=hypo.event",
+result_list[[11]] <- extract_trt_results(ttdischarge.hypo, "discharge within 28 days, death=hypo.event",
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,1])
-result_list[[9]] <- extract_trt_results(ttdischarge.cens, "discharge within 28 days, death=censored",
+result_list[[12]] <- extract_trt_results(ttdischarge.cens, "discharge within 28 days, death=censored",
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$discharge_reached, df_tot$trt))[3,1])
-result_list[[10]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
+result_list[[13]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
                                         addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$discharge_reached_sus, df_tot$trt))[3,1])
-result_list[[11]] <- extract_trt_results(vir.clear5, "viral clearance until day 5",
+result_list[[14]] <- extract_trt_results(vir.clear5, "viral clearance until day 5",
                                         addmargins(table(df_tot$vir_clear_5, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$vir_clear_5, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$vir_clear_5, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$vir_clear_5, df_tot$trt))[3,1])
-result_list[[12]] <- extract_trt_results(vir.clear10, "viral clearance until day 10",
+result_list[[15]] <- extract_trt_results(vir.clear10, "viral clearance until day 10",
                                         addmargins(table(df_tot$vir_clear_10, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$vir_clear_10, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$vir_clear_10, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$vir_clear_10, df_tot$trt))[3,1])
-result_list[[13]] <- extract_trt_results(vir.clear15, "viral clearance until day 15",
+result_list[[16]] <- extract_trt_results(vir.clear15, "viral clearance until day 15",
                                         addmargins(table(df_tot$vir_clear_15, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$vir_clear_15, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$vir_clear_15, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$vir_clear_15, df_tot$trt))[3,1])
-result_list[[14]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days",
+result_list[[17]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days",
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[2,2], 
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[3,1])
-result_list[[15]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
+result_list[[18]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
                                         addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2], 
                                         addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2],
                                         addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,1],
@@ -2548,21 +2750,24 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
 |:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
-|death at day 28                            |         0.7178555| 0.5831638| 0.8836565|      0.0901127| 0.0062319|            656|               5737|       755|          5638|two-stage |
-|death at day 60                            |         0.7727034| 0.6715877| 0.8890432|      0.0608197| 0.0028385|            688|               5726|       778|          5620|two-stage |
-|death within fup                           |         0.7908818| 0.6320977| 0.9895528|      0.0915867| 0.0428175|            690|               5832|       779|          5722|two-stage |
-|new MV or death within 28d                 |         0.8146915| 0.7339726| 0.9042874|      0.0532345| 0.0001182|            992|               5777|      1092|          5674|two-stage |
-|new MV within 28d                          |         0.9027230| 0.6940735| 1.1740958|      0.1111542| 0.3878361|            305|               4952|       316|          4771|two-stage |
-|clinical status at day 28                  |         0.8041497| 0.7313563| 0.8841884|      0.0484114| 0.0000067|           5907|               5907|      5776|          5776|two-stage |
-|discharge within 28 days, death=comp.event |         1.0983946| 1.0468242| 1.1525057|      0.0208537| 0.0020011|           4734|               5907|      4492|          5776|two-stage |
-|discharge within 28 days, death=hypo.event |         1.1312244| 1.0776803| 1.1874288|      0.0210276| 0.0003769|           4734|               5907|      4492|          5776|two-stage |
-|discharge within 28 days, death=censored   |         1.1167566| 1.0581944| 1.1785597|      0.0233584| 0.0014876|           4734|               5907|      4492|          5776|two-stage |
-|sustained discharge within 28 days         |         1.1151715| 1.0558023| 1.1778792|      0.0237239| 0.0017673|           4726|               5907|      4490|          5776|two-stage |
+|death at day 28                            |         0.7178555| 0.5831638| 0.8836565|      0.0901127| 0.0062319|            665|               6019|       758|          5780|two-stage |
+|death at day 28_dimp                       |         0.7206331| 0.5854236| 0.8870704|      0.0901101| 0.0066288|            665|               6194|       758|          5921|two-stage |
+|death at day 28_mi                         |         0.7205857| 0.5366669| 0.9675344|      0.1146381| 0.0354695|            665|               6019|       758|          5780|two-stage |
+|death at day 28_agg                        |         0.6722419| 0.5554346| 0.8136136|      0.0895481| 0.0004820|            665|               6019|       758|          5780|two-stage |
+|death at day 60                            |         0.7727034| 0.6715877| 0.8890432|      0.0608197| 0.0028385|            697|               6008|       781|          5762|two-stage |
+|death within fup                           |         0.7898647| 0.6491622| 0.9610637|      0.0850732| 0.0241907|            699|               6119|       782|          5867|two-stage |
+|new MV or death within 28d                 |         0.8146915| 0.7339726| 0.9042874|      0.0532345| 0.0001182|           1013|               6059|      1100|          5816|two-stage |
+|new MV within 28d                          |         0.9027230| 0.6940735| 1.1740958|      0.1111542| 0.3878361|            317|               5225|       321|          4910|two-stage |
+|clinical status at day 28                  |         0.8041497| 0.7313563| 0.8841884|      0.0484114| 0.0000067|           6194|               6194|      5921|          5921|two-stage |
+|discharge within 28 days, death=comp.event |         1.0983946| 1.0468242| 1.1525057|      0.0208537| 0.0020011|           4994|               6190|      4627|          5918|two-stage |
+|discharge within 28 days, death=hypo.event |         1.1312244| 1.0776803| 1.1874288|      0.0210276| 0.0003769|           4994|               6190|      4627|          5918|two-stage |
+|discharge within 28 days, death=censored   |         1.1167566| 1.0581944| 1.1785597|      0.0233584| 0.0014876|           4994|               6190|      4627|          5918|two-stage |
+|sustained discharge within 28 days         |         1.1151715| 1.0558023| 1.1778792|      0.0237239| 0.0017673|           4986|               6190|      4625|          5918|two-stage |
 |viral clearance until day 5                |         0.9324538| 0.6560726| 1.3252649|      0.1104647| 0.5716321|            317|               4765|       322|          4648|two-stage |
 |viral clearance until day 10               |         0.9662391| 0.7978809| 1.1701220|      0.0976814| 0.7251442|            459|               4928|       465|          4788|two-stage |
 |viral clearance until day 15               |         0.9345554| 0.7775887| 1.1232080|      0.0938146| 0.4706210|            559|               4983|       564|          4848|two-stage |
-|Any AE grade 3,4 within 28 days            |         0.9362012| 0.8267979| 1.0600810|      0.0538898| 0.2560149|            683|               5141|       666|          4935|two-stage |
-|AEs grade 3,4 within 28 days               |         0.9315590| 0.7146030| 1.2143838|      0.1149748| 0.5546232|              5|                  5|         3|             3|two-stage |
+|Any AE grade 3,4 within 28 days            |         0.9403857| 0.8307454| 1.0644961|      0.0632495| 0.3311554|            706|               5414|       681|          5074|two-stage |
+|AEs grade 3,4 within 28 days               |         0.9316530| 0.7146579| 1.2145355|      0.1149853| 0.5552091|              6|                  6|         4|             4|two-stage |
 
 ```r
 # Save
@@ -2589,6 +2794,9 @@ result_df$variable <- factor(result_df$variable,
                                         "new MV or death within 28d",
                                         "death within fup",
                                         "death at day 60",
+                                        "death at day 28_agg",
+                                        "death at day 28_mi",
+                                        "death at day 28_dimp",
                                         "death at day 28"))
 
 # Plotting
@@ -2616,8 +2824,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 ## generated.
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
-
+![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
 # TREATMENT-COVARIATE INTERACTIONS
 # Load treatment-covariate interaction estimates from all trials (on primary endpoint - and vacc.ae)
@@ -2629,7 +2836,6 @@ df_int_ghazaeian <- readRDS("int_effects_ghazaeian.RData")
 df_int_tofacov <- readRDS("int_effects_tofacov.RData")
 df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
-# df_int_murugesan <- readRDS("int_effects_murugesan.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
 df_int_ruxcovid <- readRDS("int_effects_ruxcovid.RData")
@@ -2844,19 +3050,19 @@ for (df in list_subgroup_df) {
 outcomes1 <- "No Dexa, no Tocilizumab"
 outcomes1.firth <- "No Dexa, no Tocilizumab_firth"
 outcomes2 <- "Dexa and Tocilizumab"
-outcomes2.firth <- "Dexa and Tocilizumab"
+outcomes2.firth <- "Dexa and Tocilizumab_firth"
 outcomes3 <- "Dexa, but no Tocilizumab"
 outcomes3.firth <- "Dexa, but no Tocilizumab_firth"
 outcomes4 <- "Tocilizumab, but no Dexa"
-outcomes4.firth <- "Tocilizumab, but no Dexa"
+outcomes4.firth <- "Tocilizumab, but no Dexa_firth"
 # Initialize an empty data frame to store the selected rows
 df_sg_comed_mort28 <- data.frame()
 # Loop through the list of data frames
 for (df in list_subgroup_df) {
   selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
-                                 # | variable == outcomes2 | variable == outcomes2.firth
+                                  | variable == outcomes2 | variable == outcomes2.firth
                                  | variable == outcomes3 | variable == outcomes3.firth
-                                 # | variable == outcomes4 | variable == outcomes4.firth
+                                | variable == outcomes4 | variable == outcomes4.firth
                                  )
   df_sg_comed_mort28 <- rbind(df_sg_comed_mort28, selected_rows)
 }
@@ -2911,7 +3117,7 @@ for (df in list_subgroup_df) {
 
 ```r
 # str(df_rs_mort28)
-## "TOFACOV", "COVINIB", "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
+## "Ghazaeian" do only have events in 1 subgroup ? -> see deft: do not include! "(insufficient data)"
 rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -2925,8 +3131,8 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "RECOVERY", "TACTIC-R", "RUXCOVID"),
-                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID"), #### ADD NEW TRIALS!
+                      # exclude = trial %in% c("Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(rs.mort28)
 ```
@@ -2937,53 +3143,278 @@ summary(rs.mort28)
 ##               log(Ratio of OR)            95%-CI %W(random)
 ## Bari-SolidAct          -1.5507 [-3.6105; 0.5090]        0.8
 ## ACTT-2                  0.5576 [-0.1231; 1.2383]        7.5
+## TOFACOV                 0.1726 [-4.6531; 4.9983]        0.1
+## COVINIB                -1.3767 [-6.1625; 3.4092]        0.2
 ## COV-BARRIER            -0.1312 [-0.5733; 0.3109]       17.8
-## RECOVERY               -0.1719 [-0.3922; 0.0483]       71.8
+## RECOVERY               -0.1719 [-0.3922; 0.0483]       71.5
 ## TACTIC-R               -0.1375 [-1.6185; 1.3435]        1.6
 ## RUXCOVID                0.1982 [-2.4232; 2.8197]        0.5
 ## 
-## Number of studies: k = 6
+## Number of studies: k = 8
 ## 
 ##                           log(Ratio of OR)            95%-CI     t p-value
-## Random effects model (HK)          -0.1187 [-0.3853; 0.1478] -1.15  0.3040
+## Random effects model (HK)          -0.1202 [-0.3320; 0.0915] -1.34  0.2213
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 2.2315]; tau = 0 [0.0000; 1.4938]
-##  I^2 = 15.7% [0.0%; 78.6%]; H = 1.09 [1.00; 2.16]
+##  tau^2 = 0 [0.0000; 0.9611]; tau = 0 [0.0000; 0.9804]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  5.93    5  0.3128
+##  6.21    7  0.5152
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 7)
 ```
 
 ```r
 forest.meta(rs.mort28,
-            # hetstat = F,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE"),
-            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
             title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
-            # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect",
+            # xlab = "more resp support: greater effect <-> less resp support: greater effect",
+            xlab.pos = 0.7,
+            fs.xlab = 11
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
+
+# Subgroups: Respiratory support (proxy for disease severity) on primary endpoint
+
+```r
+# Calculate the inverse variance
+df_sg_rs_mort28$inverse_variance <- 1 / df_sg_rs_mort28$standard_error^2
+
+# Insert ACTT2 title
+empty_row <- data.frame(
+  variable = "ACTT2",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+df_sg_rs_mort28 <- rbind(empty_row, df_sg_rs_mort28)
+
+# Insert cov-barrier title
+empty_row <- data.frame(
+  variable = "COV-BARRIER",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_rs_mort28[1:5, ]
+second_part <- df_sg_rs_mort28[6:nrow(df_sg_rs_mort28), ]
+# Insert the empty row before/after
+df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert bari-solidact title
+empty_row <- data.frame(
+  variable = "BARI-SOLIDACT",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_rs_mort28[1:10, ]
+second_part <- df_sg_rs_mort28[11:nrow(df_sg_rs_mort28), ]
+# Insert the empty row before/after
+df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Covinib title
+empty_row <- data.frame(
+  variable = "COVINIB",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_rs_mort28[1:13, ]
+second_part <- df_sg_rs_mort28[14:nrow(df_sg_rs_mort28), ]
+# Insert the empty row before/after
+df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TOFACOV title
+empty_row <- data.frame(
+  variable = "TOFACOV",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_rs_mort28[1:16, ]
+second_part <- df_sg_rs_mort28[17:nrow(df_sg_rs_mort28), ]
+# Insert the empty row before/after
+df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Ghazaeian title
+empty_row <- data.frame(
+  variable = "GHAZAEIAN",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_rs_mort28[1:19, ]
+second_part <- df_sg_rs_mort28[20:nrow(df_sg_rs_mort28), ]
+# Insert the empty row before/after
+df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RECOVERY title
+empty_row <- data.frame(
+  variable = "RECOVERY",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_rs_mort28[1:21, ]
+second_part <- df_sg_rs_mort28[22:nrow(df_sg_rs_mort28), ]
+# Insert the empty row before/after
+df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TACTIC-R title
+empty_row <- data.frame(
+  variable = "TACTIC-R",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_rs_mort28[1:26, ]
+second_part <- df_sg_rs_mort28[27:nrow(df_sg_rs_mort28), ]
+# Insert the empty row before/after
+df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RUXCOVID title
+empty_row <- data.frame(
+  variable = "RUXCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_rs_mort28[1:30, ]
+second_part <- df_sg_rs_mort28[31:nrow(df_sg_rs_mort28), ]
+# Insert the empty row before/after
+df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
+
+
+# Create a forest plot
+# pdf("sg_vb_mort28.pdf", width=10, height=8)
+forest(df_sg_rs_mort28$hazard_odds_ratio,
+       ci.lb = df_sg_rs_mort28$ci_lower,
+       ci.ub = df_sg_rs_mort28$ci_upper,
+       slab = df_sg_rs_mort28$variable,
+       alim = c(0, 2),
+       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
+       cex = 0.5,
+       refline = 1,
+       annotate = F,
+       lwd.ci = 1,
+       psize = sqrt(df_sg_rs_mort28$inverse_variance),
+       )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
+
+```r
+# dev.off()
+```
 
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
 
 ```r
 # str(df_vb_mort28)
-## "TOFACOV", "COVINIB", "Ghazaeian" and "Bari-SolidAct" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
+## "TOFACOV", "COVINIB", "Ghazaeian" and "Bari-SolidAct" do only have 1 of 2 subgroups -> see deft: do not include! "(insufficient data)"
 vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -2997,7 +3428,7 @@ vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R", "RUXCOVID"),
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R", "RUXCOVID"), #### ADD NEW TRIALS!
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(vb.mort28)
@@ -3041,20 +3472,20 @@ forest.meta(vb.mort28,
             leftcols = c("studlab"),
             leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
             title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
-            xlab = "more effect: ventilated <-> more effect: not ventilated",
+            # xlab = "ventilated: greater effect <-> not ventilated: greater effect",
             xlab.pos = 0.7,
             fs.xlab = 11
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
-Discussion points
 
 # Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -3212,6 +3643,50 @@ second_part <- df_sg_vb_mort28[15:nrow(df_sg_vb_mort28), ]
 # Insert the empty row before/after
 df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
 
+# Insert TACTIC-R title
+empty_row <- data.frame(
+  variable = "TACTIC-R",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vb_mort28[1:17, ]
+second_part <- df_sg_vb_mort28[18:nrow(df_sg_vb_mort28), ]
+# Insert the empty row before/after
+df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RUXCOVID title
+empty_row <- data.frame(
+  variable = "RUXCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vb_mort28[1:20, ]
+second_part <- df_sg_vb_mort28[21:nrow(df_sg_vb_mort28), ]
+# Insert the empty row before/after
+df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
+
 
 # Create a forest plot
 # pdf("sg_vb_mort28.pdf", width=10, height=8)
@@ -3229,7 +3704,7 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3296,23 +3771,20 @@ summary(age.mort28)
 # pdf("age.mort28.pdf", width=11, height=4)
 forest.meta(age.mort28,
             hetstat = F,
-            # rightcols = c("w.random"),
             leftcols = c("studlab"),
             leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
             text.random = "",
             title = "Treatment-covariate interaction on primary endpoint: Age",
-            xlim = c(-0.2,0.2),
-            # xlab = "95% CI for interaction effect"
+            xlim = c(-0.1,0.1),
+            # xlab = "younger: greater effect <-> older: greater effect",
+            xlab.pos = -0.02,
+            fs.xlab = 11
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
-
-```r
-# dev.off()
-```
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
 
 # Subgroups: Age on primary endpoint
 
@@ -3470,6 +3942,49 @@ second_part <- df_sg_age_mort28[19:nrow(df_sg_age_mort28), ]
 # Insert the empty row before/after
 df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
 
+# Insert TACTIC-R title
+empty_row <- data.frame(
+  variable = "TACTIC-R",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_age_mort28[1:21, ]
+second_part <- df_sg_age_mort28[22:nrow(df_sg_age_mort28), ]
+# Insert the empty row before/after
+df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RUXCOVID title
+empty_row <- data.frame(
+  variable = "RUXCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_age_mort28[1:24, ]
+second_part <- df_sg_age_mort28[25:nrow(df_sg_age_mort28), ]
+# Insert the empty row before/after
+df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
 
 
 # Create a forest plot
@@ -3478,7 +3993,7 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
        ci.lb = df_sg_age_mort28$ci_lower,
        ci.ub = df_sg_age_mort28$ci_upper,
        slab = df_sg_age_mort28$variable,
-       alim = c(0, 3),
+       alim = c(0, 2),
        xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
        cex = 0.5,
        refline = 1,
@@ -3488,12 +4003,11 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
-
 
 # Interaction: Comorbidity on primary endpoint
 
@@ -3512,6 +4026,7 @@ comorb.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
+                      prediction = T,
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
@@ -3523,52 +4038,56 @@ summary(comorb.mort28)
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
 ## Bari-SolidAct           0.0940 [-0.8479; 1.0359]        2.9
-## ACTT-2                 -0.2127 [-1.0842; 0.6589]        3.4
+## ACTT-2                 -0.2122 [-1.0799; 0.6556]        3.4
 ## Ghazaeian               0.6492 [-1.2128; 2.5111]        0.7
 ## TOFACOV                -0.5007 [-3.2076; 2.2062]        0.4
 ## COVINIB                 0.4110 [-2.0709; 2.8929]        0.4
 ## COV-BARRIER            -0.1635 [-0.6294; 0.3023]       11.9
-## RECOVERY                0.2680 [ 0.0846; 0.4514]       77.1
+## RECOVERY                0.2680 [ 0.0846; 0.4514]       77.0
 ## TACTIC-R                0.2240 [-0.7754; 1.2235]        2.6
 ## RUXCOVID               -0.6122 [-2.7661; 1.5417]        0.6
 ## 
 ## Number of studies: k = 9
 ## 
-##                              log(Ratio of OR)           95%-CI    t p-value
-## Random effects model (HK-CI)           0.1897 [0.0287; 0.3506] 2.31  0.0209
+##                              log(Ratio of OR)            95%-CI    t p-value
+## Random effects model (HK-CI)           0.1896 [ 0.0286; 0.3505] 2.31  0.0210
+## Prediction interval                           [-0.0046; 0.3837]             
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0758]; tau = 0 [0.0000; 0.2752]
+##  tau^2 = 0 [0.0000; 0.0758]; tau = 0 [0.0000; 0.2754]
 ##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.82    8  0.7768
+##  4.82    8  0.7762
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
 ## - Hartung-Knapp adjustment for random effects model (df = )
+## - Prediction interval based on t-distribution (df = 7)
 ```
 
 ```r
 forest.meta(comorb.mort28,
-            # hetstat = F,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE"),
-            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
             title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
-            # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect"
-            )
+            xlab = "more comorbidity: greater effect <-> less comorbidity: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
 
 ```r
+### SENS
 # str(df_comorb_count_mort28)
 comorb.count.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -3625,19 +4144,20 @@ summary(comorb.count.mort28)
 
 ```r
 forest.meta(comorb.count.mort28,
-            # hetstat = F,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE"),
-            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
-            title = "Treatment-covariate interaction on primary endpoint: Comorbidity Count",
-            # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect"
-            )
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
+            xlab = "more comorbidity: greater effect <-> less comorbidity: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-40-2.png)<!-- -->
 
 ```r
 # str(df_comorb_any_mort28)
@@ -3665,7 +4185,7 @@ summary(comorb.any.mort28)
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
 ## Bari-SolidAct          -0.2150 [-2.4303; 2.0003]        1.6
-## ACTT-2                 -1.2414 [-3.8112; 1.3284]        1.2
+## ACTT-2                 -1.2343 [-3.7983; 1.3296]        1.2
 ## Ghazaeian               0.2132 [-3.0408; 3.4672]        0.7
 ## TOFACOV                 0.7089 [-3.8754; 5.2931]        0.4
 ## COVINIB                 0.9599 [-3.5178; 5.4376]        0.4
@@ -3680,12 +4200,12 @@ summary(comorb.any.mort28)
 ## Random effects model (HK-CI)           0.3839 [0.1028; 0.6650] 2.68  0.0074
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1500]; tau = 0 [0.0000; 0.3873]
+##  tau^2 = 0 [0.0000; 0.1484]; tau = 0 [0.0000; 0.3853]
 ##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  3.37    8  0.9088
+##  3.37    8  0.9093
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -3696,26 +4216,249 @@ summary(comorb.any.mort28)
 
 ```r
 forest.meta(comorb.any.mort28,
-            # hetstat = F,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE"),
-            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
-            title = "Treatment-covariate interaction on primary endpoint: Any Comorbidity",
-            # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect"
-            )
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
+            xlab = "any comorbidity: greater effect <-> no comorbidity: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-3.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-40-3.png)<!-- -->
+
+# Subgroups: Comorbidity on primary endpoint
+
+```r
+# Calculate the inverse variance
+df_sg_comorb_mort28$inverse_variance <- 1 / df_sg_comorb_mort28$standard_error^2
+
+# Insert ACTT2 title
+empty_row <- data.frame(
+  variable = "ACTT2",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+df_sg_comorb_mort28 <- rbind(empty_row, df_sg_comorb_mort28)
+
+# Insert cov-barrier title
+empty_row <- data.frame(
+  variable = "COV-BARRIER",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comorb_mort28[1:5, ]
+second_part <- df_sg_comorb_mort28[6:nrow(df_sg_comorb_mort28), ]
+# Insert the empty row before/after
+df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert bari-solidact title
+empty_row <- data.frame(
+  variable = "BARI-SOLIDACT",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comorb_mort28[1:10, ]
+second_part <- df_sg_comorb_mort28[11:nrow(df_sg_comorb_mort28), ]
+# Insert the empty row before/after
+df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Covinib title
+empty_row <- data.frame(
+  variable = "COVINIB",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comorb_mort28[1:15, ]
+second_part <- df_sg_comorb_mort28[16:nrow(df_sg_comorb_mort28), ]
+# Insert the empty row before/after
+df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TOFACOV title
+empty_row <- data.frame(
+  variable = "TOFACOV",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comorb_mort28[1:20, ]
+second_part <- df_sg_comorb_mort28[21:nrow(df_sg_comorb_mort28), ]
+# Insert the empty row before/after
+df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Ghazaeian title
+empty_row <- data.frame(
+  variable = "GHAZAEIAN",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comorb_mort28[1:24, ]
+second_part <- df_sg_comorb_mort28[25:nrow(df_sg_comorb_mort28), ]
+# Insert the empty row before/after
+df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RECOVERY title
+empty_row <- data.frame(
+  variable = "RECOVERY",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comorb_mort28[1:29, ]
+second_part <- df_sg_comorb_mort28[30:nrow(df_sg_comorb_mort28), ]
+# Insert the empty row before/after
+df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TACTIC-R title
+empty_row <- data.frame(
+  variable = "TACTIC-R",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comorb_mort28[1:33, ]
+second_part <- df_sg_comorb_mort28[34:nrow(df_sg_comorb_mort28), ]
+# Insert the empty row before/after
+df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RUXCOVID title
+empty_row <- data.frame(
+  variable = "RUXCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comorb_mort28[1:38, ]
+second_part <- df_sg_comorb_mort28[39:nrow(df_sg_comorb_mort28), ]
+# Insert the empty row before/after
+df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
+
+
+# Create a forest plot
+# pdf("sg_vb_mort28.pdf", width=10, height=8)
+forest(df_sg_comorb_mort28$hazard_odds_ratio,
+       ci.lb = df_sg_comorb_mort28$ci_lower,
+       ci.ub = df_sg_comorb_mort28$ci_upper,
+       slab = df_sg_comorb_mort28$variable,
+       alim = c(0, 2),
+       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
+       cex = 0.5,
+       refline = 1,
+       annotate = F,
+       lwd.ci = 1,
+       psize = sqrt(df_sg_comorb_mort28$inverse_variance),
+       )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-41-1.png)<!-- -->
+
+```r
+# dev.off()
+```
 
 # Interaction: Comedication on primary endpoint
 
 ```r
 # str(df_comed_mort28)
-## "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
+## "Ghazaeian" do only have 1 subgroup -> see deft: do not include! "(insufficient data)"
 comed.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -3729,8 +4472,8 @@ comed.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Comedication",
-                      subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "Ghazaeian"), #### ADD NEW TRIALS!
-                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID"), #### ADD NEW TRIALS!
+                      # exclude = trial %in% c("Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(comed.mort28)
 ```
@@ -3739,52 +4482,272 @@ summary(comed.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Comedication
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.4922 [-1.2850; 2.2695]        0.1
-## ACTT-2                  0.3891 [-0.7393; 1.5175]        0.3
-## Ghazaeian              -0.0057 [-0.0727; 0.0613]       90.6
-## TOFACOV                 0.6425 [-1.7371; 3.0221]        0.1
-## COVINIB                 0.3102 [-2.0781; 2.6984]        0.1
-## COV-BARRIER             0.1782 [-0.3043; 0.6608]        1.7
-## RECOVERY                0.2301 [-0.0206; 0.4808]        6.5
-## TACTIC-R                0.1283 [-0.9479; 1.2045]        0.4
-## RUXCOVID                0.0806 [-1.3304; 1.4917]        0.2
+## Bari-SolidAct           0.4922 [-1.2850; 2.2695]        1.4
+## ACTT-2                  0.3891 [-0.7393; 1.5175]        3.4
+## TOFACOV                 0.6425 [-1.7371; 3.0221]        0.8
+## COVINIB                 0.3102 [-2.0781; 2.6984]        0.8
+## COV-BARRIER             0.1782 [-0.3043; 0.6608]       18.7
+## RECOVERY                0.2301 [-0.0206; 0.4808]       69.1
+## TACTIC-R                0.1283 [-0.9479; 1.2045]        3.7
+## RUXCOVID                0.0806 [-1.3304; 1.4917]        2.2
 ## 
-## Number of studies: k = 9
+## Number of studies: k = 8
 ## 
-##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.0160 [-0.0477; 0.0798] 0.49  0.6220
+##                              log(Ratio of OR)           95%-CI    t p-value
+## Random effects model (HK-CI)           0.2262 [0.0178; 0.4346] 2.13  0.0334
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0121]; tau = 0 [0.0000; 0.1100]
-##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.71    8  0.7882
+##  0.40    7  0.9997
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
-## - Q-Profile method for confidence interval of tau^2 and tau
 ## - Hartung-Knapp adjustment for random effects model (df = )
 ```
 
 ```r
 forest.meta(comed.mort28,
-            # hetstat = F,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE"),
-            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
-            title = "Treatment-covariate interaction on primary endpoint: Comedication",
-            # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect"
-            )
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
+            xlab = "more comedication: greater effect <-> less comedication: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-42-1.png)<!-- -->
+
+# Subgroups: Comedication on primary endpoint
+
+```r
+# Calculate the inverse variance
+df_sg_comed_mort28$inverse_variance <- 1 / df_sg_comed_mort28$standard_error^2
+
+# Insert ACTT2 title
+empty_row <- data.frame(
+  variable = "ACTT2",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+df_sg_comed_mort28 <- rbind(empty_row, df_sg_comed_mort28)
+
+# Insert cov-barrier title
+empty_row <- data.frame(
+  variable = "COV-BARRIER",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comed_mort28[1:3, ]
+second_part <- df_sg_comed_mort28[4:nrow(df_sg_comed_mort28), ]
+# Insert the empty row before/after
+df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert bari-solidact title
+empty_row <- data.frame(
+  variable = "BARI-SOLIDACT",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comed_mort28[1:6, ]
+second_part <- df_sg_comed_mort28[7:nrow(df_sg_comed_mort28), ]
+# Insert the empty row before/after
+df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Covinib title
+empty_row <- data.frame(
+  variable = "COVINIB",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comed_mort28[1:9, ]
+second_part <- df_sg_comed_mort28[10:nrow(df_sg_comed_mort28), ]
+# Insert the empty row before/after
+df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TOFACOV title
+empty_row <- data.frame(
+  variable = "TOFACOV",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comed_mort28[1:12, ]
+second_part <- df_sg_comed_mort28[13:nrow(df_sg_comed_mort28), ]
+# Insert the empty row before/after
+df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Ghazaeian title
+empty_row <- data.frame(
+  variable = "GHAZAEIAN",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comed_mort28[1:15, ]
+second_part <- df_sg_comed_mort28[16:nrow(df_sg_comed_mort28), ]
+# Insert the empty row before/after
+df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RECOVERY title
+empty_row <- data.frame(
+  variable = "RECOVERY",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comed_mort28[1:17, ]
+second_part <- df_sg_comed_mort28[18:nrow(df_sg_comed_mort28), ]
+# Insert the empty row before/after
+df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TACTIC-R title
+empty_row <- data.frame(
+  variable = "TACTIC-R",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comed_mort28[1:22, ]
+second_part <- df_sg_comed_mort28[23:nrow(df_sg_comed_mort28), ]
+# Insert the empty row before/after
+df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RUXCOVID title
+empty_row <- data.frame(
+  variable = "RUXCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comed_mort28[1:26, ]
+second_part <- df_sg_comed_mort28[27:nrow(df_sg_comed_mort28), ]
+# Insert the empty row before/after
+df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
+
+
+# Create a forest plot
+# pdf("sg_vb_mort28.pdf", width=10, height=8)
+forest(df_sg_comed_mort28$hazard_odds_ratio,
+       ci.lb = df_sg_comed_mort28$ci_lower,
+       ci.ub = df_sg_comed_mort28$ci_upper,
+       slab = df_sg_comed_mort28$variable,
+       alim = c(0, 2),
+       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
+       cex = 0.5,
+       refline = 1,
+       annotate = F,
+       lwd.ci = 1,
+       psize = sqrt(df_sg_comed_mort28$inverse_variance),
+       )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-43-1.png)<!-- -->
+
+```r
+# dev.off()
+```
 
 # Interaction: Vaccination on AEs
 
@@ -3840,26 +4803,137 @@ summary(vacc.ae28)
 
 ```r
 forest.meta(vacc.ae28,
-            # hetstat = F,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE"),
-            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
-            title = "Treatment-covariate interaction on AEs: vaccination",
-            # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect"
-            )
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
+            xlab = "vaccination: greater effect <-> no vaccination: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-44-1.png)<!-- -->
+
+# Subgroups: Vaccination on AEs
+
+```r
+# Calculate the inverse variance
+df_sg_vacc_ae28$inverse_variance <- 1 / df_sg_vacc_ae28$standard_error^2
+
+# Insert bari-solidact title
+empty_row <- data.frame(
+  variable = "BARI-SOLIDACT",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+df_sg_vacc_ae28 <- rbind(empty_row, df_sg_vacc_ae28)
+
+# Insert Covinib title
+empty_row <- data.frame(
+  variable = "COVINIB",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vacc_ae28[1:3, ]
+second_part <- df_sg_vacc_ae28[4:nrow(df_sg_vacc_ae28), ]
+# Insert the empty row before/after
+df_sg_vacc_ae28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TOFACOV title
+empty_row <- data.frame(
+  variable = "TOFACOV",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vacc_ae28[1:6, ]
+second_part <- df_sg_vacc_ae28[7:nrow(df_sg_vacc_ae28), ]
+# Insert the empty row before/after
+df_sg_vacc_ae28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RECOVERY title
+empty_row <- data.frame(
+  variable = "RECOVERY",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vacc_ae28[1:9, ]
+second_part <- df_sg_vacc_ae28[10:nrow(df_sg_vacc_ae28), ]
+# Insert the empty row before/after
+df_sg_vacc_ae28 <- rbind(first_part, empty_row, second_part)
+
+# Create a forest plot
+# pdf("sg_vb_mort28.pdf", width=10, height=8)
+forest(df_sg_vacc_ae28$hazard_odds_ratio,
+       ci.lb = df_sg_vacc_ae28$ci_lower,
+       ci.ub = df_sg_vacc_ae28$ci_upper,
+       slab = df_sg_vacc_ae28$variable,
+       alim = c(0, 2),
+       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
+       cex = 0.5,
+       refline = 1,
+       annotate = F,
+       lwd.ci = 1,
+       psize = sqrt(df_sg_vacc_ae28$inverse_variance),
+       )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-45-1.png)<!-- -->
+
+```r
+# dev.off()
+```
 
 # Interaction: Symptom onset on primary endpoint
 
 ```r
 # str(df_symp_mort28)
-## "Ghazaeian" do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
 symp.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -3915,20 +4989,243 @@ summary(symp.mort28)
 
 ```r
 forest.meta(symp.mort28,
-            hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE"),
-            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
-            title = "Treatment-covariate interaction on primary endpoint: Symptom duration",
-            # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect"
-            )
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            title = "Treatment-covariate interaction on primary endpoint:Symptom duration",
+            xlab = "shorter duration: greater effect <-> longer duration: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-46-1.png)<!-- -->
+
+# Subgroups: Symptom onset on primary endpoint
+
+```r
+# Calculate the inverse variance
+df_sg_symp_mort28$inverse_variance <- 1 / df_sg_symp_mort28$standard_error^2
+
+# Insert ACTT2 title
+empty_row <- data.frame(
+  variable = "ACTT2",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+df_sg_symp_mort28 <- rbind(empty_row, df_sg_symp_mort28)
+
+# Insert cov-barrier title
+empty_row <- data.frame(
+  variable = "COV-BARRIER",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_symp_mort28[1:4, ]
+second_part <- df_sg_symp_mort28[5:nrow(df_sg_symp_mort28), ]
+# Insert the empty row before/after
+df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert bari-solidact title
+empty_row <- data.frame(
+  variable = "BARI-SOLIDACT",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_symp_mort28[1:8, ]
+second_part <- df_sg_symp_mort28[9:nrow(df_sg_symp_mort28), ]
+# Insert the empty row before/after
+df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Covinib title
+empty_row <- data.frame(
+  variable = "COVINIB",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_symp_mort28[1:12, ]
+second_part <- df_sg_symp_mort28[13:nrow(df_sg_symp_mort28), ]
+# Insert the empty row before/after
+df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TOFACOV title
+empty_row <- data.frame(
+  variable = "TOFACOV",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_symp_mort28[1:15, ]
+second_part <- df_sg_symp_mort28[16:nrow(df_sg_symp_mort28), ]
+# Insert the empty row before/after
+df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Ghazaeian title
+empty_row <- data.frame(
+  variable = "GHAZAEIAN",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_symp_mort28[1:19, ]
+second_part <- df_sg_symp_mort28[20:nrow(df_sg_symp_mort28), ]
+# Insert the empty row before/after
+df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RECOVERY title
+empty_row <- data.frame(
+  variable = "RECOVERY",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_symp_mort28[1:23, ]
+second_part <- df_sg_symp_mort28[24:nrow(df_sg_symp_mort28), ]
+# Insert the empty row before/after
+df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TACTIC-R title
+empty_row <- data.frame(
+  variable = "TACTIC-R",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_symp_mort28[1:27, ]
+second_part <- df_sg_symp_mort28[28:nrow(df_sg_symp_mort28), ]
+# Insert the empty row before/after
+df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RUXCOVID title
+empty_row <- data.frame(
+  variable = "RUXCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_symp_mort28[1:31, ]
+second_part <- df_sg_symp_mort28[32:nrow(df_sg_symp_mort28), ]
+# Insert the empty row before/after
+df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
+
+
+# Create a forest plot
+# pdf("sg_vb_mort28.pdf", width=10, height=8)
+forest(df_sg_symp_mort28$hazard_odds_ratio,
+       ci.lb = df_sg_symp_mort28$ci_lower,
+       ci.ub = df_sg_symp_mort28$ci_upper,
+       slab = df_sg_symp_mort28$variable,
+       alim = c(0, 2),
+       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
+       cex = 0.5,
+       refline = 1,
+       annotate = F,
+       lwd.ci = 1,
+       psize = sqrt(df_sg_symp_mort28$inverse_variance),
+       )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-47-1.png)<!-- -->
+
+```r
+# dev.off()
+```
 
 # Interaction: CRP on primary endpoint
 
@@ -3989,20 +5286,243 @@ summary(crp.mort28)
 
 ```r
 forest.meta(crp.mort28,
-            # hetstat = F,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE"),
-            leftlabs = c("Trial", "log(Ratio of OR)", "Standard Error"),
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
-            text.random = "Average interaction effect (random effect model)*",
-            title = "Treatment-covariate interaction on primary endpoint: CRP",
-            # xlim = c(0.15,5),
-            xlab = "95% CI for interaction effect"
-            )
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            title = "Treatment-covariate interaction on primary endpoint:Symptom duration",
+            xlab = "lower CRP: greater effect <-> higher CRP: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-41-1.png)<!-- -->
-Discussion points
+![](two_stage_files/figure-html/unnamed-chunk-48-1.png)<!-- -->
+
+# Subgroups: CRP on primary endpoint
+
+```r
+# Calculate the inverse variance
+df_sg_crp_mort28$inverse_variance <- 1 / df_sg_crp_mort28$standard_error^2
+
+# Insert ACTT2 title
+empty_row <- data.frame(
+  variable = "ACTT2",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+df_sg_crp_mort28 <- rbind(empty_row, df_sg_crp_mort28)
+
+# Insert cov-barrier title
+empty_row <- data.frame(
+  variable = "COV-BARRIER",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_crp_mort28[1:3, ]
+second_part <- df_sg_crp_mort28[4:nrow(df_sg_crp_mort28), ]
+# Insert the empty row before/after
+df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert bari-solidact title
+empty_row <- data.frame(
+  variable = "BARI-SOLIDACT",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_crp_mort28[1:6, ]
+second_part <- df_sg_crp_mort28[7:nrow(df_sg_crp_mort28), ]
+# Insert the empty row before/after
+df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Covinib title
+empty_row <- data.frame(
+  variable = "COVINIB",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_crp_mort28[1:9, ]
+second_part <- df_sg_crp_mort28[10:nrow(df_sg_crp_mort28), ]
+# Insert the empty row before/after
+df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TOFACOV title
+empty_row <- data.frame(
+  variable = "TOFACOV",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_crp_mort28[1:12, ]
+second_part <- df_sg_crp_mort28[13:nrow(df_sg_crp_mort28), ]
+# Insert the empty row before/after
+df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert Ghazaeian title
+empty_row <- data.frame(
+  variable = "GHAZAEIAN",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_crp_mort28[1:15, ]
+second_part <- df_sg_crp_mort28[16:nrow(df_sg_crp_mort28), ]
+# Insert the empty row before/after
+df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RECOVERY title
+empty_row <- data.frame(
+  variable = "RECOVERY",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_crp_mort28[1:18, ]
+second_part <- df_sg_crp_mort28[19:nrow(df_sg_crp_mort28), ]
+# Insert the empty row before/after
+df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert TACTIC-R title
+empty_row <- data.frame(
+  variable = "TACTIC-R",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_crp_mort28[1:21, ]
+second_part <- df_sg_crp_mort28[22:nrow(df_sg_crp_mort28), ]
+# Insert the empty row before/after
+df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert RUXCOVID title
+empty_row <- data.frame(
+  variable = "RUXCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_crp_mort28[1:24, ]
+second_part <- df_sg_crp_mort28[25:nrow(df_sg_crp_mort28), ]
+# Insert the empty row before/after
+df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
+
+
+# Create a forest plot
+# pdf("sg_vb_mort28.pdf", width=10, height=8)
+forest(df_sg_crp_mort28$hazard_odds_ratio,
+       ci.lb = df_sg_crp_mort28$ci_lower,
+       ci.ub = df_sg_crp_mort28$ci_upper,
+       slab = df_sg_crp_mort28$variable,
+       alim = c(0, 2),
+       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
+       cex = 0.5,
+       refline = 1,
+       annotate = F,
+       lwd.ci = 1,
+       psize = sqrt(df_sg_crp_mort28$inverse_variance),
+       )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-49-1.png)<!-- -->
+
+```r
+# dev.off()
+```
 
 # Collect all interaction effect estimates
 
@@ -4069,13 +5589,13 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |variable            | log_odds_ratio| ci_lower| ci_upper| standard_error| p_value|approach  |
 |:-------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
-|respiratory support |          0.888|    0.680|    1.159|          0.104|   0.304|two-stage |
+|respiratory support |          0.887|    0.718|    1.096|          0.090|   0.221|two-stage |
 |ventilation         |          0.780|    0.564|    1.078|          0.117|   0.100|two-stage |
 |age                 |          1.010|    1.000|    1.021|          0.005|   0.044|two-stage |
 |comorbidity         |          1.209|    1.029|    1.420|          0.082|   0.021|two-stage |
 |comorbidity count   |          1.096|    0.974|    1.234|          0.060|   0.128|two-stage |
-|any comorbidity     |          1.468|    1.108|    1.945|          0.143|   0.007|two-stage |
-|comedication        |          1.016|    0.953|    1.083|          0.033|   0.622|two-stage |
+|any comorbidity     |          1.468|    1.108|    1.944|          0.143|   0.007|two-stage |
+|comedication        |          1.254|    1.018|    1.544|          0.106|   0.033|two-stage |
 |vaccination on AEs  |          0.993|    0.688|    1.434|          0.187|   0.971|two-stage |
 |symptom duration    |          0.999|    0.973|    1.026|          0.011|   0.953|two-stage |
 |crp                 |          1.000|    0.999|    1.001|          0.001|   0.912|two-stage |
@@ -4084,4 +5604,134 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(interaction_df, file = "int_effects_two-stage.RData")
 ```
+
+# AESI
+
+```r
+df_aesi_actt2 <- readRDS("df_aesi_actt2.RData")
+df_aesi_covbarrier <- readRDS("df_aesi_cov-barrier.RData")
+df_aesi_barisolidact <- readRDS("df_aesi_barisolidact.RData")
+df_aesi_covinib <- readRDS("df_aesi_covinib.RData")
+df_aesi_tofacov <- readRDS("df_aesi_tofacov.RData")
+df_aesi_ghazaeian <- readRDS("df_aesi_ghazaeian.RData")
+df_aesi_recovery <- readRDS("df_aesi_recovery.RData")
+df_aesi_tactic_r <- readRDS("df_aesi_tactic-r.RData")
+# df_aesi_ruxcovid <- readRDS("df_aesi_ruxcovid.RData")
+
+df_aesi_actt2 <- df_aesi_actt2 %>%
+  mutate(trial = "ACTT2") %>% 
+  select(trial, trt, aesi)
+df_aesi_covbarrier <- df_aesi_covbarrier %>%
+  mutate(trial = "COV-BARRIER") %>% 
+  select(trial, trt, aesi)
+df_aesi_barisolidact <- df_aesi_barisolidact %>%
+  mutate(trial = "BARI-SOLIDACT") %>% 
+  select(trial, trt, aesi)
+df_aesi_covinib <- df_aesi_covinib %>%
+  mutate(trial = "COVINIB") %>% 
+  select(trial, trt, aesi)
+df_aesi_tofacov <- df_aesi_tofacov %>%
+  mutate(trial = "TOFACOV") %>% 
+  select(trial, trt, aesi)
+df_aesi_ghazaeian <- df_aesi_ghazaeian %>%
+  mutate(trial = "GHAZAEIAN") %>% 
+  select(trial, trt, aesi)
+df_aesi_recovery <- df_aesi_recovery %>%
+  mutate(trial = "RECOVERY") %>% 
+  select(trial, trt, aesi)
+df_aesi_tactic_r <- df_aesi_tactic_r %>%
+  mutate(trial = "TACTIC-R") %>% 
+  select(trial, trt, aesi)
+
+df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df_aesi_covinib, df_aesi_tofacov, df_aesi_ghazaeian, df_aesi_recovery, df_aesi_tactic_r)
+
+# round(prop.table(table(df_aesi_tot$aesi, df_aesi_tot$trt),2)*100,0)
+# addmargins(table(df_aesi_tot$aesi, df_aesi_tot$trt))
+# df_aesi_tot %>% 
+#   filter(is.na(trt)) %>% 
+#   View()
+
+df_aesi_tot <- df_aesi_tot %>% 
+  mutate(ARM = case_when(trt == 0 ~ "No JAK inhibitor",
+                         trt == 1 ~ "JAK inhibitor"))
+proportions <- df_aesi_tot %>%
+  drop_na(ARM) %>% 
+  group_by(ARM, aesi) %>%
+  summarise(count = n()) %>%
+  group_by(ARM) %>%
+  mutate(proportion = (count / sum(count))*100) %>% 
+  mutate("Proportion (%)" = round(proportion,0))
+ggplot(proportions, aes(x = proportion, y = aesi, color = ARM, shape = ARM)) +
+  geom_point() +
+  labs(x = "Proportion (%) across all AESI by ARM", y = "AESI Category") +
+  theme_minimal()
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-51-1.png)<!-- -->
+
+# AE
+
+```r
+df_ae_actt2 <- readRDS("df_ae_actt2.RData")
+df_ae_covbarrier <- readRDS("df_ae_cov-barrier.RData")
+df_ae_barisolidact <- readRDS("df_ae_barisolidact.RData")
+df_ae_covinib <- readRDS("df_ae_covinib.RData")
+df_ae_tofacov <- readRDS("df_ae_tofacov.RData")
+df_ae_ghazaeian <- readRDS("df_ae_ghazaeian.RData")
+df_ae_recovery <- readRDS("df_ae_recovery.RData")
+df_ae_tactic_r <- readRDS("df_ae_tactic-r.RData")
+# df_ae_ruxcovid <- readRDS("df_aesi_ruxcovid.RData")
+
+df_ae_actt2 <- df_ae_actt2 %>%
+  mutate(trial = "ACTT2") %>% 
+  select(trial, trt, ae)
+df_ae_covbarrier <- df_ae_covbarrier %>%
+  mutate(trial = "COV-BARRIER") %>% 
+  select(trial, trt, ae)
+df_ae_barisolidact <- df_ae_barisolidact %>%
+  mutate(trial = "BARI-SOLIDACT") %>% 
+  rename(ae = MeddraPT) %>% 
+  select(trial, trt, ae)
+df_ae_covinib <- df_ae_covinib %>%
+  mutate(trial = "COVINIB") %>% 
+  select(trial, trt, ae)
+df_ae_tofacov <- df_ae_tofacov %>%
+  mutate(trial = "TOFACOV") %>% 
+  select(trial, trt, ae)
+df_ae_ghazaeian <- df_ae_ghazaeian %>%
+  mutate(trial = "GHAZAEIAN") %>% 
+  select(trial, trt, ae)
+df_ae_recovery <- df_ae_recovery %>%
+  mutate(trial = "RECOVERY") %>% 
+  select(trial, trt, ae)
+df_ae_tactic_r <- df_ae_tactic_r %>%
+  mutate(trial = "TACTIC-R") %>% 
+  select(trial, trt, ae)
+
+df_ae_tot <- rbind(df_ae_actt2, df_ae_covbarrier, df_ae_barisolidact, df_ae_covinib, df_ae_tofacov, df_ae_ghazaeian, df_ae_recovery, df_ae_tactic_r)
+
+# round(prop.table(table(df_ae_tot$ae, df_ae_tot$trt),2)*100,0)
+# addmargins(table(df_ae_tot$ae, df_ae_tot$trt))
+
+## GROUP the AEs
+# unique(df_ae_tot$ae)
+
+df_ae_tot <- df_ae_tot %>% 
+  mutate(ARM = case_when(trt == 0 ~ "No JAK inhibitor",
+                         trt == 1 ~ "JAK inhibitor"))
+proportions <- df_ae_tot %>%
+  drop_na(ARM) %>% 
+  group_by(ARM, ae) %>%
+  summarise(count = n()) %>%
+  group_by(ARM) %>%
+  mutate(proportion = (count / sum(count))*100) %>% 
+  mutate("Proportion (%)" = round(proportion,0))
+ggplot(proportions, aes(x = proportion, y = ae, color = ARM, shape = ARM)) +
+  geom_point() +
+  labs(x = "Proportion (%) across all ae by ARM", y = "ae Category") +
+  theme_minimal()
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-52-1.png)<!-- -->
+
 # Interactions: Multivariate IPD Meta-Analysis for Summarising Non-linear Interactions
