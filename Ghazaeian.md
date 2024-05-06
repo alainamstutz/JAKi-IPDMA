@@ -354,14 +354,17 @@ df$ae_28_sev <- df$ae_28 # there was only 1 AE grade 3/4 per person
 # time to first ae not available
 
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
-df <- df %>% 
-  mutate(aesi_28 = case_when(note == "pulmonary emboli" ~ "thromboembolic events"))
+df_ae <- df %>% 
+  mutate(aesi = case_when(note == "pulmonary emboli" ~ "thrombo")) %>% 
+  filter(!is.na(aesi)) %>% 
+  select(id_pat, trt, note, aesi) %>% 
+  rename(ae = note)
+df_aesi <- df_ae
+# Save
+saveRDS(df_aesi, file = "df_aesi_ghazaeian.RData")
+
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-df$ae_28_list <- df$aesi_28 
-
-df_ae <- df %>% 
-  select(id_pat, trt, note, ae_28_list, aesi_28)
 # Save
 saveRDS(df_ae, file = "df_ae_ghazaeian.RData")
 ```
@@ -935,7 +938,7 @@ hist(df_imp$crp, breaks=50) # outliers
 ### Reshape to long format // not possible in Ghazaeian to use clinstatus over time, since this info is not available
 ```
 
-# Multiple imputation // only CRP is missing: Choose a different imputation model
+# Multiple imputation // only CRP is missing: No MI for CRP, as per protocol
 
 ```r
 # #### INTERVENTION group
@@ -1498,7 +1501,6 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 Discussion points
-1. max fup time was 28 days; thus mort_60 imputed from mort_28
 
 # (iii) Time to death within max. follow-up time
 
