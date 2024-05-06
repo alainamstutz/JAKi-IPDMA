@@ -258,7 +258,18 @@ df$discharge_time_sus <- df$discharge_time
 
 
 # (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
-# table(df$ae_28, df$trt, useNA = "always")
+table(df$ae_28, df$trt, useNA = "always")
+```
+
+```
+##       
+##         0  1 <NA>
+##   0    45 49    0
+##   1    13  9    0
+##   <NA>  0  0    0
+```
+
+```r
 # table(df$ae_28, df$mort_28, useNA = "always") # corresponds to publication and excludes the death
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
@@ -268,19 +279,26 @@ df$ae_28_sev <- df$ae_28 # there were only 1 AE grade 3/4 per person
 # time to first ae not available
 
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
-df <- df %>% 
-  mutate(aesi_28 = case_when(ae_28_spec == "Pulmonary embolism" ~ "thromboembolic events",
-                             ae_28_spec == "ALT increase" ~ "liver dysfunction/hepatotoxicity (grade 3 and 4)")) # these were >5 ULN
+df_aesi <- df %>% # these were >5 ULN 
+  mutate(aesi = case_when(ae_28_spec == "Pulmonary embolism" ~ "thrombo",
+                             ae_28_spec == "ALT increase" ~ "hepatox")) %>% 
+  filter(!is.na(aesi)) %>% 
+  filter(ae_28 == 1) %>% 
+  select(id_pat, trt, ae_28_spec, aesi) %>% 
+  rename(ae = ae_28_spec)
+# Save
+saveRDS(df_aesi, file = "df_aesi_tofacov.RData")
+
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-df <- df %>% 
-  mutate(ae_28_list = case_when(ae_28_spec == "Pulmonary embolism" ~ "thromboembolic events",
-                             ae_28_spec == "ALT increase" ~ "liver dysfunction/hepatotoxicity (grade 3 and 4)",
-                             ae_28_spec == "Pneumomediastinum" ~ "pneumomediastinum"))
-df_ae <- df %>% 
-  select(id_pat, trt, ae_28_spec, ae_28_list, aesi_28)
+df_ae <- df %>% # these were >5 ULN 
+  mutate(aesi = case_when(ae_28_spec == "Pulmonary embolism" ~ "thrombo",
+                             ae_28_spec == "ALT increase" ~ "hepatox")) %>%
+  filter(ae_28 == 1) %>% 
+  select(id_pat, trt, ae_28_spec, aesi) %>% 
+  rename(ae = ae_28_spec)
 # Save
-saveRDS(df_ae, file = "df_ae_tofacitinib.RData")
+saveRDS(df_ae, file = "df_ae_tofacov.RData")
 ```
 Discussion points
 1. Outcome definition "new_mv_28" differs to original trial publication (included new non-invasive ventilations, i.e. clinstatus == 4)
@@ -1007,7 +1025,7 @@ print(plot_clinstat_cont)
 
 ![](tofacov_files/figure-html/unnamed-chunk-6-11.png)<!-- -->
 
-# Multiple imputation // only CRP is missing: Choose a different imputation model
+# Multiple imputation // only CRP is missing: No MI for CRP, as per protocol
 
 ```r
 # #### INTERVENTION group
@@ -1854,9 +1872,35 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 # # Nicely formatted table
 # kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 #   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+library(coxphf)
+ttdeath.firth <- df %>%
+  coxphf(Surv(death_time, death_reached) ~ trt
+        # + age
+        # + clinstatus_baseline
+        # + comed_dexa + comed_rdv + comed_toci
+        , data =.)
+summary(ttdeath.firth)
+```
+
+```
+## coxphf(formula = Surv(death_time, death_reached) ~ trt, data = .)
+## 
+## Model fitted by Penalized ML
+## Confidence intervals and p-values by Profile Likelihood 
+## 
+##         coef se(coef) exp(coef) lower 0.95 upper 0.95     Chisq         p
+## trt 1.098612 2.309401         3  0.1600409   437.7607 0.5232481 0.4694594
+## 
+## Likelihood ratio test=0.5232481 on 1 df, p=0.4694594, n=116
+## Wald test = 0.2263029 on 1 df, p = 0.6342788
+## 
+## Covariance-Matrix:
+##          trt
+## trt 5.333333
 ```
 Discussion points
-1. Result illogical. Time to event analysis not possible? R.Riley IPDMA handbook, page 102: "As for binary outcomes, when there are few events in some trials adaptions of Firth’s correction are important to reduce small sample bias in the estimated treatment effect." -> implement
+1. Result illogical. R.Riley IPDMA handbook, page 102: "As for binary outcomes, when there are few events in some trials adaptions of Firth’s correction are important to reduce small sample bias in the estimated treatment effect."
 
 # (iv) New mechanical ventilation among survivors within 28 days
 
@@ -4620,6 +4664,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- exp(confint(model)["trt", ])
     se <- summary(model)$coefficients["trt", "Std. Error"]
     p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "logistf") || inherits(model, "coxphf")) {
+    trt_coef <- coef(model)["trt"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
+    se <- sqrt(diag(vcov(model)))["trt"]
+    p_value <- model$prob["trt"]
   } else if (inherits(model, "coxph")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -4632,12 +4682,6 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
-  } else if (inherits(model, "logistf")) {
-    trt_coef <- coef(model)["trt"]
-    hazard_odds_ratio <- exp(trt_coef)
-    ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
-    se <- sqrt(diag(vcov(model)))["trt"]
-    p_value <- model$prob["trt"]
   } else if (inherits(model, "summary.margins")) {
     hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
     ci <- c(model$lower, model$upper)
@@ -4671,8 +4715,8 @@ result_list[[3]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[4]] <- extract_trt_results(mort.60.firth, "death at day 60_firth",
                                         addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
-# result_list[[5]] <- extract_trt_results(ttdeath, "death within fup", 
-#                                         addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1])
+result_list[[5]] <- extract_trt_results(ttdeath.firth, "death within fup_firth",
+                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # no adj
 result_list[[6]] <- extract_trt_results(new.mv.28.firth, "new MV within 28d_firth",
                                         addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[7]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
@@ -4771,24 +4815,25 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                   | hazard_odds_ratio|   ci_lower|    ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |JAKi        |
-|:-----|:------------------------------------------|-----------------:|----------:|-----------:|--------------:|---------:|--------------:|---------:|:-------|:-----------|
-|trt   |death at day 28_firth                      |         2.5365726|  0.1271530| 380.1340920|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
-|trt1  |death at day 28_dimp_firth                 |         2.5365726|  0.1271530| 380.1340920|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
-|1     |death at day 28_marginal                   |         0.0150326| -0.0185850|   0.0486501|      0.0171521|        NA|             58|        58|TOFACOV |Tofacitinib |
-|trt2  |death at day 60_firth                      |         2.5365726|  0.1271530| 380.1340920|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
-|trt3  |new MV within 28d_firth                    |         0.2174501|  0.0015447|   2.8773084|      1.3853829| 0.2687398|             57|        58|TOFACOV |Tofacitinib |
-|trt4  |new MV or death within 28d                 |         0.5033582|  0.0222146|   5.7949089|      1.2708458| 0.5890904|             58|        58|TOFACOV |Tofacitinib |
-|trt5  |clinical status at day 28                  |         0.5089991|  0.0666734|   2.8430057|      0.9065891| 0.4563383|             58|        58|TOFACOV |Tofacitinib |
-|trt6  |discharge within 28 days                   |         1.2836003|  0.8804226|   1.8714078|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
-|trt7  |discharge within 28 days, death=comp.event |         1.2562193|  0.8760345|   1.8013982|      0.1839098| 0.2100000|             58|        58|TOFACOV |Tofacitinib |
-|trt8  |discharge within 28 days, death=hypo.event |         1.2836003|  0.8804226|   1.8714078|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
-|trt9  |sustained discharge within 28 days         |         1.2836003|  0.8804226|   1.8714078|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
-|trt10 |any AE grade 3,4 within 28 days            |         0.6936245|  0.2408177|   1.9569664|      0.5287298| 0.4890045|             58|        58|TOFACOV |Tofacitinib |
-|trt11 |AEs grade 3,4 within 28 days               |         0.6936245|  0.2408177|   1.9569664|      0.5287298| 0.4890045|             58|        58|TOFACOV |Tofacitinib |
-|11    |death at day 28_0.5-corr                   |         3.0521739|  0.1218000|  76.4800000|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
-|12    |death at day 60_0.5-corr                   |         3.0521739|  0.1218000|  76.4800000|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
-|13    |new MV within 28d_0.5-corr                 |         0.1965217|  0.0092280|   4.1850000|      1.0652480| 0.1266797|             57|        58|TOFACOV |Tofacitinib |
+|      |variable                                   | hazard_odds_ratio|   ci_lower|      ci_upper| standard_error|   p_value| n_intervention| n_control|trial   |JAKi        |
+|:-----|:------------------------------------------|-----------------:|----------:|-------------:|--------------:|---------:|--------------:|---------:|:-------|:-----------|
+|trt   |death at day 28_firth                      |         2.5365726|  0.1271530|  3.801341e+02|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
+|trt1  |death at day 28_dimp_firth                 |         2.5365726|  0.1271530|  3.801341e+02|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
+|1     |death at day 28_marginal                   |         0.0150326| -0.0185850|  4.865010e-02|      0.0171521|        NA|             58|        58|TOFACOV |Tofacitinib |
+|trt2  |death at day 60_firth                      |         2.5365726|  0.1271530|  3.801341e+02|      1.3148138| 0.5524355|             58|        58|TOFACOV |Tofacitinib |
+|trt3  |death within fup_firth                     |         3.0000000|  1.1735588| 1.309377e+190|      2.3094011| 0.4694594|             58|        58|TOFACOV |Tofacitinib |
+|trt4  |new MV within 28d_firth                    |         0.2174501|  0.0015447|  2.877308e+00|      1.3853829| 0.2687398|             57|        58|TOFACOV |Tofacitinib |
+|trt5  |new MV or death within 28d                 |         0.5033582|  0.0222146|  5.794909e+00|      1.2708458| 0.5890904|             58|        58|TOFACOV |Tofacitinib |
+|trt6  |clinical status at day 28                  |         0.5089991|  0.0666734|  2.843006e+00|      0.9065891| 0.4563383|             58|        58|TOFACOV |Tofacitinib |
+|trt7  |discharge within 28 days                   |         1.2836003|  0.8804226|  1.871408e+00|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
+|trt8  |discharge within 28 days, death=comp.event |         1.2562193|  0.8760345|  1.801398e+00|      0.1839098| 0.2100000|             58|        58|TOFACOV |Tofacitinib |
+|trt9  |discharge within 28 days, death=hypo.event |         1.2836003|  0.8804226|  1.871408e+00|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
+|trt10 |sustained discharge within 28 days         |         1.2836003|  0.8804226|  1.871408e+00|      0.1923618| 0.1943172|             58|        58|TOFACOV |Tofacitinib |
+|trt11 |any AE grade 3,4 within 28 days            |         0.6936245|  0.2408177|  1.956966e+00|      0.5287298| 0.4890045|             58|        58|TOFACOV |Tofacitinib |
+|trt12 |AEs grade 3,4 within 28 days               |         0.6936245|  0.2408177|  1.956966e+00|      0.5287298| 0.4890045|             58|        58|TOFACOV |Tofacitinib |
+|11    |death at day 28_0.5-corr                   |         3.0521739|  0.1218000|  7.648000e+01|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
+|12    |death at day 60_0.5-corr                   |         3.0521739|  0.1218000|  7.648000e+01|     19.4791327| 0.9543185|             58|        58|TOFACOV |Tofacitinib |
+|13    |new MV within 28d_0.5-corr                 |         0.1965217|  0.0092280|  4.185000e+00|      1.0652480| 0.1266797|             57|        58|TOFACOV |Tofacitinib |
 
 ```r
 # Save
