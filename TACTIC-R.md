@@ -1098,17 +1098,69 @@ df <- df %>%
 
 
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiac events (excl. hypertension), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4), i) Multiple organ dysfunction syndrome and septic shock
+df_aesi_tot <- df_aesi %>% 
+  filter(check2 == 0) %>% 
+  rename(ae = aesi_spec,
+         ae_desc = AESI_SUMMARY) %>% 
+  select(id_pat, ae, ae_desc)
+df_sae_tot <- df_sae %>%
+  filter(is.na(check2)) %>% 
+  rename(ae = MEDDRAPREFTERM,
+         ae_desc = EVENTDESC) %>% 
+  select(id_pat, ae, ae_desc)
+df_ae <- rbind(df_aesi_tot, df_sae_tot)
+df_ae <- left_join(df_ae, df[, c("trt", "id_pat")], by = join_by(id_pat == id_pat))
 
-# also check in SAE data frame!
+df_thrombo <- df_ae %>% # a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis)
+  filter(ae %in% c("Venous thromboembolism", "Thrombosis", "Deep vein thrombosis", "Pulmonary embolism", "Peripheral arterial thrombosis")) %>% 
+  mutate(aesi = "thrombo")
+df_sec_inf <- df_ae %>% # b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), but not COVID-19 pneumonia!
+  filter(ae %in% c("New infections requiring antimicrobials", "Pneumonia", "Lower Respiratory Tract Infection", "Lower respiratory tract infection viral", "Bacterial Lower Respiratory Tract Infection", "Lower respiratory tract infection", "Pneumonia viral", # these are all not covid-19
+                         "Pneunocystis  jirovecii pneumonia", "Sepsis", "Pneumonia bacterial", "Urinary tract infection")) %>% 
+  mutate(aesi = "sec_inf")
+df_reactivate <- df_ae %>% # c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B.
+  filter(ae %in% c("Viral hepatitis")) %>% 
+  mutate(aesi = "reactivate")
+df_cardiac <- df_ae %>% # d) serious cardiovascular and cardiac events (including stroke and myocardial infarction) (excl. hypertension)
+  filter(ae %in% c("Cardiac arrest", "Myocardial infarction")) %>% 
+  mutate(aesi = "cardiac")
+# df_penia <- NA
+df_malig <- df_ae %>% # f) malignancy
+  filter(ae %in% c("Prolactin-producing pituitary tumour", "Malignant neoplasm of unknown primary site")) %>% 
+  mutate(aesi = "malig")
+# df_git_bl <- NA
+df_hepatox <- df_ae %>% # h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+  filter(ae %in% c("Abnormal liver function test", "Liver function test abnormal")) %>%
+  mutate(aesi = "hepatox")
+df_mods <- df_ae %>% # i) Multiple organ dysfunction syndrome and septic shock
+  filter(ae %in% c("Multiple organ dysfunction syndrome")) %>% 
+  mutate(aesi = "mods")
+
+df_aesi <- rbind(df_mods, df_hepatox, df_malig, df_cardiac, df_reactivate, df_sec_inf, df_thrombo)
+df_aesi <- df_aesi %>%
+  select(id_pat, trt, aesi, ae, ae_desc)
+# table(df_aesi$trt, df_aesi$aesi)
+
+# double-check if there are any duplicate AEs within the same person and if it is the same event or distinct ones
+df_aesi <- df_aesi %>% 
+  group_by(id_pat) %>% 
+  mutate(duplicate_id = duplicated(aesi) & !is.na(aesi)) %>% 
+  ungroup()
+df_aesi <- df_aesi %>% 
+  filter(duplicate_id == F)
 
 # Save
-# saveRDS(df_aesi, file = "df_aesi_tactic-r.RData")
-
+saveRDS(df_aesi, file = "df_aesi_tactic-r.RData")
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-
 # Save
-# saveRDS(df_ae, file = "df_ae_tactic-r.RData")
+df_ae <- df_ae %>% 
+  group_by(id_pat) %>% 
+  mutate(duplicate_id = duplicated(ae) & !is.na(ae)) %>% 
+  ungroup()
+df_ae <- df_ae %>% 
+  filter(duplicate_id == F)
+saveRDS(df_ae, file = "df_ae_tactic-r.RData")
 ```
 Discussion points:
 
@@ -2347,24 +2399,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 ```r
 # unadjusted estimator for the (absolute) risk difference
 mort.28.prop.test <- prop.test(x = with(df, table(trt, mort_28)))
-print(mort.28.prop.test)
-```
-
-```
-## 
-## 	2-sample test for equality of proportions with continuity correction
-## 
-## data:  with(df, table(trt, mort_28))
-## X-squared = 0.035904, df = 1, p-value = 0.8497
-## alternative hypothesis: two.sided
-## 95 percent confidence interval:
-##  -0.07301515  0.10356142
-## sample estimates:
-##    prop 1    prop 2 
-## 0.8768116 0.8615385
-```
-
-```r
+# print(mort.28.prop.test)
 # Estimate
 -diff(mort.28.prop.test$estimate)
 ```
