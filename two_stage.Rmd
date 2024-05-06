@@ -105,16 +105,16 @@ for (df in list_df) {
   df_mort28_dimp <- rbind(df_mort28_dimp, selected_rows)
 }
 
-## Mortality at day 28: multiple imputation
-outcomes <- "death at day 28_mi"
-outcomes.firth <- "death at day 28_mi_firth"
-df_mort28_mi <- data.frame()
-for (df in list_df) {
-  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
-  df_mort28_mi <- rbind(df_mort28_mi, selected_rows)
-}
-# Save
-saveRDS(df_mort28_mi, file = "trt_effects_mi.RData")
+# ## Mortality at day 28: multiple imputation
+# outcomes <- "death at day 28_mi"
+# outcomes.firth <- "death at day 28_mi_firth"
+# df_mort28_mi <- data.frame()
+# for (df in list_df) {
+#   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+#   df_mort28_mi <- rbind(df_mort28_mi, selected_rows)
+# }
+# # Save
+# saveRDS(df_mort28_mi, file = "trt_effects_mi.RData") # collected on 7.5.24: Bari, ACTT2, RECOVERY, COV-BARRIER, TACTIC-R
 
 ## new MV within 28d
 outcomes <- "new MV within 28d"
@@ -768,14 +768,14 @@ forest.meta(mort28.dimp,
 ```
 Discussion points:
 
-# (i.vii) Primary outcome: Multiple imputation / get covinib, get ruxcovid, get ACTT2
+# (i.vii) Primary outcome: Multiple imputation / get ruxcovid
 ```{r warning=FALSE, fig.width=14, fig.height=4}
+df_mort28_mi <- readRDS("trt_effects_mi.RData")
 # str(df_mort28_mi)
-# no MI from ghazaeian, tofacov -> add their df_mort28 estimates
+# no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
 # check if rather preloading df_mort28_mi from folder!
-df_mort28_mi_add <- df_mort28 %>% 
-  select(-recruitment_period, -recruitment_period_cat, -rob_mort28) %>% 
-  filter(trial == "Ghazaeian" | trial == "TOFACOV")
+df_mort28_mi_add <- df_mort28_dimp %>% 
+  filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
 df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
 
 mort28.mi <- metagen(TE = log(hazard_odds_ratio),
@@ -3969,5 +3969,4 @@ ggplot(proportions, aes(x = proportion, y = ae, color = ARM, shape = ARM)) +
   theme_minimal()
 
 ```
-
 # Interactions: Multivariate IPD Meta-Analysis for Summarising Non-linear Interactions
