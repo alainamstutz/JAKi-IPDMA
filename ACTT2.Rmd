@@ -985,7 +985,7 @@ print(plot_clinstat_cont)
 ```
 
 # Multiple imputation
-```{r warning = FALSE}
+```{r eval = FALSE}
 #### INTERVENTION group
 ## jomo only accepts numeric or factors, check and adapt
 # str(df_imp_long_int)
@@ -1138,14 +1138,14 @@ mort.28.dimp <- df %>%
 summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # Multiple imputation analysis under MAR; use mitools package to fit imputed and combined data list and apply Rubin's rules
-mort.28.mi <- imp.list %>%
-  with(glm(mort_28 ~ trt
-           + age
-           + clinicalstatus_baseline
-           , family = binomial)) %>%
-        pool() %>%
-        summary(conf.int = T, exponentiate = T)
-mort.28.mi
+# mort.28.mi <- imp.list %>%
+#   with(glm(mort_28 ~ trt
+#            + age
+#            + clinicalstatus_baseline
+#            , family = binomial)) %>%
+#         pool() %>%
+#         summary(conf.int = T, exponentiate = T)
+# mort.28.mi
 ```
 
 # (i.i) Covariate adjustment for primary endpoint: Mortality at day 28
@@ -1915,8 +1915,8 @@ result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
                                         addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
-                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+# result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
+#                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[4]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[5]] <- extract_trt_results(mort.60, "death at day 60",
@@ -2197,4 +2197,3 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(subgroup_df, file = "subgroup_effects_ACTT2.RData")
 ```
-Discussion points

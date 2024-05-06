@@ -6470,9 +6470,15 @@ result_list[[12]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 
                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[13]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
                                          addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
-result_list[[14]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
+result_list[[14]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5",
+                                        addmargins(table(df$vir_clear_5, df$trt))[3,2], addmargins(table(df$vir_clear_5, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[15]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10",
+                                        addmargins(table(df$vir_clear_10, df$trt))[3,2], addmargins(table(df$vir_clear_10, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[16]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15",
+                                        addmargins(table(df$vir_clear_15, df$trt))[3,2], addmargins(table(df$vir_clear_15, df$trt))[3,1]) # adj: age, clinstatus
+result_list[[17]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
                                          addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1])
-result_list[[15]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
+result_list[[18]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
                                          addmargins(table(df$ae_28_sev, df$trt))[19,2], addmargins(table(df$ae_28_sev, df$trt))[19,1])
 
 # Filter out NULL results and bind the results into a single data frame
@@ -6503,8 +6509,11 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt9  |discharge within 28 days, death=comp.event |         1.1601147|  1.0201821| 1.3192410|      0.0655817| 0.0240000|            515|       518|ACTT-2 |Baricitinib |
 |trt10 |discharge within 28 days, death=hypo.event |         1.2108219|  1.0568667| 1.3872040|      0.0693844| 0.0058317|            515|       518|ACTT-2 |Baricitinib |
 |trt11 |sustained discharge within 28 days         |         1.2140636|  1.0596485| 1.3909807|      0.0694073| 0.0051947|            515|       518|ACTT-2 |Baricitinib |
-|trt12 |Any AE grade 3,4 within 28 days            |         0.9214240|  0.7032692| 1.2070793|      0.1377423| 0.5524340|            491|       481|ACTT-2 |Baricitinib |
-|trt13 |AEs grade 3,4 within 28 days               |         0.8106790|  0.7179717| 0.9148002|      0.0617874| 0.0006816|            491|       481|ACTT-2 |Baricitinib |
+|trt12 |viral clearance until day 5                |         0.9730685|  0.7147263| 1.3245441|      0.1572772| 0.8621926|            375|       372|ACTT-2 |Baricitinib |
+|trt13 |viral clearance until day 10               |         0.8881068|  0.6617212| 1.1912794|      0.1499087| 0.4286111|            378|       377|ACTT-2 |Baricitinib |
+|trt14 |viral clearance until day 15               |         1.0197142|  0.7660006| 1.3574923|      0.1459096| 0.8935626|            380|       379|ACTT-2 |Baricitinib |
+|trt15 |Any AE grade 3,4 within 28 days            |         0.9214240|  0.7032692| 1.2070793|      0.1377423| 0.5524340|            491|       481|ACTT-2 |Baricitinib |
+|trt16 |AEs grade 3,4 within 28 days               |         0.8106790|  0.7179717| 0.9148002|      0.0617874| 0.0006816|            491|       481|ACTT-2 |Baricitinib |
 
 ```r
 # Save
@@ -6789,4 +6798,3 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(subgroup_df, file = "subgroup_effects_ACTT2.RData")
 ```
-Discussion points
