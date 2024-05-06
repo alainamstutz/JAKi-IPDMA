@@ -181,6 +181,8 @@ df_tactic_r <- df_tactic_r %>%
 
 # append
 df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_ruxcovid)
+# save
+saveRDS(df_tot, file = "df_tot_rux.RData")
 ```
 
 ## Baseline characteristics, reformatting
@@ -496,4 +498,3 @@ kable(ruxcovid_all_table, format = "markdown", table.attr = 'class="table"', cap
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
-
