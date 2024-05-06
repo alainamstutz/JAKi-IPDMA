@@ -1165,17 +1165,18 @@ print(plot_clinstat_cont)
 str(df_imp_long_int)
 df_imp_long_int$timesq <- sqrt(df_imp_long_int$time) # see X below
 attach(df_imp_long_int)
-Y2<-data.frame(mort_28 # level 2 variables (baseline patient characteristics)
-               , age
-               , sex
-               , ethn
-               , vacc
-               , comed_dexa
-               , comed_ab
-               , comed_other
-               , comorb_cat
-               , sympdur
-               , sqcrptrunc
+table(df_imp_long_int$mort_28)
+Y2<-data.frame(mort_28
+                , age
+                , sex
+                , ethn
+                , vacc
+                , comed_dexa
+                , comed_ab
+                , comed_other
+                , comorb_cat
+                , sympdur
+                , sqcrptrunc
                  )
 Y<-data.frame(clinstatus_f) # level 1 variable within clustering variable
 X <- cbind(1, data.frame(clinicalstatus_baseline, time, timesq)) # matrix modelling linearity of clinstatus throughout day 28
@@ -1188,14 +1189,8 @@ nimp<-30 # set number of iterations
 ## run jomo
 # dry run
 imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, nburn=2)
-# plot(c(1:2),imputed_int_mcmc$collectbeta[1,1,1:2],type="l")
-# plot(c(1:2),imputed_int_mcmc$collectcovu[5,5,1:2],type="l")
 set.seed(1569)
 imputed_int <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
-# nburn<-1000
-# imputed_int_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=nburn)
-# plot(c(1:nburn),imputed_int_mcmc$collectbeta[1,1,1:nburn],type="l")
-# plot(c(1:nburn),imputed_int_mcmc$collectcovu[5,5,1:nburn],type="l")
 
 # convert to jomo object, split imputations, and exclude original data (imputation "0")
 imp.list_int <- imputationList(split(imputed_int, imputed_int$Imputation)[-1])
@@ -1234,13 +1229,11 @@ colnames(Z)<-c("const", "time")
 
 nimp<-30 # set number of iterations
 
+# dry run
+imputed_cont_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, nburn=2)
 # run jomo
 set.seed(1569)
 imputed_cont <- jomo(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=1000, nbetween=1000, nimp=nimp)
-# nburn<-1000
-# imputed_cont_mcmc<-jomo.MCMCchain(Y=Y, Y2=Y2, X=X, Z=Z, clus=clus, nburn=nburn)
-# plot(c(1:nburn),imputed_cont_mcmc$collectbeta[1,1,1:nburn],type="l")
-# plot(c(1:nburn),imputed_cont_mcmc$collectcovu[5,5,1:nburn],type="l")
 
 # convert to jomo object, split imputations, and exclude original data (imputation "0")
 imp.list_cont <- imputationList(split(imputed_cont, imputed_cont$Imputation)[-1])
