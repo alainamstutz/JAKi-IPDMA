@@ -277,7 +277,7 @@ df_comorb_smoker <- df_substance_use_supp %>%
 df <- left_join(df, df_comorb_smoker[, c("comorb_smoker", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
 
 # the remaining missing have only NA in 1 comorb category => no evidence for comorbidity -> recode as 0
-table(df$PTHIMMSP)
+# table(df$PTHIMMSP)
 df <- df %>% 
   mutate(comorb_cancer = case_when(is.na(comorb_cancer) ~ 0,
                                 TRUE ~ c(comorb_cancer)),
