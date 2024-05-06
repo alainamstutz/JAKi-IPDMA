@@ -544,7 +544,6 @@ df <- left_join(df, df_sero[, c("sero", "id_pat")], by = join_by(id_pat == id_pa
 Discussion points:
 * Exclude the children
 
-
 # Endpoints
 ```{r echo=TRUE}
 #### FIRST, work on all the time to event data
@@ -965,6 +964,8 @@ df_ae <- df_sa %>%
   filter(SACAT == "COMPLICATIONS") %>% 
   filter(SAOCCUR == "Y")
 df_ae <- left_join(df_ae, df[, c("trt", "id_pat")], by = join_by(id_pat == id_pat))
+df_ae <- df_ae %>% 
+  filter(!is.na(trt)) # take out non-randomized participants
 
 # they are all within 28 days
 df_thrombo <- df_ae %>% # a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis)
@@ -2042,7 +2043,7 @@ summ(mort.28.comed.4, exp = T, confint = T, model.info = T, model.fit = F, digit
 # tab_model(mort.28.comed.1) # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
 # tab_model(mort.28.comed.2) # 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # tab_model(mort.28.comed.3) # 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
-# tab_model(mort.28.comed.4)# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only
+# tab_model(mort.28.comed.4) # 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only
 
 ```
 
@@ -2487,7 +2488,7 @@ result_list[[15]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Toc
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,2,1], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,3,1])
-result_list[[16]] <- extract_subgroup_results(mort.28.comed.3, "Tocilizumab, but no Dexa",
+result_list[[16]] <- extract_subgroup_results(mort.28.comed.4, "Tocilizumab, but no Dexa",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[4,2,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[4,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[4,2,1], 

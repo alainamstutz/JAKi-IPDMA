@@ -579,7 +579,6 @@ df <- left_join(df, df_sero[, c("sero", "id_pat")], by = join_by(id_pat == id_pa
 Discussion points:
 * Exclude the children
 
-
 # Endpoints
 
 ```r
@@ -1007,15 +1006,55 @@ df <- df %>%
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
 # re-discuss
 
-
 # (x) Adverse events of special interest within 28 days: a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis), b) secondary infections (bacterial pneumonia including ventilator-associated pneumonia, meningitis and encephalitis, endocarditis and bacteremia, invasive fungal infection including pulmonary aspergillosis), c) Reactivation of chronic infection including tuberculosis, herpes simplex, cytomegalovirus, herpes zoster and hepatitis B, d) serious cardiovascular and cardiac events (including stroke and myocardial infarction), e) events related to signs of bone marrow suppression (anemia, lymphocytopenia, thrombocytopenia, pancytopenia), f) malignancy, g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis), h) liver dysfunction/hepatotoxicity (grade 3 and 4)
+df_ae <- df_sa %>% 
+  filter(SACAT == "COMPLICATIONS") %>% 
+  filter(SAOCCUR == "Y")
+df_ae <- left_join(df_ae, df[, c("trt", "id_pat")], by = join_by(id_pat == id_pat))
+df_ae <- df_ae %>% 
+  filter(!is.na(trt)) # take out non-randomized participants
+
+# they are all within 28 days
+df_thrombo <- df_ae %>% # a) thromboembolic events (venous thromboembolism, pulmonary embolism, arterial thrombosis)
+  filter(SADECOD %in% c("Thrombosis", "Pulmonary embolism", "Deep venous thrombosis", "Arterial embolism")) %>% 
+  mutate(aesi = "thrombo")
+# df_sec_inf <- NA
+# df_reactivate <- NA
+df_cardiac <- df_ae %>% # d) serious cardiovascular and cardiac events (including stroke and myocardial infarction)
+  filter(SADECOD %in% c("Atrial arrhythmia", "Supraventricular tachycardia", "Ischemic stroke", "Ventricular tachycardia", "Ventricular fibrillation", "Myocardial infarction", "Atrioventricular block", "Cardiac arrhythmia")) %>% 
+  mutate(aesi = "cardiac")
+# df_penia <- NA
+# df_malig <- NA
+df_git_bl <- df_ae %>% # g) gastrointestinal perforation (incl. gastrointestinal bleeding/diverticulitis)
+  filter(SADECOD %in% c("Gastrointestinal hemorrhage", "Bleeding")) %>% 
+  mutate(aesi = "git_bl")
+# df_hepatox <- NA
+# df_mods <- NA
+
+df_aesi <- rbind(df_git_bl, df_cardiac, df_thrombo)
+df_aesi <- df_aesi %>%
+  rename(ae_desc = SADECOD) %>%
+  select(id_pat, trt, aesi, ae_desc)
+# table(df_aesi$trt, df_aesi$aesi)
+
+# double-check if there are any duplicate AEs within the same person and if it is the same event or distinct ones
+df_aesi <- df_aesi %>% 
+  group_by(id_pat) %>% 
+  mutate(duplicate_id = duplicated(ae_desc) & !is.na(ae_desc)) %>% 
+  ungroup()
+df_aesi <- df_aesi %>% 
+  filter(duplicate_id == F)
+# Save
+saveRDS(df_aesi, file = "df_aesi_recovery.RData")
+
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-
-# df_ae <- df %>% 
-#   select(id_pat, trt, x, ae_28_list, aesi_28)
-# # Save
-# saveRDS(df_ae, file = "df_ae_recovery.RData")
+df_ae <- df_ae %>%
+  rename(ae = SATERM,
+         ae_desc = SADECOD) %>%
+  select(id_pat, trt, ae, ae_desc)
+# Save
+saveRDS(df_ae, file = "df_ae_recovery.RData")
 ```
 Discussion points:
 * What was the maximum systematic follow-up of all study participants? According to protocol: 6months. But we only have until day 28
@@ -1733,11 +1772,11 @@ round(prop.table(table(df_imp_cont$mort_28, useNA = "always"))*100,1) # original
 #### Add trt back, change from long to wide format, and finally combine the two data frames
 imputed_int$trt <- 1
 imputed_int_s <- imputed_int %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sqsympdurtrunc, mort_28, sex, comorb_cat, sqcrptrunc, clinstatus_baseline, Imputation)
 
 imputed_cont$trt <- 0 # treatment variable
 imputed_cont_s <- imputed_cont %>% # remove imputation variables, not needed anymore
-  select(trt, age, sqsympdur, mort_28, sex, comorb_cat, sqcrptrunc, clinicalstatus_baseline, clus, Imputation)
+  select(trt, age, sqsympdurtrunc, mort_28, sex, comorb_cat, sqcrptrunc, clinstatus_baseline, Imputation)
 
 imputed_combined <- rbind(imputed_cont_s, imputed_int_s)
 
@@ -1988,7 +2027,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 # mort.28.mi <- imp.list %>%
 #   with(glm(mort_28 ~ trt
 #            + age
-#            + clinicalstatus_baseline
+#            + clinstatus_baseline
 #            , family = binomial)) %>%
 #         pool() %>%
 #         summary(conf.int = T, exponentiate = T)
@@ -2195,7 +2234,6 @@ summary(object = mort.28.cov.adj.ame, level = 0.95)
 ```r
 mort.28.ame <- summary(object = mort.28.cov.adj.ame, level = 0.95)
 ```
-Discussion point
 
 # (ii) Mortality at day 60
 
@@ -5896,7 +5934,7 @@ summ(mort.28.comed.4, exp = T, confint = T, model.info = T, model.fit = F, digit
 # tab_model(mort.28.comed.1) # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
 # tab_model(mort.28.comed.2) # 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # tab_model(mort.28.comed.3) # 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
-# tab_model(mort.28.comed.4)# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only
+# tab_model(mort.28.comed.4) # 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only
 ```
 
 # Subgroup analysis: Vaccination on adverse events
@@ -7006,6 +7044,16 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- exp(confint(model)["trt", ])
     se <- summary(model)$coefficients["trt", "Std. Error"]
     p_value <- summary(model)$coefficients["trt", "Pr(>|z|)"]
+  } else if (inherits(model, "summary.margins")) {
+    hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
+    ci <- c(model$lower, model$upper)
+    se <- model$SE
+    p_value <- model$p
+  } else if (inherits(model, "data.frame")) {
+    hazard_odds_ratio <- model$estimate[2]
+    ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
+    se <- model$std.error[2]
+    p_value <- model$p.value[2]
   } else if (inherits(model, "coxph")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -7018,11 +7066,6 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci <- c(exp(model$tidy$conf.low[1]), exp(model$tidy$conf.high[1]))
     se <- model$tidy$std.error[1]
     p_value <- model$tidy$p.value[1]
-  } else if (inherits(model, "summary.margins")) {
-    hazard_odds_ratio <- model$AME ### CAVE: this is not an HR or OR, but a marginal RD
-    ci <- c(model$lower, model$upper)
-    se <- model$SE
-    p_value <- model$p
   } else {
     stop("Unsupported model class")
   }
@@ -7336,7 +7379,7 @@ result_list[[15]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Toc
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,2,1], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,3,1])
-result_list[[16]] <- extract_subgroup_results(mort.28.comed.3, "Tocilizumab, but no Dexa",
+result_list[[16]] <- extract_subgroup_results(mort.28.comed.4, "Tocilizumab, but no Dexa",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[4,2,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[4,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[4,2,1], 
@@ -7391,30 +7434,30 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                                       | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial    |JAKi        |
-|:-----|:----------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:--------|:-----------|
-|trt   |High-flow or non-invasive, mechanical, or ECMO |         0.7051714| 0.5704914| 0.8708986|      0.1078700| 0.0012025|            242|               1113|       273|          1011|RECOVERY |Baricitinib |
-|trt1  |None or low-flow oxygen                        |         0.9130572| 0.7551250| 1.1038115|      0.0968063| 0.3474358|            271|               2948|       272|          2929|RECOVERY |Baricitinib |
-|trt2  |No oxygen                                      |         0.7830900| 0.3626356| 1.6668273|      0.3863765| 0.5268497|             15|                225|        19|           233|RECOVERY |Baricitinib |
-|trt3  |low-flow oxygen                                |         0.9178995| 0.7540459| 1.1171620|      0.1002336| 0.3927301|            256|               2723|       253|          2696|RECOVERY |Baricitinib |
-|trt4  |high-flow oxygen / NIV                         |         0.6961781| 0.5530496| 0.8754001|      0.1170969| 0.0019832|            204|                992|       230|           899|RECOVERY |Baricitinib |
-|trt5  |Mechanical ventilation / ECMO                  |         0.7466881| 0.4176651| 1.3297739|      0.2947054| 0.3215950|             38|                121|        43|           112|RECOVERY |Baricitinib |
-|trt6  |70 years and above                             |         0.9413563| 0.7691387| 1.1522282|      0.1030750| 0.5576692|            289|                985|       277|           904|RECOVERY |Baricitinib |
-|trt7  |below 70 years                                 |         0.7613837| 0.6285147| 0.9214499|      0.0975500| 0.0051956|            224|               3076|       268|          3036|RECOVERY |Baricitinib |
-|trt8  |No comorbidity                                 |         0.5900827| 0.4597569| 0.7550507|      0.1264554| 0.0000303|            133|               2154|       196|          2147|RECOVERY |Baricitinib |
-|trt9  |One comorbidity                                |         0.9026893| 0.7099810| 1.1474058|      0.1223753| 0.4028283|            192|               1276|       184|          1208|RECOVERY |Baricitinib |
-|trt10 |Multiple comorbidities                         |         1.0040793| 0.7728712| 1.3046520|      0.1334930| 0.9756714|            188|                631|       165|           585|RECOVERY |Baricitinib |
-|trt11 |No Dexa, no Tocilizumab                        |         0.7069704| 0.3239083| 1.5125246|      0.3905753| 0.3746294|             17|                163|        19|           176|RECOVERY |Baricitinib |
-|trt12 |Dexa and Tocilizumab                           |         0.6961076| 0.5456052| 0.8867254|      0.1238151| 0.0034364|            174|               1296|       209|          1257|RECOVERY |Baricitinib |
-|trt13 |Dexa, but no Tocilizumab                       |         0.8683616| 0.7231699| 1.0424523|      0.0932543| 0.1301347|            314|               2584|       313|          2491|RECOVERY |Baricitinib |
-|trt14 |Tocilizumab, but no Dexa                       |         0.8683616| 0.7231699| 1.0424523|      0.0932543| 0.1301347|              8|                 18|         4|            16|RECOVERY |Baricitinib |
-|trt15 |vaccinated                                     |         0.8843193| 0.6526309| 1.1979416|      0.1546928| 0.4267778|            263|               1726|       276|          1637|RECOVERY |Baricitinib |
-|trt16 |not vaccinated                                 |         0.9244622| 0.7224957| 1.1827268|      0.1256030| 0.5317556|            250|               2335|       269|          2303|RECOVERY |Baricitinib |
-|trt17 |More than 10 days                              |         0.7990657| 0.6269355| 1.0175678|      0.1234705| 0.0692590|            171|               1734|       184|          1662|RECOVERY |Baricitinib |
-|trt18 |Between 5-10 days                              |         0.7563059| 0.6083257| 0.9393367|      0.1107783| 0.0116910|            221|               1779|       244|          1761|RECOVERY |Baricitinib |
-|trt19 |5 days and less                                |         0.9395257| 0.6879729| 1.2828214|      0.1588092| 0.6944680|            121|                548|       117|           517|RECOVERY |Baricitinib |
-|trt20 |CRP 75 and higher                              |         0.8244370| 0.6810753| 0.9974766|      0.0972990| 0.0472405|            283|               2238|       308|          2220|RECOVERY |Baricitinib |
-|trt21 |CRP below 75                                   |         0.8182184| 0.6585040| 1.0160978|      0.1105972| 0.0696742|            225|               1766|       229|          1676|RECOVERY |Baricitinib |
+|      |variable                                       | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial    |JAKi        |
+|:-----|:----------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:--------|:-----------|
+|trt   |High-flow or non-invasive, mechanical, or ECMO |         0.7051714| 0.5704914|  0.8708986|      0.1078700| 0.0012025|            242|               1113|       273|          1011|RECOVERY |Baricitinib |
+|trt1  |None or low-flow oxygen                        |         0.9130572| 0.7551250|  1.1038115|      0.0968063| 0.3474358|            271|               2948|       272|          2929|RECOVERY |Baricitinib |
+|trt2  |No oxygen                                      |         0.7830900| 0.3626356|  1.6668273|      0.3863765| 0.5268497|             15|                225|        19|           233|RECOVERY |Baricitinib |
+|trt3  |low-flow oxygen                                |         0.9178995| 0.7540459|  1.1171620|      0.1002336| 0.3927301|            256|               2723|       253|          2696|RECOVERY |Baricitinib |
+|trt4  |high-flow oxygen / NIV                         |         0.6961781| 0.5530496|  0.8754001|      0.1170969| 0.0019832|            204|                992|       230|           899|RECOVERY |Baricitinib |
+|trt5  |Mechanical ventilation / ECMO                  |         0.7466881| 0.4176651|  1.3297739|      0.2947054| 0.3215950|             38|                121|        43|           112|RECOVERY |Baricitinib |
+|trt6  |70 years and above                             |         0.9413563| 0.7691387|  1.1522282|      0.1030750| 0.5576692|            289|                985|       277|           904|RECOVERY |Baricitinib |
+|trt7  |below 70 years                                 |         0.7613837| 0.6285147|  0.9214499|      0.0975500| 0.0051956|            224|               3076|       268|          3036|RECOVERY |Baricitinib |
+|trt8  |No comorbidity                                 |         0.5900827| 0.4597569|  0.7550507|      0.1264554| 0.0000303|            133|               2154|       196|          2147|RECOVERY |Baricitinib |
+|trt9  |One comorbidity                                |         0.9026893| 0.7099810|  1.1474058|      0.1223753| 0.4028283|            192|               1276|       184|          1208|RECOVERY |Baricitinib |
+|trt10 |Multiple comorbidities                         |         1.0040793| 0.7728712|  1.3046520|      0.1334930| 0.9756714|            188|                631|       165|           585|RECOVERY |Baricitinib |
+|trt11 |No Dexa, no Tocilizumab                        |         0.7069704| 0.3239083|  1.5125246|      0.3905753| 0.3746294|             17|                163|        19|           176|RECOVERY |Baricitinib |
+|trt12 |Dexa and Tocilizumab                           |         0.6961076| 0.5456052|  0.8867254|      0.1238151| 0.0034364|            174|               1296|       209|          1257|RECOVERY |Baricitinib |
+|trt13 |Dexa, but no Tocilizumab                       |         0.8683616| 0.7231699|  1.0424523|      0.0932543| 0.1301347|            314|               2584|       313|          2491|RECOVERY |Baricitinib |
+|trt14 |Tocilizumab, but no Dexa                       |         2.4876095| 0.5116709| 14.1863269|      0.8307323| 0.2726367|              8|                 18|         4|            16|RECOVERY |Baricitinib |
+|trt15 |vaccinated                                     |         0.8843193| 0.6526309|  1.1979416|      0.1546928| 0.4267778|            263|               1726|       276|          1637|RECOVERY |Baricitinib |
+|trt16 |not vaccinated                                 |         0.9244622| 0.7224957|  1.1827268|      0.1256030| 0.5317556|            250|               2335|       269|          2303|RECOVERY |Baricitinib |
+|trt17 |More than 10 days                              |         0.7990657| 0.6269355|  1.0175678|      0.1234705| 0.0692590|            171|               1734|       184|          1662|RECOVERY |Baricitinib |
+|trt18 |Between 5-10 days                              |         0.7563059| 0.6083257|  0.9393367|      0.1107783| 0.0116910|            221|               1779|       244|          1761|RECOVERY |Baricitinib |
+|trt19 |5 days and less                                |         0.9395257| 0.6879729|  1.2828214|      0.1588092| 0.6944680|            121|                548|       117|           517|RECOVERY |Baricitinib |
+|trt20 |CRP 75 and higher                              |         0.8244370| 0.6810753|  0.9974766|      0.0972990| 0.0472405|            283|               2238|       308|          2220|RECOVERY |Baricitinib |
+|trt21 |CRP below 75                                   |         0.8182184| 0.6585040|  1.0160978|      0.1105972| 0.0696742|            225|               1766|       229|          1676|RECOVERY |Baricitinib |
 
 ```r
 # Save
