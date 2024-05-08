@@ -314,8 +314,8 @@ df <- df %>%
 # group them for the subgroup analysis, according to protocol
 df <- df %>% # there are no missings in comed_dexa and comed_toci
   mutate(comed_cat = case_when(comed_dexa == 0 & comed_toci == 0 ~ 1, # patients without Dexa nor Toci
-                               comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexa and Toci
-                               comed_dexa == 1 & comed_toci == 0 ~ 3, # patients with Dexa but no Toci
+                               comed_dexa == 1 & comed_toci == 0 ~ 2, # patients with Dexa but no Toci
+                               comed_dexa == 1 & comed_toci == 1 ~ 3, # patients with Dexa and Toci
                                comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Toci but no Dexa
 # table(df$comed_toci, df$trt, useNA = "always") 
 
@@ -1445,7 +1445,7 @@ Covariate-Adjusted Analysis for Marginal Estimands based on https://arxiv.org/ab
 ```{r warning=FALSE}
 # unadjusted estimator for the (absolute) risk difference
 mort.28.prop.test <- prop.test(x = with(df, table(mort_28, trt)))
-print(mort.28.prop.test)
+# print(mort.28.prop.test)
 # Estimate
 -diff(mort.28.prop.test$estimate)
 # Confidence Interval
@@ -1988,8 +1988,8 @@ summ(mort.28.comorb.3, exp = T, confint = T, model.info = T, model.fit = F, digi
 # 4 comorbidity categories as numeric/continuous, i.e., linear interaction
 table(df$comed_cat, df$trt, useNA = "always")
 # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
-# 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
-# 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
 mort.28.comed <- df %>%
   glm(mort_28 ~ trt*comed_cat 
@@ -2017,7 +2017,7 @@ mort.28.comed.1 <- df %>%
 summ(mort.28.comed.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 mort.28.comed.2 <- df %>% 
-  filter(comed_cat == 2) %>% # Dexamethasone and Tocilizumab
+  filter(comed_cat == 2) %>% # Dexamethasone but no Tocilizumab
   glm(mort_28 ~ trt
       + age 
       + clinstatus_baseline
@@ -2025,7 +2025,7 @@ mort.28.comed.2 <- df %>%
 summ(mort.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 mort.28.comed.3 <- df %>% 
-  filter(comed_cat == 3) %>% # Dexamethasone but no Tocilizumab
+  filter(comed_cat == 3) %>% # Dexamethasone and Tocilizumab 
   glm(mort_28 ~ trt
       + age 
       + clinstatus_baseline
@@ -2041,8 +2041,8 @@ mort.28.comed.4 <- df %>%
 summ(mort.28.comed.4, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # tab_model(mort.28.comed.1) # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
-# tab_model(mort.28.comed.2) # 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
-# tab_model(mort.28.comed.3) # 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# tab_model(mort.28.comed.2) # 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only 
+# tab_model(mort.28.comed.3) # 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # tab_model(mort.28.comed.4) # 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only
 
 ```
@@ -2478,12 +2478,12 @@ result_list[[13]] <- extract_subgroup_results(mort.28.comed.1, "No Dexa, no Toci
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,1],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,1])
-result_list[[14]] <- extract_subgroup_results(mort.28.comed.2, "Dexa and Tocilizumab",
+result_list[[14]] <- extract_subgroup_results(mort.28.comed.2, "Dexa, but no Tocilizumab",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,1])
-result_list[[15]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Tocilizumab",
+result_list[[15]] <- extract_subgroup_results(mort.28.comed.3, "Dexa and Tocilizumab",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,2,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,2,1], 

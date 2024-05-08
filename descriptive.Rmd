@@ -484,10 +484,11 @@ kable(table_missing_trial, format = "markdown", table.attr = 'class="table"', ca
 
 
 ```
+
 # RUXCOVID
 ```{r}
 ## load RUXCOVID
-ruxcovid_baseline_table <- readRDS("table_baseline_ruxcovid.rds")
+ruxcovid_baseline_table <- readRDS("table_baseline_ruxcovid_07052024.rds")
 ruxcovid_all_table <- readRDS("table_missing_trial_ruxcovid.rds")
 
 #print

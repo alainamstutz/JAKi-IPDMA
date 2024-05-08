@@ -191,7 +191,6 @@ write_xlsx(df_tot, path = "df_tot.xlsx")
 
 ```
 
-
 # (i) Primary outcome: Mortality at day 28
 ```{r warning=FALSE}
 addmargins(table(df_tot$trial, df_tot$mort_28, useNA = "always"))
@@ -2053,6 +2052,7 @@ df_ctree <- df_ctree %>%
                              trial == "COVINIB" ~ 5,
                              trial == "COV-BARRIER" ~ 6,
                              trial == "RECOVERY" ~ 7,
+                           trial == "TACTIC-R" ~ 8,
                              # trial == "Murugesan" ~ 8
                              ))
 # summary(df_ctree)
@@ -2065,9 +2065,9 @@ D=df_ctree[,2] # treatment, binary, numeric
 X=as.matrix(df_ctree[,3:13]) # define covariates, all as numeric
 set.seed(1) # set seed
 het=build_aggtree(y=Y, D=D, X=X) # estimate effect heterogeneity based on tree
-# summary(het)
+summary(het)
 print(het)
-results <- inference_aggtree(het, n_groups = 15)
+results <- inference_aggtree(het, n_groups = 10)
 summary(results$model) # Coefficient of leafk is GATE in k-th leaf.
 # results$gates_diff_pairs$gates_diff # GATEs differences.
 # results$gates_diff_pairs$holm_pvalues # p-values

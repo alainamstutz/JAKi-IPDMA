@@ -125,8 +125,8 @@ df$comed_other <- df$Comed_other # no missing
 ## group them for the subgroup analysis, according to protocol
 df <- df %>% 
   mutate(comed_cat = case_when(comed_dexa == 0 & comed_toci == 0 ~ 1, # patients without Dexamethasone nor Tocilizumab
-                               comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexamethasone and Tocilizumab
-                               comed_dexa == 1 & comed_toci == 0 ~ 3, # patients with Dexamethasone but no Tocilizumab
+                               comed_dexa == 1 & comed_toci == 0 ~ 2, # patients with Dexamethasone but no Tocilizumab
+                               comed_dexa == 1 & comed_toci == 1 ~ 3, # patients with Dexamethasone and Tocilizumab
                                comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Tocilizumab but no Dexamethasone (if exist)
 
 # Comorbidity at baseline, including immunocompromised // no immunosupp in tofacov and few comorbidities
@@ -630,7 +630,7 @@ Table: By completeness (only mort_28)
 |comed_other (%)                   |0           |107 ( 97.3)           |3 (100.0)               |104 ( 97.2)           |1.000  |        |0.0     |
 |                                  |1           |3 (  2.7)             |0 (  0.0)               |3 (  2.8)             |       |        |        |
 |comed_cat (%)                     |1           |94 ( 85.5)            |2 ( 66.7)               |92 ( 86.0)            |0.916  |        |0.0     |
-|                                  |3           |16 ( 14.5)            |1 ( 33.3)               |15 ( 14.0)            |       |        |        |
+|                                  |2           |16 ( 14.5)            |1 ( 33.3)               |15 ( 14.0)            |       |        |        |
 |comorb_lung (%)                   |0           |92 ( 83.6)            |3 (100.0)               |89 ( 83.2)            |1.000  |        |0.0     |
 |                                  |1           |18 ( 16.4)            |0 (  0.0)               |18 ( 16.8)            |       |        |        |
 |comorb_liver (%)                  |0           |108 ( 98.2)           |3 (100.0)               |105 ( 98.1)           |1.000  |        |0.0     |
@@ -3612,14 +3612,14 @@ table(df$comed_cat, df$trt, useNA = "always")
 ##       
 ##         0  1 <NA>
 ##   1    50 44    0
-##   3     5 11    0
+##   2     5 11    0
 ##   <NA>  0  0    0
 ```
 
 ```r
 # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
-# 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
-# 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
 mort.28.comed <- df %>%
   glm(mort_28 ~ trt*comed_cat 
@@ -3666,10 +3666,10 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.30 </td>
+   <td style="text-align:right;"> 1961.90 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 1.00 </td>
   </tr>
   <tr>
@@ -3698,7 +3698,7 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
-   <td style="text-align:right;"> 8048.03 </td>
+   <td style="text-align:right;"> 64770856.97 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -3726,15 +3726,15 @@ summary(mort.28.comed.firth)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                             coef   se(coef)  lower 0.95 upper 0.95      Chisq
-## (Intercept)          -7.40651370 3.60523447 -18.9873036  0.1616539 3.64164701
-## trt                  -1.90476471 2.30181737  -9.4944853  2.5709132 0.64179075
-## comed_cat             0.41537116 0.79671733  -2.1091417  2.0353236 0.20636973
+## (Intercept)          -7.82188486 4.07686994 -20.5593414  1.0079766 2.96400814
+## trt                  -2.21491898 3.41476244 -12.6550342  4.8886871 0.37765224
+## comed_cat             0.83074231 1.59343465  -4.2182833  4.0706472 0.20636973
 ## age                   0.07139137 0.05638853  -0.0700562  0.2360478 0.94141714
 ## clinstatus_baseline3  0.20121738 1.35613493  -2.6736500  5.2193221 0.01505140
-## trt:comed_cat         0.31015427 1.21850548  -2.6059998  3.4524569 0.05662683
+## trt:comed_cat         0.62030854 2.43701097  -5.2119997  6.9049139 0.05662683
 ##                               p method
-## (Intercept)          0.05635116      2
-## trt                  0.42306308      2
+## (Intercept)          0.08513666      2
+## trt                  0.53886240      2
 ## comed_cat            0.64962777      2
 ## age                  0.33191366      2
 ## clinstatus_baseline3 0.90235721      2
@@ -3781,13 +3781,13 @@ summary(mort.28.comed.1)
 ```
 
 ```r
-mort.28.comed.3 <- df %>% 
-  filter(comed_cat == 3) %>% # with Dexamethasone but no Tocilizumab
+mort.28.comed.2 <- df %>% 
+  filter(comed_cat == 2) %>% # with Dexamethasone but no Tocilizumab
   logistf(mort_28 ~ trt
       + age 
       + clinstatus_baseline
       , data=.)
-summary(mort.28.comed.3)
+summary(mort.28.comed.2)
 ```
 
 ```
@@ -4760,7 +4760,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:comorb_cat            |comorbidity_firth         |      1.5083366| 0.0234199|  5.786072e+03|      1.2663027| 0.7880265|COVINIB |Baricitinib |
 |trt:comorb_count          |comorbidity_count_firth   |      1.4734268| 0.0715237|  4.455966e+01|      0.6844395| 0.6646862|COVINIB |Baricitinib |
 |trt:comorb_any            |comorbidity_any_firth     |      2.6114916| 0.0071795|  1.109685e+03|      2.2845963| 0.7167929|COVINIB |Baricitinib |
-|trt:comed_cat             |comedication_firth        |      1.3636355| 0.0738293|  3.157788e+01|      1.2185055| 0.8119091|COVINIB |Baricitinib |
+|trt:comed_cat             |comedication_firth        |      1.8595017| 0.0054508|  9.971626e+02|      2.4370110| 0.8119091|COVINIB |Baricitinib |
 |trt:vacc                  |vaccination on AEs_firth  |      1.0000000| 0.0000000| 1.774721e+204|      2.3995390| 0.9999999|COVINIB |Baricitinib |
 |trt:sympdur               |symptom duration_firth    |      1.2662547| 0.0574558|  1.069158e+02|      0.5252723| 0.7623855|COVINIB |Baricitinib |
 |trt:crp                   |crp_firth                 |      1.0215022| 0.9090829|  1.111718e+00|      0.0156007| 0.3665624|COVINIB |Baricitinib |
@@ -4888,7 +4888,7 @@ result_list[[13]] <- extract_subgroup_results(mort.28.comed.1, "No Dexa, no Toci
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,1],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,1])
-result_list[[14]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Tocilizumab_firth",
+result_list[[14]] <- extract_subgroup_results(mort.28.comed.2, "Dexa, but no Tocilizumab_firth",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1], 

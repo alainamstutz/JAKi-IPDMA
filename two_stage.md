@@ -49,10 +49,7 @@ df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
-df_ruxcovid <- readRDS("trt_effects_ruxcovid.RData")
-df_ruxcovid <- df_ruxcovid %>% 
-  mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib",
-                          TRUE ~ JAKi))
+df_ruxcovid <- readRDS("trt_effects_ruxcovid_07052024.RData")
 ```
 
 # Reshape dataframes for all treatment effect estimates
@@ -1436,13 +1433,19 @@ forest.meta(mort28.dimp,
 ![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 Discussion points:
 
-# (i.vii) Primary outcome: Multiple imputation / get ruxcovid
+# (i.vii) Primary outcome: Multiple imputation
 
 ```r
 df_mort28_mi <- readRDS("trt_effects_mi.RData")
+df_ruxcovid_mi <- readRDS("trt_effects_ruxcovid.RData")
+df_ruxcovid_mi <- df_ruxcovid_mi %>%
+  filter(variable == "death at day 28_mi") %>% 
+  mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib",
+                          TRUE ~ JAKi))
+df_mort28_mi <- rbind(df_mort28_mi, df_ruxcovid_mi)
+  
 # str(df_mort28_mi)
 # no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
-# check if rather preloading df_mort28_mi from folder!
 df_mort28_mi_add <- df_mort28_dimp %>% 
   filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
 df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
@@ -1471,36 +1474,37 @@ summary(mort28.mi)
 ## Review:     Average treatment effect, multiple imputation - mortality 28 days
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.6486 [0.3031;  1.3877]        6.6
-## ACTT-2        0.7344 [0.4147;  1.3007]       10.8
-## COV-BARRIER   0.5106 [0.3645;  0.7152]       23.7
-## RECOVERY      0.8118 [0.7040;  0.9361]       49.9
-## TACTIC-R      1.0507 [0.4769;  2.3152]        6.1
-## Ghazaeian     0.7909 [0.1654;  3.7807]        1.7
+## Bari-SolidAct 0.6486 [0.3031;  1.3877]        6.2
+## ACTT-2        0.7344 [0.4147;  1.3007]       10.3
+## COV-BARRIER   0.5106 [0.3645;  0.7152]       23.0
+## RECOVERY      0.8118 [0.7040;  0.9361]       49.8
+## TACTIC-R      1.0507 [0.4769;  2.3152]        5.8
+## RUXCOVID      1.3425 [0.3504;  5.1438]        2.1
+## Ghazaeian     0.7909 [0.1654;  3.7807]        1.6
 ## TOFACOV       2.5366 [0.1928; 33.3748]        0.6
 ## COVINIB       0.1822 [0.0127;  2.6082]        0.6
 ## 
-## Number of studies: k = 8
-## Number of observations: o = 11378
+## Number of studies: k = 9
+## Number of observations: o = 11802
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.7187 [0.5712; 0.9042] -3.40  0.0114
-## Prediction interval              [0.4780; 1.0805]              
+## Random effects model (HK) 0.7294 [0.5866; 0.9071] -3.34  0.0103
+## Prediction interval              [0.4989; 1.0665]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0168 [0.0000; 0.7748]; tau = 0.1295 [0.0000; 0.8802]
-##  I^2 = 21.8% [0.0%; 63.8%]; H = 1.13 [1.00; 1.66]
+##  tau^2 = 0.0155 [0.0000; 0.6079]; tau = 0.1244 [0.0000; 0.7797]
+##  I^2 = 17.0% [0.0%; 59.0%]; H = 1.10 [1.00; 1.56]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  8.95    7  0.2564
+##  9.64    8  0.2915
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 7)
-## - Prediction interval based on t-distribution (df = 6)
+## - Hartung-Knapp adjustment for random effects model (df = 8)
+## - Prediction interval based on t-distribution (df = 7)
 ```
 
 ```r
@@ -2757,7 +2761,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
 |death at day 28                            |         0.7178555| 0.5831638| 0.8836565|      0.0901127| 0.0062319|            665|               6019|       758|          5780|two-stage |
 |death at day 28_dimp                       |         0.7206331| 0.5854236| 0.8870704|      0.0901101| 0.0066288|            665|               6194|       758|          5921|two-stage |
-|death at day 28_mi                         |         0.7186714| 0.5711933| 0.9042272|      0.0971302| 0.0114251|            665|               6019|       758|          5780|two-stage |
+|death at day 28_mi                         |         0.7294225| 0.5865562| 0.9070865|      0.0945292| 0.0102675|            665|               6019|       758|          5780|two-stage |
 |death at day 28_agg                        |         0.6722419| 0.5554346| 0.8136136|      0.0895481| 0.0004820|            665|               6019|       758|          5780|two-stage |
 |death at day 60                            |         0.7727034| 0.6715877| 0.8890432|      0.0608197| 0.0028385|            697|               6008|       781|          5762|two-stage |
 |death within fup                           |         0.7898647| 0.6491622| 0.9610637|      0.0850732| 0.0241907|            699|               6119|       782|          5867|two-stage |
@@ -2843,7 +2847,7 @@ df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
-df_int_ruxcovid <- readRDS("int_effects_ruxcovid.RData")
+df_int_ruxcovid <- readRDS("int_effects_ruxcovid_07052024.RData")
 ```
 
 # Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint - and vacc.ae)
@@ -2974,7 +2978,7 @@ df_subgroup_tofacov <- readRDS("subgroup_effects_tofacov.RData")
 df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
 df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
 df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
-df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid.RData")
+df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_07052024.RData")
 ```
 
 # Reshape dataframes for all subgroup estimates
@@ -4487,30 +4491,32 @@ summary(comed.mort28)
 ## Review:     Treatment-covariate interaction on primary endpoint: Comedication
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.4922 [-1.2850; 2.2695]        1.4
-## ACTT-2                  0.3891 [-0.7393; 1.5175]        3.4
-## TOFACOV                 0.6425 [-1.7371; 3.0221]        0.8
-## COVINIB                 0.3102 [-2.0781; 2.6984]        0.8
-## COV-BARRIER             0.1782 [-0.3043; 0.6608]       18.7
-## RECOVERY                0.2301 [-0.0206; 0.4808]       69.1
-## TACTIC-R                0.1283 [-0.9479; 1.2045]        3.7
-## RUXCOVID                0.0806 [-1.3304; 1.4917]        2.2
+## Bari-SolidAct           1.0200 [-2.5015; 4.5416]        0.5
+## ACTT-2                  0.7782 [-1.4785; 3.0349]        1.1
+## TOFACOV                 1.2850 [-3.4743; 6.0442]        0.3
+## COVINIB                 0.6203 [-4.1561; 5.3968]        0.3
+## COV-BARRIER             0.3564 [-0.6087; 1.3215]        6.2
+## RECOVERY               -0.0576 [-0.3153; 0.2000]       87.3
+## TACTIC-R               -0.9218 [-2.9115; 1.0679]        1.5
+## RUXCOVID                0.0806 [-1.3304; 1.4917]        2.9
 ## 
 ## Number of studies: k = 8
 ## 
-##                              log(Ratio of OR)           95%-CI    t p-value
-## Random effects model (HK-CI)           0.2262 [0.0178; 0.4346] 2.13  0.0334
+##                              log(Ratio of OR)            95%-CI     t p-value
+## Random effects model (HK-CI)          -0.0208 [-0.2615; 0.2199] -0.17  0.8656
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
+##  tau^2 = 0 [0.0000; 0.3667]; tau = 0 [0.0000; 0.6056]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.40    7  0.9997
+##  2.65    7  0.9155
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
 ## - Hartung-Knapp adjustment for random effects model (df = )
 ```
 
@@ -5600,7 +5606,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |comorbidity         |          1.209|    1.029|    1.420|          0.082|   0.021|two-stage |
 |comorbidity count   |          1.096|    0.974|    1.234|          0.060|   0.128|two-stage |
 |any comorbidity     |          1.468|    1.108|    1.944|          0.143|   0.007|two-stage |
-|comedication        |          1.254|    1.018|    1.544|          0.106|   0.033|two-stage |
+|comedication        |          0.979|    0.770|    1.246|          0.123|   0.866|two-stage |
 |vaccination on AEs  |          0.993|    0.688|    1.434|          0.187|   0.971|two-stage |
 |symptom duration    |          0.999|    0.973|    1.026|          0.011|   0.953|two-stage |
 |crp                 |          1.000|    0.999|    1.001|          0.001|   0.912|two-stage |
@@ -5621,7 +5627,7 @@ df_aesi_tofacov <- readRDS("df_aesi_tofacov.RData")
 df_aesi_ghazaeian <- readRDS("df_aesi_ghazaeian.RData")
 df_aesi_recovery <- readRDS("df_aesi_recovery.RData")
 df_aesi_tactic_r <- readRDS("df_aesi_tactic-r.RData")
-# df_aesi_ruxcovid <- readRDS("df_aesi_ruxcovid.RData")
+df_aesi_ruxcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RUXCOVID/RUXCOVID_desc.xlsx", sheet = "RUXCOVID_AESI")
 
 df_aesi_actt2 <- df_aesi_actt2 %>%
   mutate(trial = "ACTT2") %>% 
@@ -5647,14 +5653,14 @@ df_aesi_recovery <- df_aesi_recovery %>%
 df_aesi_tactic_r <- df_aesi_tactic_r %>%
   mutate(trial = "TACTIC-R") %>% 
   select(trial, trt, aesi)
+df_aesi_ruxcovid <- df_aesi_ruxcovid %>%
+  mutate(trial = "RUXCOVID") %>% 
+  select(trial, trt, aesi)
 
-df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df_aesi_covinib, df_aesi_tofacov, df_aesi_ghazaeian, df_aesi_recovery, df_aesi_tactic_r)
+df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df_aesi_covinib, df_aesi_tofacov, df_aesi_ghazaeian, df_aesi_recovery, df_aesi_tactic_r, df_aesi_ruxcovid) # ADD NEW TRIALS
 
 # round(prop.table(table(df_aesi_tot$aesi, df_aesi_tot$trt),2)*100,0)
 # addmargins(table(df_aesi_tot$aesi, df_aesi_tot$trt))
-# df_aesi_tot %>% 
-#   filter(is.na(trt)) %>% 
-#   View()
 
 df_aesi_tot <- df_aesi_tot %>% 
   mutate(ARM = case_when(trt == 0 ~ "No JAK inhibitor",
@@ -5685,7 +5691,7 @@ df_ae_tofacov <- readRDS("df_ae_tofacov.RData")
 df_ae_ghazaeian <- readRDS("df_ae_ghazaeian.RData")
 df_ae_recovery <- readRDS("df_ae_recovery.RData")
 df_ae_tactic_r <- readRDS("df_ae_tactic-r.RData")
-# df_ae_ruxcovid <- readRDS("df_aesi_ruxcovid.RData")
+# df_ae_ruxcovid <- readRDS("df_aesi_ruxcovid.RData") # export from Virtual Desktop!
 
 df_ae_actt2 <- df_ae_actt2 %>%
   mutate(trial = "ACTT2") %>% 

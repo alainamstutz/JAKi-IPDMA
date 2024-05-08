@@ -333,8 +333,8 @@ df <- df %>%
 ## GROUP them for the subgroup analysis, according to protocol
 df <- df %>% # there are no missings in comed_dexa and comed_toci
   mutate(comed_cat = case_when(comed_dexa == 0 & comed_toci == 0 ~ 1, # patients without Dexa nor Toci
-                               comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexa and Toci
-                               comed_dexa == 1 & comed_toci == 0 ~ 3, # patients with Dexa but no Toci
+                               comed_dexa == 1 & comed_toci == 0 ~ 2, # patients with Dexa but no Toci
+                               comed_dexa == 1 & comed_toci == 1 ~ 3, # patients with Dexa and Toci
                                comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Toci but no Dexa
 # addmargins(table(df$comed_cat, df$trt, useNA = "always"))
 
@@ -1417,8 +1417,8 @@ Table: By completeness (only mort_28)
 |comed_other (%)                   |0                      |6 (  2.1)              |2 ( 14.3)             |4 (  1.5)              |0.022  |        |0.0     |
 |                                  |1                      |276 ( 97.9)            |12 ( 85.7)            |264 ( 98.5)            |       |        |        |
 |comed_cat (%)                     |1                      |36 ( 12.8)             |3 ( 21.4)             |33 ( 12.3)             |0.083  |        |0.0     |
-|                                  |2                      |12 (  4.3)             |2 ( 14.3)             |10 (  3.7)             |       |        |        |
-|                                  |3                      |234 ( 83.0)            |9 ( 64.3)             |225 ( 84.0)            |       |        |        |
+|                                  |2                      |234 ( 83.0)            |9 ( 64.3)             |225 ( 84.0)            |       |        |        |
+|                                  |3                      |12 (  4.3)             |2 ( 14.3)             |10 (  3.7)             |       |        |        |
 |comorb_lung (%)                   |0                      |201 ( 71.3)            |10 ( 71.4)            |191 ( 71.3)            |0.923  |        |1.1     |
 |                                  |1                      |78 ( 27.7)             |4 ( 28.6)             |74 ( 27.6)             |       |        |        |
 |                                  |NA                     |3 (  1.1)              |0 (  0.0)             |3 (  1.1)              |       |        |        |
@@ -5503,15 +5503,15 @@ table(df$comed_cat, df$trt, useNA = "always")
 ##       
 ##          0   1 <NA>
 ##   1     21  15    0
-##   2      7   5    0
-##   3    117 117    0
+##   2    117 117    0
+##   3      7   5    0
 ##   <NA>   0   0    0
 ```
 
 ```r
 # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
-# 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
-# 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
 mort.28.comed <- df %>%
   glm(mort_28 ~ trt*comed_cat 
@@ -5561,48 +5561,48 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -4.77 </td>
+   <td style="text-align:right;"> -4.67 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.57 </td>
-   <td style="text-align:right;"> 0.03 </td>
-   <td style="text-align:right;"> 10.81 </td>
-   <td style="text-align:right;"> -0.37 </td>
-   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 4.45 </td>
+   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> 207.34 </td>
+   <td style="text-align:right;"> 0.76 </td>
+   <td style="text-align:right;"> 0.45 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comed_cat </td>
-   <td style="text-align:right;"> 0.58 </td>
+   <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 0.26 </td>
-   <td style="text-align:right;"> 1.28 </td>
-   <td style="text-align:right;"> -1.36 </td>
-   <td style="text-align:right;"> 0.18 </td>
+   <td style="text-align:right;"> 4.31 </td>
+   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 0.94 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.12 </td>
-   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.17 </td>
-   <td style="text-align:right;"> 5.32 </td>
+   <td style="text-align:right;"> 5.24 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 2.99 </td>
-   <td style="text-align:right;"> 0.23 </td>
-   <td style="text-align:right;"> 38.40 </td>
-   <td style="text-align:right;"> 0.84 </td>
-   <td style="text-align:right;"> 0.40 </td>
+   <td style="text-align:right;"> 1.78 </td>
+   <td style="text-align:right;"> 0.15 </td>
+   <td style="text-align:right;"> 20.80 </td>
+   <td style="text-align:right;"> 0.46 </td>
+   <td style="text-align:right;"> 0.65 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 20.28 </td>
-   <td style="text-align:right;"> 1.56 </td>
-   <td style="text-align:right;"> 263.77 </td>
-   <td style="text-align:right;"> 2.30 </td>
-   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 11.51 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 132.36 </td>
+   <td style="text-align:right;"> 1.96 </td>
+   <td style="text-align:right;"> 0.05 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
@@ -5614,11 +5614,11 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
-   <td style="text-align:right;"> 1.14 </td>
-   <td style="text-align:right;"> 0.39 </td>
-   <td style="text-align:right;"> 3.34 </td>
-   <td style="text-align:right;"> 0.23 </td>
-   <td style="text-align:right;"> 0.82 </td>
+   <td style="text-align:right;"> 0.40 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 2.91 </td>
+   <td style="text-align:right;"> -0.91 </td>
+   <td style="text-align:right;"> 0.36 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -5690,19 +5690,19 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comed_cat_f2 </td>
-   <td style="text-align:right;"> 1.49 </td>
-   <td style="text-align:right;"> 0.14 </td>
-   <td style="text-align:right;"> 16.02 </td>
-   <td style="text-align:right;"> 0.33 </td>
-   <td style="text-align:right;"> 0.74 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_cat_f3 </td>
    <td style="text-align:right;"> 0.40 </td>
    <td style="text-align:right;"> 0.07 </td>
    <td style="text-align:right;"> 2.20 </td>
    <td style="text-align:right;"> -1.05 </td>
    <td style="text-align:right;"> 0.29 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_cat_f3 </td>
+   <td style="text-align:right;"> 1.49 </td>
+   <td style="text-align:right;"> 0.14 </td>
+   <td style="text-align:right;"> 16.02 </td>
+   <td style="text-align:right;"> 0.33 </td>
+   <td style="text-align:right;"> 0.74 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
@@ -5738,19 +5738,19 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat_f2 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:comed_cat_f3 </td>
    <td style="text-align:right;"> 1.05 </td>
    <td style="text-align:right;"> 0.11 </td>
    <td style="text-align:right;"> 9.68 </td>
    <td style="text-align:right;"> 0.04 </td>
    <td style="text-align:right;"> 0.97 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:comed_cat_f3 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -5849,69 +5849,13 @@ summ(mort.28.comed.1, exp = T, confint = T, model.info = T, model.fit = F, digit
 </table>
 
 ```r
-mort.28.comed.2.firth <- df %>% 
-  filter(comed_cat == 2) %>% # Dexamethasone and Tocilizumab
-  logistf(mort_28 ~ trt
+mort.28.comed.2 <- df %>% 
+  filter(comed_cat == 2) %>% # with Dexamethasone but no Tocilizumab 
+  glm(mort_28 ~ trt
       + age 
       + clinstatus_baseline
       , family = "binomial", data=.)
-tab_model(mort.28.comed.2.firth)
-```
-
-<table style="border-collapse:collapse; border:none;">
-<tr>
-<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">&nbsp;</th>
-<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">mort 28</th>
-</tr>
-<tr>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">Predictors</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">Odds Ratios</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">CI</td>
-<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">p</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">(Intercept)</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.14</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;1208.94</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.730</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trt</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.26</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;11.86</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.544</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.04</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.92&nbsp;&ndash;&nbsp;1.17</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.603</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline [4]</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.36</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;13.13</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.611</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">10</td>
-</tr>
-<tr>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">1.000</td>
-</tr>
-
-</table>
-
-```r
-mort.28.comed.3 <- df %>% 
-  filter(comed_cat == 3) %>% # with Dexamethasone but no Tocilizumab
-  glm(mort_28 ~ trt
-      + age 
-      + clinstatus_baseline 
-      , family = "binomial", data=.)
-summ(mort.28.comed.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+summ(mort.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -6000,6 +5944,62 @@ summ(mort.28.comed.3, exp = T, confint = T, model.info = T, model.fit = F, digit
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+mort.28.comed.3.firth <- df %>% 
+  filter(comed_cat == 3) %>% # Dexamethasone and Tocilizumab
+  logistf(mort_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+tab_model(mort.28.comed.3.firth)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">&nbsp;</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">mort 28</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">Predictors</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">Odds Ratios</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">CI</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">p</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">(Intercept)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.14</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;1208.94</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.730</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trt</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.26</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;11.86</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.544</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.04</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.92&nbsp;&ndash;&nbsp;1.17</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.603</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline [4]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.36</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;13.13</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.611</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">10</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">R<sup>2</sup></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">1.000</td>
+</tr>
+
 </table>
 
 ```r
@@ -7015,7 +7015,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:comorb_cat            |comorbidity         |      1.2511032| 0.4672406|  3.534220|      0.5099396| 0.6604311|TACTIC-R |Baricitinib |
 |trt:comorb_count          |comorbidity_count   |      1.0288121| 0.5968718|  1.776240|      0.2761055| 0.9180608|TACTIC-R |Baricitinib |
 |trt:comorb_any            |comorbidity_any     |      1.6654141| 0.1106514| 45.120711|      1.4142407| 0.7183464|TACTIC-R |Baricitinib |
-|trt:comed_cat             |comedication        |      1.1369016| 0.3841450|  3.394541|      0.5491111| 0.8152470|TACTIC-R |Baricitinib |
+|trt:comed_cat             |comedication        |      0.3978042| 0.0546930|  3.009177|      1.0151769| 0.3638705|TACTIC-R |Baricitinib |
 |trt:sympdur               |symptom duration    |      0.9948033| 0.8653390|  1.153885|      0.0721968| 0.9424687|TACTIC-R |Baricitinib |
 |trt:crp                   |crp                 |      1.0009004| 0.9896404|  1.012042|      0.0056165| 0.8726872|TACTIC-R |Baricitinib |
 
@@ -7143,12 +7143,12 @@ result_list[[13]] <- extract_subgroup_results(mort.28.comed.1, "No Dexa, no Toci
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,1],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,1])
-result_list[[14]] <- extract_subgroup_results(mort.28.comed.2.firth, "Dexa and Tocilizumab_firth",
+result_list[[14]] <- extract_subgroup_results(mort.28.comed.2, "Dexa, but no Tocilizumab", 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,1])
-result_list[[15]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Tocilizumab",
+result_list[[15]] <- extract_subgroup_results(mort.28.comed.3.firth, "Dexa and Tocilizumab_firth",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,2,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[3,2,1], 
@@ -7217,8 +7217,8 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt9  |Multiple comorbidities                         |         0.5950590| 0.1835300|     1.874364|      0.5848668| 0.3747864|             10|                 66|         8|            62|TACTIC-R |Baricitinib |
 |trt10 |Immunocompromised                              |         4.1181357| 0.3422433|   124.662502|      1.4124359| 0.3162958|              4|                 17|         4|            18|TACTIC-R |Baricitinib |
 |trt11 |No Dexa, no Tocilizumab                        |         1.4949575| 0.2191866|    10.832248|      0.9622551| 0.6760420|              4|                 14|         3|            19|TACTIC-R |Baricitinib |
-|trt12 |Dexa and Tocilizumab_firth                     |         0.2648583| 0.0002575|    17.256118|      1.9399011| 0.5439963|              0|                  3|         2|             7|TACTIC-R |Baricitinib |
-|trt13 |Dexa, but no Tocilizumab                       |         0.8410536| 0.3110521|     2.263746|      0.5011918| 0.7298113|             14|                113|        12|           112|TACTIC-R |Baricitinib |
+|trt12 |Dexa, but no Tocilizumab                       |         0.8410536| 0.3110521|     2.263746|      0.5011918| 0.7298113|             14|                113|        12|           112|TACTIC-R |Baricitinib |
+|trt13 |Dexa and Tocilizumab_firth                     |         0.2648583| 0.0002575|    17.256118|      1.9399011| 0.5439963|              0|                  3|         2|             7|TACTIC-R |Baricitinib |
 |trt14 |More than 10 days                              |         0.5045655| 0.1437220|     1.616668|      0.6080721| 0.2606055|              6|                 60|        10|            68|TACTIC-R |Baricitinib |
 |trt15 |Between 5-10 days                              |         1.2964431| 0.2556725|     7.048851|      0.8240088| 0.7527049|              6|                 44|         4|            51|TACTIC-R |Baricitinib |
 |trt16 |5 days and less                                |         0.7874688| 0.0836207|     6.826361|      1.0859700| 0.8258581|              6|                 24|         3|            19|TACTIC-R |Baricitinib |
@@ -7229,5 +7229,3 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(subgroup_df, file = "subgroup_effects_tactic-r.RData")
 ```
-Discussion points
-

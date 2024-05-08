@@ -138,8 +138,8 @@ df <- df %>% # no interferon used but monoclonal Abs and plasma -> other -> but 
 ## group them for the subgroup analysis, according to protocol // tocilizumab as rescue medication - incorporate?
 df <- df %>% 
   mutate(comed_cat = case_when(comed_dexa == 0 & comed_toci == 0 ~ 1, # patients without Dexamethasone nor Tocilizumab
-                               comed_dexa == 1 & comed_toci == 1 ~ 2, # patients with Dexamethasone and Tocilizumab
-                               comed_dexa == 1 & comed_toci == 0 ~ 3, # patients with Dexamethasone but no Tocilizumab
+                               comed_dexa == 1 & comed_toci == 0 ~ 2, # patients with Dexamethasone but no Tocilizumab
+                               comed_dexa == 1 & comed_toci == 1 ~ 3, # patients with Dexamethasone and Tocilizumab
                                comed_dexa == 0 & comed_toci == 1 ~ 4)) # patients with Tocilizumab but no Dexamethasone (if exist)
 
 # Comorbidity at baseline, including immunocompromised
@@ -790,8 +790,8 @@ Table: By completeness (only mort_28)
 |comed_interferon (%)              |0          |289 (100.0)           |12 (100.0)            |277 (100.0)           |NA     |        |0.0     |
 |comed_other (%)                   |0          |289 (100.0)           |12 (100.0)            |277 (100.0)           |NA     |        |0.0     |
 |comed_cat (%)                     |1          |18 (  6.2)            |5 ( 41.7)             |13 (  4.7)            |<0.001 |        |0.0     |
-|                                  |2          |1 (  0.3)             |0 (  0.0)             |1 (  0.4)             |       |        |        |
-|                                  |3          |270 ( 93.4)           |7 ( 58.3)             |263 ( 94.9)           |       |        |        |
+|                                  |2          |270 ( 93.4)           |7 ( 58.3)             |263 ( 94.9)           |       |        |        |
+|                                  |3          |1 (  0.3)             |0 (  0.0)             |1 (  0.4)             |       |        |        |
 |comorb_lung (%)                   |0          |233 ( 80.6)           |11 ( 91.7)            |222 ( 80.1)           |0.603  |        |1.4     |
 |                                  |1          |52 ( 18.0)            |1 (  8.3)             |51 ( 18.4)            |       |        |        |
 |                                  |NA         |4 (  1.4)             |0 (  0.0)             |4 (  1.4)             |       |        |        |
@@ -4456,15 +4456,15 @@ table(df$comed_cat, df$trt, useNA = "always")
 ##       
 ##          0   1 <NA>
 ##   1     10   8    0
-##   2      1   0    0
-##   3    133 137    0
+##   2    133 137    0
+##   3      1   0    0
 ##   <NA>   0   0    0
 ```
 
 ```r
 # 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
-# 2: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
-# 3: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
 mort.28.comed <- df %>%
   glm(mort_28 ~ trt*comed_cat 
@@ -4513,8 +4513,8 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -4.00 </td>
+   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> -3.39 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -4527,31 +4527,31 @@ summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits 
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comed_cat </td>
-   <td style="text-align:right;"> 1.26 </td>
-   <td style="text-align:right;"> 0.41 </td>
-   <td style="text-align:right;"> 3.84 </td>
-   <td style="text-align:right;"> 0.40 </td>
-   <td style="text-align:right;"> 0.69 </td>
+   <td style="text-align:right;"> 1.42 </td>
+   <td style="text-align:right;"> 0.17 </td>
+   <td style="text-align:right;"> 11.52 </td>
+   <td style="text-align:right;"> 0.32 </td>
+   <td style="text-align:right;"> 0.75 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.09 </td>
+   <td style="text-align:right;"> 1.10 </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.14 </td>
-   <td style="text-align:right;"> 4.85 </td>
+   <td style="text-align:right;"> 4.86 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 2.38 </td>
-   <td style="text-align:right;"> 0.95 </td>
-   <td style="text-align:right;"> 5.99 </td>
-   <td style="text-align:right;"> 1.84 </td>
+   <td style="text-align:right;"> 2.37 </td>
+   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> 5.98 </td>
+   <td style="text-align:right;"> 1.83 </td>
    <td style="text-align:right;"> 0.07 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
-   <td style="text-align:right;"> 1617.41 </td>
+   <td style="text-align:right;"> 2919628.30 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
@@ -4578,25 +4578,25 @@ summary(mort.28.comed.firth)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                             coef  se(coef)   lower 0.95 upper 0.95       Chisq
-## (Intercept)          -7.59978095 1.8296979 -11.76412689 -4.2554499 23.43143696
-## trt                  -1.82970178 2.6663666  -9.51161462  3.0641561  0.51516798
-## comed_cat             0.07745582 0.4804060  -0.77847806  1.2543306  0.02590497
-## age                   0.08718995 0.0178517   0.05341153  0.1251701 29.80359416
-## clinstatus_baseline5  0.86310162 0.4520432  -0.06444257  1.7469162  3.34548594
-## trt:comed_cat         0.49222362 0.9067796  -1.17637539  3.0690136  0.31506281
+##                            coef   se(coef)   lower 0.95 upper 0.95       Chisq
+## (Intercept)          -7.6063662 2.18594367 -12.87423709 -3.6085196 15.77785173
+## trt                  -2.3905050 3.53626904 -12.63725387  4.1651091  0.49200619
+## comed_cat             0.1196535 0.93147640  -1.58252207  2.4606640  0.01557517
+## age                   0.0871556 0.01783546   0.05338972  0.1251199 29.78175026
+## clinstatus_baseline5  0.8602417 0.45243127  -0.06769822  1.7445825  3.32141588
+## trt:comed_cat         1.0200219 1.79673620  -2.31209100  6.1699535  0.34089487
 ##                                 p method
-## (Intercept)          1.294458e-06      2
-## trt                  4.729102e-01      2
-## comed_cat            8.721326e-01      2
-## age                  4.781048e-08      2
-## clinstatus_baseline5 6.738958e-02      2
-## trt:comed_cat        5.745899e-01      2
+## (Intercept)          7.123151e-05      2
+## trt                  4.830338e-01      2
+## comed_cat            9.006815e-01      2
+## age                  4.835222e-08      2
+## clinstatus_baseline5 6.838291e-02      2
+## trt:comed_cat        5.593131e-01      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=34.20414 on 5 df, p=2.168254e-06, n=277
-## Wald test = 89.9832 on 5 df, p = 0
+## Likelihood ratio test=34.12838 on 5 df, p=2.244905e-06, n=277
+## Wald test = 90.0094 on 5 df, p = 0
 ```
 
 ```r
@@ -4664,19 +4664,19 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> comed_cat_f2 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 1.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_cat_f3 </td>
    <td style="text-align:right;"> 1.54 </td>
    <td style="text-align:right;"> 0.17 </td>
    <td style="text-align:right;"> 14.37 </td>
    <td style="text-align:right;"> 0.38 </td>
    <td style="text-align:right;"> 0.70 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_cat_f3 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 1.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
@@ -4696,19 +4696,19 @@ summ(mort.28.comed.f, exp = T, confint = T, model.info = T, model.fit = F, digit
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:comed_cat_f2 </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:comed_cat_f3 </td>
    <td style="text-align:right;"> 2672470.15 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.99 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:comed_cat_f3 </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
+   <td style="text-align:right;"> NA </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -4750,24 +4750,13 @@ summary(mort.28.comed.1.firth)
 ```
 
 ```r
-# mort.28.comed.2 <- df %>% 
-#   filter(comed_cat == 2) %>% # with Dexamethasone and Tocilizumab
-#   logistf(mort_28 ~ trt
-#      # + age 
-#      # + clinstatus_baseline 
-#      # + comed_dexa 
-#      # + comed_rdv 
-#      # + comed_toci
-#       , data=.)
-# summary(mort.28.comed.2)
-
-mort.28.comed.3 <- df %>% 
-  filter(comed_cat == 3) %>% # with Dexamethasone but no Tocilizumab
+mort.28.comed.2 <- df %>% 
+  filter(comed_cat == 2) %>% # with Dexamethasone but no Tocilizumab
   glm(mort_28 ~ trt
       + age 
       + clinstatus_baseline 
       , family = "binomial", data=.)
-summ(mort.28.comed.3, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+summ(mort.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
 
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -4841,6 +4830,19 @@ summ(mort.28.comed.3, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+```r
+# mort.28.comed.3 <- df %>%
+#   filter(comed_cat == 3) %>% # with Dexamethasone and Tocilizumab
+#   logistf(mort_28 ~ trt
+#      # + age
+#      # + clinstatus_baseline
+#      # + comed_dexa
+#      # + comed_rdv
+#      # + comed_toci
+#       , data=.)
+# summary(mort.28.comed.3)
+```
 Discussion points
 
 # Subgroup analysis: Vaccination on adverse events
@@ -6094,18 +6096,18 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                          |variable            | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial         |JAKi        |
-|:-------------------------|:-------------------|--------------:|---------:|---------:|--------------:|---------:|:-------------|:-----------|
-|trt:clinstatus_baseline_n |respiratory support |      0.2120952| 0.0216867|  1.492091|      1.0509098| 0.1400520|Bari-SolidAct |Baricitinib |
-|trt:vbaseline             |ventilation_firth   |      0.7731991| 0.0000000|  1.633974|      0.0717185| 0.2422306|Bari-SolidAct |Baricitinib |
-|trt:age                   |age                 |      1.0266420| 0.9543445|  1.108300|      0.0376993| 0.4855233|Bari-SolidAct |Baricitinib |
-|trt:comorb_cat            |comorbidity         |      1.0985344| 0.4298968|  2.902199|      0.4805639| 0.8449580|Bari-SolidAct |Baricitinib |
-|trt:comorb_count          |comorbidity_count   |      1.2400296| 0.7033591|  2.235382|      0.2921383| 0.4614777|Bari-SolidAct |Baricitinib |
-|trt:comorb_any            |comorbidity_any     |      0.8065627| 0.0781916|  8.310637|      1.1302683| 0.8491548|Bari-SolidAct |Baricitinib |
-|trt:comed_cat             |comedication_firth  |      1.6359499| 0.3083945| 21.520663|      0.9067796| 0.5745899|Bari-SolidAct |Baricitinib |
-|trt:vacc                  |vaccination on AEs  |      1.4025601| 0.4397817|  4.499607|      0.5914840| 0.5673559|Bari-SolidAct |Baricitinib |
-|trt:sympdur               |symptom duration    |      0.8094195| 0.6375130|  1.018851|      0.1184351| 0.0742183|Bari-SolidAct |Baricitinib |
-|trt:crp                   |crp                 |      1.0001293| 0.9949001|  1.003014|      0.0015382| 0.9330246|Bari-SolidAct |Baricitinib |
+|                          |variable            | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:-------------------------|:-------------------|--------------:|---------:|----------:|--------------:|---------:|:-------------|:-----------|
+|trt:clinstatus_baseline_n |respiratory support |      0.2120952| 0.0216867|   1.492091|      1.0509098| 0.1400520|Bari-SolidAct |Baricitinib |
+|trt:vbaseline             |ventilation_firth   |      0.7731991| 0.0000000|   1.633974|      0.0717185| 0.2422306|Bari-SolidAct |Baricitinib |
+|trt:age                   |age                 |      1.0266420| 0.9543445|   1.108300|      0.0376993| 0.4855233|Bari-SolidAct |Baricitinib |
+|trt:comorb_cat            |comorbidity         |      1.0985344| 0.4298968|   2.902199|      0.4805639| 0.8449580|Bari-SolidAct |Baricitinib |
+|trt:comorb_count          |comorbidity_count   |      1.2400296| 0.7033591|   2.235382|      0.2921383| 0.4614777|Bari-SolidAct |Baricitinib |
+|trt:comorb_any            |comorbidity_any     |      0.8065627| 0.0781916|   8.310637|      1.1302683| 0.8491548|Bari-SolidAct |Baricitinib |
+|trt:comed_cat             |comedication_firth  |      2.7732555| 0.0990539| 478.163891|      1.7967362| 0.5593131|Bari-SolidAct |Baricitinib |
+|trt:vacc                  |vaccination on AEs  |      1.4025601| 0.4397817|   4.499607|      0.5914840| 0.5673559|Bari-SolidAct |Baricitinib |
+|trt:sympdur               |symptom duration    |      0.8094195| 0.6375130|   1.018851|      0.1184351| 0.0742183|Bari-SolidAct |Baricitinib |
+|trt:crp                   |crp                 |      1.0001293| 0.9949001|   1.003014|      0.0015382| 0.9330246|Bari-SolidAct |Baricitinib |
 
 ```r
 # Save
@@ -6231,7 +6233,7 @@ result_list[[13]] <- extract_subgroup_results(mort.28.comed.1.firth, "No Dexa, n
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,2],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,2,1],
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[1,3,1])
-result_list[[14]] <- extract_subgroup_results(mort.28.comed.3, "Dexa, but no Tocilizumab",
+result_list[[14]] <- extract_subgroup_results(mort.28.comed.2, "Dexa, but no Tocilizumab",
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1], 
@@ -6298,7 +6300,7 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt7  |Multiple comorbidities                         |         0.7853308| 0.2645997|  2.2796711|      0.5431823| 0.6564074|              9|                 50|        10|            46|Bari-SolidAct |Baricitinib |
 |trt8  |Immunocompromised                              |         0.7264759| 0.0401836| 12.2615910|      1.3971732| 0.8190929|              2|                  5|         2|             4|Bari-SolidAct |Baricitinib |
 |trt9  |No Dexa, no Tocilizumab_firth                  |         0.3455477| 0.0018718| 21.3158124|      1.8492116| 0.5749819|              0|                  5|         1|             8|Bari-SolidAct |Baricitinib |
-|trt10 |Dexa, but no Tocilizumab                       |         0.6922707| 0.3127963|  1.5013292|      0.3974459| 0.3547818|              0|                  0|         0|             1|Bari-SolidAct |Baricitinib |
+|trt10 |Dexa, but no Tocilizumab                       |         0.6922707| 0.3127963|  1.5013292|      0.3974459| 0.3547818|             15|                132|        20|           131|Bari-SolidAct |Baricitinib |
 |trt11 |vaccinated                                     |         1.0153459| 0.3847503|  2.6899313|      0.4927174| 0.9753421|             11|                 49|         7|            49|Bari-SolidAct |Baricitinib |
 |trt12 |not vaccinated                                 |         0.7785301| 0.3932854|  1.5293443|      0.3451862| 0.4682963|              4|                 85|        14|            90|Bari-SolidAct |Baricitinib |
 |trt13 |More than 10 days                              |         0.0739507| 0.0033760|  0.5180141|      1.1898877| 0.0286156|              1|                 41|        10|            56|Bari-SolidAct |Baricitinib |
@@ -6311,4 +6313,3 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(subgroup_df, file = "subgroup_effects_barisolidact.RData")
 ```
-Discussion points

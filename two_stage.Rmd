@@ -47,10 +47,8 @@ df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
-df_ruxcovid <- readRDS("trt_effects_ruxcovid.RData")
-df_ruxcovid <- df_ruxcovid %>% 
-  mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib",
-                          TRUE ~ JAKi))
+df_ruxcovid <- readRDS("trt_effects_ruxcovid_07052024.RData")
+
 ```
 
 # Reshape dataframes for all treatment effect estimates
@@ -768,12 +766,18 @@ forest.meta(mort28.dimp,
 ```
 Discussion points:
 
-# (i.vii) Primary outcome: Multiple imputation / get ruxcovid
+# (i.vii) Primary outcome: Multiple imputation
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 df_mort28_mi <- readRDS("trt_effects_mi.RData")
+df_ruxcovid_mi <- readRDS("trt_effects_ruxcovid.RData")
+df_ruxcovid_mi <- df_ruxcovid_mi %>%
+  filter(variable == "death at day 28_mi") %>% 
+  mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib",
+                          TRUE ~ JAKi))
+df_mort28_mi <- rbind(df_mort28_mi, df_ruxcovid_mi)
+  
 # str(df_mort28_mi)
 # no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
-# check if rather preloading df_mort28_mi from folder!
 df_mort28_mi_add <- df_mort28_dimp %>% 
   filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
 df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
@@ -1522,7 +1526,7 @@ df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
-df_int_ruxcovid <- readRDS("int_effects_ruxcovid.RData")
+df_int_ruxcovid <- readRDS("int_effects_ruxcovid_07052024.RData")
 
 ```
 
@@ -1653,7 +1657,7 @@ df_subgroup_tofacov <- readRDS("subgroup_effects_tofacov.RData")
 df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
 df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
 df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
-df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid.RData")
+df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_07052024.RData")
 
 ```
 
@@ -3855,7 +3859,7 @@ df_aesi_tofacov <- readRDS("df_aesi_tofacov.RData")
 df_aesi_ghazaeian <- readRDS("df_aesi_ghazaeian.RData")
 df_aesi_recovery <- readRDS("df_aesi_recovery.RData")
 df_aesi_tactic_r <- readRDS("df_aesi_tactic-r.RData")
-# df_aesi_ruxcovid <- readRDS("df_aesi_ruxcovid.RData")
+df_aesi_ruxcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RUXCOVID/RUXCOVID_desc.xlsx", sheet = "RUXCOVID_AESI")
 
 df_aesi_actt2 <- df_aesi_actt2 %>%
   mutate(trial = "ACTT2") %>% 
@@ -3881,14 +3885,14 @@ df_aesi_recovery <- df_aesi_recovery %>%
 df_aesi_tactic_r <- df_aesi_tactic_r %>%
   mutate(trial = "TACTIC-R") %>% 
   select(trial, trt, aesi)
+df_aesi_ruxcovid <- df_aesi_ruxcovid %>%
+  mutate(trial = "RUXCOVID") %>% 
+  select(trial, trt, aesi)
 
-df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df_aesi_covinib, df_aesi_tofacov, df_aesi_ghazaeian, df_aesi_recovery, df_aesi_tactic_r)
+df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df_aesi_covinib, df_aesi_tofacov, df_aesi_ghazaeian, df_aesi_recovery, df_aesi_tactic_r, df_aesi_ruxcovid) # ADD NEW TRIALS
 
 # round(prop.table(table(df_aesi_tot$aesi, df_aesi_tot$trt),2)*100,0)
 # addmargins(table(df_aesi_tot$aesi, df_aesi_tot$trt))
-# df_aesi_tot %>% 
-#   filter(is.na(trt)) %>% 
-#   View()
 
 df_aesi_tot <- df_aesi_tot %>% 
   mutate(ARM = case_when(trt == 0 ~ "No JAK inhibitor",
@@ -3917,7 +3921,7 @@ df_ae_tofacov <- readRDS("df_ae_tofacov.RData")
 df_ae_ghazaeian <- readRDS("df_ae_ghazaeian.RData")
 df_ae_recovery <- readRDS("df_ae_recovery.RData")
 df_ae_tactic_r <- readRDS("df_ae_tactic-r.RData")
-# df_ae_ruxcovid <- readRDS("df_aesi_ruxcovid.RData")
+# df_ae_ruxcovid <- readRDS("df_aesi_ruxcovid.RData") # export from Virtual Desktop!
 
 df_ae_actt2 <- df_ae_actt2 %>%
   mutate(trial = "ACTT2") %>% 
