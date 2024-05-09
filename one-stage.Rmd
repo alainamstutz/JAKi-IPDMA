@@ -1887,104 +1887,102 @@ Discussion points
 
 # Forestplot subgroup - on primary endpoint
 ```{r, fig.width=16, fig.height=8}
-# str(subgroup_df)
-# foresplot 
-df_subgroup_mort28 <- subgroup_df %>% 
-  filter(variable != "vaccinated_firth" & variable != "not vaccinated")
-
-df_subgroup_mort28$inverse_variance <- 1 / df_subgroup_mort28$standard_error^2
-events_i <- df_subgroup_mort28$n_intervention
-tot_i <- df_subgroup_mort28$n_intervention_tot
-events_c <- df_subgroup_mort28$n_control
-tot_c <- df_subgroup_mort28$n_control_tot
-# p_int <- df_subgroup_mort28$p_value
-# p_int <- round(p_int,2)
-p_int <- c("0", "", "0", "", "", "", "0", "", "0", "", "", "", "0", "", "","","0", "", "", "0","") # from the two-stage models
-
-base_data <- tibble(mean = df_subgroup_mort28$hazard_odds_ratio,
-                    lower = df_subgroup_mort28$ci_lower,
-                    upper = df_subgroup_mort28$ci_upper,
-                    subgroup = c("Ventilation at baseline: High-flow or non-invasive ventilation, mechanical ventilation, ECMO",
-                                 "No ventilation at baseline: No or only low-flow oxygen",
-                                 "No oxygen",
-                                 "Only low-flow oxygen",
-                                 "High-flow or non-invasive ventilation",
-                                 "Mechanical ventilation or ECMO",
-                                 "70 years of age or older",
-                                 "Below 70 years of age",
-                                 "No comorbidity",
-                                 "One comorbidity",
-                                 "Multiple comorbidities",
-                                 "Immunocompromised",
-                                 "No Dexamethasone, no Tocilizumab",
-                                 "Dexamethasone and Tocilizumab",
-                                 "Dexamethasone, but no Tocilizumab",
-                                 "Tocilizumab, but no Dexamethasone",
-                                 "Enrolment more than 10 days after symptom onset",
-                                 "Enrolment between 5 and 10 days after symptom onset",
-                                 "Enrolment 5 days or earlier after symptom onset",
-                                 "C-reactive protein 75mg/L or more",
-                                 "C-reactive protein less than 75mg/L"),
-                    events_i = as.character(events_i),
-                    tot_i = as.character(tot_i),
-                    events_c = as.character(events_c),
-                    tot_c = as.character(tot_c),
-                    p_int = as.character(p_int))
-summary <- tibble(mean  = 0.69,
-                  lower = 0.54,
-                  upper = 0.88,
-                  subgroup = "Overall treatment effect",
-                  summary = TRUE)
-header <- tibble(subgroup = c("Treatment effect on 28-day mortality, by subgroup"),
-                 events_i = c("Events int."),
-                 tot_i = c("No. int."),
-                 events_c = c("Events cont."),
-                 tot_c = c("No. cont."),
-                 p_int = c("p-int*"),
-                 summary = TRUE)
-mort28_fp <- bind_rows(header,base_data,summary)
-font <- "sans"
-
-# Open a pdf file
-# pdf("mort28_fp.pdf", width=16, height=8)
-mort28_fp %>%
-  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
-             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
-                              ticks = gpar(cex=0.88),
-                              summary = gpar(cex=1),
-                              xlab = gpar(cex=0.88)),
-             # title = "Treatment effect on mortality at day 28 by subgroup",
-             is.summary = summary,
-             graph.pos = 6,
-             clip = c(0.1, 2),
-             hrzl_lines = list("2" = gpar(lty = 2),
-                               "4" = gpar(lty = 2),
-                               "8" = gpar(lty = 2),
-                               "10" = gpar(lty = 2),
-                               "14" = gpar(lty = 2),
-                               "18" = gpar(lty = 2),
-                               "21" = gpar(lty = 2),
-                               "23" = gpar(lty = 2)),
-             xlog = FALSE,
-             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
-             psize = sqrt(df_subgroup_mort28$inverse_variance),
-             lty.ci = c(1),
-             col = fpColors(box = "maroon4",
-                            line = "maroon1",
-                            summary = "magenta4",
-                            hrz_lines = "gray63"),
-             vertices = TRUE,
-             xlab = "     Favours JAKi <-> Favours No JAKi",
-             zero = 1,
-             grid = structure(c(0.69), gp = gpar(lty = 2, col = "gray63")),
-             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-             )
-
-# x <- unit(0.3, 'npc')
-# y <- unit(0.1, 'npc')
-# grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
-
-# dev.off()
+# df_subgroup_mort28 <- subgroup_df %>% 
+#   filter(variable != "vaccinated_firth" & variable != "not vaccinated")
+# 
+# df_subgroup_mort28$inverse_variance <- 1 / df_subgroup_mort28$standard_error^2
+# events_i <- df_subgroup_mort28$n_intervention
+# tot_i <- df_subgroup_mort28$n_intervention_tot
+# events_c <- df_subgroup_mort28$n_control
+# tot_c <- df_subgroup_mort28$n_control_tot
+# # p_int <- df_subgroup_mort28$p_value
+# # p_int <- round(p_int,2)
+# p_int <- c("0", "", "0", "", "", "", "0", "", "0", "", "", "", "0", "", "","","0", "", "", "0","") # from the two-stage models
+# 
+# base_data <- tibble(mean = df_subgroup_mort28$hazard_odds_ratio,
+#                     lower = df_subgroup_mort28$ci_lower,
+#                     upper = df_subgroup_mort28$ci_upper,
+#                     subgroup = c("Ventilation at baseline: High-flow or non-invasive ventilation, mechanical ventilation, ECMO",
+#                                  "No ventilation at baseline: No or only low-flow oxygen",
+#                                  "No oxygen",
+#                                  "Only low-flow oxygen",
+#                                  "High-flow or non-invasive ventilation",
+#                                  "Mechanical ventilation or ECMO",
+#                                  "70 years of age or older",
+#                                  "Below 70 years of age",
+#                                  "No comorbidity",
+#                                  "One comorbidity",
+#                                  "Multiple comorbidities",
+#                                  "Immunocompromised",
+#                                  "No Dexamethasone, no Tocilizumab",
+#                                  "Dexamethasone and Tocilizumab",
+#                                  "Dexamethasone, but no Tocilizumab",
+#                                  "Tocilizumab, but no Dexamethasone",
+#                                  "Enrolment more than 10 days after symptom onset",
+#                                  "Enrolment between 5 and 10 days after symptom onset",
+#                                  "Enrolment 5 days or earlier after symptom onset",
+#                                  "C-reactive protein 75mg/L or more",
+#                                  "C-reactive protein less than 75mg/L"),
+#                     events_i = as.character(events_i),
+#                     tot_i = as.character(tot_i),
+#                     events_c = as.character(events_c),
+#                     tot_c = as.character(tot_c),
+#                     p_int = as.character(p_int))
+# summary <- tibble(mean  = 0.69,
+#                   lower = 0.54,
+#                   upper = 0.88,
+#                   subgroup = "Overall treatment effect",
+#                   summary = TRUE)
+# header <- tibble(subgroup = c("Treatment effect on 28-day mortality, by subgroup"),
+#                  events_i = c("Events int."),
+#                  tot_i = c("No. int."),
+#                  events_c = c("Events cont."),
+#                  tot_c = c("No. cont."),
+#                  p_int = c("p-int*"),
+#                  summary = TRUE)
+# mort28_fp <- bind_rows(header,base_data,summary)
+# font <- "sans"
+# 
+# # Open a pdf file
+# # pdf("mort28_fp.pdf", width=16, height=8)
+# mort28_fp %>%
+#   forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+#                               ticks = gpar(cex=0.88),
+#                               summary = gpar(cex=1),
+#                               xlab = gpar(cex=0.88)),
+#              # title = "Treatment effect on mortality at day 28 by subgroup",
+#              is.summary = summary,
+#              graph.pos = 6,
+#              clip = c(0.1, 2),
+#              hrzl_lines = list("2" = gpar(lty = 2),
+#                                "4" = gpar(lty = 2),
+#                                "8" = gpar(lty = 2),
+#                                "10" = gpar(lty = 2),
+#                                "14" = gpar(lty = 2),
+#                                "18" = gpar(lty = 2),
+#                                "21" = gpar(lty = 2),
+#                                "23" = gpar(lty = 2)),
+#              xlog = FALSE,
+#              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
+#              psize = sqrt(df_subgroup_mort28$inverse_variance),
+#              lty.ci = c(1),
+#              col = fpColors(box = "maroon4",
+#                             line = "maroon1",
+#                             summary = "magenta4",
+#                             hrz_lines = "gray63"),
+#              vertices = TRUE,
+#              xlab = "     Favours JAKi <-> Favours No JAKi",
+#              zero = 1,
+#              grid = structure(c(0.69), gp = gpar(lty = 2, col = "gray63")),
+#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+#              )
+# 
+# # x <- unit(0.3, 'npc')
+# # y <- unit(0.1, 'npc')
+# # grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
+# 
+# # dev.off()
 
 
 ```
