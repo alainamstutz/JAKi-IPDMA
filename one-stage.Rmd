@@ -2067,7 +2067,7 @@ set.seed(1) # set seed
 het=build_aggtree(y=Y, D=D, X=X) # estimate effect heterogeneity based on tree
 summary(het)
 print(het)
-results <- inference_aggtree(het, n_groups = 10)
+results <- inference_aggtree(het, n_groups = 9)
 summary(results$model) # Coefficient of leafk is GATE in k-th leaf.
 # results$gates_diff_pairs$gates_diff # GATEs differences.
 # results$gates_diff_pairs$holm_pvalues # p-values
@@ -2080,3 +2080,18 @@ Notes: Nodes with predictions smaller (in our case: more effect on mortality) th
 Aggregation Trees: Nonparametric data-driven approach to discovering heterogeneous subgroups in a selection-on-observables framework, i.e. to define groups whereby each group has similar treatment effects, but across groups distinct differences in treatment effect. The approach constructs a sequence of groupings, one for each level of granularity. Groupings are nested and feature an optimality property. For each grouping, we obtain point estimation and standard errors for the group average treatment effects (GATEs). Additionally, we assess whether systematic heterogeneity is found by testing the hypotheses that the differences in the GATEs across all pairs of groups are zero. Finally, we investigate the driving mechanisms of effect heterogeneity by computing the average characteristics of units in each group. Aggregation trees are a three-step procedure. First, the conditional average treatment effects (CATEs) are estimated using any estimator. Second, a tree is grown to approximate the CATEs. Third, the tree is pruned to derive a nested sequence of optimal groupings, one for each granularity level. For each level of granularity, we can obtain point estimation and inference about the GATEs. Hypothesis testing: inference_aggtree uses the standard errors obtained by fitting the linear models above to test the hypotheses that the GATEs are different across all pairs of leaves. Here, we adjust p-values to account for multiple hypotheses testing using Holm’s procedure. inference_aggtree takes as input an aggTrees object constructed by build_aggtree. Then, for the desired granularity level, chosen via the n_groups argument, it provides point estimation and standard errors for the GATEs. Additionally, it performs some hypothesis testing to assess whether we find systematic heterogeneity and computes the average characteristics of the units in each group to investigate the driving mechanisms.
 
 https://riccardo-df.github.io/aggTrees/articles/aggTrees-vignette.html
+
+# Multivariate interaction
+```{r}
+x.mort28 <- glmmTMB(mort_28 ~ 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + trt_centered_n*age_centered
+                  # + trt_centered_n*comorb_cat_n
+                  , data = df_tot, family = binomial)
+summary(x.mort28)
+```
+
