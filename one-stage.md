@@ -7338,108 +7338,102 @@ Discussion points
 # Forestplot subgroup - on primary endpoint
 
 ```r
-# str(subgroup_df)
-# foresplot 
-df_subgroup_mort28 <- subgroup_df %>% 
-  filter(variable != "vaccinated_firth" & variable != "not vaccinated")
-
-df_subgroup_mort28$inverse_variance <- 1 / df_subgroup_mort28$standard_error^2
-events_i <- df_subgroup_mort28$n_intervention
-tot_i <- df_subgroup_mort28$n_intervention_tot
-events_c <- df_subgroup_mort28$n_control
-tot_c <- df_subgroup_mort28$n_control_tot
-# p_int <- df_subgroup_mort28$p_value
-# p_int <- round(p_int,2)
-p_int <- c("0", "", "0", "", "", "", "0", "", "0", "", "", "", "0", "", "","","0", "", "", "0","") # from the two-stage models
-
-base_data <- tibble(mean = df_subgroup_mort28$hazard_odds_ratio,
-                    lower = df_subgroup_mort28$ci_lower,
-                    upper = df_subgroup_mort28$ci_upper,
-                    subgroup = c("Ventilation at baseline: High-flow or non-invasive ventilation, mechanical ventilation, ECMO",
-                                 "No ventilation at baseline: No or only low-flow oxygen",
-                                 "No oxygen",
-                                 "Only low-flow oxygen",
-                                 "High-flow or non-invasive ventilation",
-                                 "Mechanical ventilation or ECMO",
-                                 "70 years of age or older",
-                                 "Below 70 years of age",
-                                 "No comorbidity",
-                                 "One comorbidity",
-                                 "Multiple comorbidities",
-                                 "Immunocompromised",
-                                 "No Dexamethasone, no Tocilizumab",
-                                 "Dexamethasone and Tocilizumab",
-                                 "Dexamethasone, but no Tocilizumab",
-                                 "Tocilizumab, but no Dexamethasone",
-                                 "Enrolment more than 10 days after symptom onset",
-                                 "Enrolment between 5 and 10 days after symptom onset",
-                                 "Enrolment 5 days or earlier after symptom onset",
-                                 "C-reactive protein 75mg/L or more",
-                                 "C-reactive protein less than 75mg/L"),
-                    events_i = as.character(events_i),
-                    tot_i = as.character(tot_i),
-                    events_c = as.character(events_c),
-                    tot_c = as.character(tot_c),
-                    p_int = as.character(p_int))
-summary <- tibble(mean  = 0.69,
-                  lower = 0.54,
-                  upper = 0.88,
-                  subgroup = "Overall treatment effect",
-                  summary = TRUE)
-header <- tibble(subgroup = c("Treatment effect on 28-day mortality, by subgroup"),
-                 events_i = c("Events int."),
-                 tot_i = c("No. int."),
-                 events_c = c("Events cont."),
-                 tot_c = c("No. cont."),
-                 p_int = c("p-int*"),
-                 summary = TRUE)
-mort28_fp <- bind_rows(header,base_data,summary)
-font <- "sans"
-
-# Open a pdf file
-# pdf("mort28_fp.pdf", width=16, height=8)
-mort28_fp %>%
-  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
-             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
-                              ticks = gpar(cex=0.88),
-                              summary = gpar(cex=1),
-                              xlab = gpar(cex=0.88)),
-             # title = "Treatment effect on mortality at day 28 by subgroup",
-             is.summary = summary,
-             graph.pos = 6,
-             clip = c(0.1, 2),
-             hrzl_lines = list("2" = gpar(lty = 2),
-                               "4" = gpar(lty = 2),
-                               "8" = gpar(lty = 2),
-                               "10" = gpar(lty = 2),
-                               "14" = gpar(lty = 2),
-                               "18" = gpar(lty = 2),
-                               "21" = gpar(lty = 2),
-                               "23" = gpar(lty = 2)),
-             xlog = FALSE,
-             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
-             psize = sqrt(df_subgroup_mort28$inverse_variance),
-             lty.ci = c(1),
-             col = fpColors(box = "maroon4",
-                            line = "maroon1",
-                            summary = "magenta4",
-                            hrz_lines = "gray63"),
-             vertices = TRUE,
-             xlab = "     Favours JAKi <-> Favours No JAKi",
-             zero = 1,
-             grid = structure(c(0.69), gp = gpar(lty = 2, col = "gray63")),
-             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-             )
-```
-
-![](one-stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
-
-```r
-# x <- unit(0.3, 'npc')
-# y <- unit(0.1, 'npc')
-# grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
-
-# dev.off()
+# df_subgroup_mort28 <- subgroup_df %>% 
+#   filter(variable != "vaccinated_firth" & variable != "not vaccinated")
+# 
+# df_subgroup_mort28$inverse_variance <- 1 / df_subgroup_mort28$standard_error^2
+# events_i <- df_subgroup_mort28$n_intervention
+# tot_i <- df_subgroup_mort28$n_intervention_tot
+# events_c <- df_subgroup_mort28$n_control
+# tot_c <- df_subgroup_mort28$n_control_tot
+# # p_int <- df_subgroup_mort28$p_value
+# # p_int <- round(p_int,2)
+# p_int <- c("0", "", "0", "", "", "", "0", "", "0", "", "", "", "0", "", "","","0", "", "", "0","") # from the two-stage models
+# 
+# base_data <- tibble(mean = df_subgroup_mort28$hazard_odds_ratio,
+#                     lower = df_subgroup_mort28$ci_lower,
+#                     upper = df_subgroup_mort28$ci_upper,
+#                     subgroup = c("Ventilation at baseline: High-flow or non-invasive ventilation, mechanical ventilation, ECMO",
+#                                  "No ventilation at baseline: No or only low-flow oxygen",
+#                                  "No oxygen",
+#                                  "Only low-flow oxygen",
+#                                  "High-flow or non-invasive ventilation",
+#                                  "Mechanical ventilation or ECMO",
+#                                  "70 years of age or older",
+#                                  "Below 70 years of age",
+#                                  "No comorbidity",
+#                                  "One comorbidity",
+#                                  "Multiple comorbidities",
+#                                  "Immunocompromised",
+#                                  "No Dexamethasone, no Tocilizumab",
+#                                  "Dexamethasone and Tocilizumab",
+#                                  "Dexamethasone, but no Tocilizumab",
+#                                  "Tocilizumab, but no Dexamethasone",
+#                                  "Enrolment more than 10 days after symptom onset",
+#                                  "Enrolment between 5 and 10 days after symptom onset",
+#                                  "Enrolment 5 days or earlier after symptom onset",
+#                                  "C-reactive protein 75mg/L or more",
+#                                  "C-reactive protein less than 75mg/L"),
+#                     events_i = as.character(events_i),
+#                     tot_i = as.character(tot_i),
+#                     events_c = as.character(events_c),
+#                     tot_c = as.character(tot_c),
+#                     p_int = as.character(p_int))
+# summary <- tibble(mean  = 0.69,
+#                   lower = 0.54,
+#                   upper = 0.88,
+#                   subgroup = "Overall treatment effect",
+#                   summary = TRUE)
+# header <- tibble(subgroup = c("Treatment effect on 28-day mortality, by subgroup"),
+#                  events_i = c("Events int."),
+#                  tot_i = c("No. int."),
+#                  events_c = c("Events cont."),
+#                  tot_c = c("No. cont."),
+#                  p_int = c("p-int*"),
+#                  summary = TRUE)
+# mort28_fp <- bind_rows(header,base_data,summary)
+# font <- "sans"
+# 
+# # Open a pdf file
+# # pdf("mort28_fp.pdf", width=16, height=8)
+# mort28_fp %>%
+#   forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+#                               ticks = gpar(cex=0.88),
+#                               summary = gpar(cex=1),
+#                               xlab = gpar(cex=0.88)),
+#              # title = "Treatment effect on mortality at day 28 by subgroup",
+#              is.summary = summary,
+#              graph.pos = 6,
+#              clip = c(0.1, 2),
+#              hrzl_lines = list("2" = gpar(lty = 2),
+#                                "4" = gpar(lty = 2),
+#                                "8" = gpar(lty = 2),
+#                                "10" = gpar(lty = 2),
+#                                "14" = gpar(lty = 2),
+#                                "18" = gpar(lty = 2),
+#                                "21" = gpar(lty = 2),
+#                                "23" = gpar(lty = 2)),
+#              xlog = FALSE,
+#              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
+#              psize = sqrt(df_subgroup_mort28$inverse_variance),
+#              lty.ci = c(1),
+#              col = fpColors(box = "maroon4",
+#                             line = "maroon1",
+#                             summary = "magenta4",
+#                             hrz_lines = "gray63"),
+#              vertices = TRUE,
+#              xlab = "     Favours JAKi <-> Favours No JAKi",
+#              zero = 1,
+#              grid = structure(c(0.69), gp = gpar(lty = 2, col = "gray63")),
+#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+#              )
+# 
+# # x <- unit(0.3, 'npc')
+# # y <- unit(0.1, 'npc')
+# # grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
+# 
+# # dev.off()
 ```
 * The p-values for the interaction were obtained using a two-stage IPDMA approach, i.e. solely based on within-trial interactions ("deft"): 
 First, to produce a treatment-covariate interaction estimate and its variance, a binomial regression was fitted in each trial separately, adjusted (where appropriate) for respiratory support and age, including the treatment and the treatment-covariate interaction, using restricted maximum likelihood estimation (with Firth penalisation correction in case of sparse data). 
@@ -7759,3 +7753,72 @@ Notes: Nodes with predictions smaller (in our case: more effect on mortality) th
 Aggregation Trees: Nonparametric data-driven approach to discovering heterogeneous subgroups in a selection-on-observables framework, i.e. to define groups whereby each group has similar treatment effects, but across groups distinct differences in treatment effect. The approach constructs a sequence of groupings, one for each level of granularity. Groupings are nested and feature an optimality property. For each grouping, we obtain point estimation and standard errors for the group average treatment effects (GATEs). Additionally, we assess whether systematic heterogeneity is found by testing the hypotheses that the differences in the GATEs across all pairs of groups are zero. Finally, we investigate the driving mechanisms of effect heterogeneity by computing the average characteristics of units in each group. Aggregation trees are a three-step procedure. First, the conditional average treatment effects (CATEs) are estimated using any estimator. Second, a tree is grown to approximate the CATEs. Third, the tree is pruned to derive a nested sequence of optimal groupings, one for each granularity level. For each level of granularity, we can obtain point estimation and inference about the GATEs. Hypothesis testing: inference_aggtree uses the standard errors obtained by fitting the linear models above to test the hypotheses that the GATEs are different across all pairs of leaves. Here, we adjust p-values to account for multiple hypotheses testing using Holm’s procedure. inference_aggtree takes as input an aggTrees object constructed by build_aggtree. Then, for the desired granularity level, chosen via the n_groups argument, it provides point estimation and standard errors for the GATEs. Additionally, it performs some hypothesis testing to assess whether we find systematic heterogeneity and computes the average characteristics of the units in each group to investigate the driving mechanisms.
 
 https://riccardo-df.github.io/aggTrees/articles/aggTrees-vignette.html
+
+# Multivariate interaction
+
+```r
+x.mort28 <- glmmTMB(mort_28 ~ 
+                  + trial_f # stratified intercept
+                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+                  + trt_centered_n*age_centered
+                  # + trt_centered_n*comorb_cat_n
+                  , data = df_tot, family = binomial)
+```
+
+```
+## dropping columns from rank-deficient conditional model: age_centered
+```
+
+```r
+summary(x.mort28)
+```
+
+```
+##  Family: binomial  ( logit )
+## Formula:          
+## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
+##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
+##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
+##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
+##     trt_centered_n * age_centered
+## Data: df_tot
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##   6877.2   7024.0  -3418.6   6837.2    11355 
+## 
+## Random effects:
+## 
+## Conditional model:
+##  Groups    Name                  Variance Std.Dev.
+##  trial_f   trt_centered_n        0.01249  0.1117  
+##  trial_f.1 clinstatus_baseline_n 0.79987  0.8944  
+## Number of obs: 11375, groups:  trial_f, 8
+## 
+## Conditional model:
+##                              Estimate Std. Error z value Pr(>|z|)    
+## trial_fACTT2                -7.407514   0.694539 -10.665  < 2e-16 ***
+## trial_fBari-Solidact        -5.255333   1.837709  -2.860  0.00424 ** 
+## trial_fCOV-BARRIER          -6.677950   0.428945 -15.568  < 2e-16 ***
+## trial_fCOVINIB              -5.411635   2.600950  -2.081  0.03747 *  
+## trial_fGhazaeian            -3.068381   2.576255  -1.191  0.23364    
+## trial_fRECOVERY             -6.212406   0.215230 -28.864  < 2e-16 ***
+## trial_fTACTIC-R             -6.302472   1.325578  -4.755 1.99e-06 ***
+## trial_fTOFACOV              -5.795649   2.816222  -2.058  0.03959 *  
+## age_cent_trial_1             0.088745   0.018398   4.823 1.41e-06 ***
+## age_cent_trial_2             0.055444   0.010531   5.265 1.41e-07 ***
+## age_cent_trial_3             0.028253   0.025098   1.126  0.26029    
+## age_cent_trial_4             0.069950   0.095553   0.732  0.46414    
+## age_cent_trial_5             0.122996   0.090870   1.354  0.17588    
+## age_cent_trial_6             0.064063   0.006941   9.230  < 2e-16 ***
+## age_cent_trial_7             0.079866   0.003018  26.466  < 2e-16 ***
+## age_cent_trial_8             0.102571   0.019682   5.211 1.88e-07 ***
+## trt_centered_n              -0.433884   0.116662  -3.719  0.00020 ***
+## age_centered                       NA         NA      NA       NA    
+## trt_centered_n:age_centered  0.010842   0.005057   2.144  0.03202 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
