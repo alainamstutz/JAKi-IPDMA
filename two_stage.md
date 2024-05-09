@@ -5419,26 +5419,26 @@ summary(comed.mort28)
 ## 
 ##               log(Ratio of OR)            95%-CI %W(random)
 ## Bari-SolidAct           1.0200 [-2.5015; 4.5416]        0.5
-## ACTT-2                  0.7782 [-1.4785; 3.0349]        1.1
+## ACTT-2                  0.7782 [-1.4785; 3.0349]        1.2
 ## TOFACOV                 1.2850 [-3.4743; 6.0442]        0.3
 ## COVINIB                 0.6203 [-4.1561; 5.3968]        0.3
-## COV-BARRIER             0.3564 [-0.6087; 1.3215]        6.2
-## RECOVERY               -0.0576 [-0.3153; 0.2000]       87.3
+## COV-BARRIER             0.3564 [-0.6087; 1.3215]        6.4
+## RECOVERY               -0.0576 [-0.3153; 0.2000]       89.2
 ## TACTIC-R               -0.9218 [-2.9115; 1.0679]        1.5
-## RUXCOVID                0.0806 [-1.3304; 1.4917]        2.9
+## RUXCOVID                0.1612 [-2.6609; 2.9833]        0.7
 ## 
 ## Number of studies: k = 8
 ## 
 ##                              log(Ratio of OR)            95%-CI     t p-value
-## Random effects model (HK-CI)          -0.0208 [-0.2615; 0.2199] -0.17  0.8656
+## Random effects model (HK-CI)          -0.0225 [-0.2659; 0.2209] -0.18  0.8565
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.3667]; tau = 0 [0.0000; 0.6056]
+##  tau^2 = 0 [0.0000; 0.3647]; tau = 0 [0.0000; 0.6039]
 ##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.65    7  0.9155
+##  2.64    7  0.9158
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -7007,7 +7007,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |comorbidity         |          1.209|    1.029|    1.420|          0.082|   0.021|two-stage |
 |comorbidity count   |          1.096|    0.974|    1.234|          0.060|   0.128|two-stage |
 |any comorbidity     |          1.468|    1.108|    1.944|          0.143|   0.007|two-stage |
-|comedication        |          0.979|    0.770|    1.246|          0.123|   0.866|two-stage |
+|comedication        |          0.978|    0.767|    1.247|          0.124|   0.856|two-stage |
 |vaccination on AEs  |          0.993|    0.688|    1.434|          0.187|   0.971|two-stage |
 |symptom duration    |          0.999|    0.973|    1.026|          0.011|   0.953|two-stage |
 |crp                 |          1.000|    0.999|    1.001|          0.001|   0.912|two-stage |
