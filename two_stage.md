@@ -2981,7 +2981,7 @@ df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
 df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_07052024.RData")
 ```
 
-# Reshape dataframes for all subgroup estimates
+# Reshape dataframes for subgroup estimates by trial
 
 ```r
 ### Create a list of all data frames / trials
@@ -3058,10 +3058,10 @@ for (df in list_subgroup_df) {
 ## Comedication
 outcomes1 <- "No Dexa, no Tocilizumab"
 outcomes1.firth <- "No Dexa, no Tocilizumab_firth"
-outcomes2 <- "Dexa and Tocilizumab"
-outcomes2.firth <- "Dexa and Tocilizumab_firth"
-outcomes3 <- "Dexa, but no Tocilizumab"
-outcomes3.firth <- "Dexa, but no Tocilizumab_firth"
+outcomes2 <- "Dexa, but no Tocilizumab"
+outcomes2.firth <- "Dexa, but no Tocilizumab_firth"
+outcomes3 <- "Dexa and Tocilizumab"
+outcomes3.firth <- "Dexa and Tocilizumab_firth"
 outcomes4 <- "Tocilizumab, but no Dexa"
 outcomes4.firth <- "Tocilizumab, but no Dexa_firth"
 # Initialize an empty data frame to store the selected rows
@@ -3119,6 +3119,270 @@ for (df in list_subgroup_df) {
   selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
                                  | variable == outcomes2 | variable == outcomes2.firth)
   df_sg_crp_mort28 <- rbind(df_sg_crp_mort28, selected_rows)
+}
+```
+
+# Reshape dataframes for each subgroup estimate
+
+```r
+## Respiratory support: No oxygen
+outcomes1 <- "No oxygen"
+outcomes1.firth <- "No oxygen_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_ox_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_ox_mort28 <- rbind(df_sg_no_ox_mort28, selected_rows)
+}
+
+## Respiratory support: low oxygen
+outcomes1 <- "low-flow oxygen"
+outcomes1.firth <- "low-flow oxygen_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_low_ox_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_low_ox_mort28 <- rbind(df_sg_low_ox_mort28, selected_rows)
+}
+
+## Respiratory support: niv
+outcomes1 <- "high-flow oxygen / NIV"
+outcomes1.firth <- "high-flow oxygen / NIV_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_niv_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_niv_mort28 <- rbind(df_sg_niv_mort28, selected_rows)
+}
+
+## Respiratory support: ecmo
+outcomes1 <- "Mechanical ventilation / ECMO"
+outcomes1.firth <- "Mechanical ventilation / ECMO_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_ecmo_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_ecmo_mort28 <- rbind(df_sg_ecmo_mort28, selected_rows)
+}
+
+
+## Ventilation: No ventilation
+outcomes1 <- "None or low-flow oxygen"
+outcomes1.firth <- "None or low-flow oxygen_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_vent_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_vent_mort28 <- rbind(df_sg_no_vent_mort28, selected_rows)
+}
+
+## Ventilation: Ventilation
+outcomes1 <- "High-flow or non-invasive, mechanical, or ECMO"
+outcomes1.firth <- "High-flow or non-invasive, mechanical, or ECMO_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_vent_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_vent_mort28 <- rbind(df_sg_vent_mort28, selected_rows)
+}
+
+
+## Age: 70 and above
+outcomes1 <- "70 years and above"
+outcomes1.firth <- "70 years and above_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_old_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_old_mort28 <- rbind(df_sg_old_mort28, selected_rows)
+}
+
+## Age: below 70
+outcomes1 <- "below 70 years"
+outcomes1.firth <- "below 70 years_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_young_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_young_mort28 <- rbind(df_sg_young_mort28, selected_rows)
+}
+
+
+## Comorbidity: No comorbidity
+outcomes1 <- "No comorbidity"
+outcomes1.firth <- "No comorbidity_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_comorb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_comorb_mort28 <- rbind(df_sg_no_comorb_mort28, selected_rows)
+}
+
+## Comorbidity: One comorbidity
+outcomes1 <- "One comorbidity"
+outcomes1.firth <- "One comorbidity_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_one_comorb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_one_comorb_mort28 <- rbind(df_sg_one_comorb_mort28, selected_rows)
+}
+
+## Comorbidity: Multiple comorbidities
+outcomes1 <- "Multiple comorbidities"
+outcomes1.firth <- "Multiple comorbidities_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_mult_comorb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_mult_comorb_mort28 <- rbind(df_sg_mult_comorb_mort28, selected_rows)
+}
+
+## Comorbidity: Immunosuppressed
+outcomes1 <- "Immunocompromised"
+outcomes1.firth <- "Immunocompromised_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_immun_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_immun_mort28 <- rbind(df_sg_immun_mort28, selected_rows)
+}
+
+
+## Comedication: No Dexa, no Tocilizumab
+outcomes1 <- "No Dexa, no Tocilizumab"
+outcomes1.firth <- "No Dexa, no Tocilizumab_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_comed_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_comed_mort28 <- rbind(df_sg_no_comed_mort28, selected_rows)
+}
+
+## Comedication: Dexa, but no Tocilizumab
+outcomes1 <- "Dexa, but no Tocilizumab"
+outcomes1.firth <- "Dexa, but no Tocilizumab_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_dexa_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_dexa_mort28 <- rbind(df_sg_dexa_mort28, selected_rows)
+}
+
+## Comedication: Dexa and Tocilizumab
+outcomes1 <- "Dexa and Tocilizumab"
+outcomes1.firth <- "Dexa and Tocilizumab_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_dexa_toci_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_dexa_toci_mort28 <- rbind(df_sg_dexa_toci_mort28, selected_rows)
+}
+
+## Comedication: Tocilizumab but no Dexa
+outcomes1 <- "Tocilizumab, but no Dexa"
+outcomes1.firth <- "Tocilizumab, but no Dexa_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_toci_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_toci_mort28 <- rbind(df_sg_toci_mort28, selected_rows)
+}
+
+
+## Symptom onset: More than 10 days
+outcomes1 <- "More than 10 days"
+outcomes1.firth <- "More than 10 days_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_m10_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_m10_mort28 <- rbind(df_sg_m10_mort28, selected_rows)
+}
+
+## Symptom onset: Between 5-10 days
+outcomes1 <- "Between 5-10 days"
+outcomes1.firth <- "Between 5-10 days_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_510_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_510_mort28 <- rbind(df_sg_510_mort28, selected_rows)
+}
+
+## Symptom onset: 5 days and less
+outcomes1 <- "5 days and less"
+outcomes1.firth <- "5 days and less_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_5_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_5_mort28 <- rbind(df_sg_5_mort28, selected_rows)
+}
+
+
+## CRP: Above 75
+outcomes1 <- "CRP 75 and higher"
+outcomes1.firth <- "CRP 75 and higher_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_crpabove75_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_crpabove75_mort28 <- rbind(df_sg_crpabove75_mort28, selected_rows)
+}
+
+## CRP: Below 75
+outcomes1 <- "CRP below 75"
+outcomes1.firth <- "CRP below 75_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_crpbelow75_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_crpbelow75_mort28 <- rbind(df_sg_crpbelow75_mort28, selected_rows)
+}
+
+
+## Vaccination on AEs: Vaccinated
+outcomes1 <- "vaccinated"
+outcomes1.firth <- "vaccinated_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_vaccyes_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_vaccyes_ae28 <- rbind(df_sg_vaccyes_ae28, selected_rows)
+}
+
+## Vaccination on AEs: Not Vaccinated
+outcomes1 <- "not vaccinated"
+outcomes1.firth <- "not vaccinated_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_vaccno_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_vaccno_ae28 <- rbind(df_sg_vaccno_ae28, selected_rows)
 }
 ```
 
@@ -3194,9 +3458,9 @@ forest.meta(rs.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
 
-# Subgroups: Respiratory support (proxy for disease severity) on primary endpoint
+# Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Descriptive by trial
 
 ```r
 # Calculate the inverse variance
@@ -3413,11 +3677,226 @@ forest(df_sg_rs_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
+
+# Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Pooled across trials
+
+```r
+# No oxygen
+rs.no.ox.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_ox_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(rs.no.ox.mort28)
+```
+
+```
+##                  OR             95%-CI %W(common)
+## ACTT-2       1.0920 [0.0416;  28.6849]        3.8
+## COV-BARRIER  0.2604 [0.0282;   2.4077]        8.2
+## COVINIB      1.4517 [0.0464;  45.3756]        3.4
+## TOFACOV      1.3918 [0.0481;  40.2481]        3.6
+## RECOVERY     0.7831 [0.3672;   1.6699]       71.1
+## TACTIC-R    19.3071 [0.5117; 728.5009]        3.1
+## RUXCOVID     1.0477 [0.0887;  12.3789]        6.7
+## 
+## Number of studies: k = 7
+## Number of observations: o = 43
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.8505 [0.4491; 1.6106] -0.50  0.6191
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 5.5856]; tau = 0 [0.0000; 2.3634]
+##  I^2 = 0.0% [0.0%; 70.8%]; H = 1.00 [1.00; 1.85]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  4.20    6  0.6496
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(rs.no.ox.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
+
+```r
+# low-flow oxygen
+rs.low.ox.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_low_ox_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(rs.low.ox.mort28)
+```
+
+```
+##                 OR            95%-CI %W(common)
+## ACTT-2      0.4214 [0.1445;  1.2287]        2.7
+## COV-BARRIER 0.6283 [0.3753;  1.0519]       11.8
+## COVINIB     0.1827 [0.0103;  3.2412]        0.4
+## TOFACOV     2.1913 [0.1262; 38.0562]        0.4
+## Ghazaeian   0.7909 [0.1655;  3.7805]        1.3
+## RECOVERY    0.9179 [0.7542;  1.1172]       81.2
+## TACTIC-R    0.7614 [0.1349;  4.2987]        1.0
+## RUXCOVID    1.6975 [0.3345;  8.6144]        1.2
+## 
+## Number of studies: k = 8
+## Number of observations: o = 622
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.8598 [0.7203; 1.0263] -1.67  0.0945
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0246 [0.0000; 1.0427]; tau = 0.1569 [0.0000; 1.0211]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  5.79    7  0.5651
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(rs.low.ox.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-37-2.png)<!-- -->
+
+```r
+# NIV
+rs.niv.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_niv_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(rs.niv.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        0.5655 [0.2103;  1.5205]        3.9
+## COV-BARRIER   0.4574 [0.2672;  0.7831]       13.3
+## Bari-SolidAct 0.8860 [0.3733;  2.1028]        5.1
+## RECOVERY      0.6962 [0.5534;  0.8758]       73.0
+## TACTIC-R      0.7355 [0.2852;  1.8962]        4.3
+## RUXCOVID      0.4864 [0.0162; 14.6213]        0.3
+## 
+## Number of studies: k = 6
+## Number of observations: o = 595
+## 
+##                         OR           95%-CI     z  p-value
+## Common effect model 0.6619 [0.5440; 0.8053] -4.12 < 0.0001
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.1927]; tau = 0 [0.0000; 0.4390]
+##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  2.61    5  0.7592
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(rs.niv.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-37-3.png)<!-- -->
+
+```r
+# ECMO
+rs.ecmo.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_ecmo_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(rs.ecmo.mort28)
+```
+
+```
+##                   OR           95%-CI %W(common)
+## ACTT-2        1.3802 [0.5170; 3.6847]       17.9
+## COV-BARRIER   0.4438 [0.1927; 1.0218]       24.9
+## Bari-SolidAct 0.2364 [0.0393; 1.4222]        5.4
+## RECOVERY      0.7467 [0.4191; 1.3304]       51.8
+## 
+## Number of studies: k = 4
+## Number of observations: o = 163
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.6886 [0.4543; 1.0437] -1.76  0.0787
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0496 [0.0000; 7.3343]; tau = 0.2228 [0.0000; 2.7082]
+##  I^2 = 32.3% [0.0%; 75.9%]; H = 1.22 [1.00; 2.04]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  4.43    3  0.2185
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(rs.ecmo.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-37-4.png)<!-- -->
 
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -3490,13 +3969,13 @@ forest.meta(vb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
 
-# Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint
+# Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint: Descriptive
 
 ```r
 # Calculate the inverse variance
@@ -3713,11 +4192,121 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
+
+# Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint: Pooled across trials
+
+```r
+# No ventilation
+no.vent.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_vent_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(no.vent.mort28)
+```
+
+```
+##                 OR            95%-CI %W(common)
+## ACTT-2      0.3916 [0.1349;  1.1368]        2.6
+## COV-BARRIER 0.5932 [0.3614;  0.9734]       11.9
+## COVINIB     0.1706 [0.0094;  3.1016]        0.3
+## TOFACOV     2.6388 [0.1509; 46.1597]        0.4
+## Ghazaeian   0.8256 [0.1729;  3.9416]        1.2
+## RECOVERY    0.9131 [0.7553;  1.1038]       81.0
+## TACTIC-R    1.4550 [0.2842;  7.4487]        1.1
+## RUXCOVID    1.4771 [0.3837;  5.6860]        1.6
+## 
+## Number of studies: k = 8
+## Number of observations: o = 665
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.8570 [0.7225; 1.0165] -1.77  0.0764
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0345 [0.0000; 1.5892]; tau = 0.1857 [0.0000; 1.2606]
+##  I^2 = 5.9% [0.0%; 69.5%]; H = 1.03 [1.00; 1.81]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  7.44    7  0.3847
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(no.vent.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
+
+```r
+# Ventilation
+vent.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_vent_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(vent.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        0.8593 [0.4413;  1.6734]        6.8
+## COV-BARRIER   0.4892 [0.3170;  0.7548]       16.1
+## Bari-SolidAct 0.6429 [0.3022;  1.3676]        5.3
+## RECOVERY      0.7052 [0.5708;  0.8712]       67.9
+## TACTIC-R      0.8532 [0.3382;  2.1525]        3.5
+## RUXCOVID      0.4864 [0.0162; 14.6213]        0.3
+## 
+## Number of studies: k = 6
+## Number of observations: o = 758
+## 
+##                         OR           95%-CI     z  p-value
+## Common effect model 0.6744 [0.5666; 0.8027] -4.43 < 0.0001
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.1818]; tau = 0 [0.0000; 0.4264]
+##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  3.08    5  0.6872
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(vent.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-40-2.png)<!-- -->
 
 # Interaction: Age on primary endpoint
 
@@ -3793,9 +4382,9 @@ forest.meta(age.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-41-1.png)<!-- -->
 
-# Subgroups: Age on primary endpoint
+# Subgroups: Age on primary endpoint: Descriptive
 
 ```r
 # Calculate the inverse variance
@@ -4012,11 +4601,125 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-42-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
+
+# Subgroups: Age on primary endpoint: Pooled across trials
+
+```r
+# Age 70 years or older
+age.above70.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_old_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(age.above70.mort28)
+```
+
+```
+##                   OR             95%-CI %W(common)
+## ACTT-2        0.6904 [0.2639;   1.8060]        3.4
+## COV-BARRIER   0.6487 [0.3824;   1.1005]       11.4
+## Bari-SolidAct 0.9118 [0.3189;   2.6069]        2.9
+## COVINIB       0.5556 [0.0082;  37.5625]        0.2
+## TOFACOV       0.6800 [0.0123;  37.7107]        0.2
+## Ghazaeian     3.5455 [0.1188; 105.8203]        0.3
+## RECOVERY      0.9414 [0.7692;   1.1521]       78.0
+## TACTIC-R      1.1695 [0.3822;   3.5787]        2.5
+## RUXCOVID      1.3829 [0.2462;   7.7685]        1.1
+## 
+## Number of studies: k = 9
+## Number of observations: o = 734
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.9023 [0.7549; 1.0786] -1.13  0.2590
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.0513]; tau = 0 [0.0000; 0.2266]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  3.10    8  0.9280
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(age.above70.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-43-1.png)<!-- -->
+
+```r
+# Age below 70 years
+age.below70.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_young_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(age.below70.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        0.6762 [0.3346;  1.3666]        5.4
+## COV-BARRIER   0.4610 [0.3005;  0.7073]       14.6
+## Bari-SolidAct 0.6336 [0.2161;  1.8583]        2.3
+## COVINIB       0.1924 [0.0110;  3.3653]        0.3
+## TOFACOV       3.0013 [0.1729; 52.0999]        0.3
+## Ghazaeian     0.5700 [0.1141;  2.8473]        1.0
+## RECOVERY      0.7614 [0.6289;  0.9218]       73.3
+## TACTIC-R      0.7340 [0.2362;  2.2812]        2.1
+## RUXCOVID      2.0882 [0.2304; 18.9276]        0.6
+## 
+## Number of studies: k = 9
+## Number of observations: o = 689
+## 
+##                         OR           95%-CI     z  p-value
+## Common effect model 0.7013 [0.5954; 0.8260] -4.25 < 0.0001
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0286 [0.0000; 0.7502]; tau = 0.1690 [0.0000; 0.8662]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  7.24    8  0.5112
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(age.below70.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-43-2.png)<!-- -->
 
 # Interaction: Comorbidity on primary endpoint
 
@@ -4093,7 +4796,7 @@ forest.meta(comorb.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-44-1.png)<!-- -->
 
 ```r
 ### SENS
@@ -4166,7 +4869,7 @@ forest.meta(comorb.count.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-40-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-44-2.png)<!-- -->
 
 ```r
 # str(df_comorb_any_mort28)
@@ -4238,9 +4941,9 @@ forest.meta(comorb.any.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-40-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-44-3.png)<!-- -->
 
-# Subgroups: Comorbidity on primary endpoint
+# Subgroups: Comorbidity on primary endpoint: Descriptive
 
 ```r
 # Calculate the inverse variance
@@ -4457,11 +5160,235 @@ forest(df_sg_comorb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-41-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-45-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
+
+# Subgroups: Comorbidity on primary endpoint: Pooled across trials
+
+```r
+# No comorbidity
+no.comorb.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_comorb_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(no.comorb.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        1.2952 [0.0855; 19.6131]        0.7
+## COV-BARRIER   0.5583 [0.2058;  1.5143]        5.5
+## Bari-SolidAct 0.7929 [0.0850;  7.4008]        1.1
+## COVINIB       0.0726 [0.0019;  2.8390]        0.4
+## TOFACOV       1.1018 [0.0585; 20.7441]        0.6
+## Ghazaeian     0.6585 [0.0545;  7.9515]        0.9
+## RECOVERY      0.5901 [0.4605;  0.7561]       89.3
+## TACTIC-R      0.4901 [0.0327;  7.3446]        0.7
+## RUXCOVID      1.0973 [0.0576; 20.8949]        0.6
+## 
+## Number of studies: k = 9
+## Number of observations: o = 366
+## 
+##                         OR           95%-CI     z  p-value
+## Common effect model 0.5930 [0.4692; 0.7496] -4.37 < 0.0001
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  2.02    8  0.9803
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+```
+
+```r
+forest.meta(no.comorb.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-46-1.png)<!-- -->
+
+```r
+# One comorbidity
+one.comorb.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_one_comorb_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(one.comorb.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        0.7249 [0.2337;  2.2484]        3.6
+## COV-BARRIER   0.6398 [0.3270;  1.2517]       10.3
+## Bari-SolidAct 0.7583 [0.1125;  5.1119]        1.3
+## COVINIB       0.8352 [0.0443; 15.7418]        0.5
+## TOFACOV       2.6426 [0.1674; 41.7124]        0.6
+## Ghazaeian     1.2592 [0.0451; 35.1269]        0.4
+## RECOVERY      0.9027 [0.7102;  1.1474]       81.0
+## TACTIC-R      1.4596 [0.2164;  9.8430]        1.3
+## RUXCOVID      2.4121 [0.2328; 24.9889]        0.9
+## 
+## Number of studies: k = 9
+## Number of observations: o = 460
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.8815 [0.7103; 1.0939] -1.14  0.2522
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.0826]; tau = 0 [0.0000; 0.2874]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  2.69    8  0.9525
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(one.comorb.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-46-2.png)<!-- -->
+
+```r
+# Multiple comorbidity
+mult.comorb.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_mult_comorb_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("TOFACOV", "COVINIB")
+                      )
+summary(mult.comorb.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common) exclude
+## ACTT-2        0.4953 [0.2382;  1.0303]        7.8        
+## COV-BARRIER   0.4352 [0.2829;  0.6696]       22.5        
+## Bari-SolidAct 0.7853 [0.2708;  2.2772]        3.7        
+## COVINIB       0.3561 [0.0220;  5.7711]        0.0       *
+## TOFACOV       0.3895 [0.0140; 10.8361]        0.0       *
+## Ghazaeian     0.3298 [0.0217;  5.0076]        0.6        
+## RECOVERY      1.0041 [0.7729;  1.3044]       61.0        
+## TACTIC-R      0.5951 [0.1891;  1.8724]        3.2        
+## RUXCOVID      0.9901 [0.1623;  6.0405]        1.3        
+## 
+## Number of studies: k = 7
+## Number of observations: o = 581
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.7624 [0.6215; 0.9353] -2.60  0.0093
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.1136 [0.0000; 0.4501]; tau = 0.3370 [0.0000; 0.6709]
+##  I^2 = 52.8% [0.0%; 79.9%]; H = 1.46 [1.00; 2.23]
+## 
+## Test of heterogeneity:
+##      Q d.f. p-value
+##  12.72    6  0.0477
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(mult.comorb.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-46-3.png)<!-- -->
+
+```r
+# Immunosuppressed
+immun.comorb.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_immun_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      )
+summary(immun.comorb.mort28)
+```
+
+```
+##                   OR             95%-CI %W(common)
+## ACTT-2        1.9815 [0.1023;  38.3933]       20.1
+## COV-BARRIER   1.2579 [0.0447;  35.3617]       15.9
+## Bari-SolidAct 0.7265 [0.0470;  11.2330]       23.6
+## COVINIB       1.0000 [0.0108;  92.4216]        8.6
+## Ghazaeian     9.0000 [0.0974; 831.7956]        8.6
+## TACTIC-R      4.1181 [0.2585;  65.6097]       23.1
+## 
+## Number of studies: k = 6
+## Number of observations: o = 16
+## 
+##                         OR           95%-CI    z p-value
+## Common effect model 1.8504 [0.4893; 6.9980] 0.91  0.3646
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 1.8374]; tau = 0 [0.0000; 1.3555]
+##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  1.36    5  0.9284
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(immun.comorb.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-46-4.png)<!-- -->
 
 # Interaction: Comedication on primary endpoint
 
@@ -4535,9 +5462,9 @@ forest.meta(comed.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-42-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-47-1.png)<!-- -->
 
-# Subgroups: Comedication on primary endpoint
+# Subgroups: Comedication on primary endpoint: Descriptive
 
 ```r
 # Calculate the inverse variance
@@ -4754,11 +5681,202 @@ forest(df_sg_comed_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-43-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-48-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
+
+# Subgroups: Comedication on primary endpoint: Pooled across trials
+
+```r
+# No comedication
+no.comed.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_comed_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(no.comed.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        0.6654 [0.3696;  1.1980]       43.1
+## COV-BARRIER   0.3813 [0.1530;  0.9503]       17.9
+## Bari-SolidAct 0.3455 [0.0092; 12.9587]        1.1
+## COVINIB       0.2037 [0.0142;  2.9320]        2.1
+## TOFACOV       0.7356 [0.0160; 33.9204]        1.0
+## RECOVERY      0.7070 [0.3288;  1.5201]       25.4
+## TACTIC-R      1.4950 [0.2268;  9.8560]        4.2
+## RUXCOVID      1.4644 [0.2691;  7.9679]        5.2
+## 
+## Number of studies: k = 8
+## Number of observations: o = 140
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.6390 [0.4344; 0.9401] -2.27  0.0230
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.8321]; tau = 0 [0.0000; 0.9122]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  3.84    7  0.7985
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(no.comed.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-49-1.png)<!-- -->
+
+```r
+# Dexa, but no Toci
+dexa.comed.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_dexa_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(dexa.comed.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        2.9175 [0.2253; 37.7799]        0.4
+## COV-BARRIER   0.5379 [0.3736;  0.7745]       18.3
+## Bari-SolidAct 0.6923 [0.3177;  1.5086]        4.0
+## COVINIB       0.6005 [0.0158; 22.8582]        0.2
+## TOFACOV       2.5608 [0.1937; 33.8592]        0.4
+## Ghazaeian     0.7909 [0.1654;  3.7807]        1.0
+## RECOVERY      0.8684 [0.7233;  1.0425]       72.8
+## TACTIC-R      0.8411 [0.3149;  2.2462]        2.5
+## RUXCOVID      1.7042 [0.1750; 16.5979]        0.5
+## 
+## Number of studies: k = 9
+## Number of observations: o = 886
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.7956 [0.6807; 0.9298] -2.87  0.0040
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0376 [0.0000; 0.3915]; tau = 0.1939 [0.0000; 0.6257]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  7.67    8  0.4659
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(dexa.comed.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-49-2.png)<!-- -->
+
+```r
+# Dexa and Toci
+dexa.toci.comed.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_dexa_toci_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(dexa.toci.comed.mort28)
+```
+
+```
+##              OR            95%-CI %W(common)
+## RECOVERY 0.6961 [0.5461;  0.8873]       99.6
+## TACTIC-R 0.2649 [0.0059; 11.8648]        0.4
+## 
+## Number of studies: k = 2
+## Number of observations: o = 385
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.6934 [0.5442; 0.8834] -2.96  0.0030
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0; tau = 0; I^2 = 0.0%; H = 1.00
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  0.25    1  0.6191
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+```
+
+```r
+forest.meta(dexa.toci.comed.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-49-3.png)<!-- -->
+
+```r
+# No dexa, but toci
+toci.comed.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_toci_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(toci.comed.mort28)
+```
+
+```
+## Number of observations: o = 12
+## 
+##              OR            95%-CI    z p-value
+## RECOVERY 2.4876 [0.4883; 12.6737] 1.10  0.2726
+```
+
+```r
+forest.meta(toci.comed.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-49-4.png)<!-- -->
 
 # Interaction: Vaccination on AEs
 
@@ -4827,7 +5945,7 @@ forest.meta(vacc.ae28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-44-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-50-1.png)<!-- -->
 
 # Subgroups: Vaccination on AEs
 
@@ -4935,7 +6053,7 @@ forest(df_sg_vacc_ae28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-45-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-51-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -5013,9 +6131,9 @@ forest.meta(symp.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-46-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-52-1.png)<!-- -->
 
-# Subgroups: Symptom onset on primary endpoint
+# Subgroups: Symptom onset on primary endpoint: Descriptive
 
 ```r
 # Calculate the inverse variance
@@ -5232,11 +6350,180 @@ forest(df_sg_symp_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-47-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-53-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
+
+# Subgroups: Symptom onset on primary endpoint: Pooled across trials
+
+```r
+# Enrolment more than 10 days after symptom onset
+sympdur.m10.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_m10_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(sympdur.m10.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        0.5058 [0.1104;  2.3172]        1.9
+## COV-BARRIER   0.4370 [0.2673;  0.7142]       18.0
+## Bari-SolidAct 0.0740 [0.0072;  0.7617]        0.8
+## TOFACOV       0.7397 [0.0210; 26.0892]        0.3
+## Ghazaeian     2.9024 [0.1123; 74.9911]        0.4
+## RECOVERY      0.7991 [0.6273;  1.0178]       74.1
+## TACTIC-R      0.5046 [0.1532;  1.6615]        3.1
+## RUXCOVID      1.2047 [0.2129;  6.8161]        1.4
+## 
+## Number of studies: k = 8
+## Number of observations: o = 507
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.6953 [0.5645; 0.8563] -3.42  0.0006
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0824 [0.0000; 2.8465]; tau = 0.2870 [0.0000; 1.6872]
+##  I^2 = 28.8% [0.0%; 68.1%]; H = 1.18 [1.00; 1.77]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  9.83    7  0.1987
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(sympdur.m10.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-54-1.png)<!-- -->
+
+```r
+# Enrolment between 5 and 10 days after symptom onset
+sympdur.510.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_510_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(sympdur.510.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        0.7311 [0.3360;  1.5909]        5.9
+## COV-BARRIER   0.6140 [0.3640;  1.0356]       13.0
+## Bari-SolidAct 1.0123 [0.3099;  3.3064]        2.5
+## COVINIB       0.3212 [0.0220;  4.6848]        0.5
+## TOFACOV       2.2140 [0.1700; 28.8346]        0.5
+## Ghazaeian     0.4834 [0.0410;  5.7064]        0.6
+## RECOVERY      0.7563 [0.6087;  0.9397]       75.2
+## TACTIC-R      1.2964 [0.2578;  6.5186]        1.4
+## RUXCOVID      1.6878 [0.1161; 24.5438]        0.5
+## 
+## Number of studies: k = 9
+## Number of observations: o = 618
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.7477 [0.6194; 0.9026] -3.03  0.0025
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.1284]; tau = 0 [0.0000; 0.3584]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  2.80    8  0.9462
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(sympdur.510.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-54-2.png)<!-- -->
+
+```r
+# Enrolment less than 5 days after symptom onset
+sympdur.5.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_5_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(sympdur.5.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        0.7105 [0.2317;  2.1788]        6.3
+## COV-BARRIER   0.3162 [0.0922;  1.0847]        5.2
+## Bari-SolidAct 1.6344 [0.2845;  9.3901]        2.6
+## COVINIB       0.2792 [0.0177;  4.3940]        1.0
+## TOFACOV       0.9634 [0.0472; 19.6721]        0.9
+## Ghazaeian     0.5675 [0.0204; 15.7584]        0.7
+## RECOVERY      0.9395 [0.6882;  1.2826]       81.2
+## TACTIC-R      0.7875 [0.0937;  6.6163]        1.7
+## RUXCOVID      0.1098 [0.0012;  9.9632]        0.4
+## 
+## Number of studies: k = 9
+## Number of observations: o = 298
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.8612 [0.6506; 1.1402] -1.04  0.2967
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0255 [0.0000; 0.6431]; tau = 0.1598 [0.0000; 0.8019]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  4.98    8  0.7593
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(sympdur.5.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-54-3.png)<!-- -->
 
 # Interaction: CRP on primary endpoint
 
@@ -5310,9 +6597,9 @@ forest.meta(crp.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-48-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-55-1.png)<!-- -->
 
-# Subgroups: CRP on primary endpoint
+# Subgroups: CRP on primary endpoint: Descriptive
 
 ```r
 # Calculate the inverse variance
@@ -5529,11 +6816,125 @@ forest(df_sg_crp_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-49-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-56-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
+
+# Subgroups: CRP on primary endpoint: Pooled across trials
+
+```r
+# CRP above 75
+crp.above75.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_crpabove75_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(crp.above75.mort28)
+```
+
+```
+##                   OR             95%-CI %W(common)
+## ACTT-2        0.5400 [0.2852;   1.0224]        6.6
+## COV-BARRIER   0.5539 [0.3364;   0.9120]       10.9
+## Bari-SolidAct 0.8155 [0.3179;   2.0917]        3.0
+## COVINIB       0.2566 [0.0160;   4.1244]        0.4
+## TOFACOV       1.0000 [0.0013; 781.1913]        0.1
+## Ghazaeian     0.5965 [0.0442;   8.0586]        0.4
+## RECOVERY      0.8244 [0.6813;   0.9977]       74.4
+## TACTIC-R      0.8409 [0.3433;   2.0597]        3.4
+## RUXCOVID      1.1965 [0.2099;   6.8222]        0.9
+## 
+## Number of studies: k = 9
+## Number of observations: o = 801
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.7664 [0.6502; 0.9034] -3.17  0.0015
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0132 [0.0000; 0.0689]; tau = 0.1149 [0.0000; 0.2626]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  4.30    8  0.8295
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(crp.above75.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-57-1.png)<!-- -->
+
+```r
+# CRP below 75
+crp.below75.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_crpbelow75_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(crp.below75.mort28)
+```
+
+```
+##                   OR            95%-CI %W(common)
+## ACTT-2        2.6842 [0.5217; 13.8098]        1.4
+## COV-BARRIER   0.6043 [0.3482;  1.0487]       12.5
+## Bari-SolidAct 0.6506 [0.1621;  2.6111]        2.0
+## COVINIB       0.2437 [0.0140;  4.2471]        0.5
+## TOFACOV       2.5400 [0.1929; 33.4421]        0.6
+## Ghazaeian     1.0842 [0.1413;  8.3170]        0.9
+## RECOVERY      0.8182 [0.6588;  1.0163]       81.1
+## TACTIC-R      0.5298 [0.0340;  8.2460]        0.5
+## RUXCOVID      4.4774 [0.3136; 63.9343]        0.5
+## 
+## Number of studies: k = 9
+## Number of observations: o = 570
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.8058 [0.6629; 0.9795] -2.17  0.0302
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 1.6977]; tau = 0 [0.0000; 1.3030]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  6.43    8  0.5987
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(crp.below75.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-57-2.png)<!-- -->
 
 # Collect all interaction effect estimates
 
@@ -5616,6 +7017,318 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_two-stage.RData")
 ```
 
+# Collect all subgroup effect estimates for forestplot
+
+```r
+# Empty data frame to store the results
+subgroup_df <- data.frame(
+  variable = character(),
+  odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  n_intervention = numeric(),
+  n_intervention_tot = numeric(),
+  n_control = numeric(),
+  n_control_tot = numeric()
+)
+
+# Function to extract subgroup results
+extract_subgroup <- function(model, variable_name, n_int, n_int_tot, n_cont, n_cont_tot) {
+  if (inherits(model, "metagen")) {
+    odds_ratio <- exp(model$TE.common)
+    ci_lower <- exp(model$lower.common)
+    ci_upper <- exp(model$upper.common)
+    standard_error <- model$seTE.common
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    odds_ratio = odds_ratio,
+    ci_lower = ci_lower,
+    ci_upper = ci_upper,
+    standard_error = standard_error,
+    n_intervention = n_int,
+    n_intervention_tot = n_int_tot,
+    n_control = n_cont,
+    n_control_tot = n_cont_tot
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_subgroup(rs.no.ox.mort28, "No oxygen",
+                                     sum(df_sg_no_ox_mort28$n_intervention),
+                                     sum(df_sg_no_ox_mort28$n_intervention_tot),
+                                     sum(df_sg_no_ox_mort28$n_control),
+                                     sum(df_sg_no_ox_mort28$n_control_tot))
+result_list[[2]] <- extract_subgroup(rs.low.ox.mort28, "Low-flow oxygen",
+                                     sum(df_sg_low_ox_mort28$n_intervention),
+                                     sum(df_sg_low_ox_mort28$n_intervention_tot),
+                                     sum(df_sg_low_ox_mort28$n_control),
+                                     sum(df_sg_low_ox_mort28$n_control_tot))
+result_list[[3]] <- extract_subgroup(rs.niv.mort28, "High-flow or non-invasive ventilation",
+                                     sum(df_sg_niv_mort28$n_intervention),
+                                     sum(df_sg_niv_mort28$n_intervention_tot),
+                                     sum(df_sg_niv_mort28$n_control),
+                                     sum(df_sg_niv_mort28$n_control_tot))
+result_list[[4]] <- extract_subgroup(rs.ecmo.mort28, "Mechanical ventilation or ECMO",
+                                     sum(df_sg_ecmo_mort28$n_intervention),
+                                     sum(df_sg_ecmo_mort28$n_intervention_tot),
+                                     sum(df_sg_ecmo_mort28$n_control),
+                                     sum(df_sg_ecmo_mort28$n_control_tot))
+result_list[[5]] <- extract_subgroup(no.vent.mort28, "No ventilation at baseline",
+                                     sum(df_sg_no_vent_mort28$n_intervention),
+                                     sum(df_sg_no_vent_mort28$n_intervention_tot),
+                                     sum(df_sg_no_vent_mort28$n_control),
+                                     sum(df_sg_no_vent_mort28$n_control_tot))
+result_list[[6]] <- extract_subgroup(vent.mort28, "Ventilation at baseline",
+                                     sum(df_sg_vent_mort28$n_intervention),
+                                     sum(df_sg_vent_mort28$n_intervention_tot),
+                                     sum(df_sg_vent_mort28$n_control),
+                                     sum(df_sg_vent_mort28$n_control_tot))
+result_list[[7]] <- extract_subgroup(age.above70.mort28, "70 years of age or older",
+                                     sum(df_sg_old_mort28$n_intervention),
+                                     sum(df_sg_old_mort28$n_intervention_tot),
+                                     sum(df_sg_old_mort28$n_control),
+                                     sum(df_sg_old_mort28$n_control_tot))
+result_list[[8]] <- extract_subgroup(age.below70.mort28, "Below 70 years of age",
+                                     sum(df_sg_young_mort28$n_intervention),
+                                     sum(df_sg_young_mort28$n_intervention_tot),
+                                     sum(df_sg_young_mort28$n_control),
+                                     sum(df_sg_young_mort28$n_control_tot))
+result_list[[9]] <- extract_subgroup(no.comorb.mort28, "No comorbidity",
+                                     sum(df_sg_no_comorb_mort28$n_intervention),
+                                     sum(df_sg_no_comorb_mort28$n_intervention_tot),
+                                     sum(df_sg_no_comorb_mort28$n_control),
+                                     sum(df_sg_no_comorb_mort28$n_control_tot))
+result_list[[10]] <- extract_subgroup(one.comorb.mort28, "One comorbidity",
+                                     sum(df_sg_one_comorb_mort28$n_intervention),
+                                     sum(df_sg_one_comorb_mort28$n_intervention_tot),
+                                     sum(df_sg_one_comorb_mort28$n_control),
+                                     sum(df_sg_one_comorb_mort28$n_control_tot))
+result_list[[11]] <- extract_subgroup(mult.comorb.mort28, "Multiple comorbidities",
+                                     sum(df_sg_mult_comorb_mort28$n_intervention),
+                                     sum(df_sg_mult_comorb_mort28$n_intervention_tot),
+                                     sum(df_sg_mult_comorb_mort28$n_control),
+                                     sum(df_sg_mult_comorb_mort28$n_control_tot))
+result_list[[12]] <- extract_subgroup(immun.comorb.mort28, "Immunocompromised",
+                                     sum(df_sg_immun_mort28$n_intervention),
+                                     sum(df_sg_immun_mort28$n_intervention_tot),
+                                     sum(df_sg_immun_mort28$n_control),
+                                     sum(df_sg_immun_mort28$n_control_tot))
+result_list[[13]] <- extract_subgroup(no.comed.mort28, "No Dexamethasone, no Tocilizumab",
+                                     sum(df_sg_no_comed_mort28$n_intervention),
+                                     sum(df_sg_no_comed_mort28$n_intervention_tot),
+                                     sum(df_sg_no_comed_mort28$n_control),
+                                     sum(df_sg_no_comed_mort28$n_control_tot))
+result_list[[14]] <- extract_subgroup(dexa.comed.mort28, "Dexamethasone, but no Tocilizumab",
+                                     sum(df_sg_dexa_mort28$n_intervention),
+                                     sum(df_sg_dexa_mort28$n_intervention_tot),
+                                     sum(df_sg_dexa_mort28$n_control),
+                                     sum(df_sg_dexa_mort28$n_control_tot))
+result_list[[15]] <- extract_subgroup(dexa.toci.comed.mort28, "Dexamethasone and Tocilizumab",
+                                     sum(df_sg_dexa_toci_mort28$n_intervention),
+                                     sum(df_sg_dexa_toci_mort28$n_intervention_tot),
+                                     sum(df_sg_dexa_toci_mort28$n_control),
+                                     sum(df_sg_dexa_toci_mort28$n_control_tot))
+result_list[[16]] <- extract_subgroup(toci.comed.mort28, "Tocilizumab, but no Dexamethasone",
+                                     sum(df_sg_toci_mort28$n_intervention),
+                                     sum(df_sg_toci_mort28$n_intervention_tot),
+                                     sum(df_sg_toci_mort28$n_control),
+                                     sum(df_sg_toci_mort28$n_control_tot))
+result_list[[17]] <- extract_subgroup(sympdur.m10.mort28, "Enrolment more than 10 days after symptom onset",
+                                     sum(df_sg_m10_mort28$n_intervention),
+                                     sum(df_sg_m10_mort28$n_intervention_tot),
+                                     sum(df_sg_m10_mort28$n_control),
+                                     sum(df_sg_m10_mort28$n_control_tot))
+result_list[[18]] <- extract_subgroup(sympdur.510.mort28, "Enrolment between 5 and 10 days after symptom onset",
+                                     sum(df_sg_510_mort28$n_intervention),
+                                     sum(df_sg_510_mort28$n_intervention_tot),
+                                     sum(df_sg_510_mort28$n_control),
+                                     sum(df_sg_510_mort28$n_control_tot))
+result_list[[19]] <- extract_subgroup(sympdur.5.mort28, "Enrolment 5 days or earlier after symptom onset",
+                                     sum(df_sg_5_mort28$n_intervention),
+                                     sum(df_sg_5_mort28$n_intervention_tot),
+                                     sum(df_sg_5_mort28$n_control),
+                                     sum(df_sg_5_mort28$n_control_tot))
+result_list[[20]] <- extract_subgroup(crp.above75.mort28, "C-reactive protein 75mg/L or more",
+                                     sum(df_sg_crpabove75_mort28$n_intervention),
+                                     sum(df_sg_crpabove75_mort28$n_intervention_tot),
+                                     sum(df_sg_crpabove75_mort28$n_control),
+                                     sum(df_sg_crpabove75_mort28$n_control_tot))
+result_list[[21]] <- extract_subgroup(crp.below75.mort28, "C-reactive protein less than 75mg/L",
+                                     sum(df_sg_crpbelow75_mort28$n_intervention),
+                                     sum(df_sg_crpbelow75_mort28$n_intervention_tot),
+                                     sum(df_sg_crpbelow75_mort28$n_control),
+                                     sum(df_sg_crpbelow75_mort28$n_control_tot))
+
+# Filter out NULL results and bind the results into a single data frame
+subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the analysis approach
+subgroup_df$approach <- "two-stage"
+
+# Nicely formatted table
+kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|variable                                            | odds_ratio|  ci_lower|   ci_upper| standard_error| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
+|:---------------------------------------------------|----------:|---------:|----------:|--------------:|--------------:|------------------:|---------:|-------------:|:---------|
+|No oxygen                                           |  0.8504587| 0.4490659|  1.6106322|      0.3258255|             19|                497|        24|           486|two-stage |
+|Low-flow oxygen                                     |  0.8598297| 0.7203379|  1.0263338|      0.0903149|            304|               3820|       318|          3696|two-stage |
+|High-flow or non-invasive ventilation               |  0.6619089| 0.5440494|  0.8053008|      0.1000467|            270|               1463|       325|          1360|two-stage |
+|Mechanical ventilation or ECMO                      |  0.6886242| 0.4543353|  1.0437300|      0.2121775|             72|                239|        91|           234|two-stage |
+|No ventilation at baseline                          |  0.8569820| 0.7224812|  1.0165222|      0.0871065|            323|               4317|       342|          4184|two-stage |
+|Ventilation at baseline                             |  0.6743883| 0.5665648|  0.8027318|      0.0888866|            342|               1702|       416|          1596|two-stage |
+|70 years of age or older                            |  0.9023453| 0.7548858|  1.0786096|      0.0910378|            364|               1357|       370|          1266|two-stage |
+|Below 70 years of age                               |  0.7012561| 0.5953596|  0.8259884|      0.0835258|            301|               4662|       388|          4514|two-stage |
+|No comorbidity                                      |  0.5930183| 0.4691705|  0.7495585|      0.1195221|            148|               2595|       218|          2565|two-stage |
+|One comorbidity                                     |  0.8815057| 0.7103305|  1.0939306|      0.1101556|            228|               1831|       232|          1756|two-stage |
+|Multiple comorbidities                              |  0.7624266| 0.6215124|  0.9352899|      0.1042623|            279|               1545|       302|          1414|two-stage |
+|Immunocompromised                                   |  1.8503725| 0.4892680|  6.9979607|      0.6787022|             10|                 48|         6|            45|two-stage |
+|No Dexamethasone, no Tocilizumab                    |  0.6390371| 0.4344043|  0.9400655|      0.1969357|             57|                968|        83|           944|two-stage |
+|Dexamethasone, but no Tocilizumab                   |  0.7955695| 0.6807015|  0.9298212|      0.0795597|            426|               3734|       460|          3555|two-stage |
+|Dexamethasone and Tocilizumab                       |  0.6933839| 0.5442471|  0.8833876|      0.1235637|            174|               1299|       211|          1264|two-stage |
+|Tocilizumab, but no Dexamethasone                   |  2.4876095| 0.4882718| 12.6736816|      0.8307323|              8|                 18|         4|            16|two-stage |
+|Enrolment more than 10 days after symptom onset     |  0.6952580| 0.5645172|  0.8562781|      0.1062837|            223|               2478|       284|          2376|two-stage |
+|Enrolment between 5 and 10 days after symptom onset |  0.7477248| 0.6194191|  0.9026076|      0.0960492|            294|               2657|       324|          2580|two-stage |
+|Enrolment 5 days or earlier after symptom onset     |  0.8612446| 0.6505579|  1.1401633|      0.1431395|            148|                896|       150|           834|two-stage |
+|C-reactive protein 75mg/L or more                   |  0.7664344| 0.6502092|  0.9034350|      0.0839072|            372|               3142|       429|          3085|two-stage |
+|C-reactive protein less than 75mg/L                 |  0.8058264| 0.6629474|  0.9794988|      0.0995797|            274|               2637|       296|          2498|two-stage |
+
+```r
+# Save
+saveRDS(subgroup_df, file = "subgroup_effects_two-stage.RData")
+```
+
+# Forestplot subgroup - on primary endpoint / for vaccination on AE28 create another output
+
+```r
+# take the effect estimates from subgroup_df... 
+subgroup_df$inverse_variance <- 1 / subgroup_df$standard_error^2
+events_i <- subgroup_df$n_intervention
+tot_i <- subgroup_df$n_intervention_tot
+events_c <- subgroup_df$n_control
+tot_c <- subgroup_df$n_control_tot
+# ...and p-interaction from interaction_df
+interaction_df_fp <- interaction_df %>% 
+  select(variable, p_value) %>% 
+  filter(!variable %in% c("comorbidity count", "any comorbidity", "vaccination on AEs"))
+empty_row <- data.frame(
+  variable = "",
+  p_value = "")
+first_part <- interaction_df_fp[1:1, ]
+second_part <- interaction_df_fp[2:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, empty_row, empty_row, second_part)
+first_part <- interaction_df_fp[1:5, ]
+second_part <- interaction_df_fp[6:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, second_part)
+first_part <- interaction_df_fp[1:7, ]
+second_part <- interaction_df_fp[8:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, second_part)
+first_part <- interaction_df_fp[1:9, ]
+second_part <- interaction_df_fp[10:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, empty_row, empty_row, second_part)
+first_part <- interaction_df_fp[1:13, ]
+second_part <- interaction_df_fp[14:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, empty_row, empty_row, second_part)
+first_part <- interaction_df_fp[1:17, ]
+second_part <- interaction_df_fp[18:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, empty_row, second_part)
+interaction_df_fp <- rbind(interaction_df_fp, empty_row)
+p_int <- interaction_df_fp$p_value
+# p_int <- round(p_int,2)
+# p_int <- c("0", "", "0", "", "", "", "0", "", "0", "", "", "", "0", "", "","","0", "", "", "0","")
+
+# ...and overall results from result_df
+mort_28_OR <- result_df$hazard_odds_ratio[1]
+mort_28_ci_lower <- result_df$ci_lower[1]
+mort_28_ci_upper <- result_df$ci_upper[1]
+
+# build forestplot
+base_data <- tibble(mean = subgroup_df$odds_ratio,
+                    lower = subgroup_df$ci_lower,
+                    upper = subgroup_df$ci_upper,
+                    subgroup = as.character(subgroup_df$variable),
+                    events_i = as.character(events_i),
+                    tot_i = as.character(tot_i),
+                    events_c = as.character(events_c),
+                    tot_c = as.character(tot_c),
+                    p_int = as.character(p_int))
+summary <- tibble(mean  = mort_28_OR,
+                  lower = mort_28_ci_lower,
+                  upper = mort_28_ci_upper,
+                  subgroup = "Overall treatment effect",
+                  summary = TRUE)
+header <- tibble(subgroup = c("Treatment effect on 28-day mortality, by subgroup"),
+                 events_i = c("Events int."),
+                 tot_i = c("No. int."),
+                 events_c = c("Events cont."),
+                 tot_c = c("No. cont."),
+                 p_int = c("p-int*"),
+                 summary = TRUE)
+mort28_fp <- bind_rows(header,base_data,summary)
+font <- "sans"
+
+# Open a pdf file
+# pdf("mort28_fp.pdf", width=16, height=8)
+mort28_fp %>%
+  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+                              ticks = gpar(cex=0.88),
+                              summary = gpar(cex=1),
+                              xlab = gpar(cex=0.88)),
+             # title = "Treatment effect on mortality at day 28 by subgroup",
+             is.summary = summary,
+             graph.pos = 6,
+             clip = c(0.1, 2),
+             hrzl_lines = list("2" = gpar(lty = 2),
+                               "6" = gpar(lty = 2),
+                               "8" = gpar(lty = 2),
+                               "10" = gpar(lty = 2),
+                               "14" = gpar(lty = 2),
+                               "18" = gpar(lty = 2),
+                               "21" = gpar(lty = 2),
+                               "23" = gpar(lty = 2)),
+             xlog = FALSE,
+             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
+             psize = sqrt(subgroup_df$inverse_variance),
+             lty.ci = c(1),
+             col = fpColors(box = "maroon4",
+                            line = "maroon1",
+                            summary = "magenta4",
+                            hrz_lines = "gray63"),
+             vertices = TRUE,
+             xlab = "     Favours JAKi <-> Favours No JAKi",
+             zero = 1,
+             grid = structure(c(0.69), gp = gpar(lty = 2, col = "gray63")),
+             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+             )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-60-1.png)<!-- -->
+
+```r
+# x <- unit(0.3, 'npc')
+# y <- unit(0.1, 'npc')
+# grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
+
+# dev.off()
+```
+* The p-values for the interaction were obtained using a two-stage IPDMA approach, i.e. solely based on within-trial interactions ("deft"): 
+First, to produce a treatment-covariate interaction estimate and its variance, a binomial regression was fitted in each trial separately, adjusted (where appropriate) for respiratory support and age, including the treatment and the treatment-covariate interaction, using restricted maximum likelihood estimation (with Firth penalisation correction in case of sparse data). 
+Second, the interaction estimates were combined across trials in a random-effect model (the true interactions are assumed random across trials), using restricted maximum likelihood estimation and the confidence interval for the summary interaction derived using the Hartung-Knapp Sidik-Jonkman approach. 
+Sizing of all squares are in proportion to the inverse variance of the estimates. 
+For continuous covariates (age, symptom duration, and CRP), a cut-off was chosen for descriptive purpose, but these covariates were included as a continuous treatment-covariate interaction assuming linearity. Ordinal covariates (respiratory support, comorbidities and comedication) were included similarly. 
+
 # AESI
 
 ```r
@@ -5678,7 +7391,7 @@ ggplot(proportions, aes(x = proportion, y = aesi, color = ARM, shape = ARM)) +
   theme_minimal()
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-51-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-61-1.png)<!-- -->
 
 # AE
 
@@ -5743,5 +7456,5 @@ ggplot(proportions, aes(x = proportion, y = ae, color = ARM, shape = ARM)) +
   theme_minimal()
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-52-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-62-1.png)<!-- -->
 # Interactions: Multivariate IPD Meta-Analysis for Summarising Non-linear Interactions

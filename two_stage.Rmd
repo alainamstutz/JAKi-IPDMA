@@ -1661,7 +1661,7 @@ df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_07052024.RData")
 
 ```
 
-# Reshape dataframes for all subgroup estimates
+# Reshape dataframes for subgroup estimates by trial
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
 list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian, df_subgroup_recovery, df_subgroup_tactic_r, df_subgroup_ruxcovid) # add all trials
@@ -1737,10 +1737,10 @@ for (df in list_subgroup_df) {
 ## Comedication
 outcomes1 <- "No Dexa, no Tocilizumab"
 outcomes1.firth <- "No Dexa, no Tocilizumab_firth"
-outcomes2 <- "Dexa and Tocilizumab"
-outcomes2.firth <- "Dexa and Tocilizumab_firth"
-outcomes3 <- "Dexa, but no Tocilizumab"
-outcomes3.firth <- "Dexa, but no Tocilizumab_firth"
+outcomes2 <- "Dexa, but no Tocilizumab"
+outcomes2.firth <- "Dexa, but no Tocilizumab_firth"
+outcomes3 <- "Dexa and Tocilizumab"
+outcomes3.firth <- "Dexa and Tocilizumab_firth"
 outcomes4 <- "Tocilizumab, but no Dexa"
 outcomes4.firth <- "Tocilizumab, but no Dexa_firth"
 # Initialize an empty data frame to store the selected rows
@@ -1802,6 +1802,270 @@ for (df in list_subgroup_df) {
 
 ```
 
+# Reshape dataframes for each subgroup estimate
+```{r warning=FALSE}
+## Respiratory support: No oxygen
+outcomes1 <- "No oxygen"
+outcomes1.firth <- "No oxygen_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_ox_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_ox_mort28 <- rbind(df_sg_no_ox_mort28, selected_rows)
+}
+
+## Respiratory support: low oxygen
+outcomes1 <- "low-flow oxygen"
+outcomes1.firth <- "low-flow oxygen_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_low_ox_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_low_ox_mort28 <- rbind(df_sg_low_ox_mort28, selected_rows)
+}
+
+## Respiratory support: niv
+outcomes1 <- "high-flow oxygen / NIV"
+outcomes1.firth <- "high-flow oxygen / NIV_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_niv_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_niv_mort28 <- rbind(df_sg_niv_mort28, selected_rows)
+}
+
+## Respiratory support: ecmo
+outcomes1 <- "Mechanical ventilation / ECMO"
+outcomes1.firth <- "Mechanical ventilation / ECMO_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_ecmo_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_ecmo_mort28 <- rbind(df_sg_ecmo_mort28, selected_rows)
+}
+
+
+## Ventilation: No ventilation
+outcomes1 <- "None or low-flow oxygen"
+outcomes1.firth <- "None or low-flow oxygen_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_vent_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_vent_mort28 <- rbind(df_sg_no_vent_mort28, selected_rows)
+}
+
+## Ventilation: Ventilation
+outcomes1 <- "High-flow or non-invasive, mechanical, or ECMO"
+outcomes1.firth <- "High-flow or non-invasive, mechanical, or ECMO_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_vent_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_vent_mort28 <- rbind(df_sg_vent_mort28, selected_rows)
+}
+
+
+## Age: 70 and above
+outcomes1 <- "70 years and above"
+outcomes1.firth <- "70 years and above_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_old_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_old_mort28 <- rbind(df_sg_old_mort28, selected_rows)
+}
+
+## Age: below 70
+outcomes1 <- "below 70 years"
+outcomes1.firth <- "below 70 years_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_young_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_young_mort28 <- rbind(df_sg_young_mort28, selected_rows)
+}
+
+
+## Comorbidity: No comorbidity
+outcomes1 <- "No comorbidity"
+outcomes1.firth <- "No comorbidity_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_comorb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_comorb_mort28 <- rbind(df_sg_no_comorb_mort28, selected_rows)
+}
+
+## Comorbidity: One comorbidity
+outcomes1 <- "One comorbidity"
+outcomes1.firth <- "One comorbidity_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_one_comorb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_one_comorb_mort28 <- rbind(df_sg_one_comorb_mort28, selected_rows)
+}
+
+## Comorbidity: Multiple comorbidities
+outcomes1 <- "Multiple comorbidities"
+outcomes1.firth <- "Multiple comorbidities_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_mult_comorb_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_mult_comorb_mort28 <- rbind(df_sg_mult_comorb_mort28, selected_rows)
+}
+
+## Comorbidity: Immunosuppressed
+outcomes1 <- "Immunocompromised"
+outcomes1.firth <- "Immunocompromised_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_immun_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_immun_mort28 <- rbind(df_sg_immun_mort28, selected_rows)
+}
+
+
+## Comedication: No Dexa, no Tocilizumab
+outcomes1 <- "No Dexa, no Tocilizumab"
+outcomes1.firth <- "No Dexa, no Tocilizumab_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_comed_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_comed_mort28 <- rbind(df_sg_no_comed_mort28, selected_rows)
+}
+
+## Comedication: Dexa, but no Tocilizumab
+outcomes1 <- "Dexa, but no Tocilizumab"
+outcomes1.firth <- "Dexa, but no Tocilizumab_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_dexa_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_dexa_mort28 <- rbind(df_sg_dexa_mort28, selected_rows)
+}
+
+## Comedication: Dexa and Tocilizumab
+outcomes1 <- "Dexa and Tocilizumab"
+outcomes1.firth <- "Dexa and Tocilizumab_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_dexa_toci_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_dexa_toci_mort28 <- rbind(df_sg_dexa_toci_mort28, selected_rows)
+}
+
+## Comedication: Tocilizumab but no Dexa
+outcomes1 <- "Tocilizumab, but no Dexa"
+outcomes1.firth <- "Tocilizumab, but no Dexa_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_toci_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_toci_mort28 <- rbind(df_sg_toci_mort28, selected_rows)
+}
+
+
+## Symptom onset: More than 10 days
+outcomes1 <- "More than 10 days"
+outcomes1.firth <- "More than 10 days_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_m10_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_m10_mort28 <- rbind(df_sg_m10_mort28, selected_rows)
+}
+
+## Symptom onset: Between 5-10 days
+outcomes1 <- "Between 5-10 days"
+outcomes1.firth <- "Between 5-10 days_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_510_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_510_mort28 <- rbind(df_sg_510_mort28, selected_rows)
+}
+
+## Symptom onset: 5 days and less
+outcomes1 <- "5 days and less"
+outcomes1.firth <- "5 days and less_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_5_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_5_mort28 <- rbind(df_sg_5_mort28, selected_rows)
+}
+
+
+## CRP: Above 75
+outcomes1 <- "CRP 75 and higher"
+outcomes1.firth <- "CRP 75 and higher_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_crpabove75_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_crpabove75_mort28 <- rbind(df_sg_crpabove75_mort28, selected_rows)
+}
+
+## CRP: Below 75
+outcomes1 <- "CRP below 75"
+outcomes1.firth <- "CRP below 75_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_crpbelow75_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_crpbelow75_mort28 <- rbind(df_sg_crpbelow75_mort28, selected_rows)
+}
+
+
+## Vaccination on AEs: Vaccinated
+outcomes1 <- "vaccinated"
+outcomes1.firth <- "vaccinated_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_vaccyes_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_vaccyes_ae28 <- rbind(df_sg_vaccyes_ae28, selected_rows)
+}
+
+## Vaccination on AEs: Not Vaccinated
+outcomes1 <- "not vaccinated"
+outcomes1.firth <- "not vaccinated_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_vaccno_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_vaccno_ae28 <- rbind(df_sg_vaccno_ae28, selected_rows)
+}
+
+```
+
 # Interaction: Respiratory support (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # str(df_rs_mort28)
@@ -1838,7 +2102,7 @@ forest.meta(rs.mort28,
 
 ```
 
-# Subgroups: Respiratory support (proxy for disease severity) on primary endpoint
+# Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Descriptive by trial
 ```{r warning=FALSE, fig.width=10, fig.height=11}
 # Calculate the inverse variance
 df_sg_rs_mort28$inverse_variance <- 1 / df_sg_rs_mort28$standard_error^2
@@ -2056,6 +2320,78 @@ forest(df_sg_rs_mort28$hazard_odds_ratio,
 
 ```
 
+# Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Pooled across trials
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# No oxygen
+rs.no.ox.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_ox_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(rs.no.ox.mort28)
+forest.meta(rs.no.ox.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+
+# low-flow oxygen
+rs.low.ox.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_low_ox_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(rs.low.ox.mort28)
+forest.meta(rs.low.ox.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+
+# NIV
+rs.niv.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_niv_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(rs.niv.mort28)
+forest.meta(rs.niv.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+
+# ECMO
+rs.ecmo.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_ecmo_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(rs.ecmo.mort28)
+forest.meta(rs.ecmo.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+
+```
+
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE, fig.width=11, fig.height=4}
 # str(df_vb_mort28)
@@ -2095,7 +2431,7 @@ forest.meta(vb.mort28,
 
 ```
 
-# Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint
+# Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint: Descriptive
 ```{r warning=FALSE, fig.width=13, fig.height=10}
 # Calculate the inverse variance
 df_sg_vb_mort28$inverse_variance <- 1 / df_sg_vb_mort28$standard_error^2
@@ -2313,6 +2649,43 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
 
 ```
 
+# Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint: Pooled across trials
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# No ventilation
+no.vent.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_vent_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(no.vent.mort28)
+forest.meta(no.vent.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+
+# Ventilation
+vent.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_vent_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(vent.mort28)
+forest.meta(vent.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
 # Interaction: Age on primary endpoint
 ```{r warning=FALSE, fig.width=11, fig.height=4}
 # str(df_age_mort28)
@@ -2350,7 +2723,7 @@ forest.meta(age.mort28,
 
 ```
 
-# Subgroups: Age on primary endpoint
+# Subgroups: Age on primary endpoint: Descriptive
 ```{r warning=FALSE, fig.width=10, fig.height=12}
 # Calculate the inverse variance
 df_sg_age_mort28$inverse_variance <- 1 / df_sg_age_mort28$standard_error^2
@@ -2568,6 +2941,43 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
 
 ```
 
+# Subgroups: Age on primary endpoint: Pooled across trials
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# Age 70 years or older
+age.above70.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_old_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(age.above70.mort28)
+forest.meta(age.above70.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+
+# Age below 70 years
+age.below70.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_young_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(age.below70.mort28)
+forest.meta(age.below70.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
 # Interaction: Comorbidity on primary endpoint
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # str(df_comorb_mort28)
@@ -2667,7 +3077,7 @@ forest.meta(comorb.any.mort28,
 
 ```
 
-# Subgroups: Comorbidity on primary endpoint
+# Subgroups: Comorbidity on primary endpoint: Descriptive
 ```{r warning=FALSE, fig.width=9, fig.height=10}
 # Calculate the inverse variance
 df_sg_comorb_mort28$inverse_variance <- 1 / df_sg_comorb_mort28$standard_error^2
@@ -2885,6 +3295,77 @@ forest(df_sg_comorb_mort28$hazard_odds_ratio,
 
 ```
 
+# Subgroups: Comorbidity on primary endpoint: Pooled across trials
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# No comorbidity
+no.comorb.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_comorb_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(no.comorb.mort28)
+forest.meta(no.comorb.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# One comorbidity
+one.comorb.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_one_comorb_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(one.comorb.mort28)
+forest.meta(one.comorb.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# Multiple comorbidity
+mult.comorb.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_mult_comorb_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("TOFACOV", "COVINIB")
+                      )
+summary(mult.comorb.mort28)
+forest.meta(mult.comorb.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# Immunosuppressed
+immun.comorb.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_immun_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      )
+summary(immun.comorb.mort28)
+forest.meta(immun.comorb.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
 # Interaction: Comedication on primary endpoint
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # str(df_comed_mort28)
@@ -2921,7 +3402,7 @@ forest.meta(comed.mort28,
 
 ```
 
-# Subgroups: Comedication on primary endpoint
+# Subgroups: Comedication on primary endpoint: Descriptive
 ```{r warning=FALSE, fig.width=9, fig.height=10}
 # Calculate the inverse variance
 df_sg_comed_mort28$inverse_variance <- 1 / df_sg_comed_mort28$standard_error^2
@@ -3139,6 +3620,74 @@ forest(df_sg_comed_mort28$hazard_odds_ratio,
 
 ```
 
+# Subgroups: Comedication on primary endpoint: Pooled across trials
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# No comedication
+no.comed.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_comed_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F)
+summary(no.comed.mort28)
+forest.meta(no.comed.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# Dexa, but no Toci
+dexa.comed.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_dexa_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(dexa.comed.mort28)
+forest.meta(dexa.comed.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# Dexa and Toci
+dexa.toci.comed.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_dexa_toci_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(dexa.toci.comed.mort28)
+forest.meta(dexa.toci.comed.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# No dexa, but toci
+toci.comed.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_toci_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(toci.comed.mort28)
+forest.meta(toci.comed.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
 # Interaction: Vaccination on AEs
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # str(df_vacc_ae28)
@@ -3315,7 +3864,7 @@ forest.meta(symp.mort28,
 
 ```
 
-# Subgroups: Symptom onset on primary endpoint
+# Subgroups: Symptom onset on primary endpoint: Descriptive
 ```{r warning=FALSE, fig.width=9, fig.height=10}
 # Calculate the inverse variance
 df_sg_symp_mort28$inverse_variance <- 1 / df_sg_symp_mort28$standard_error^2
@@ -3533,6 +4082,58 @@ forest(df_sg_symp_mort28$hazard_odds_ratio,
 
 ```
 
+# Subgroups: Symptom onset on primary endpoint: Pooled across trials
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# Enrolment more than 10 days after symptom onset
+sympdur.m10.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_m10_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(sympdur.m10.mort28)
+forest.meta(sympdur.m10.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# Enrolment between 5 and 10 days after symptom onset
+sympdur.510.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_510_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(sympdur.510.mort28)
+forest.meta(sympdur.510.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# Enrolment less than 5 days after symptom onset
+sympdur.5.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_5_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(sympdur.5.mort28)
+forest.meta(sympdur.5.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
 # Interaction: CRP on primary endpoint
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # str(df_crp_mort28)
@@ -3568,7 +4169,7 @@ forest.meta(crp.mort28,
 
 ```
 
-# Subgroups: CRP on primary endpoint
+# Subgroups: CRP on primary endpoint: Descriptive
 ```{r warning=FALSE, fig.width=9, fig.height=10}
 # Calculate the inverse variance
 df_sg_crp_mort28$inverse_variance <- 1 / df_sg_crp_mort28$standard_error^2
@@ -3786,6 +4387,42 @@ forest(df_sg_crp_mort28$hazard_odds_ratio,
 
 ```
 
+# Subgroups: CRP on primary endpoint: Pooled across trials
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# CRP above 75
+crp.above75.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_crpabove75_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(crp.above75.mort28)
+forest.meta(crp.above75.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# CRP below 75
+crp.below75.mort28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_crpbelow75_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(crp.below75.mort28)
+forest.meta(crp.below75.mort28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
 # Collect all interaction effect estimates
 ```{r message=FALSE, warning=FALSE}
 # Empty data frame to store the results
@@ -3848,6 +4485,284 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(interaction_df, file = "int_effects_two-stage.RData")
 ```
+
+# Collect all subgroup effect estimates for forestplot
+```{r message=FALSE, warning=FALSE}
+# Empty data frame to store the results
+subgroup_df <- data.frame(
+  variable = character(),
+  odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  n_intervention = numeric(),
+  n_intervention_tot = numeric(),
+  n_control = numeric(),
+  n_control_tot = numeric()
+)
+
+# Function to extract subgroup results
+extract_subgroup <- function(model, variable_name, n_int, n_int_tot, n_cont, n_cont_tot) {
+  if (inherits(model, "metagen")) {
+    odds_ratio <- exp(model$TE.common)
+    ci_lower <- exp(model$lower.common)
+    ci_upper <- exp(model$upper.common)
+    standard_error <- model$seTE.common
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    odds_ratio = odds_ratio,
+    ci_lower = ci_lower,
+    ci_upper = ci_upper,
+    standard_error = standard_error,
+    n_intervention = n_int,
+    n_intervention_tot = n_int_tot,
+    n_control = n_cont,
+    n_control_tot = n_cont_tot
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_subgroup(rs.no.ox.mort28, "No oxygen",
+                                     sum(df_sg_no_ox_mort28$n_intervention),
+                                     sum(df_sg_no_ox_mort28$n_intervention_tot),
+                                     sum(df_sg_no_ox_mort28$n_control),
+                                     sum(df_sg_no_ox_mort28$n_control_tot))
+result_list[[2]] <- extract_subgroup(rs.low.ox.mort28, "Low-flow oxygen",
+                                     sum(df_sg_low_ox_mort28$n_intervention),
+                                     sum(df_sg_low_ox_mort28$n_intervention_tot),
+                                     sum(df_sg_low_ox_mort28$n_control),
+                                     sum(df_sg_low_ox_mort28$n_control_tot))
+result_list[[3]] <- extract_subgroup(rs.niv.mort28, "High-flow or non-invasive ventilation",
+                                     sum(df_sg_niv_mort28$n_intervention),
+                                     sum(df_sg_niv_mort28$n_intervention_tot),
+                                     sum(df_sg_niv_mort28$n_control),
+                                     sum(df_sg_niv_mort28$n_control_tot))
+result_list[[4]] <- extract_subgroup(rs.ecmo.mort28, "Mechanical ventilation or ECMO",
+                                     sum(df_sg_ecmo_mort28$n_intervention),
+                                     sum(df_sg_ecmo_mort28$n_intervention_tot),
+                                     sum(df_sg_ecmo_mort28$n_control),
+                                     sum(df_sg_ecmo_mort28$n_control_tot))
+result_list[[5]] <- extract_subgroup(no.vent.mort28, "No ventilation at baseline",
+                                     sum(df_sg_no_vent_mort28$n_intervention),
+                                     sum(df_sg_no_vent_mort28$n_intervention_tot),
+                                     sum(df_sg_no_vent_mort28$n_control),
+                                     sum(df_sg_no_vent_mort28$n_control_tot))
+result_list[[6]] <- extract_subgroup(vent.mort28, "Ventilation at baseline",
+                                     sum(df_sg_vent_mort28$n_intervention),
+                                     sum(df_sg_vent_mort28$n_intervention_tot),
+                                     sum(df_sg_vent_mort28$n_control),
+                                     sum(df_sg_vent_mort28$n_control_tot))
+result_list[[7]] <- extract_subgroup(age.above70.mort28, "70 years of age or older",
+                                     sum(df_sg_old_mort28$n_intervention),
+                                     sum(df_sg_old_mort28$n_intervention_tot),
+                                     sum(df_sg_old_mort28$n_control),
+                                     sum(df_sg_old_mort28$n_control_tot))
+result_list[[8]] <- extract_subgroup(age.below70.mort28, "Below 70 years of age",
+                                     sum(df_sg_young_mort28$n_intervention),
+                                     sum(df_sg_young_mort28$n_intervention_tot),
+                                     sum(df_sg_young_mort28$n_control),
+                                     sum(df_sg_young_mort28$n_control_tot))
+result_list[[9]] <- extract_subgroup(no.comorb.mort28, "No comorbidity",
+                                     sum(df_sg_no_comorb_mort28$n_intervention),
+                                     sum(df_sg_no_comorb_mort28$n_intervention_tot),
+                                     sum(df_sg_no_comorb_mort28$n_control),
+                                     sum(df_sg_no_comorb_mort28$n_control_tot))
+result_list[[10]] <- extract_subgroup(one.comorb.mort28, "One comorbidity",
+                                     sum(df_sg_one_comorb_mort28$n_intervention),
+                                     sum(df_sg_one_comorb_mort28$n_intervention_tot),
+                                     sum(df_sg_one_comorb_mort28$n_control),
+                                     sum(df_sg_one_comorb_mort28$n_control_tot))
+result_list[[11]] <- extract_subgroup(mult.comorb.mort28, "Multiple comorbidities",
+                                     sum(df_sg_mult_comorb_mort28$n_intervention),
+                                     sum(df_sg_mult_comorb_mort28$n_intervention_tot),
+                                     sum(df_sg_mult_comorb_mort28$n_control),
+                                     sum(df_sg_mult_comorb_mort28$n_control_tot))
+result_list[[12]] <- extract_subgroup(immun.comorb.mort28, "Immunocompromised",
+                                     sum(df_sg_immun_mort28$n_intervention),
+                                     sum(df_sg_immun_mort28$n_intervention_tot),
+                                     sum(df_sg_immun_mort28$n_control),
+                                     sum(df_sg_immun_mort28$n_control_tot))
+result_list[[13]] <- extract_subgroup(no.comed.mort28, "No Dexamethasone, no Tocilizumab",
+                                     sum(df_sg_no_comed_mort28$n_intervention),
+                                     sum(df_sg_no_comed_mort28$n_intervention_tot),
+                                     sum(df_sg_no_comed_mort28$n_control),
+                                     sum(df_sg_no_comed_mort28$n_control_tot))
+result_list[[14]] <- extract_subgroup(dexa.comed.mort28, "Dexamethasone, but no Tocilizumab",
+                                     sum(df_sg_dexa_mort28$n_intervention),
+                                     sum(df_sg_dexa_mort28$n_intervention_tot),
+                                     sum(df_sg_dexa_mort28$n_control),
+                                     sum(df_sg_dexa_mort28$n_control_tot))
+result_list[[15]] <- extract_subgroup(dexa.toci.comed.mort28, "Dexamethasone and Tocilizumab",
+                                     sum(df_sg_dexa_toci_mort28$n_intervention),
+                                     sum(df_sg_dexa_toci_mort28$n_intervention_tot),
+                                     sum(df_sg_dexa_toci_mort28$n_control),
+                                     sum(df_sg_dexa_toci_mort28$n_control_tot))
+result_list[[16]] <- extract_subgroup(toci.comed.mort28, "Tocilizumab, but no Dexamethasone",
+                                     sum(df_sg_toci_mort28$n_intervention),
+                                     sum(df_sg_toci_mort28$n_intervention_tot),
+                                     sum(df_sg_toci_mort28$n_control),
+                                     sum(df_sg_toci_mort28$n_control_tot))
+result_list[[17]] <- extract_subgroup(sympdur.m10.mort28, "Enrolment more than 10 days after symptom onset",
+                                     sum(df_sg_m10_mort28$n_intervention),
+                                     sum(df_sg_m10_mort28$n_intervention_tot),
+                                     sum(df_sg_m10_mort28$n_control),
+                                     sum(df_sg_m10_mort28$n_control_tot))
+result_list[[18]] <- extract_subgroup(sympdur.510.mort28, "Enrolment between 5 and 10 days after symptom onset",
+                                     sum(df_sg_510_mort28$n_intervention),
+                                     sum(df_sg_510_mort28$n_intervention_tot),
+                                     sum(df_sg_510_mort28$n_control),
+                                     sum(df_sg_510_mort28$n_control_tot))
+result_list[[19]] <- extract_subgroup(sympdur.5.mort28, "Enrolment 5 days or earlier after symptom onset",
+                                     sum(df_sg_5_mort28$n_intervention),
+                                     sum(df_sg_5_mort28$n_intervention_tot),
+                                     sum(df_sg_5_mort28$n_control),
+                                     sum(df_sg_5_mort28$n_control_tot))
+result_list[[20]] <- extract_subgroup(crp.above75.mort28, "C-reactive protein 75mg/L or more",
+                                     sum(df_sg_crpabove75_mort28$n_intervention),
+                                     sum(df_sg_crpabove75_mort28$n_intervention_tot),
+                                     sum(df_sg_crpabove75_mort28$n_control),
+                                     sum(df_sg_crpabove75_mort28$n_control_tot))
+result_list[[21]] <- extract_subgroup(crp.below75.mort28, "C-reactive protein less than 75mg/L",
+                                     sum(df_sg_crpbelow75_mort28$n_intervention),
+                                     sum(df_sg_crpbelow75_mort28$n_intervention_tot),
+                                     sum(df_sg_crpbelow75_mort28$n_control),
+                                     sum(df_sg_crpbelow75_mort28$n_control_tot))
+
+# Filter out NULL results and bind the results into a single data frame
+subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the analysis approach
+subgroup_df$approach <- "two-stage"
+
+# Nicely formatted table
+kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+# Save
+saveRDS(subgroup_df, file = "subgroup_effects_two-stage.RData")
+```
+
+# Forestplot subgroup - on primary endpoint / for vaccination on AE28 create another output
+```{r, fig.width=16, fig.height=12}
+# take the effect estimates from subgroup_df... 
+subgroup_df$inverse_variance <- 1 / subgroup_df$standard_error^2
+events_i <- subgroup_df$n_intervention
+tot_i <- subgroup_df$n_intervention_tot
+events_c <- subgroup_df$n_control
+tot_c <- subgroup_df$n_control_tot
+# ...and p-interaction from interaction_df
+interaction_df_fp <- interaction_df %>% 
+  select(variable, p_value) %>% 
+  filter(!variable %in% c("comorbidity count", "any comorbidity", "vaccination on AEs"))
+empty_row <- data.frame(
+  variable = "",
+  p_value = "")
+first_part <- interaction_df_fp[1:1, ]
+second_part <- interaction_df_fp[2:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, empty_row, empty_row, second_part)
+first_part <- interaction_df_fp[1:5, ]
+second_part <- interaction_df_fp[6:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, second_part)
+first_part <- interaction_df_fp[1:7, ]
+second_part <- interaction_df_fp[8:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, second_part)
+first_part <- interaction_df_fp[1:9, ]
+second_part <- interaction_df_fp[10:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, empty_row, empty_row, second_part)
+first_part <- interaction_df_fp[1:13, ]
+second_part <- interaction_df_fp[14:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, empty_row, empty_row, second_part)
+first_part <- interaction_df_fp[1:17, ]
+second_part <- interaction_df_fp[18:nrow(interaction_df_fp), ]
+interaction_df_fp <- rbind(first_part, empty_row, empty_row, second_part)
+interaction_df_fp <- rbind(interaction_df_fp, empty_row)
+p_int <- interaction_df_fp$p_value
+# p_int <- round(p_int,2)
+# p_int <- c("0", "", "0", "", "", "", "0", "", "0", "", "", "", "0", "", "","","0", "", "", "0","")
+
+# ...and overall results from result_df
+mort_28_OR <- result_df$hazard_odds_ratio[1]
+mort_28_ci_lower <- result_df$ci_lower[1]
+mort_28_ci_upper <- result_df$ci_upper[1]
+
+# build forestplot
+base_data <- tibble(mean = subgroup_df$odds_ratio,
+                    lower = subgroup_df$ci_lower,
+                    upper = subgroup_df$ci_upper,
+                    subgroup = as.character(subgroup_df$variable),
+                    events_i = as.character(events_i),
+                    tot_i = as.character(tot_i),
+                    events_c = as.character(events_c),
+                    tot_c = as.character(tot_c),
+                    p_int = as.character(p_int))
+summary <- tibble(mean  = mort_28_OR,
+                  lower = mort_28_ci_lower,
+                  upper = mort_28_ci_upper,
+                  subgroup = "Overall treatment effect",
+                  summary = TRUE)
+header <- tibble(subgroup = c("Treatment effect on 28-day mortality, by subgroup"),
+                 events_i = c("Events int."),
+                 tot_i = c("No. int."),
+                 events_c = c("Events cont."),
+                 tot_c = c("No. cont."),
+                 p_int = c("p-int*"),
+                 summary = TRUE)
+mort28_fp <- bind_rows(header,base_data,summary)
+font <- "sans"
+
+# Open a pdf file
+# pdf("mort28_fp.pdf", width=16, height=8)
+mort28_fp %>%
+  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+                              ticks = gpar(cex=0.88),
+                              summary = gpar(cex=1),
+                              xlab = gpar(cex=0.88)),
+             # title = "Treatment effect on mortality at day 28 by subgroup",
+             is.summary = summary,
+             graph.pos = 6,
+             clip = c(0.1, 2),
+             hrzl_lines = list("2" = gpar(lty = 2),
+                               "6" = gpar(lty = 2),
+                               "8" = gpar(lty = 2),
+                               "10" = gpar(lty = 2),
+                               "14" = gpar(lty = 2),
+                               "18" = gpar(lty = 2),
+                               "21" = gpar(lty = 2),
+                               "23" = gpar(lty = 2)),
+             xlog = FALSE,
+             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
+             psize = sqrt(subgroup_df$inverse_variance),
+             lty.ci = c(1),
+             col = fpColors(box = "maroon4",
+                            line = "maroon1",
+                            summary = "magenta4",
+                            hrz_lines = "gray63"),
+             vertices = TRUE,
+             xlab = "     Favours JAKi <-> Favours No JAKi",
+             zero = 1,
+             grid = structure(c(0.69), gp = gpar(lty = 2, col = "gray63")),
+             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+             )
+
+# x <- unit(0.3, 'npc')
+# y <- unit(0.1, 'npc')
+# grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
+
+# dev.off()
+```
+* The p-values for the interaction were obtained using a two-stage IPDMA approach, i.e. solely based on within-trial interactions ("deft"): 
+First, to produce a treatment-covariate interaction estimate and its variance, a binomial regression was fitted in each trial separately, adjusted (where appropriate) for respiratory support and age, including the treatment and the treatment-covariate interaction, using restricted maximum likelihood estimation (with Firth penalisation correction in case of sparse data). 
+Second, the interaction estimates were combined across trials in a random-effect model (the true interactions are assumed random across trials), using restricted maximum likelihood estimation and the confidence interval for the summary interaction derived using the Hartung-Knapp Sidik-Jonkman approach. 
+Sizing of all squares are in proportion to the inverse variance of the estimates. 
+For continuous covariates (age, symptom duration, and CRP), a cut-off was chosen for descriptive purpose, but these covariates were included as a continuous treatment-covariate interaction assuming linearity. Ordinal covariates (respiratory support, comorbidities and comedication) were included similarly. 
 
 # AESI
 ```{r message=FALSE, warning=FALSE}
