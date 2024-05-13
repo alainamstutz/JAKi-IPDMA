@@ -467,7 +467,6 @@ df <- df %>%
 ### Variant // not available
 
 ```
-Discussion points:
 
 # Endpoints
 ```{r echo=TRUE}
@@ -1130,7 +1129,6 @@ df_ae <- df_ae %>%
   filter(duplicate_id == F)
 saveRDS(df_ae, file = "df_ae_tactic-r.RData")
 ```
-Discussion points:
 
 # Define final datasets
 ```{r echo=TRUE}
