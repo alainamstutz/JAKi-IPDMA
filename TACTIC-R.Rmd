@@ -1120,7 +1120,6 @@ df_aesi <- df_aesi %>%
 saveRDS(df_aesi, file = "df_aesi_tactic-r.RData")
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-# Save
 df_ae <- df_ae %>% 
   group_by(id_pat) %>% 
   mutate(duplicate_id = duplicated(ae) & !is.na(ae)) %>% 
