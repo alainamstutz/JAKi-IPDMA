@@ -180,9 +180,26 @@ df_tactic_r <- df_tactic_r %>%
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          ae_28, ae_28_sev,
          vir_clear_5, vir_clear_10, vir_clear_15)
+## PANCOVID
+df_pancovid <- readRDS("df_os_pancovid.RData")
+df_pancovid <- df_pancovid %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+
+
 
 # append
-df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r)
+df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_pancovid)
 # df_tot_Muru <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_murugesan, df_recovery)
 
 # Save
@@ -205,11 +222,12 @@ addmargins(table(df_tot$trial, df_tot$mort_28, useNA = "always"))
 ##   COV-BARRIER    1312   211   103  1626
 ##   COVINIB         105     2     3   110
 ##   Ghazaeian        90     7     0    97
+##   PANCOVID        268     8    11   287
 ##   RECOVERY       6943  1058   129  8130
 ##   TACTIC-R        233    35    14   282
 ##   TOFACOV         115     1     0   116
 ##   <NA>              0     0     0     0
-##   Sum            9964  1411   308 11683
+##   Sum           10232  1419   319 11970
 ```
 
 ```r
@@ -219,10 +237,10 @@ addmargins(table(df_tot$mort_28, df_tot$trt, useNA = "always"))
 ```
 ##       
 ##            0     1  <NA>   Sum
-##   0     4883  5081     0  9964
-##   1      755   656     0  1411
-##   <NA>   138   170     0   308
-##   Sum   5776  5907     0 11683
+##   0     5013  5219     0 10232
+##   1      761   658     0  1419
+##   <NA>   144   175     0   319
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -234,9 +252,9 @@ table(df_tot$clinstatus_baseline, df_tot$trt, useNA = "always")
 ##       
 ##           0    1 <NA>
 ##   1       0    0    0
-##   2     451  415    0
-##   3    3678 3743    0
-##   4    1398 1497    0
+##   2     483  457    0
+##   3    3784 3845    0
+##   4    1402 1498    0
 ##   5     244  250    0
 ##   6       0    0    0
 ##   <NA>    5    2    0
@@ -248,23 +266,23 @@ table(df_tot$clinstatus_baseline, df_tot$trial, useNA = "always")
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
 ##   1        0             0           0       0         0        0        0
-##   2      142             0         186      35         2      465       11
-##   3      564             0         962      75        95     5504      130
-##   4      216           249         370       0         0     1921      139
-##   5      111            40         101       0         0      240        2
+##   2      142             0         186      35         2       74      465
+##   3      564             0         962      75        95      208     5504
+##   4      216           249         370       0         0        5     1921
+##   5      111            40         101       0         0        0      240
 ##   6        0             0           0       0         0        0        0
 ##   <NA>     0             0           7       0         0        0        0
 ##       
-##        TOFACOV <NA>
-##   1          0    0
-##   2         25    0
-##   3         91    0
-##   4          0    0
-##   5          0    0
-##   6          0    0
-##   <NA>       0    0
+##        TACTIC-R TOFACOV <NA>
+##   1           0       0    0
+##   2          11      25    0
+##   3         130      91    0
+##   4         139       0    0
+##   5           2       0    0
+##   6           0       0    0
+##   <NA>        0       0    0
 ```
 
 ```r
@@ -273,15 +291,15 @@ table(df_tot$vbaseline, df_tot$trial, useNA = "always")
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   0      706             0        1148     110        97     5969      141
-##   1      327           289         471       0         0     2161      141
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0      706             0        1148     110        97      282     5969
+##   1      327           289         471       0         0        5     2161
 ##   <NA>     0             0           7       0         0        0        0
 ##       
-##        TOFACOV <NA>
-##   0        116    0
-##   1          0    0
-##   <NA>       0    0
+##        TACTIC-R TOFACOV <NA>
+##   0         141     116    0
+##   1         141       0    0
+##   <NA>        0       0    0
 ```
 
 ```r
@@ -298,14 +316,15 @@ df_tot <- df_tot %>%
                              trial == "COV-BARRIER" ~ 6,
                              trial == "RECOVERY" ~ 7,
                              trial == "TACTIC-R" ~ 8,
+                             trial == "PANCOVID" ~ 9,
                              ))
 table(df_tot$trial_n, useNA = "always")
 ```
 
 ```
 ## 
-##    1    2    3    4    5    6    7    8 <NA> 
-##  289 1033   97  116  110 1626 8130  282    0
+##    1    2    3    4    5    6    7    8    9 <NA> 
+##  289 1033   97  116  110 1626 8130  282  287    0
 ```
 
 GOAL: random treatment effect, stratified trial intercept, stratified prognostic factors, AND centering the treatment variable by the proportion treated in the trial (to improve the estimation of between-study variance) AND maximum likelihood (ML) estimator (due to small trials with rare events). REML is default in glmer, for ML use glmmTMB. See notes.
@@ -339,32 +358,32 @@ tab_model(mort28.ctreat.rtrial.ml)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.76</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.67&nbsp;&ndash;&nbsp;0.86</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.75</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.66&nbsp;&ndash;&nbsp;0.85</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Age(years)</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.08</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07&nbsp;&ndash;&nbsp;1.08</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07&nbsp;&ndash;&nbsp;1.09</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline:<br>clinstatus baseline 3</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.18</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.54&nbsp;&ndash;&nbsp;3.07</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.55&nbsp;&ndash;&nbsp;3.06</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline:<br>clinstatus baseline 4</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">7.93</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">5.59&nbsp;&ndash;&nbsp;11.26</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">8.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">5.66&nbsp;&ndash;&nbsp;11.30</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline:<br>clinstatus baseline 5</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">23.84</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">15.94&nbsp;&ndash;&nbsp;35.67</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">24.10</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">16.16&nbsp;&ndash;&nbsp;35.93</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
@@ -378,22 +397,22 @@ tab_model(mort28.ctreat.rtrial.ml)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>00</sub> <sub>trial</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.28</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.34</td>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">ICC</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.08</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.09</td>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11375</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11651</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.348 / 0.398</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.342 / 0.404</td>
 </tr>
 
 </table>
@@ -517,7 +536,8 @@ df_tot <- df_tot %>%
          age_trial_5 = case_when(trial == "COVINIB" ~ age, TRUE ~ 0),
          age_trial_6 = case_when(trial == "COV-BARRIER" ~ age, TRUE ~ 0),
          age_trial_7 = case_when(trial == "RECOVERY" ~ age, TRUE ~ 0),
-         age_trial_8 = case_when(trial == "TACTIC-R" ~ age, TRUE ~ 0))
+         age_trial_8 = case_when(trial == "TACTIC-R" ~ age, TRUE ~ 0),
+         age_trial_9 = case_when(trial == "PANCOVID" ~ age, TRUE ~ 0))
 df_tot <- df_tot %>%
   mutate(clinstat_trial_1 = case_when(trial == "Bari-Solidact" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_2 = case_when(trial == "ACTT2" ~ clinstatus_baseline, TRUE ~ "0"),
@@ -526,7 +546,8 @@ df_tot <- df_tot %>%
          clinstat_trial_5 = case_when(trial == "COVINIB" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_6 = case_when(trial == "COV-BARRIER" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_7 = case_when(trial == "RECOVERY" ~ clinstatus_baseline, TRUE ~ "0"),
-         clinstat_trial_8 = case_when(trial == "TACTIC-R" ~ clinstatus_baseline, TRUE ~ "0"))
+         clinstat_trial_8 = case_when(trial == "TACTIC-R" ~ clinstatus_baseline, TRUE ~ "0"),
+         clinstat_trial_9 = case_when(trial == "PANCOVID" ~ clinstatus_baseline, TRUE ~ "0"))
 
 ## centered
 df_tot <- df_tot %>%
@@ -537,7 +558,8 @@ df_tot <- df_tot %>%
          age_cent_trial_5 = case_when(trial == "COVINIB" ~ age_centered, TRUE ~ 0),
          age_cent_trial_6 = case_when(trial == "COV-BARRIER" ~ age_centered, TRUE ~ 0),
          age_cent_trial_7 = case_when(trial == "RECOVERY" ~ age_centered, TRUE ~ 0),
-         age_cent_trial_8 = case_when(trial == "TACTIC-R" ~ age_centered, TRUE ~ 0))
+         age_cent_trial_8 = case_when(trial == "TACTIC-R" ~ age_centered, TRUE ~ 0),
+         age_cent_trial_9 = case_when(trial == "PANCOVID" ~ age_centered, TRUE ~ 0))
 df_tot <- df_tot %>%
   mutate(clinstat_cent_trial_1 = case_when(trial == "Bari-Solidact" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_2 = case_when(trial == "ACTT2" ~ clinstatus_baseline_centered, TRUE ~ 0),
@@ -546,7 +568,8 @@ df_tot <- df_tot %>%
          clinstat_cent_trial_5 = case_when(trial == "COVINIB" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_6 = case_when(trial == "COV-BARRIER" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_7 = case_when(trial == "RECOVERY" ~ clinstatus_baseline_centered, TRUE ~ 0),
-         clinstat_cent_trial_8 = case_when(trial == "TACTIC-R" ~ clinstatus_baseline_centered, TRUE ~ 0))
+         clinstat_cent_trial_8 = case_when(trial == "TACTIC-R" ~ clinstatus_baseline_centered, TRUE ~ 0),
+         clinstat_cent_trial_9 = case_when(trial == "PANCOVID" ~ clinstatus_baseline_centered, TRUE ~ 0))
 
 
 # (5) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors
@@ -555,9 +578,9 @@ mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n
                                                  + trial_f
                                                  + (trt_centered_n -1 | trial_f) -1
                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4
-                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                                                  + clinstat_cent_trial_1 + clinstat_cent_trial_2 + clinstat_cent_trial_3
-                                                 + clinstat_cent_trial_4 + clinstat_cent_trial_5 + clinstat_cent_trial_6 + clinstat_cent_trial_7 + clinstat_cent_trial_8
+                                                 + clinstat_cent_trial_4 + clinstat_cent_trial_5 + clinstat_cent_trial_6 + clinstat_cent_trial_7 + clinstat_cent_trial_8 + clinstat_cent_trial_9
                                                  , data = df_tot, family = binomial)
 tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 ```
@@ -575,8 +598,8 @@ tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.71</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.57&nbsp;&ndash;&nbsp;0.88</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.70</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.56&nbsp;&ndash;&nbsp;0.87</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.002</strong></td>
 </tr>
 <tr>
@@ -601,13 +624,19 @@ tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;Inf</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.998</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.999</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.06</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;9138937693480435853757475979264.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.939</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;20305418014096206650671104.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.926</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.04</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
@@ -625,7 +654,7 @@ tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;Inf</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.996</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.995</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
@@ -649,7 +678,7 @@ tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.06</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.88&nbsp;&ndash;&nbsp;1.28</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.510</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.509</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
@@ -676,9 +705,15 @@ tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.17</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.05&nbsp;&ndash;&nbsp;1.29</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.004</strong></td>
+</tr>
+<tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstat cent trial 1</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.43</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97&nbsp;&ndash;&nbsp;6.08</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97&nbsp;&ndash;&nbsp;6.07</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.057</td>
 </tr>
 <tr>
@@ -689,25 +724,25 @@ tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstat cent trial 3</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">610741.91</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">417835.60</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;Inf</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.994</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.993</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstat cent trial 4</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">13391324.71</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">7242591.18</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;Inf</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.998</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstat cent trial 5</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">94955015.81</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">392658539.23</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;Inf</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.999</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstat cent trial 6</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.78</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.79</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.03&nbsp;&ndash;&nbsp;4.72</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
@@ -719,9 +754,15 @@ tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstat cent trial 8</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.64</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.72&nbsp;&ndash;&nbsp;7.72</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.65</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.72&nbsp;&ndash;&nbsp;7.73</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.001</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstat cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">4.13</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.51&nbsp;&ndash;&nbsp;33.18</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.182</td>
 </tr>
 <tr>
 <td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">Random Effects</td>
@@ -758,14 +799,14 @@ tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11375</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11651</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.556 / 0.556</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.566 / 0.566</td>
 </tr>
 
 </table>
@@ -787,7 +828,7 @@ mort28.rtreat.strial.cent.ml.sage.cent.rclinstat <- glmmTMB(mort_28 ~ trt_center
                                                  + trial_f 
                                                  + (trt_centered_n -1 | trial_f) -1 
                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
-                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                                                  + (clinstatus_baseline_n -1 | trial_f)
                                                  , data = df_tot, family = binomial)
 # tab_model(mort28.rtreat.strial.cent.ml.sage.cent.rclinstat) 
@@ -796,7 +837,7 @@ mort28.rtreat.strial.cent.ml.sage.cent.rvb <- glmmTMB(mort_28 ~ trt_centered_n
                                                  + trial_f 
                                                  + (trt_centered_n -1 | trial_f) -1 
                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
-                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                                                  + (vbaseline -1 | trial_f)
                                                  , data = df_tot, family = binomial)
 # tab_model(mort28.rtreat.strial.cent.ml.sage.cent.rvb) 
@@ -892,57 +933,57 @@ kable(result_df, format = "html", table.attr = 'class="table"') %>%
   <tr>
    <td style="text-align:left;"> 2.5 % </td>
    <td style="text-align:left;"> c trt, r intercept, c age/clinstatus </td>
-   <td style="text-align:right;"> 0.7563247 </td>
-   <td style="text-align:right;"> 0.6686805 </td>
-   <td style="text-align:right;"> 0.8554565 </td>
-   <td style="text-align:right;"> 0.0000088 </td>
-   <td style="text-align:right;"> 5737 </td>
-   <td style="text-align:right;"> 5638 </td>
+   <td style="text-align:right;"> 0.7518571 </td>
+   <td style="text-align:right;"> 0.6649858 </td>
+   <td style="text-align:right;"> 0.8500769 </td>
+   <td style="text-align:right;"> 0.0000053 </td>
+   <td style="text-align:right;"> 5877 </td>
+   <td style="text-align:right;"> 5774 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %1 </td>
    <td style="text-align:left;"> r trt, r intercept, c age/clinstatus </td>
-   <td style="text-align:right;"> 0.7163335 </td>
-   <td style="text-align:right;"> 0.5432806 </td>
-   <td style="text-align:right;"> 0.9445096 </td>
-   <td style="text-align:right;"> 0.0180490 </td>
-   <td style="text-align:right;"> 5737 </td>
-   <td style="text-align:right;"> 5638 </td>
+   <td style="text-align:right;"> 0.6828818 </td>
+   <td style="text-align:right;"> 0.5079994 </td>
+   <td style="text-align:right;"> 0.9179688 </td>
+   <td style="text-align:right;"> 0.0115037 </td>
+   <td style="text-align:right;"> 5877 </td>
+   <td style="text-align:right;"> 5774 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %2 </td>
    <td style="text-align:left;"> r trt, s intercept, c age/clinstatus </td>
-   <td style="text-align:right;"> 0.7563061 </td>
-   <td style="text-align:right;"> 0.6686298 </td>
-   <td style="text-align:right;"> 0.8554793 </td>
-   <td style="text-align:right;"> 0.0000089 </td>
-   <td style="text-align:right;"> 5737 </td>
-   <td style="text-align:right;"> 5638 </td>
+   <td style="text-align:right;"> 0.7518260 </td>
+   <td style="text-align:right;"> 0.6649244 </td>
+   <td style="text-align:right;"> 0.8500852 </td>
+   <td style="text-align:right;"> 0.0000053 </td>
+   <td style="text-align:right;"> 5877 </td>
+   <td style="text-align:right;"> 5774 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %3 </td>
    <td style="text-align:left;"> r cent trt, s intercept, c age/clinstatus </td>
-   <td style="text-align:right;"> 0.7140008 </td>
-   <td style="text-align:right;"> 0.5750239 </td>
-   <td style="text-align:right;"> 0.8865670 </td>
-   <td style="text-align:right;"> 0.0022879 </td>
-   <td style="text-align:right;"> 5737 </td>
-   <td style="text-align:right;"> 5638 </td>
+   <td style="text-align:right;"> 0.7026253 </td>
+   <td style="text-align:right;"> 0.5624269 </td>
+   <td style="text-align:right;"> 0.8777714 </td>
+   <td style="text-align:right;"> 0.0018833 </td>
+   <td style="text-align:right;"> 5877 </td>
+   <td style="text-align:right;"> 5774 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> 2.5 %4 </td>
    <td style="text-align:left;"> r cent trt, s intercept, s and cent age, r clinstatus </td>
-   <td style="text-align:right;"> 0.7088568 </td>
-   <td style="text-align:right;"> 0.5694576 </td>
-   <td style="text-align:right;"> 0.8823799 </td>
-   <td style="text-align:right;"> 0.0020699 </td>
-   <td style="text-align:right;"> 5737 </td>
-   <td style="text-align:right;"> 5638 </td>
+   <td style="text-align:right;"> 0.6949719 </td>
+   <td style="text-align:right;"> 0.5532796 </td>
+   <td style="text-align:right;"> 0.8729510 </td>
+   <td style="text-align:right;"> 0.0017603 </td>
+   <td style="text-align:right;"> 5877 </td>
+   <td style="text-align:right;"> 5774 </td>
   </tr>
 </tbody>
 </table>
 
-### Plot the effect estimates and 95% CI for all endpoints
+### Plot the effect estimates and 95% CI for all models
 
 ```r
 # Convert necessary columns to numeric
@@ -1007,7 +1048,7 @@ mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline
                   , data = df_tot, family = binomial)
 tab_model(mort28)
@@ -1026,8 +1067,8 @@ tab_model(mort28)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.71</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.57&nbsp;&ndash;&nbsp;0.88</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.69</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.55&nbsp;&ndash;&nbsp;0.87</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.002</strong></td>
 </tr>
 <tr>
@@ -1051,14 +1092,20 @@ tab_model(mort28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.74</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.038</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.67</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.034</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.05</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;7.38</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.236</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;6.40</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.224</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.13</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.003</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
@@ -1069,14 +1116,14 @@ tab_model(mort28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TACTIC-R</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.02</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.03</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.77</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.040</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.68</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.036</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
@@ -1100,13 +1147,13 @@ tab_model(mort28)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.89&nbsp;&ndash;&nbsp;1.29</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.472</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.471</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.13</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;1.35</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.181</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.180</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
@@ -1125,6 +1172,12 @@ tab_model(mort28)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.11</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07&nbsp;&ndash;&nbsp;1.15</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.16</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.05&nbsp;&ndash;&nbsp;1.29</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.004</strong></td>
 </tr>
 <tr>
 <td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">Random Effects</td>
@@ -1149,7 +1202,7 @@ tab_model(mort28)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>11</sub> <sub>trial_f.1.clinstatus_baseline_n</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.80</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.74</td>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&rho;<sub>01</sub></td>
@@ -1165,14 +1218,14 @@ tab_model(mort28)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11375</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11651</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.323 / 0.324</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.325 / 0.326</td>
 </tr>
 
 </table>
@@ -1186,10 +1239,10 @@ addmargins(table(df_tot$mort_60, df_tot$trt, useNA = "always"))
 ```
 ##       
 ##            0     1  <NA>   Sum
-##   0     4842  5038     0  9880
-##   1      778   688     0  1466
-##   <NA>   156   181     0   337
-##   Sum   5776  5907     0 11683
+##   0     4971  5175     0 10146
+##   1      785   691     0  1476
+##   <NA>   162   186     0   348
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -1198,17 +1251,17 @@ addmargins(table(df_tot$mort_60, df_tot$trial, useNA = "always"))
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   0      925           231        1249     105        90     6943      222
-##   1       61            46         249       2         7     1058       42
-##   <NA>    47            12         128       3         0      129       18
-##   Sum   1033           289        1626     110        97     8130      282
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0      925           231        1249     105        90      266     6943
+##   1       61            46         249       2         7       10     1058
+##   <NA>    47            12         128       3         0       11      129
+##   Sum   1033           289        1626     110        97      287     8130
 ##       
-##        TOFACOV  <NA>   Sum
-##   0        115     0  9880
-##   1          1     0  1466
-##   <NA>       0     0   337
-##   Sum      116     0 11683
+##        TACTIC-R TOFACOV  <NA>   Sum
+##   0         222     115     0 10146
+##   1          42       1     0  1476
+##   <NA>       18       0     0   348
+##   Sum       282     116     0 11970
 ```
 
 ```r
@@ -1216,7 +1269,7 @@ mort60 <- glmmTMB(mort_60 ~ trt_centered_n
                   + trial_f 
                   + (trt_centered_n -1 | trial_f) -1 
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(mort60)
@@ -1235,9 +1288,9 @@ tab_model(mort60)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.77</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.68&nbsp;&ndash;&nbsp;0.87</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.75</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.61&nbsp;&ndash;&nbsp;0.92</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.005</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: ACTT 2</td>
@@ -1248,7 +1301,7 @@ tab_model(mort60)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.23</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.24</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.005</strong></td>
 </tr>
 <tr>
@@ -1260,14 +1313,20 @@ tab_model(mort60)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.71</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.036</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.61</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.031</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.05</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;7.17</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.235</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;5.74</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.216</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.27</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.006</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
@@ -1278,14 +1337,14 @@ tab_model(mort60)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TACTIC-R</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.03</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.04</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.75</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.039</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.62</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.033</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
@@ -1309,13 +1368,13 @@ tab_model(mort60)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.89&nbsp;&ndash;&nbsp;1.29</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.474</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.473</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.13</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.94&nbsp;&ndash;&nbsp;1.35</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.181</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;1.35</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.180</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
@@ -1334,6 +1393,12 @@ tab_model(mort60)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.10</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.06&nbsp;&ndash;&nbsp;1.14</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.12</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.03&nbsp;&ndash;&nbsp;1.22</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.011</strong></td>
 </tr>
 <tr>
 <td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">Random Effects</td>
@@ -1358,7 +1423,7 @@ tab_model(mort60)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>11</sub> <sub>trial_f.1.clinstatus_baseline_n</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.78</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.70</td>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&rho;<sub>01</sub></td>
@@ -1367,17 +1432,21 @@ tab_model(mort60)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&rho;<sub>01</sub></td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">&nbsp;</td>
+
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">ICC</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.00</td>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11346</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11622</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.321 / NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.329 / 0.329</td>
 </tr>
 
 </table>
@@ -1425,8 +1494,8 @@ kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |**Characteristic**    |**28-d survival (95% CI)** |
 |:---------------------|:--------------------------|
 |Trial treatment group |NA                         |
-|0                     |86% (86%, 87%)             |
-|1                     |88% (88%, 89%)             |
+|0                     |87% (86%, 88%)             |
+|1                     |89% (88%, 90%)             |
 
 ```r
 autoplot(km.ttdeath_trt)
@@ -1463,7 +1532,7 @@ ttdeath <- coxme(Surv(death_time, death_reached) ~ trt_centered_n
                   + trial_f
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
 tab_model(ttdeath)
@@ -1482,51 +1551,57 @@ tab_model(ttdeath)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.80</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.66&nbsp;&ndash;&nbsp;0.96</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.019</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.79</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.66&nbsp;&ndash;&nbsp;0.95</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.011</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">9.23</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.51&nbsp;&ndash;&nbsp;166.50</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.132</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">9.51</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.54&nbsp;&ndash;&nbsp;167.16</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.124</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COV-BARRIER</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">4.49</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.16&nbsp;&ndash;&nbsp;17.32</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.029</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">4.37</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.14&nbsp;&ndash;&nbsp;16.78</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.032</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;72.97</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.995</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.02</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02&nbsp;&ndash;&nbsp;65.21</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.992</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">57.45</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.92&nbsp;&ndash;&nbsp;3576.58</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.055</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">57.35</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.11&nbsp;&ndash;&nbsp;2950.11</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.044</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">7.25</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.31&nbsp;&ndash;&nbsp;169.58</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.218</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.78</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.08&nbsp;&ndash;&nbsp;13.25</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.038</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.69</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.06&nbsp;&ndash;&nbsp;12.86</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.041</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TACTIC-R</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">21.19</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.17&nbsp;&ndash;&nbsp;206.56</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.009</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">22.40</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.35&nbsp;&ndash;&nbsp;213.77</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.007</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">4.95</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.05&nbsp;&ndash;&nbsp;497.62</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.496</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">4.93</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.06&nbsp;&ndash;&nbsp;424.92</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.483</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
@@ -1550,13 +1625,13 @@ tab_model(ttdeath)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.89&nbsp;&ndash;&nbsp;1.29</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.467</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.466</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.12</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;1.32</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.164</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.163</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
@@ -1576,13 +1651,19 @@ tab_model(ttdeath)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.01&nbsp;&ndash;&nbsp;1.06</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.001</strong></td>
 </tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.11</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.02&nbsp;&ndash;&nbsp;1.21</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.014</strong></td>
+</tr>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11547</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11834</td>
 </tr>
 
 </table>
@@ -1596,10 +1677,10 @@ addmargins(table(df_tot$new_mvd_28, df_tot$trt, useNA = "always"))
 ```
 ##       
 ##            0     1  <NA>   Sum
-##   0     4582  4785     0  9367
-##   1     1092   992     0  2084
-##   <NA>   102   130     0   232
-##   Sum   5776  5907     0 11683
+##   0     4705  4917     0  9622
+##   1     1105  1000     0  2105
+##   <NA>   108   135     0   243
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -1608,17 +1689,17 @@ addmargins(table(df_tot$new_mvd_28, df_tot$trial, useNA = "always"))
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   0      847           205        1142      97        90     6639      234
-##   1      152            73         401      10         7     1390       48
-##   <NA>    34            11          83       3         0      101        0
-##   Sum   1033           289        1626     110        97     8130      282
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0      847           205        1142      97        90      255     6639
+##   1      152            73         401      10         7       21     1390
+##   <NA>    34            11          83       3         0       11      101
+##   Sum   1033           289        1626     110        97      287     8130
 ##       
-##        TOFACOV  <NA>   Sum
-##   0        113     0  9367
-##   1          3     0  2084
-##   <NA>       0     0   232
-##   Sum      116     0 11683
+##        TACTIC-R TOFACOV  <NA>   Sum
+##   0         234     113     0  9622
+##   1          48       3     0  2105
+##   <NA>        0       0     0   243
+##   Sum       282     116     0 11970
 ```
 
 ```r
@@ -1626,7 +1707,7 @@ new.mvd28 <- glmmTMB(new_mvd_28 ~ trt_centered_n
                   + trial_f 
                   + (trt_centered_n -1 | trial_f) -1 
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(new.mvd28)
@@ -1658,8 +1739,8 @@ tab_model(new.mvd28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.05&nbsp;&ndash;&nbsp;20.73</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.987</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.05&nbsp;&ndash;&nbsp;20.36</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.983</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COV-BARRIER</td>
@@ -1670,14 +1751,20 @@ tab_model(new.mvd28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.06</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;1.84</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.106</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;1.79</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.104</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.05</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;9.62</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.260</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;8.79</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.252</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.15</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
@@ -1694,8 +1781,8 @@ tab_model(new.mvd28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.05</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;4.24</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.184</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;3.89</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.174</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
@@ -1725,7 +1812,7 @@ tab_model(new.mvd28)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.05</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.13</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.162</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.161</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
@@ -1744,6 +1831,12 @@ tab_model(new.mvd28)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.04&nbsp;&ndash;&nbsp;1.10</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.06</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00&nbsp;&ndash;&nbsp;1.12</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.040</strong></td>
 </tr>
 <tr>
 <td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">Random Effects</td>
@@ -1768,7 +1861,7 @@ tab_model(new.mvd28)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>11</sub> <sub>trial_f.1.clinstatus_baseline_n</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.90</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.86</td>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&rho;<sub>01</sub></td>
@@ -1780,14 +1873,14 @@ tab_model(new.mvd28)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11451</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11727</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.402 / NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.398 / NA</td>
 </tr>
 
 </table>
@@ -1801,10 +1894,10 @@ addmargins(table(df_tot$new_mv_28, df_tot$trt, useNA = "always"))
 ```
 ##       
 ##            0     1  <NA>   Sum
-##   0     4455  4647     0  9102
-##   1      316   305     0   621
-##   <NA>  1005   955     0  1960
-##   Sum   5776  5907     0 11683
+##   0     4578  4779     0  9357
+##   1      323   311     0   634
+##   <NA>  1017   962     0  1979
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -1813,17 +1906,17 @@ addmargins(table(df_tot$new_mv_28, df_tot$trial, useNA = "always"))
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   0      768           174        1141      97        90     6487      232
-##   1       91            37         138       8         0      332       13
-##   <NA>   174            78         347       5         7     1311       37
-##   Sum   1033           289        1626     110        97     8130      282
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0      768           174        1141      97        90      255     6487
+##   1       91            37         138       8         0       13      332
+##   <NA>   174            78         347       5         7       19     1311
+##   Sum   1033           289        1626     110        97      287     8130
 ##       
-##        TOFACOV  <NA>   Sum
-##   0        113     0  9102
-##   1          2     0   621
-##   <NA>       1     0  1960
-##   Sum      116     0 11683
+##        TACTIC-R TOFACOV  <NA>   Sum
+##   0         232     113     0  9357
+##   1          13       2     0   634
+##   <NA>       37       1     0  1979
+##   Sum       282     116     0 11970
 ```
 
 ```r
@@ -1831,7 +1924,7 @@ new.mv28 <- glmmTMB(new_mv_28 ~ trt_centered_n
                   + trial_f 
                   + (trt_centered_n -1 | trial_f) -1 
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(new.mv28)
@@ -1850,9 +1943,9 @@ tab_model(new.mv28)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.90</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.73&nbsp;&ndash;&nbsp;1.10</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.300</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.89</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.73&nbsp;&ndash;&nbsp;1.09</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.260</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: ACTT 2</td>
@@ -1863,8 +1956,8 @@ tab_model(new.mv28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.21</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;2013.88</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.738</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;1281.39</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.725</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COV-BARRIER</td>
@@ -1875,14 +1968,20 @@ tab_model(new.mv28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.06</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;2.95</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.159</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;2.76</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.152</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;Inf</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.987</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.991</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.24</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.006</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
@@ -1898,9 +1997,9 @@ tab_model(new.mv28)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.07</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;15.46</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.336</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.06</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;11.88</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.302</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
@@ -1916,21 +2015,21 @@ tab_model(new.mv28)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 3</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.02</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;615480213688905160876604409681378074844507310195355165992681472.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;15986978266423513522376808489747507728634219834248018314882562044964491591500555337711374248706048.00</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.000</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.03</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.02</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.91&nbsp;&ndash;&nbsp;1.16</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.692</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.695</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.04</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.96&nbsp;&ndash;&nbsp;1.12</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.344</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.343</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
@@ -1948,7 +2047,13 @@ tab_model(new.mv28)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 8</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.96&nbsp;&ndash;&nbsp;1.05</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.916</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.918</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;1.08</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.670</td>
 </tr>
 <tr>
 <td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">Random Effects</td>
@@ -1973,7 +2078,7 @@ tab_model(new.mv28)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>11</sub> <sub>trial_f.1.clinstatus_baseline_n</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">1.37</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">1.23</td>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&rho;<sub>01</sub></td>
@@ -1989,14 +2094,14 @@ tab_model(new.mv28)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">9723</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">9991</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.490 / 0.491</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.508 / 0.509</td>
 </tr>
 
 </table>
@@ -2010,14 +2115,14 @@ addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt, useNA = "always"))
 ```
 ##       
 ##            0     1  <NA>   Sum
-##   1     4457  4688     0  9145
-##   2       43    46     0    89
-##   3      214   199     0   413
-##   4      166   168     0   334
-##   5      141   152     0   293
-##   6      755   654     0  1409
-##   <NA>     0     0     0     0
-##   Sum   5776  5907     0 11683
+##   1     4529  4781     0  9310
+##   2       77    71     0   148
+##   3      232   212     0   444
+##   4      169   171     0   340
+##   5      144   156     0   300
+##   6      761   656     0  1417
+##   <NA>     6     5     0    11
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -2026,25 +2131,25 @@ addmargins(table(df_tot$clinstatus_28_imp, df_tot$trial, useNA = "always"))
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   1      824           187        1212     103        90     6405      214
-##   2       19             9          24       0         0       30        7
-##   3       39            18          66       3         0      275       11
-##   4       23            13          23       0         0      264        8
-##   5       67            26          90       2         0      101        6
-##   6       61            36         211       2         7     1055       36
-##   <NA>     0             0           0       0         0        0        0
-##   Sum   1033           289        1626     110        97     8130      282
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   1      824           187        1212     103        90      165     6405
+##   2       19             9          24       0         0       59       30
+##   3       39            18          66       3         0       31      275
+##   4       23            13          23       0         0        6      264
+##   5       67            26          90       2         0        7      101
+##   6       61            36         211       2         7        8     1055
+##   <NA>     0             0           0       0         0       11        0
+##   Sum   1033           289        1626     110        97      287     8130
 ##       
-##        TOFACOV  <NA>   Sum
-##   1        110     0  9145
-##   2          0     0    89
-##   3          1     0   413
-##   4          3     0   334
-##   5          1     0   293
-##   6          1     0  1409
-##   <NA>       0     0     0
-##   Sum      116     0 11683
+##        TACTIC-R TOFACOV  <NA>   Sum
+##   1         214     110     0  9310
+##   2           7       0     0   148
+##   3          11       1     0   444
+##   4           8       3     0   340
+##   5           6       1     0   300
+##   6          36       1     0  1417
+##   <NA>        0       0     0    11
+##   Sum       282     116     0 11970
 ```
 
 ```r
@@ -2059,7 +2164,7 @@ clin28 <- df_tot %>%
                   + age_cent_trial_4
                   + age_cent_trial_5
                   + age_cent_trial_6
-                  + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + clinstatus_baseline_n
                   # + (clinstatus_baseline_n -1 | trial_f)
       , link= c("logit"), data=.)
@@ -2086,81 +2191,87 @@ tab_model(clin28)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">1|2</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">704.28</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">285.40&nbsp;&ndash;&nbsp;1737.93</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">671.21</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">278.90&nbsp;&ndash;&nbsp;1615.34</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">2|3</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">744.90</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">301.81&nbsp;&ndash;&nbsp;1838.50</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">734.33</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">305.05&nbsp;&ndash;&nbsp;1767.75</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">3|4</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">990.49</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">400.89&nbsp;&ndash;&nbsp;2447.21</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">989.61</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">410.66&nbsp;&ndash;&nbsp;2384.77</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">4|5</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1292.63</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">522.63&nbsp;&ndash;&nbsp;3197.12</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1290.25</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">534.87&nbsp;&ndash;&nbsp;3112.42</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">5|6</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1671.20</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">675.09&nbsp;&ndash;&nbsp;4137.13</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1671.36</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">692.26&nbsp;&ndash;&nbsp;4035.26</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.81</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.73&nbsp;&ndash;&nbsp;0.89</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.80</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.73&nbsp;&ndash;&nbsp;0.88</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: ACTT 2</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.67</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.68&nbsp;&ndash;&nbsp;4.08</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.260</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.72</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.72&nbsp;&ndash;&nbsp;4.11</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.224</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.68</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.68&nbsp;&ndash;&nbsp;4.20</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.263</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.75</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.72&nbsp;&ndash;&nbsp;4.27</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.220</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COV-BARRIER</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.98</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.23&nbsp;&ndash;&nbsp;7.22</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.015</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.05</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.29&nbsp;&ndash;&nbsp;7.22</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.011</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.83</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.20&nbsp;&ndash;&nbsp;3.48</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.800</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.20&nbsp;&ndash;&nbsp;3.43</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.796</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.22</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.37&nbsp;&ndash;&nbsp;4.06</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.748</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.37&nbsp;&ndash;&nbsp;3.99</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.744</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">9.35</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.87&nbsp;&ndash;&nbsp;22.58</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.31</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.96&nbsp;&ndash;&nbsp;5.56</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.061</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.36</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00&nbsp;&ndash;&nbsp;5.54</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.049</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TACTIC-R</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.04</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.80&nbsp;&ndash;&nbsp;5.18</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.134</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.08</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.84&nbsp;&ndash;&nbsp;5.18</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.115</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
@@ -2184,13 +2295,13 @@ tab_model(clin28)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.02</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;1.10</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.599</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.596</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.10</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.11</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00&nbsp;&ndash;&nbsp;1.22</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.043</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.042</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
@@ -2211,9 +2322,15 @@ tab_model(clin28)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.04</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.440</td>
+</tr>
+<tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline n</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.53</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.28&nbsp;&ndash;&nbsp;3.80</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.48</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.23&nbsp;&ndash;&nbsp;3.74</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
@@ -2247,14 +2364,14 @@ tab_model(clin28)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11676</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11952</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.356 / NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.435 / NA</td>
 </tr>
 
 </table>
@@ -2295,7 +2412,7 @@ kable(ttdischarge_28d_tbl, format = "markdown", table.attr = 'class="table"') %>
 |**Characteristic**    |**28-d hospitalization (95% CI)** |
 |:---------------------|:---------------------------------|
 |Trial treatment group |NA                                |
-|0                     |14% (13%, 15%)                    |
+|0                     |15% (14%, 16%)                    |
 |1                     |13% (12%, 14%)                    |
 
 ```r
@@ -2344,11 +2461,11 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ 1, data = df_tot)
 
 ```
 ## time   n.risk   estimate   std.error   95% CI          
-## 5.00   8,970    0.298      0.004       0.290, 0.307    
-## 10.0   4,434    0.597      0.005       0.588, 0.606    
-## 15.0   2,581    0.714      0.004       0.706, 0.722    
-## 20.0   1,683    0.759      0.004       0.751, 0.767    
-## 25.0   1,202    0.787      0.004       0.779, 0.794
+## 5.00   9,250    0.291      0.004       0.283, 0.300    
+## 10.0   4,707    0.583      0.005       0.574, 0.592    
+## 15.0   2,853    0.697      0.004       0.689, 0.705    
+## 20.0   1,953    0.742      0.004       0.734, 0.749    
+## 25.0   1,465    0.769      0.004       0.761, 0.777
 ```
 
 ```
@@ -2357,11 +2474,11 @@ cuminc(Surv(discharge_time, discharge_reached_comp) ~ 1, data = df_tot)
 
 ```
 ## time   n.risk   estimate   std.error   95% CI          
-## 5.00   8,970    0.027      0.001       0.024, 0.030    
-## 10.0   4,434    0.059      0.002       0.055, 0.063    
-## 15.0   2,581    0.084      0.003       0.079, 0.090    
-## 20.0   1,683    0.102      0.003       0.097, 0.108    
-## 25.0   1,202    0.114      0.003       0.108, 0.120
+## 5.00   9,250    0.026      0.001       0.023, 0.029    
+## 10.0   4,707    0.058      0.002       0.054, 0.062    
+## 15.0   2,853    0.083      0.003       0.078, 0.088    
+## 20.0   1,953    0.100      0.003       0.095, 0.106    
+## 25.0   1,465    0.112      0.003       0.106, 0.117
 ```
 
 ```r
@@ -2417,7 +2534,7 @@ ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt_cente
                   + cluster(trial_f)
                   # + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + clinstatus_baseline_n
                   # + (clinstatus_baseline_n -1 | trial_f)
                   ,data = df_tot)
@@ -2438,24 +2555,26 @@ kable(ttdischarge_comp_reg_tbl, format = "markdown", table.attr = 'class="table"
 
 |**Characteristic**    |**HR** |**95% CI** |**p-value** |
 |:---------------------|:------|:----------|:-----------|
-|Trial treatment group |1.12   |1.08, 1.17 |<0.001      |
+|Trial treatment group |1.13   |1.08, 1.17 |<0.001      |
 |cluster(trial_f)      |NA     |NA         |NA          |
 |ACTT2                 |NA     |NA         |NA          |
-|Bari-Solidact         |1.00   |0.85, 1.16 |>0.9        |
+|Bari-Solidact         |0.98   |0.84, 1.15 |0.8         |
 |COV-BARRIER           |0.60   |0.55, 0.65 |<0.001      |
-|COVINIB               |1.00   |0.81, 1.24 |>0.9        |
-|Ghazaeian             |1.18   |0.97, 1.43 |0.10        |
-|RECOVERY              |0.83   |0.77, 0.89 |<0.001      |
-|TACTIC-R              |1.05   |0.89, 1.22 |0.6         |
-|TOFACOV               |0.53   |0.46, 0.60 |<0.001      |
+|COVINIB               |1.01   |0.81, 1.24 |>0.9        |
+|Ghazaeian             |1.17   |0.96, 1.43 |0.12        |
+|PANCOVID              |0.19   |0.16, 0.21 |<0.001      |
+|RECOVERY              |0.82   |0.77, 0.89 |<0.001      |
+|TACTIC-R              |1.04   |0.88, 1.22 |0.7         |
+|TOFACOV               |0.53   |0.46, 0.61 |<0.001      |
 |age_cent_trial_1      |0.97   |0.96, 0.98 |<0.001      |
 |age_cent_trial_2      |0.98   |0.98, 0.99 |<0.001      |
 |age_cent_trial_3      |0.99   |0.98, 1.00 |0.2         |
 |age_cent_trial_4      |1.0    |0.99, 1.00 |0.2         |
-|age_cent_trial_5      |0.99   |0.97, 1.00 |0.13        |
+|age_cent_trial_5      |0.98   |0.97, 1.00 |0.12        |
 |age_cent_trial_6      |0.98   |0.98, 0.98 |<0.001      |
 |age_cent_trial_7      |0.97   |0.97, 0.97 |<0.001      |
 |age_cent_trial_8      |0.96   |0.95, 0.97 |<0.001      |
+|age_cent_trial_9      |1.00   |0.99, 1.01 |0.7         |
 |clinstatus_baseline_n |0.51   |0.49, 0.53 |<0.001      |
 Discussion points:
 1. crr has a clustering function - however, cannot add random effects. coxme cannot deal with competing risks. Needs a multistate model? https://cran.r-project.org/web/packages/survival/vignettes/compete.pdf
@@ -2470,7 +2589,7 @@ ttdischarge.hypo <- coxme(Surv(discharge_time_sens, discharge_reached) ~ trt_cen
                   + trial_f
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
 tab_model(ttdischarge.hypo)
@@ -2489,45 +2608,51 @@ tab_model(ttdischarge.hypo)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.13</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.14</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.09&nbsp;&ndash;&nbsp;1.18</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">4.13</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.61&nbsp;&ndash;&nbsp;27.76</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.145</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.92</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.60&nbsp;&ndash;&nbsp;25.75</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.155</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COV-BARRIER</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.34</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.23&nbsp;&ndash;&nbsp;0.48</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.24&nbsp;&ndash;&nbsp;0.48</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.55</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.15&nbsp;&ndash;&nbsp;2.04</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.367</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.52</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.14&nbsp;&ndash;&nbsp;1.91</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.321</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.21</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;4.10</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.305</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;3.65</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.282</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;0.04</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.94</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.70&nbsp;&ndash;&nbsp;1.27</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.677</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.69&nbsp;&ndash;&nbsp;1.26</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.662</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TACTIC-R</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.69</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.71&nbsp;&ndash;&nbsp;4.03</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.238</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.66</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.69&nbsp;&ndash;&nbsp;3.95</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.255</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
@@ -2551,24 +2676,24 @@ tab_model(ttdischarge.hypo)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 3</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.208</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.197</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97&nbsp;&ndash;&nbsp;1.01</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.209</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.208</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.96&nbsp;&ndash;&nbsp;1.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.031</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.025</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;0.98</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97&nbsp;&ndash;&nbsp;0.98</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
@@ -2583,13 +2708,19 @@ tab_model(ttdischarge.hypo)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.94&nbsp;&ndash;&nbsp;0.96</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.464</td>
+</tr>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11676</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11963</td>
 </tr>
 
 </table>
@@ -2604,7 +2735,7 @@ ttdischarge.cens <- coxme(Surv(discharge_time, discharge_reached) ~ trt_centered
                   + trial_f
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
 tab_model(ttdischarge.cens)
@@ -2624,49 +2755,55 @@ tab_model(ttdischarge.cens)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.12</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07&nbsp;&ndash;&nbsp;1.16</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.08&nbsp;&ndash;&nbsp;1.17</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.51</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.53&nbsp;&ndash;&nbsp;23.17</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.191</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.34</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.52&nbsp;&ndash;&nbsp;21.45</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.204</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COV-BARRIER</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.28</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.20&nbsp;&ndash;&nbsp;0.40</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.19&nbsp;&ndash;&nbsp;0.40</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.48</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.13&nbsp;&ndash;&nbsp;1.78</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.269</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.44</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.12&nbsp;&ndash;&nbsp;1.62</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.216</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.19</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;3.09</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.242</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.18</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;2.77</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.221</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.03</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.88</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.65&nbsp;&ndash;&nbsp;1.18</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.381</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.87</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.64&nbsp;&ndash;&nbsp;1.16</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.340</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TACTIC-R</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.09</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.45&nbsp;&ndash;&nbsp;2.63</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.850</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.04</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.43&nbsp;&ndash;&nbsp;2.52</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.923</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.07</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02&nbsp;&ndash;&nbsp;0.24</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02&nbsp;&ndash;&nbsp;0.23</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
@@ -2685,24 +2822,24 @@ tab_model(ttdischarge.cens)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 3</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.01</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.381</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.383</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97&nbsp;&ndash;&nbsp;1.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.171</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.172</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.96&nbsp;&ndash;&nbsp;1.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.019</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.014</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;0.99</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;0.98</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
@@ -2717,13 +2854,19 @@ tab_model(ttdischarge.cens)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;0.97</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.535</td>
+</tr>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11676</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11963</td>
 </tr>
 
 </table>
@@ -2757,7 +2900,7 @@ kable(ttdischarge_sus_28d_tbl, format = "markdown", table.attr = 'class="table"'
 |**Characteristic**    |**28-d sustained hospitalization (95% CI)** |
 |:---------------------|:-------------------------------------------|
 |Trial treatment group |NA                                          |
-|0                     |14% (13%, 15%)                              |
+|0                     |15% (14%, 16%)                              |
 |1                     |13% (12%, 14%)                              |
 
 ```r
@@ -2780,7 +2923,7 @@ ttdischarge.sus <- coxme(Surv(discharge_time_sus, discharge_reached_sus) ~ trt_c
                   + trial_f
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
 tab_model(ttdischarge.sus)
@@ -2800,14 +2943,14 @@ tab_model(ttdischarge.sus)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.12</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07&nbsp;&ndash;&nbsp;1.16</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.07&nbsp;&ndash;&nbsp;1.17</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.12</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.47&nbsp;&ndash;&nbsp;20.58</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.238</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.96</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.46&nbsp;&ndash;&nbsp;19.03</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.253</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COV-BARRIER</td>
@@ -2817,37 +2960,43 @@ tab_model(ttdischarge.sus)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.48</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.13&nbsp;&ndash;&nbsp;1.78</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.269</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.44</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.12&nbsp;&ndash;&nbsp;1.62</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.217</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.19</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;3.06</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.240</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.18</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;2.74</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.219</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.03</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.88</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.65&nbsp;&ndash;&nbsp;1.18</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.384</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.87</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.64&nbsp;&ndash;&nbsp;1.17</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.343</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TACTIC-R</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.09</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.45&nbsp;&ndash;&nbsp;2.63</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.849</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.04</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.43&nbsp;&ndash;&nbsp;2.52</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.922</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.07</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02&nbsp;&ndash;&nbsp;0.25</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02&nbsp;&ndash;&nbsp;0.23</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.96&nbsp;&ndash;&nbsp;0.99</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
@@ -2861,7 +3010,7 @@ tab_model(ttdischarge.sus)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 3</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.01</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.381</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.383</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
@@ -2873,7 +3022,7 @@ tab_model(ttdischarge.sus)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.96&nbsp;&ndash;&nbsp;1.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.019</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.014</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
@@ -2893,13 +3042,19 @@ tab_model(ttdischarge.sus)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;0.97</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.535</td>
+</tr>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11676</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11963</td>
 </tr>
 
 </table>
@@ -2915,8 +3070,8 @@ addmargins(table(df_tot$vir_clear_5, df_tot$trt, useNA = "always"))
 ##            0     1  <NA>   Sum
 ##   0     4326  4448     0  8774
 ##   1      322   317     0   639
-##   <NA>  1128  1142     0  2270
-##   Sum   5776  5907     0 11683
+##   <NA>  1270  1287     0  2557
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -2925,17 +3080,17 @@ addmargins(table(df_tot$vir_clear_5, df_tot$trial, useNA = "always"))
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   0      496            91         734       0         0     7418       35
-##   1      251            30         244       0         0       99       15
-##   <NA>   286           168         648     110        97      613      232
-##   Sum   1033           289        1626     110        97     8130      282
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0      496            91         734       0         0        0     7418
+##   1      251            30         244       0         0        0       99
+##   <NA>   286           168         648     110        97      287      613
+##   Sum   1033           289        1626     110        97      287     8130
 ##       
-##        TOFACOV  <NA>   Sum
-##   0          0     0  8774
-##   1          0     0   639
-##   <NA>     116     0  2270
-##   Sum      116     0 11683
+##        TACTIC-R TOFACOV  <NA>   Sum
+##   0          35       0     0  8774
+##   1          15       0     0   639
+##   <NA>      232     116     0  2557
+##   Sum       282     116     0 11970
 ```
 
 ```r
@@ -2947,13 +3102,13 @@ vir.clear5 <- glmmTMB(vir_clear_5 ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 ```
 
 ```
-## dropping columns from rank-deficient conditional model: age_cent_trial_3, age_cent_trial_4, age_cent_trial_5
+## dropping columns from rank-deficient conditional model: age_cent_trial_3, age_cent_trial_4, age_cent_trial_5, age_cent_trial_9
 ```
 
 ```r
@@ -2962,7 +3117,8 @@ tab_model(vir.clear5)
 
 ```
 ## Model matrix is rank deficient. Parameters `age_cent_trial_3,
-##   age_cent_trial_4, age_cent_trial_5` were not estimable.
+##   age_cent_trial_4, age_cent_trial_5, age_cent_trial_9` were not
+##   estimable.
 ```
 
 <table style="border-collapse:collapse; border:none;">
@@ -3100,8 +3256,8 @@ addmargins(table(df_tot$vir_clear_10, df_tot$trt, useNA = "always"))
 ##            0     1  <NA>   Sum
 ##   0     4323  4469     0  8792
 ##   1      465   459     0   924
-##   <NA>   988   979     0  1967
-##   Sum   5776  5907     0 11683
+##   <NA>  1130  1124     0  2254
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -3110,17 +3266,17 @@ addmargins(table(df_tot$vir_clear_10, df_tot$trial, useNA = "always"))
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   0      456            69         654       0         0     7575       38
-##   1      299            58         406       0         0      135       26
-##   <NA>   278           162         566     110        97      420      218
-##   Sum   1033           289        1626     110        97     8130      282
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0      456            69         654       0         0        0     7575
+##   1      299            58         406       0         0        0      135
+##   <NA>   278           162         566     110        97      287      420
+##   Sum   1033           289        1626     110        97      287     8130
 ##       
-##        TOFACOV  <NA>   Sum
-##   0          0     0  8792
-##   1          0     0   924
-##   <NA>     116     0  1967
-##   Sum      116     0 11683
+##        TACTIC-R TOFACOV  <NA>   Sum
+##   0          38       0     0  8792
+##   1          26       0     0   924
+##   <NA>      218     116     0  2254
+##   Sum       282     116     0 11970
 ```
 
 ```r
@@ -3132,13 +3288,13 @@ vir.clear10 <- glmmTMB(vir_clear_10 ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 ```
 
 ```
-## dropping columns from rank-deficient conditional model: age_cent_trial_3, age_cent_trial_4, age_cent_trial_5
+## dropping columns from rank-deficient conditional model: age_cent_trial_3, age_cent_trial_4, age_cent_trial_5, age_cent_trial_9
 ```
 
 ```r
@@ -3147,7 +3303,8 @@ tab_model(vir.clear10)
 
 ```
 ## Model matrix is rank deficient. Parameters `age_cent_trial_3,
-##   age_cent_trial_4, age_cent_trial_5` were not estimable.
+##   age_cent_trial_4, age_cent_trial_5, age_cent_trial_9` were not
+##   estimable.
 ```
 
 <table style="border-collapse:collapse; border:none;">
@@ -3285,8 +3442,8 @@ addmargins(table(df_tot$vir_clear_15, df_tot$trt, useNA = "always"))
 ##            0     1  <NA>   Sum
 ##   0     4284  4424     0  8708
 ##   1      564   559     0  1123
-##   <NA>   928   924     0  1852
-##   Sum   5776  5907     0 11683
+##   <NA>  1070  1069     0  2139
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -3295,17 +3452,17 @@ addmargins(table(df_tot$vir_clear_15, df_tot$trial, useNA = "always"))
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   0      398            57         584       0         0     7633       36
-##   1      361            71         512       0         0      150       29
-##   <NA>   274           161         530     110        97      347      217
-##   Sum   1033           289        1626     110        97     8130      282
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0      398            57         584       0         0        0     7633
+##   1      361            71         512       0         0        0      150
+##   <NA>   274           161         530     110        97      287      347
+##   Sum   1033           289        1626     110        97      287     8130
 ##       
-##        TOFACOV  <NA>   Sum
-##   0          0     0  8708
-##   1          0     0  1123
-##   <NA>     116     0  1852
-##   Sum      116     0 11683
+##        TACTIC-R TOFACOV  <NA>   Sum
+##   0          36       0     0  8708
+##   1          29       0     0  1123
+##   <NA>      217     116     0  2139
+##   Sum       282     116     0 11970
 ```
 
 ```r
@@ -3317,13 +3474,13 @@ vir.clear15 <- glmmTMB(vir_clear_15 ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 ```
 
 ```
-## dropping columns from rank-deficient conditional model: age_cent_trial_3, age_cent_trial_4, age_cent_trial_5
+## dropping columns from rank-deficient conditional model: age_cent_trial_3, age_cent_trial_4, age_cent_trial_5, age_cent_trial_9
 ```
 
 ```r
@@ -3332,7 +3489,8 @@ tab_model(vir.clear15)
 
 ```
 ## Model matrix is rank deficient. Parameters `age_cent_trial_3,
-##   age_cent_trial_4, age_cent_trial_5` were not estimable.
+##   age_cent_trial_4, age_cent_trial_5, age_cent_trial_9` were not
+##   estimable.
 ```
 
 <table style="border-collapse:collapse; border:none;">
@@ -3468,10 +3626,10 @@ addmargins(table(df_tot$ae_28, df_tot$trt, useNA = "always"))
 ```
 ##       
 ##            0     1  <NA>   Sum
-##   0     4275  4462     0  8737
-##   1      660   679     0  1339
-##   <NA>   841   766     0  1607
-##   Sum   5776  5907     0 11683
+##   0     4395  4586     0  8981
+##   1      676   698     0  1374
+##   <NA>   847   768     0  1615
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -3480,17 +3638,17 @@ addmargins(table(df_tot$ae_28, df_tot$trial, useNA = "always"))
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   0      572           165        1011      85        96     6499      215
-##   1      400            88         314      23         1      459       32
-##   <NA>    61            36         301       2         0     1172       35
-##   Sum   1033           289        1626     110        97     8130      282
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0      572           165        1011      85        96      244     6499
+##   1      400            88         314      23         1       35      459
+##   <NA>    61            36         301       2         0        8     1172
+##   Sum   1033           289        1626     110        97      287     8130
 ##       
-##        TOFACOV  <NA>   Sum
-##   0         94     0  8737
-##   1         22     0  1339
-##   <NA>       0     0  1607
-##   Sum      116     0 11683
+##        TACTIC-R TOFACOV  <NA>   Sum
+##   0         215      94     0  8981
+##   1          32      22     0  1374
+##   <NA>       35       0     0  1615
+##   Sum       282     116     0 11970
 ```
 
 ```r
@@ -3502,7 +3660,7 @@ ae28 <- glmmTMB(ae_28 ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(ae28)
@@ -3521,9 +3679,9 @@ tab_model(ae28)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.96</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.85&nbsp;&ndash;&nbsp;1.09</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.551</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.86&nbsp;&ndash;&nbsp;1.10</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.611</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: ACTT 2</td>
@@ -3534,7 +3692,7 @@ tab_model(ae28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.10</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.11</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.001</strong></td>
 </tr>
 <tr>
@@ -3545,15 +3703,21 @@ tab_model(ae28)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.12</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;1.37</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.088</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.13</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;1.34</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.086</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.67</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.033</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.56</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.027</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.04</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;0.34</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.003</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
@@ -3564,20 +3728,20 @@ tab_model(ae28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TACTIC-R</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.26</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.04&nbsp;&ndash;&nbsp;1.83</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.176</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.04&nbsp;&ndash;&nbsp;1.78</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.168</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.39</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.40</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.011</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.01</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99&nbsp;&ndash;&nbsp;1.03</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.373</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.371</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 2</td>
@@ -3600,8 +3764,8 @@ tab_model(ae28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.02</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.07</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.336</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.08</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.331</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
@@ -3620,6 +3784,12 @@ tab_model(ae28)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.03</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00&nbsp;&ndash;&nbsp;1.07</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.040</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97&nbsp;&ndash;&nbsp;1.05</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.734</td>
 </tr>
 <tr>
 <td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">Random Effects</td>
@@ -3644,7 +3814,7 @@ tab_model(ae28)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>11</sub> <sub>trial_f.1.clinstatus_baseline_n</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.47</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.42</td>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&rho;<sub>01</sub></td>
@@ -3656,14 +3826,14 @@ tab_model(ae28)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">10076</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">10355</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.174 / NA</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.175 / NA</td>
 </tr>
 
 </table>
@@ -3677,11 +3847,11 @@ addmargins(table(df_tot$ae_28_sev, df_tot$trt, useNA = "always"))
 ```
 ##       
 ##            0     1  <NA>   Sum
-##   0     4275  4462     0  8737
-##   1      429   449     0   878
-##   2      108   100     0   208
-##   3       42    49     0    91
-##   4       31    26     0    57
+##   0     4395  4586     0  8981
+##   1      441   464     0   905
+##   2      110   103     0   213
+##   3       43    49     0    92
+##   4       32    27     0    59
 ##   5       18    15     0    33
 ##   6        7    14     0    21
 ##   7        7     7     0    14
@@ -3695,8 +3865,8 @@ addmargins(table(df_tot$ae_28_sev, df_tot$trt, useNA = "always"))
 ##   19       1     0     0     1
 ##   20       1     0     0     1
 ##   26       1     0     0     1
-##   <NA>   841   766     0  1607
-##   Sum   5776  5907     0 11683
+##   <NA>   847   768     0  1615
+##   Sum   5918  6052     0 11970
 ```
 
 ```r
@@ -3705,12 +3875,12 @@ addmargins(table(df_tot$ae_28_sev, df_tot$trial, useNA = "always"))
 
 ```
 ##       
-##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R
-##   0      572           165        1011      85        96     6499      215
-##   1      194            49         154      14         1      419       25
-##   2       75            15          77       3         0       34        4
-##   3       37            11          36       1         0        4        2
-##   4       36             4          12       2         0        2        1
+##        ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0      572           165        1011      85        96      244     6499
+##   1      194            49         154      14         1       27      419
+##   2       75            15          77       3         0        5       34
+##   3       37            11          36       1         0        1        4
+##   4       36             4          12       2         0        2        2
 ##   5       13             2          17       1         0        0        0
 ##   6        9             3           7       2         0        0        0
 ##   7       10             1           3       0         0        0        0
@@ -3724,30 +3894,30 @@ addmargins(table(df_tot$ae_28_sev, df_tot$trial, useNA = "always"))
 ##   19       1             0           0       0         0        0        0
 ##   20       1             0           0       0         0        0        0
 ##   26       1             0           0       0         0        0        0
-##   <NA>    61            36         301       2         0     1172       35
-##   Sum   1033           289        1626     110        97     8130      282
+##   <NA>    61            36         301       2         0        8     1172
+##   Sum   1033           289        1626     110        97      287     8130
 ##       
-##        TOFACOV  <NA>   Sum
-##   0         94     0  8737
-##   1         22     0   878
-##   2          0     0   208
-##   3          0     0    91
-##   4          0     0    57
-##   5          0     0    33
-##   6          0     0    21
-##   7          0     0    14
-##   8          0     0    10
-##   9          0     0    11
-##   10         0     0     5
-##   11         0     0     2
-##   12         0     0     2
-##   13         0     0     3
-##   16         0     0     1
-##   19         0     0     1
-##   20         0     0     1
-##   26         0     0     1
-##   <NA>       0     0  1607
-##   Sum      116     0 11683
+##        TACTIC-R TOFACOV  <NA>   Sum
+##   0         215      94     0  8981
+##   1          25      22     0   905
+##   2           4       0     0   213
+##   3           2       0     0    92
+##   4           1       0     0    59
+##   5           0       0     0    33
+##   6           0       0     0    21
+##   7           0       0     0    14
+##   8           0       0     0    10
+##   9           0       0     0    11
+##   10          0       0     0     5
+##   11          0       0     0     2
+##   12          0       0     0     2
+##   13          0       0     0     3
+##   16          0       0     0     1
+##   19          0       0     0     1
+##   20          0       0     0     1
+##   26          0       0     0     1
+##   <NA>       35       0     0  1615
+##   Sum       282     116     0 11970
 ```
 
 ```r
@@ -3759,7 +3929,7 @@ ae28sev <- glmmTMB(ae_28_sev ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = poisson) # double-check !
 tab_model(ae28sev)
@@ -3779,8 +3949,8 @@ tab_model(ae28sev)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.82&nbsp;&ndash;&nbsp;1.22</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.977</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.83&nbsp;&ndash;&nbsp;1.21</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.978</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: ACTT 2</td>
@@ -3803,14 +3973,20 @@ tab_model(ae28sev)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.30</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.06&nbsp;&ndash;&nbsp;1.65</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.167</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.06&nbsp;&ndash;&nbsp;1.64</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.166</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.48</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.022</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.47</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.021</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.03</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;0.20</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
@@ -3879,6 +4055,12 @@ tab_model(ae28sev)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.006</strong></td>
 </tr>
 <tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.97&nbsp;&ndash;&nbsp;1.03</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.919</td>
+</tr>
+<tr>
 <td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">Random Effects</td>
 </tr>
 
@@ -3901,7 +4083,7 @@ tab_model(ae28sev)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>11</sub> <sub>trial_f.1.clinstatus_baseline_n</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.39</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.38</td>
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&rho;<sub>01</sub></td>
@@ -3917,14 +4099,14 @@ tab_model(ae28sev)
 
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>trial_f</sub></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">8</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">10076</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">10355</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.246 / 0.249</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">0.243 / 0.246</td>
 </tr>
 
 </table>
@@ -4087,21 +4269,21 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |                 |variable                                   | hazard_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
 |:----------------|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
-|trt_centered_n   |death at day 28                            |         0.7088568| 0.5694576| 0.8823799|      0.1117210| 0.0020699|            656|               5737|       755|          5638|one-stage |
-|trt_centered_n1  |death at day 60                            |         0.7704634| 0.6821479| 0.8702128|      0.0621163| 0.0000269|            688|               5726|       778|          5620|one-stage |
-|trt_centered_n2  |death within fup                           |         0.7989778| 0.6625170| 0.9635459|             NA|        NA|            690|               5832|       779|          5722|one-stage |
-|trt_centered_n3  |new MV or death within 28d                 |         0.8120737| 0.7317043| 0.9012709|      0.0531717| 0.0000904|            992|               5777|      1092|          5674|one-stage |
-|trt_centered_n4  |new MV within 28d                          |         0.8959126| 0.7276466| 1.1030895|      0.1061383| 0.3004082|            305|               4952|       316|          4771|one-stage |
-|trt_centered_n5  |clinical status at day 28                  |         0.8056661| 0.7325967| 0.8860235|      0.0485081| 0.0000084|           5907|               5907|      5776|          5776|one-stage |
-|trt_centered_n6  |discharge within 28 days, death=comp.event |         1.1226518| 1.0780286| 1.1691220|      0.0206940| 0.0000000|           4734|               5907|      4492|          5776|one-stage |
-|trt_centered_n7  |discharge within 28 days, death=hypo.event |         1.1319090| 1.0857453| 1.1800355|             NA|        NA|           4734|               5907|      4492|          5776|one-stage |
-|trt_centered_n8  |discharge within 28 days, death=censored   |         1.1176984| 1.0725299| 1.1647692|             NA|        NA|           4734|               5907|      4492|          5776|one-stage |
-|trt_centered_n9  |sustained discharge within 28 days         |         1.1159636| 1.0708418| 1.1629866|             NA|        NA|           4726|               5907|      4490|          5776|one-stage |
+|trt_centered_n   |death at day 28                            |         0.6949719| 0.5532796| 0.8729510|      0.1163327| 0.0017603|            658|               5877|       761|          5774|one-stage |
+|trt_centered_n1  |death at day 60                            |         0.7513189| 0.6148563| 0.9180683|      0.1022680| 0.0051765|            691|               5866|       785|          5756|one-stage |
+|trt_centered_n2  |death within fup                           |         0.7883812| 0.6562982| 0.9470465|             NA|        NA|            693|               5977|       786|          5864|one-stage |
+|trt_centered_n3  |new MV or death within 28d                 |         0.8086119| 0.7290693| 0.8968329|      0.0528328| 0.0000580|           1000|               5917|      1105|          5810|one-stage |
+|trt_centered_n4  |new MV within 28d                          |         0.8923321| 0.7317947| 1.0880875|      0.1011949| 0.2602852|            311|               5090|       323|          4901|one-stage |
+|trt_centered_n5  |clinical status at day 28                  |         0.8007253| 0.7296297| 0.8787485|      0.0474400| 0.0000028|           6047|               6047|      5912|          5912|one-stage |
+|trt_centered_n6  |discharge within 28 days, death=comp.event |         1.1251613| 1.0804459| 1.1717273|      0.0206905| 0.0000000|           4827|               6052|      4564|          5918|one-stage |
+|trt_centered_n7  |discharge within 28 days, death=hypo.event |         1.1360300| 1.0905402| 1.1834173|             NA|        NA|           4827|               6052|      4564|          5918|one-stage |
+|trt_centered_n8  |discharge within 28 days, death=censored   |         1.1208699| 1.0757316| 1.1679023|             NA|        NA|           4827|               6052|      4564|          5918|one-stage |
+|trt_centered_n9  |sustained discharge within 28 days         |         1.1190308| 1.0735610| 1.1664264|             NA|        NA|           4819|               6052|      4562|          5918|one-stage |
 |trt_centered_n10 |viral clearance until day 5                |         0.9562154| 0.7988836| 1.1445321|      0.0917200| 0.6254519|            317|               4765|       322|          4648|one-stage |
 |trt_centered_n11 |viral clearance until day 10               |         0.9453000| 0.8057725| 1.1089880|      0.0814815| 0.4899572|            459|               4928|       465|          4788|one-stage |
 |trt_centered_n12 |viral clearance until day 15               |         0.9588879| 0.8219965| 1.1185766|      0.0785923| 0.5932288|            559|               4983|       564|          4848|one-stage |
-|trt_centered_n13 |Any AE grade 3,4 within 28 days            |         0.9625779| 0.8490471| 1.0912896|      0.0640320| 0.5514132|            679|               5141|       660|          4935|one-stage |
-|trt_centered_n14 |AEs grade 3,4 within 28 days               |         0.9970730| 0.8152626| 1.2194285|      0.1027129| 0.9772322|              6|                  6|         4|             4|one-stage |
+|trt_centered_n13 |Any AE grade 3,4 within 28 days            |         0.9684139| 0.8558274| 1.0958114|      0.0630577| 0.6107596|            698|               5284|       676|          5071|one-stage |
+|trt_centered_n14 |AEs grade 3,4 within 28 days               |         1.0026605| 0.8320339| 1.2082777|      0.0951747| 0.9777286|              6|                  6|         4|             4|one-stage |
 
 ```r
 # Save
@@ -4154,7 +4336,7 @@ rs.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   # + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*clinstatus_baseline_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -4167,40 +4349,42 @@ summary(rs.mort28)
 ## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + trt_centered_n * clinstatus_baseline_n
+##     age_cent_trial_8 + age_cent_trial_9 + trt_centered_n * clinstatus_baseline_n
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   6830.4   6977.1  -3395.2   6790.4    11355 
+##   6893.4   7055.4  -3424.7   6849.4    11629 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups  Name           Variance Std.Dev.
-##  trial_f trt_centered_n 0.009268 0.09627 
-## Number of obs: 11375, groups:  trial_f, 8
+##  trial_f trt_centered_n 0.01141  0.1068  
+## Number of obs: 11651, groups:  trial_f, 9
 ## 
 ## Conditional model:
 ##                                       Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                         -7.392780   0.264180  -27.98  < 2e-16 ***
-## trial_fBari-Solidact                 -7.392512   0.329491  -22.44  < 2e-16 ***
-## trial_fCOV-BARRIER                   -6.226218   0.204509  -30.44  < 2e-16 ***
-## trial_fCOVINIB                       -7.986359   1.169744   -6.83 8.64e-12 ***
-## trial_fGhazaeian                     -6.209108   0.446550  -13.90  < 2e-16 ***
-## trial_fRECOVERY                      -6.342197   0.181852  -34.88  < 2e-16 ***
-## trial_fTACTIC-R                      -6.645404   0.311748  -21.32  < 2e-16 ***
-## trial_fTOFACOV                       -8.471829   1.304751   -6.49 8.41e-11 ***
-## age_cent_trial_1                      0.090825   0.018658    4.87 1.13e-06 ***
-## age_cent_trial_2                      0.054138   0.010429    5.19 2.09e-07 ***
-## age_cent_trial_3                      0.026975   0.024757    1.09    0.276    
-## age_cent_trial_4                      0.064799   0.094849    0.68    0.494    
-## age_cent_trial_5                      0.111513   0.089710    1.24    0.214    
-## age_cent_trial_6                      0.062349   0.006783    9.19  < 2e-16 ***
-## age_cent_trial_7                      0.080111   0.002983   26.86  < 2e-16 ***
-## age_cent_trial_8                      0.102615   0.019359    5.30 1.15e-07 ***
-## trt_centered_n                        0.139899   0.355647    0.39    0.694    
-## clinstatus_baseline_n                 1.194810   0.048900   24.43  < 2e-16 ***
-## trt_centered_n:clinstatus_baseline_n -0.130736   0.092940   -1.41    0.160    
+## trial_fACTT2                         -7.396762   0.264076  -28.01  < 2e-16 ***
+## trial_fBari-Solidact                 -7.397262   0.329466  -22.45  < 2e-16 ***
+## trial_fCOV-BARRIER                   -6.230620   0.204344  -30.49  < 2e-16 ***
+## trial_fCOVINIB                       -7.989177   1.169093   -6.83 8.28e-12 ***
+## trial_fGhazaeian                     -6.212480   0.446570  -13.91  < 2e-16 ***
+## trial_fPANCOVID                      -7.705770   0.610550  -12.62  < 2e-16 ***
+## trial_fRECOVERY                      -6.344908   0.181709  -34.92  < 2e-16 ***
+## trial_fTACTIC-R                      -6.648708   0.311654  -21.33  < 2e-16 ***
+## trial_fTOFACOV                       -8.475347   1.305003   -6.49 8.33e-11 ***
+## age_cent_trial_1                      0.090876   0.018663    4.87 1.12e-06 ***
+## age_cent_trial_2                      0.054115   0.010433    5.19 2.14e-07 ***
+## age_cent_trial_3                      0.026980   0.024762    1.09  0.27590    
+## age_cent_trial_4                      0.064892   0.094835    0.68  0.49381    
+## age_cent_trial_5                      0.111442   0.089647    1.24  0.21382    
+## age_cent_trial_6                      0.062407   0.006785    9.20  < 2e-16 ***
+## age_cent_trial_7                      0.080123   0.002983   26.86  < 2e-16 ***
+## age_cent_trial_8                      0.102676   0.019359    5.30 1.13e-07 ***
+## age_cent_trial_9                      0.151259   0.053051    2.85  0.00436 ** 
+## trt_centered_n                        0.111669   0.354481    0.32  0.75275    
+## clinstatus_baseline_n                 1.195544   0.048855   24.47  < 2e-16 ***
+## trt_centered_n:clinstatus_baseline_n -0.127831   0.092426   -1.38  0.16665    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -4214,9 +4398,9 @@ table(df_tot$clinstatus_baseline, df_tot$mort_28, useNA = "always")
 ##       
 ##           0    1 <NA>
 ##   1       0    0    0
-##   2     806   40   20
-##   3    6639  613  169
-##   4    2207  595   93
+##   2     875   41   24
+##   3    6834  619  176
+##   4    2211  596   93
 ##   5     312  163   19
 ##   6       0    0    0
 ##   <NA>    0    0    7
@@ -4237,7 +4421,7 @@ summ(mort.28.vent.rs.2, exp = T, confint = T, model.info = T, model.fit = F, dig
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 846 (20 missing obs. deleted) </td>
+   <td style="text-align:right;"> 916 (24 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -4273,14 +4457,14 @@ summ(mort.28.vent.rs.2, exp = T, confint = T, model.info = T, model.fit = F, dig
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -8.57 </td>
+   <td style="text-align:right;"> -8.66 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.67 </td>
-   <td style="text-align:right;"> 0.34 </td>
-   <td style="text-align:right;"> 1.33 </td>
+   <td style="text-align:right;"> 0.68 </td>
+   <td style="text-align:right;"> 0.35 </td>
+   <td style="text-align:right;"> 1.32 </td>
    <td style="text-align:right;"> -1.15 </td>
    <td style="text-align:right;"> 0.25 </td>
   </tr>
@@ -4289,7 +4473,7 @@ summ(mort.28.vent.rs.2, exp = T, confint = T, model.info = T, model.fit = F, dig
    <td style="text-align:right;"> 1.10 </td>
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> 6.67 </td>
+   <td style="text-align:right;"> 6.74 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -4311,7 +4495,7 @@ summ(mort.28.vent.rs.3, exp = T, confint = T, model.info = T, model.fit = F, dig
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 7252 (169 missing obs. deleted) </td>
+   <td style="text-align:right;"> 7453 (176 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -4347,23 +4531,23 @@ summ(mort.28.vent.rs.3, exp = T, confint = T, model.info = T, model.fit = F, dig
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -29.51 </td>
+   <td style="text-align:right;"> -29.46 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.86 </td>
-   <td style="text-align:right;"> 0.72 </td>
-   <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> -1.73 </td>
-   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> -1.86 </td>
+   <td style="text-align:right;"> 0.06 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.10 </td>
-   <td style="text-align:right;"> 23.11 </td>
+   <td style="text-align:right;"> 22.98 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -4385,7 +4569,7 @@ summ(mort.28.vent.rs.4, exp = T, confint = T, model.info = T, model.fit = F, dig
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 2802 (93 missing obs. deleted) </td>
+   <td style="text-align:right;"> 2807 (93 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -4421,7 +4605,7 @@ summ(mort.28.vent.rs.4, exp = T, confint = T, model.info = T, model.fit = F, dig
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -19.27 </td>
+   <td style="text-align:right;"> -19.28 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -4429,7 +4613,7 @@ summ(mort.28.vent.rs.4, exp = T, confint = T, model.info = T, model.fit = F, dig
    <td style="text-align:right;"> 0.68 </td>
    <td style="text-align:right;"> 0.56 </td>
    <td style="text-align:right;"> 0.82 </td>
-   <td style="text-align:right;"> -3.92 </td>
+   <td style="text-align:right;"> -3.91 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -4437,7 +4621,7 @@ summ(mort.28.vent.rs.4, exp = T, confint = T, model.info = T, model.fit = F, dig
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 16.19 </td>
+   <td style="text-align:right;"> 16.20 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -4530,9 +4714,13 @@ table(df_tot$vbaseline, df_tot$trial)
 
 ```
 ##    
-##     ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R TOFACOV
-##   0   706             0        1148     110        97     5969      141     116
-##   1   327           289         471       0         0     2161      141       0
+##     ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0   706             0        1148     110        97      282     5969
+##   1   327           289         471       0         0        5     2161
+##    
+##     TACTIC-R TOFACOV
+##   0      141     116
+##   1      141       0
 ```
 
 ```r
@@ -4548,7 +4736,7 @@ vb.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*vbaseline_centered_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -4561,42 +4749,44 @@ summary(vb.mort28)
 ## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * vbaseline_centered_n
+##     age_cent_trial_8 + age_cent_trial_9 + (clinstatus_baseline_n -  
+##     1 | trial_f) + trt_centered_n * vbaseline_centered_n
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   6871.2   7025.3  -3414.6   6829.2    11354 
+##   6938.2   7107.5  -3446.1   6892.2    11628 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance Std.Dev.
-##  trial_f   trt_centered_n        0.01191  0.1092  
-##  trial_f.1 clinstatus_baseline_n 0.47042  0.6859  
-## Number of obs: 11375, groups:  trial_f, 8
+##  trial_f   trt_centered_n        0.01433  0.1197  
+##  trial_f.1 clinstatus_baseline_n 0.41537  0.6445  
+## Number of obs: 11651, groups:  trial_f, 9
 ## 
 ## Conditional model:
 ##                                      Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                        -6.606190   0.742749  -8.894  < 2e-16 ***
-## trial_fBari-Solidact                -4.868224   1.758453  -2.768 0.005632 ** 
-## trial_fCOV-BARRIER                  -5.763228   0.515289 -11.184  < 2e-16 ***
-## trial_fCOVINIB                      -5.190189   2.165652  -2.397 0.016548 *  
-## trial_fGhazaeian                    -2.911798   2.031893  -1.433 0.151844    
-## trial_fRECOVERY                     -5.182838   0.396994 -13.055  < 2e-16 ***
-## trial_fTACTIC-R                     -4.989567   1.325970  -3.763 0.000168 ***
-## trial_fTOFACOV                      -5.639470   2.360707  -2.389 0.016899 *  
-## age_cent_trial_1                     0.087832   0.018370   4.781 1.74e-06 ***
-## age_cent_trial_2                     0.053897   0.010544   5.112 3.19e-07 ***
-## age_cent_trial_3                     0.027498   0.025071   1.097 0.272724    
-## age_cent_trial_4                     0.069048   0.095907   0.720 0.471560    
-## age_cent_trial_5                     0.122057   0.090390   1.350 0.176905    
-## age_cent_trial_6                     0.062840   0.006940   9.055  < 2e-16 ***
-## age_cent_trial_7                     0.079266   0.003011  26.329  < 2e-16 ***
-## age_cent_trial_8                     0.101907   0.019631   5.191 2.09e-07 ***
-## trt_centered_n                      -0.289032   0.112420  -2.571 0.010141 *  
-## vbaseline_centered_n                 0.448119   0.150353   2.980 0.002878 ** 
-## trt_centered_n:vbaseline_centered_n -0.243774   0.129222  -1.886 0.059232 .  
+## trial_fACTT2                        -6.543237   0.743240  -8.804  < 2e-16 ***
+## trial_fBari-Solidact                -4.760357   1.730538  -2.751 0.005945 ** 
+## trial_fCOV-BARRIER                  -5.710200   0.516636 -11.053  < 2e-16 ***
+## trial_fCOVINIB                      -5.152892   2.079512  -2.478 0.013215 *  
+## trial_fGhazaeian                    -2.891821   1.920134  -1.506 0.132054    
+## trial_fPANCOVID                     -5.396902   1.662838  -3.246 0.001172 ** 
+## trial_fRECOVERY                     -5.126159   0.397838 -12.885  < 2e-16 ***
+## trial_fTACTIC-R                     -4.869947   1.308881  -3.721 0.000199 ***
+## trial_fTOFACOV                      -5.612905   2.270189  -2.472 0.013419 *  
+## age_cent_trial_1                     0.087808   0.018359   4.783 1.73e-06 ***
+## age_cent_trial_2                     0.053790   0.010535   5.106 3.30e-07 ***
+## age_cent_trial_3                     0.027500   0.025077   1.097 0.272807    
+## age_cent_trial_4                     0.069157   0.095859   0.721 0.470632    
+## age_cent_trial_5                     0.122149   0.090237   1.354 0.175848    
+## age_cent_trial_6                     0.062853   0.006942   9.054  < 2e-16 ***
+## age_cent_trial_7                     0.079252   0.003011  26.324  < 2e-16 ***
+## age_cent_trial_8                     0.101783   0.019593   5.195 2.05e-07 ***
+## age_cent_trial_9                     0.153021   0.053337   2.869 0.004118 ** 
+## trt_centered_n                      -0.309702   0.117536  -2.635 0.008415 ** 
+## vbaseline_centered_n                 0.472734   0.150828   3.134 0.001723 ** 
+## trt_centered_n:vbaseline_centered_n -0.243051   0.129030  -1.884 0.059609 .  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -4624,8 +4814,8 @@ table(df_tot$vbaseline, df_tot$mort_28)
 ```
 ##    
 ##        0    1
-##   0 7445  653
-##   1 2519  758
+##   0 7709  660
+##   1 2523  759
 ```
 
 ```r
@@ -4643,7 +4833,7 @@ summ(mort.28.vent.vb.yes, exp = T, confint = T, model.info = T, model.fit = F, d
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 3277 (112 missing obs. deleted) </td>
+   <td style="text-align:right;"> 3282 (112 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -4679,7 +4869,7 @@ summ(mort.28.vent.vb.yes, exp = T, confint = T, model.info = T, model.fit = F, d
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -20.01 </td>
+   <td style="text-align:right;"> -20.02 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -4687,7 +4877,7 @@ summ(mort.28.vent.vb.yes, exp = T, confint = T, model.info = T, model.fit = F, d
    <td style="text-align:right;"> 0.69 </td>
    <td style="text-align:right;"> 0.58 </td>
    <td style="text-align:right;"> 0.82 </td>
-   <td style="text-align:right;"> -4.21 </td>
+   <td style="text-align:right;"> -4.20 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -4695,7 +4885,7 @@ summ(mort.28.vent.vb.yes, exp = T, confint = T, model.info = T, model.fit = F, d
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.07 </td>
-   <td style="text-align:right;"> 16.75 </td>
+   <td style="text-align:right;"> 16.76 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -4717,7 +4907,7 @@ summ(mort.28.vent.vb.no, exp = T, confint = T, model.info = T, model.fit = F, di
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 8098 (189 missing obs. deleted) </td>
+   <td style="text-align:right;"> 8369 (200 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -4753,23 +4943,23 @@ summ(mort.28.vent.vb.no, exp = T, confint = T, model.info = T, model.fit = F, di
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -30.84 </td>
+   <td style="text-align:right;"> -30.79 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.85 </td>
-   <td style="text-align:right;"> 0.72 </td>
-   <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> -1.90 </td>
-   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 0.84 </td>
+   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> -2.07 </td>
+   <td style="text-align:right;"> 0.04 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.10 </td>
-   <td style="text-align:right;"> 23.97 </td>
+   <td style="text-align:right;"> 23.83 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -4786,7 +4976,7 @@ age.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*age_centered # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -4806,42 +4996,44 @@ summary(age.mort28)
 ## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * age_centered
+##     age_cent_trial_8 + age_cent_trial_9 + (clinstatus_baseline_n -  
+##     1 | trial_f) + trt_centered_n * age_centered
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   6877.2   7024.0  -3418.6   6837.2    11355 
+##   6945.2   7107.2  -3450.6   6901.2    11629 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance Std.Dev.
-##  trial_f   trt_centered_n        0.01249  0.1117  
-##  trial_f.1 clinstatus_baseline_n 0.79987  0.8944  
-## Number of obs: 11375, groups:  trial_f, 8
+##  trial_f   trt_centered_n        0.01466  0.1211  
+##  trial_f.1 clinstatus_baseline_n 0.74542  0.8634  
+## Number of obs: 11651, groups:  trial_f, 9
 ## 
 ## Conditional model:
 ##                              Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                -7.407514   0.694539 -10.665  < 2e-16 ***
-## trial_fBari-Solidact        -5.255333   1.837709  -2.860  0.00424 ** 
-## trial_fCOV-BARRIER          -6.677950   0.428945 -15.568  < 2e-16 ***
-## trial_fCOVINIB              -5.411635   2.600950  -2.081  0.03747 *  
-## trial_fGhazaeian            -3.068381   2.576255  -1.191  0.23364    
-## trial_fRECOVERY             -6.212406   0.215230 -28.864  < 2e-16 ***
-## trial_fTACTIC-R             -6.302472   1.325578  -4.755 1.99e-06 ***
-## trial_fTOFACOV              -5.795649   2.816222  -2.058  0.03959 *  
-## age_cent_trial_1             0.088745   0.018398   4.823 1.41e-06 ***
-## age_cent_trial_2             0.055444   0.010531   5.265 1.41e-07 ***
-## age_cent_trial_3             0.028253   0.025098   1.126  0.26029    
-## age_cent_trial_4             0.069950   0.095553   0.732  0.46414    
-## age_cent_trial_5             0.122996   0.090870   1.354  0.17588    
-## age_cent_trial_6             0.064063   0.006941   9.230  < 2e-16 ***
-## age_cent_trial_7             0.079866   0.003018  26.466  < 2e-16 ***
-## age_cent_trial_8             0.102571   0.019682   5.211 1.88e-07 ***
-## trt_centered_n              -0.433884   0.116662  -3.719  0.00020 ***
+## trial_fACTT2                -7.396690   0.693544 -10.665  < 2e-16 ***
+## trial_fBari-Solidact        -5.208135   1.825786  -2.853 0.004337 ** 
+## trial_fCOV-BARRIER          -6.678333   0.428841 -15.573  < 2e-16 ***
+## trial_fCOVINIB              -5.380813   2.535584  -2.122 0.033828 *  
+## trial_fGhazaeian            -3.050090   2.495477  -1.222 0.221614    
+## trial_fPANCOVID             -6.007400   2.000510  -3.003 0.002674 ** 
+## trial_fRECOVERY             -6.211389   0.215204 -28.863  < 2e-16 ***
+## trial_fTACTIC-R             -6.264651   1.317497  -4.755 1.98e-06 ***
+## trial_fTOFACOV              -5.778122   2.746916  -2.103 0.035423 *  
+## age_cent_trial_1             0.088787   0.018394   4.827 1.39e-06 ***
+## age_cent_trial_2             0.055400   0.010527   5.263 1.42e-07 ***
+## age_cent_trial_3             0.028300   0.025104   1.127 0.259624    
+## age_cent_trial_4             0.070074   0.095520   0.734 0.463186    
+## age_cent_trial_5             0.123119   0.090748   1.357 0.174871    
+## age_cent_trial_6             0.064136   0.006941   9.240  < 2e-16 ***
+## age_cent_trial_7             0.079866   0.003017  26.468  < 2e-16 ***
+## age_cent_trial_8             0.102524   0.019663   5.214 1.85e-07 ***
+## age_cent_trial_9             0.152446   0.053039   2.874 0.004050 ** 
+## trt_centered_n              -0.453116   0.121173  -3.739 0.000184 ***
 ## age_centered                       NA         NA      NA       NA    
-## trt_centered_n:age_centered  0.010842   0.005057   2.144  0.03202 *  
+## trt_centered_n:age_centered  0.010850   0.005051   2.148 0.031705 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -4875,7 +5067,7 @@ table(df_tot$age_70, useNA = "always")
 ```
 ## 
 ##    0    1 <NA> 
-## 9053 2630    0
+## 9220 2750    0
 ```
 
 ```r
@@ -4892,7 +5084,7 @@ summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 2554 (76 missing obs. deleted) </td>
+   <td style="text-align:right;"> 2669 (81 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -4925,42 +5117,42 @@ summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.18 </td>
-   <td style="text-align:right;"> 0.12 </td>
-   <td style="text-align:right;"> 0.27 </td>
-   <td style="text-align:right;"> -8.68 </td>
+   <td style="text-align:right;"> 0.17 </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> 0.24 </td>
+   <td style="text-align:right;"> -9.33 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.92 </td>
-   <td style="text-align:right;"> 0.77 </td>
-   <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> -0.97 </td>
-   <td style="text-align:right;"> 0.33 </td>
+   <td style="text-align:right;"> 0.90 </td>
+   <td style="text-align:right;"> 0.76 </td>
+   <td style="text-align:right;"> 1.07 </td>
+   <td style="text-align:right;"> -1.17 </td>
+   <td style="text-align:right;"> 0.24 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 1.74 </td>
-   <td style="text-align:right;"> 1.18 </td>
-   <td style="text-align:right;"> 2.58 </td>
-   <td style="text-align:right;"> 2.78 </td>
-   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 1.84 </td>
+   <td style="text-align:right;"> 1.25 </td>
+   <td style="text-align:right;"> 2.70 </td>
+   <td style="text-align:right;"> 3.11 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 4.29 </td>
-   <td style="text-align:right;"> 2.86 </td>
-   <td style="text-align:right;"> 6.45 </td>
-   <td style="text-align:right;"> 7.01 </td>
+   <td style="text-align:right;"> 4.75 </td>
+   <td style="text-align:right;"> 3.18 </td>
+   <td style="text-align:right;"> 7.08 </td>
+   <td style="text-align:right;"> 7.64 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 9.70 </td>
-   <td style="text-align:right;"> 5.29 </td>
-   <td style="text-align:right;"> 17.78 </td>
-   <td style="text-align:right;"> 7.35 </td>
+   <td style="text-align:right;"> 10.70 </td>
+   <td style="text-align:right;"> 5.87 </td>
+   <td style="text-align:right;"> 19.51 </td>
+   <td style="text-align:right;"> 7.73 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -4982,7 +5174,7 @@ summ(mort.28.age.b70, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 8821 (232 missing obs. deleted) </td>
+   <td style="text-align:right;"> 8982 (238 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -5018,7 +5210,7 @@ summ(mort.28.age.b70, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.01 </td>
    <td style="text-align:right;"> 0.03 </td>
-   <td style="text-align:right;"> -11.77 </td>
+   <td style="text-align:right;"> -11.95 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -5026,31 +5218,31 @@ summ(mort.28.age.b70, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 0.70 </td>
    <td style="text-align:right;"> 0.59 </td>
    <td style="text-align:right;"> 0.82 </td>
-   <td style="text-align:right;"> -4.32 </td>
+   <td style="text-align:right;"> -4.31 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 3.40 </td>
-   <td style="text-align:right;"> 1.67 </td>
-   <td style="text-align:right;"> 6.92 </td>
-   <td style="text-align:right;"> 3.39 </td>
+   <td style="text-align:right;"> 3.56 </td>
+   <td style="text-align:right;"> 1.75 </td>
+   <td style="text-align:right;"> 7.23 </td>
+   <td style="text-align:right;"> 3.51 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 14.03 </td>
-   <td style="text-align:right;"> 6.92 </td>
-   <td style="text-align:right;"> 28.45 </td>
-   <td style="text-align:right;"> 7.32 </td>
+   <td style="text-align:right;"> 14.96 </td>
+   <td style="text-align:right;"> 7.38 </td>
+   <td style="text-align:right;"> 30.34 </td>
+   <td style="text-align:right;"> 7.50 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 32.86 </td>
-   <td style="text-align:right;"> 15.84 </td>
-   <td style="text-align:right;"> 68.17 </td>
-   <td style="text-align:right;"> 9.38 </td>
+   <td style="text-align:right;"> 35.09 </td>
+   <td style="text-align:right;"> 16.91 </td>
+   <td style="text-align:right;"> 72.83 </td>
+   <td style="text-align:right;"> 9.55 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -5078,7 +5270,7 @@ comorb.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*comorb_cat_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -5091,42 +5283,44 @@ summary(comorb.mort28)
 ## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * comorb_cat_n
+##     age_cent_trial_8 + age_cent_trial_9 + (clinstatus_baseline_n -  
+##     1 | trial_f) + trt_centered_n * comorb_cat_n
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   6790.0   6944.2  -3374.0   6748.0    11354 
+##   6860.6   7030.0  -3407.3   6814.6    11628 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance Std.Dev.
-##  trial_f   trt_centered_n        0.03745  0.1935  
-##  trial_f.1 clinstatus_baseline_n 0.78257  0.8846  
-## Number of obs: 11375, groups:  trial_f, 8
+##  trial_f   trt_centered_n        0.03904  0.1976  
+##  trial_f.1 clinstatus_baseline_n 0.72418  0.8510  
+## Number of obs: 11651, groups:  trial_f, 9
 ## 
 ## Conditional model:
 ##                              Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                -8.414434   0.705030 -11.935  < 2e-16 ***
-## trial_fBari-Solidact        -5.860085   1.840848  -3.183  0.00146 ** 
-## trial_fCOV-BARRIER          -7.596049   0.443764 -17.117  < 2e-16 ***
-## trial_fCOVINIB              -6.228025   2.591275  -2.403  0.01624 *  
-## trial_fGhazaeian            -3.906044   2.555216  -1.529  0.12635    
-## trial_fRECOVERY             -6.913000   0.231899 -29.810  < 2e-16 ***
-## trial_fTACTIC-R             -7.397885   1.345818  -5.497 3.86e-08 ***
-## trial_fTOFACOV              -6.546896   2.807499  -2.332  0.01970 *  
-## age_cent_trial_1             0.077196   0.018759   4.115 3.87e-05 ***
-## age_cent_trial_2             0.051469   0.010686   4.816 1.46e-06 ***
-## age_cent_trial_3             0.022192   0.025621   0.866  0.38639    
-## age_cent_trial_4             0.055880   0.094013   0.594  0.55225    
-## age_cent_trial_5             0.115169   0.091257   1.262  0.20693    
-## age_cent_trial_6             0.060138   0.007054   8.526  < 2e-16 ***
-## age_cent_trial_7             0.072045   0.003124  23.062  < 2e-16 ***
-## age_cent_trial_8             0.095162   0.019863   4.791 1.66e-06 ***
-## trt_centered_n              -0.801177   0.241087  -3.323  0.00089 ***
-## comorb_cat_n                 0.405864   0.042751   9.494  < 2e-16 ***
-## trt_centered_n:comorb_cat_n  0.180579   0.082431   2.191  0.02848 *  
+## trial_fACTT2                -8.382945   0.703780 -11.911  < 2e-16 ***
+## trial_fBari-Solidact        -5.799434   1.826397  -3.175 0.001497 ** 
+## trial_fCOV-BARRIER          -7.576444   0.443389 -17.088  < 2e-16 ***
+## trial_fCOVINIB              -6.180606   2.519897  -2.453 0.014178 *  
+## trial_fGhazaeian            -3.871057   2.467112  -1.569 0.116633    
+## trial_fPANCOVID             -6.776265   1.989349  -3.406 0.000659 ***
+## trial_fRECOVERY             -6.898265   0.231628 -29.782  < 2e-16 ***
+## trial_fTACTIC-R             -7.333233   1.336046  -5.489 4.05e-08 ***
+## trial_fTOFACOV              -6.515423   2.730881  -2.386 0.017041 *  
+## age_cent_trial_1             0.077395   0.018749   4.128 3.66e-05 ***
+## age_cent_trial_2             0.051431   0.010677   4.817 1.46e-06 ***
+## age_cent_trial_3             0.022315   0.025622   0.871 0.383792    
+## age_cent_trial_4             0.056208   0.093978   0.598 0.549772    
+## age_cent_trial_5             0.115340   0.091113   1.266 0.205546    
+## age_cent_trial_6             0.060206   0.007052   8.537  < 2e-16 ***
+## age_cent_trial_7             0.072159   0.003123  23.106  < 2e-16 ***
+## age_cent_trial_8             0.095179   0.019836   4.798 1.60e-06 ***
+## age_cent_trial_9             0.140507   0.052102   2.697 0.007002 ** 
+## trt_centered_n              -0.818433   0.244069  -3.353 0.000799 ***
+## comorb_cat_n                 0.398959   0.042623   9.360  < 2e-16 ***
+## trt_centered_n:comorb_cat_n  0.178444   0.082235   2.170 0.030013 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -5152,7 +5346,7 @@ comorb.count.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*comorb_count # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -5165,42 +5359,44 @@ summary(comorb.count.mort28)
 ## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * comorb_count
+##     age_cent_trial_8 + age_cent_trial_9 + (clinstatus_baseline_n -  
+##     1 | trial_f) + trt_centered_n * comorb_count
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   6794.8   6948.9  -3376.4   6752.8    11347 
+##   6866.4   7035.7  -3410.2   6820.4    11621 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance Std.Dev.
-##  trial_f   trt_centered_n        0.03383  0.1839  
-##  trial_f.1 clinstatus_baseline_n 0.79649  0.8925  
-## Number of obs: 11368, groups:  trial_f, 8
+##  trial_f   trt_centered_n        0.03582  0.1893  
+##  trial_f.1 clinstatus_baseline_n 0.73257  0.8559  
+## Number of obs: 11644, groups:  trial_f, 9
 ## 
 ## Conditional model:
 ##                              Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                -8.158493   0.707628 -11.529  < 2e-16 ***
-## trial_fBari-Solidact        -5.100972   1.857120  -2.747  0.00602 ** 
-## trial_fCOV-BARRIER          -7.166536   0.438480 -16.344  < 2e-16 ***
-## trial_fCOVINIB              -5.771909   2.615642  -2.207  0.02734 *  
-## trial_fGhazaeian            -3.409600   2.577321  -1.323  0.18586    
-## trial_fRECOVERY             -6.435117   0.218024 -29.516  < 2e-16 ***
-## trial_fTACTIC-R             -7.121929   1.358504  -5.242 1.58e-07 ***
-## trial_fTOFACOV              -6.050783   2.820739  -2.145  0.03194 *  
-## age_cent_trial_1             0.078415   0.019006   4.126 3.69e-05 ***
-## age_cent_trial_2             0.048736   0.010798   4.513 6.38e-06 ***
-## age_cent_trial_3             0.020148   0.025327   0.795  0.42633    
-## age_cent_trial_4             0.056968   0.093943   0.606  0.54424    
-## age_cent_trial_5             0.109041   0.090458   1.205  0.22804    
-## age_cent_trial_6             0.058372   0.007127   8.190 2.61e-16 ***
-## age_cent_trial_7             0.073231   0.003091  23.692  < 2e-16 ***
-## age_cent_trial_8             0.090920   0.020233   4.494 7.00e-06 ***
-## trt_centered_n              -0.530004   0.175430  -3.021  0.00252 ** 
-## comorb_count                 0.293715   0.031223   9.407  < 2e-16 ***
-## trt_centered_n:comorb_count  0.086937   0.060523   1.436  0.15088    
+## trial_fACTT2                -8.119558   0.705825 -11.504  < 2e-16 ***
+## trial_fBari-Solidact        -5.054575   1.840058  -2.747  0.00601 ** 
+## trial_fCOV-BARRIER          -7.147720   0.437915 -16.322  < 2e-16 ***
+## trial_fCOVINIB              -5.727156   2.536603  -2.258  0.02396 *  
+## trial_fGhazaeian            -3.379161   2.481314  -1.362  0.17325    
+## trial_fPANCOVID             -6.250052   2.002248  -3.122  0.00180 ** 
+## trial_fRECOVERY             -6.426507   0.217884 -29.495  < 2e-16 ***
+## trial_fTACTIC-R             -7.047072   1.347222  -5.231 1.69e-07 ***
+## trial_fTOFACOV              -6.023700   2.737649  -2.200  0.02778 *  
+## age_cent_trial_1             0.078646   0.018980   4.144 3.42e-05 ***
+## age_cent_trial_2             0.048775   0.010782   4.524 6.07e-06 ***
+## age_cent_trial_3             0.020386   0.025329   0.805  0.42091    
+## age_cent_trial_4             0.057388   0.093922   0.611  0.54119    
+## age_cent_trial_5             0.109408   0.090317   1.211  0.22575    
+## age_cent_trial_6             0.058514   0.007122   8.216  < 2e-16 ***
+## age_cent_trial_7             0.073376   0.003090  23.747  < 2e-16 ***
+## age_cent_trial_8             0.091071   0.020187   4.511 6.44e-06 ***
+## age_cent_trial_9             0.136460   0.051562   2.647  0.00813 ** 
+## trt_centered_n              -0.551557   0.179807  -3.067  0.00216 ** 
+## comorb_count                 0.286377   0.031077   9.215  < 2e-16 ***
+## trt_centered_n:comorb_count  0.086209   0.060290   1.430  0.15274    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -5211,7 +5407,7 @@ comorb.any.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*comorb_any # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -5224,42 +5420,44 @@ summary(comorb.any.mort28)
 ## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * comorb_any
+##     age_cent_trial_8 + age_cent_trial_9 + (clinstatus_baseline_n -  
+##     1 | trial_f) + trt_centered_n * comorb_any
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   6830.3   6984.4  -3394.1   6788.3    11354 
+##   6899.5   7068.9  -3426.8   6853.5    11628 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance Std.Dev.
-##  trial_f   trt_centered_n        0.03008  0.1734  
-##  trial_f.1 clinstatus_baseline_n 0.79677  0.8926  
-## Number of obs: 11375, groups:  trial_f, 8
+##  trial_f   trt_centered_n        0.03194  0.1787  
+##  trial_f.1 clinstatus_baseline_n 0.74058  0.8606  
+## Number of obs: 11651, groups:  trial_f, 9
 ## 
 ## Conditional model:
 ##                            Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2              -7.833097   0.700437 -11.183  < 2e-16 ***
-## trial_fBari-Solidact      -5.621977   1.843465  -3.050 0.002291 ** 
-## trial_fCOV-BARRIER        -7.065688   0.434145 -16.275  < 2e-16 ***
-## trial_fCOVINIB            -5.764774   2.597534  -2.219 0.026465 *  
-## trial_fGhazaeian          -3.380897   2.577390  -1.312 0.189604    
-## trial_fRECOVERY           -6.473815   0.220717 -29.331  < 2e-16 ***
-## trial_fTACTIC-R           -6.776063   1.330814  -5.092 3.55e-07 ***
-## trial_fTOFACOV            -6.128074   2.818038  -2.175 0.029661 *  
-## age_cent_trial_1           0.082339   0.018656   4.413 1.02e-05 ***
-## age_cent_trial_2           0.053414   0.010559   5.059 4.22e-07 ***
-## age_cent_trial_3           0.025860   0.025328   1.021 0.307251    
-## age_cent_trial_4           0.061498   0.094888   0.648 0.516914    
-## age_cent_trial_5           0.119746   0.090442   1.324 0.185499    
-## age_cent_trial_6           0.062031   0.006994   8.869  < 2e-16 ***
-## age_cent_trial_7           0.074023   0.003114  23.768  < 2e-16 ***
-## age_cent_trial_8           0.099405   0.019719   5.041 4.63e-07 ***
-## trt_centered_n            -0.644267   0.172246  -3.740 0.000184 ***
-## comorb_any                 0.515356   0.074148   6.950 3.64e-12 ***
-## trt_centered_n:comorb_any  0.359782   0.143744   2.503 0.012317 *  
+## trial_fACTT2              -7.814695   0.699350 -11.174  < 2e-16 ***
+## trial_fBari-Solidact      -5.565525   1.830740  -3.040 0.002365 ** 
+## trial_fCOV-BARRIER        -7.058501   0.433995 -16.264  < 2e-16 ***
+## trial_fCOVINIB            -5.726607   2.530002  -2.263 0.023606 *  
+## trial_fGhazaeian          -3.358090   2.493266  -1.347 0.178024    
+## trial_fPANCOVID           -6.359742   1.999647  -3.180 0.001471 ** 
+## trial_fRECOVERY           -6.468164   0.220604 -29.320  < 2e-16 ***
+## trial_fTACTIC-R           -6.729727   1.322326  -5.089 3.59e-07 ***
+## trial_fTOFACOV            -6.105732   2.745763  -2.224 0.026169 *  
+## age_cent_trial_1           0.082442   0.018651   4.420 9.86e-06 ***
+## age_cent_trial_2           0.053339   0.010553   5.054 4.32e-07 ***
+## age_cent_trial_3           0.025902   0.025338   1.022 0.306655    
+## age_cent_trial_4           0.061714   0.094860   0.651 0.515322    
+## age_cent_trial_5           0.119798   0.090314   1.326 0.184686    
+## age_cent_trial_6           0.062078   0.006995   8.875  < 2e-16 ***
+## age_cent_trial_7           0.074087   0.003114  23.792  < 2e-16 ***
+## age_cent_trial_8           0.099364   0.019698   5.044 4.55e-07 ***
+## age_cent_trial_9           0.146342   0.053005   2.761 0.005764 ** 
+## trt_centered_n            -0.662084   0.175671  -3.769 0.000164 ***
+## comorb_any                 0.508237   0.073969   6.871 6.38e-12 ***
+## trt_centered_n:comorb_any  0.353036   0.143398   2.462 0.013819 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -5272,9 +5470,9 @@ table(df_tot$comorb_cat, df_tot$mort_28, useNA = "always")
 ```
 ##       
 ##           0    1 <NA>
-##   1    4690  365  114
-##   2    2998  455   95
-##   3    2199  575   94
+##   1    4750  367  116
+##   2    3076  458   97
+##   3    2329  578  101
 ##   4      77   16    5
 ##   <NA>    0    0    0
 ```
@@ -5293,7 +5491,7 @@ summ(mort.28.comorb.1, exp = T, confint = T, model.info = T, model.fit = F, digi
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 5055 (114 missing obs. deleted) </td>
+   <td style="text-align:right;"> 5117 (116 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -5329,7 +5527,7 @@ summ(mort.28.comorb.1, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -13.20 </td>
+   <td style="text-align:right;"> -14.33 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -5337,7 +5535,7 @@ summ(mort.28.comorb.1, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:right;"> 0.60 </td>
    <td style="text-align:right;"> 0.47 </td>
    <td style="text-align:right;"> 0.75 </td>
-   <td style="text-align:right;"> -4.33 </td>
+   <td style="text-align:right;"> -4.36 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -5345,31 +5543,31 @@ summ(mort.28.comorb.1, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 16.16 </td>
+   <td style="text-align:right;"> 16.17 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 5.26 </td>
-   <td style="text-align:right;"> 1.64 </td>
-   <td style="text-align:right;"> 16.85 </td>
-   <td style="text-align:right;"> 2.79 </td>
+   <td style="text-align:right;"> 4.19 </td>
+   <td style="text-align:right;"> 1.52 </td>
+   <td style="text-align:right;"> 11.55 </td>
+   <td style="text-align:right;"> 2.76 </td>
    <td style="text-align:right;"> 0.01 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 21.24 </td>
-   <td style="text-align:right;"> 6.61 </td>
-   <td style="text-align:right;"> 68.23 </td>
-   <td style="text-align:right;"> 5.13 </td>
+   <td style="text-align:right;"> 17.15 </td>
+   <td style="text-align:right;"> 6.20 </td>
+   <td style="text-align:right;"> 47.47 </td>
+   <td style="text-align:right;"> 5.47 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 55.03 </td>
-   <td style="text-align:right;"> 16.28 </td>
-   <td style="text-align:right;"> 186.02 </td>
-   <td style="text-align:right;"> 6.45 </td>
+   <td style="text-align:right;"> 44.60 </td>
+   <td style="text-align:right;"> 15.21 </td>
+   <td style="text-align:right;"> 130.79 </td>
+   <td style="text-align:right;"> 6.92 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -5391,7 +5589,7 @@ summ(mort.28.comorb.2, exp = T, confint = T, model.info = T, model.fit = F, digi
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 3453 (95 missing obs. deleted) </td>
+   <td style="text-align:right;"> 3534 (97 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -5427,47 +5625,47 @@ summ(mort.28.comorb.2, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -17.35 </td>
+   <td style="text-align:right;"> -17.60 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.89 </td>
-   <td style="text-align:right;"> 0.72 </td>
-   <td style="text-align:right;"> 1.10 </td>
-   <td style="text-align:right;"> -1.10 </td>
-   <td style="text-align:right;"> 0.27 </td>
+   <td style="text-align:right;"> 0.88 </td>
+   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 1.09 </td>
+   <td style="text-align:right;"> -1.21 </td>
+   <td style="text-align:right;"> 0.23 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 16.17 </td>
+   <td style="text-align:right;"> 16.13 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 2.92 </td>
-   <td style="text-align:right;"> 1.54 </td>
-   <td style="text-align:right;"> 5.56 </td>
-   <td style="text-align:right;"> 3.27 </td>
+   <td style="text-align:right;"> 3.17 </td>
+   <td style="text-align:right;"> 1.67 </td>
+   <td style="text-align:right;"> 6.01 </td>
+   <td style="text-align:right;"> 3.54 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 9.78 </td>
-   <td style="text-align:right;"> 5.09 </td>
-   <td style="text-align:right;"> 18.80 </td>
-   <td style="text-align:right;"> 6.84 </td>
+   <td style="text-align:right;"> 10.83 </td>
+   <td style="text-align:right;"> 5.66 </td>
+   <td style="text-align:right;"> 20.75 </td>
+   <td style="text-align:right;"> 7.19 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 28.62 </td>
-   <td style="text-align:right;"> 13.55 </td>
-   <td style="text-align:right;"> 60.44 </td>
-   <td style="text-align:right;"> 8.79 </td>
+   <td style="text-align:right;"> 31.84 </td>
+   <td style="text-align:right;"> 15.13 </td>
+   <td style="text-align:right;"> 67.01 </td>
+   <td style="text-align:right;"> 9.11 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -5489,7 +5687,7 @@ summ(mort.28.comorb.3, exp = T, confint = T, model.info = T, model.fit = F, digi
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 2774 (94 missing obs. deleted) </td>
+   <td style="text-align:right;"> 2907 (101 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -5525,15 +5723,15 @@ summ(mort.28.comorb.3, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -16.06 </td>
+   <td style="text-align:right;"> -16.46 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.78 </td>
-   <td style="text-align:right;"> 0.64 </td>
+   <td style="text-align:right;"> 0.79 </td>
+   <td style="text-align:right;"> 0.65 </td>
    <td style="text-align:right;"> 0.96 </td>
-   <td style="text-align:right;"> -2.41 </td>
+   <td style="text-align:right;"> -2.35 </td>
    <td style="text-align:right;"> 0.02 </td>
   </tr>
   <tr>
@@ -5541,31 +5739,31 @@ summ(mort.28.comorb.3, exp = T, confint = T, model.info = T, model.fit = F, digi
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 13.69 </td>
+   <td style="text-align:right;"> 13.75 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 1.86 </td>
-   <td style="text-align:right;"> 1.19 </td>
-   <td style="text-align:right;"> 2.89 </td>
-   <td style="text-align:right;"> 2.74 </td>
-   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 1.92 </td>
+   <td style="text-align:right;"> 1.24 </td>
+   <td style="text-align:right;"> 2.98 </td>
+   <td style="text-align:right;"> 2.93 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 5.01 </td>
-   <td style="text-align:right;"> 3.18 </td>
-   <td style="text-align:right;"> 7.88 </td>
-   <td style="text-align:right;"> 6.96 </td>
+   <td style="text-align:right;"> 5.61 </td>
+   <td style="text-align:right;"> 3.57 </td>
+   <td style="text-align:right;"> 8.79 </td>
+   <td style="text-align:right;"> 7.51 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 10.55 </td>
-   <td style="text-align:right;"> 6.14 </td>
-   <td style="text-align:right;"> 18.13 </td>
-   <td style="text-align:right;"> 8.54 </td>
+   <td style="text-align:right;"> 11.81 </td>
+   <td style="text-align:right;"> 6.90 </td>
+   <td style="text-align:right;"> 20.22 </td>
+   <td style="text-align:right;"> 9.00 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -5690,7 +5888,7 @@ comed.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*comed_cat_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -5703,42 +5901,44 @@ summary(comed.mort28)
 ## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * comed_cat_n
+##     age_cent_trial_8 + age_cent_trial_9 + (clinstatus_baseline_n -  
+##     1 | trial_f) + trt_centered_n * comed_cat_n
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   6883.3   7037.4  -3420.6   6841.3    11354 
+##   6951.0   7120.4  -3452.5   6905.0    11628 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance Std.Dev.
-##  trial_f   trt_centered_n        0.0132   0.1149  
-##  trial_f.1 clinstatus_baseline_n 0.7914   0.8896  
-## Number of obs: 11375, groups:  trial_f, 8
+##  trial_f   trt_centered_n        0.01718  0.1311  
+##  trial_f.1 clinstatus_baseline_n 0.73519  0.8574  
+## Number of obs: 11651, groups:  trial_f, 9
 ## 
 ## Conditional model:
 ##                             Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2               -7.422849   0.697422 -10.643  < 2e-16 ***
-## trial_fBari-Solidact       -5.352263   1.839867  -2.909  0.00363 ** 
-## trial_fCOV-BARRIER         -6.737104   0.442585 -15.222  < 2e-16 ***
-## trial_fCOVINIB             -5.448754   2.592561  -2.102  0.03558 *  
-## trial_fGhazaeian           -3.145482   2.569571  -1.224  0.22090    
-## trial_fRECOVERY            -6.268066   0.234650 -26.712  < 2e-16 ***
-## trial_fTACTIC-R            -6.389487   1.332405  -4.795 1.62e-06 ***
-## trial_fTOFACOV             -5.875636   2.809541  -2.091  0.03650 *  
-## age_cent_trial_1            0.088368   0.018443   4.791 1.66e-06 ***
-## age_cent_trial_2            0.054366   0.010553   5.152 2.58e-07 ***
-## age_cent_trial_3            0.027497   0.025080   1.096  0.27291    
-## age_cent_trial_4            0.068826   0.095952   0.717  0.47319    
-## age_cent_trial_5            0.121460   0.090506   1.342  0.17959    
-## age_cent_trial_6            0.063599   0.006937   9.168  < 2e-16 ***
-## age_cent_trial_7            0.079669   0.003017  26.404  < 2e-16 ***
-## age_cent_trial_8            0.101925   0.019738   5.164 2.42e-07 ***
-## trt_centered_n             -0.412422   0.254303  -1.622  0.10485    
-## comed_cat_n                 0.049020   0.067205   0.729  0.46575    
-## trt_centered_n:comed_cat_n  0.036548   0.122762   0.298  0.76592    
+## trial_fACTT2               -7.420128   0.696364 -10.656  < 2e-16 ***
+## trial_fBari-Solidact       -5.325004   1.827614  -2.914  0.00357 ** 
+## trial_fCOV-BARRIER         -6.755101   0.442502 -15.266  < 2e-16 ***
+## trial_fCOVINIB             -5.427438   2.524793  -2.150  0.03158 *  
+## trial_fGhazaeian           -3.147475   2.485558  -1.266  0.20540    
+## trial_fPANCOVID            -6.095032   1.998897  -3.049  0.00229 ** 
+## trial_fRECOVERY            -6.279611   0.234729 -26.753  < 2e-16 ***
+## trial_fTACTIC-R            -6.362883   1.324407  -4.804 1.55e-06 ***
+## trial_fTOFACOV             -5.877041   2.737764  -2.147  0.03182 *  
+## age_cent_trial_1            0.088382   0.018439   4.793 1.64e-06 ***
+## age_cent_trial_2            0.054355   0.010549   5.153 2.57e-07 ***
+## age_cent_trial_3            0.027504   0.025088   1.096  0.27295    
+## age_cent_trial_4            0.068893   0.095926   0.718  0.47264    
+## age_cent_trial_5            0.121663   0.090443   1.345  0.17857    
+## age_cent_trial_6            0.063682   0.006939   9.178  < 2e-16 ***
+## age_cent_trial_7            0.079700   0.003018  26.412  < 2e-16 ***
+## age_cent_trial_8            0.101878   0.019722   5.166 2.40e-07 ***
+## age_cent_trial_9            0.151790   0.053205   2.853  0.00433 ** 
+## trt_centered_n             -0.392577   0.253648  -1.548  0.12169    
+## comed_cat_n                 0.059031   0.067128   0.879  0.37919    
+## trt_centered_n:comed_cat_n  0.015762   0.121913   0.129  0.89713    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -5757,8 +5957,8 @@ table(df_tot$comed_cat, df_tot$trt, useNA = "always")
 ##       
 ##           0    1 <NA>
 ##   1     927  896    0
-##   2    3553 3663    0
-##   3    1275 1328    0
+##   2    3682 3803    0
+##   3    1288 1333    0
 ##   4      16   18    0
 ##   <NA>    5    2    0
 ```
@@ -5880,7 +6080,7 @@ summ(mort.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 7044 (172 missing obs. deleted) </td>
+   <td style="text-align:right;"> 7302 (183 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -5916,15 +6116,15 @@ summ(mort.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -29.94 </td>
+   <td style="text-align:right;"> -29.80 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
    <td style="text-align:right;"> 0.82 </td>
-   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 0.70 </td>
    <td style="text-align:right;"> 0.95 </td>
-   <td style="text-align:right;"> -2.60 </td>
+   <td style="text-align:right;"> -2.70 </td>
    <td style="text-align:right;"> 0.01 </td>
   </tr>
   <tr>
@@ -5932,7 +6132,7 @@ summ(mort.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 23.21 </td>
+   <td style="text-align:right;"> 22.87 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -5954,7 +6154,7 @@ summ(mort.28.comed.3, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 2564 (39 missing obs. deleted) </td>
+   <td style="text-align:right;"> 2582 (39 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -5989,49 +6189,49 @@ summ(mort.28.comed.3, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 83260340354380537184075950791484874361301580638995231761321034510520964880893513822273555886426092662883632518415744758611257372600632087656593000576446456681098861065742360869210476693747251593201399696217557008250193138235211776.00 </td>
-   <td style="text-align:right;"> -0.07 </td>
-   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.05 </td>
+   <td style="text-align:right;"> 0.96 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
    <td style="text-align:right;"> 0.69 </td>
    <td style="text-align:right;"> 0.54 </td>
-   <td style="text-align:right;"> 0.88 </td>
-   <td style="text-align:right;"> -2.98 </td>
+   <td style="text-align:right;"> 0.87 </td>
+   <td style="text-align:right;"> -3.05 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 1.07 </td>
+   <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.10 </td>
-   <td style="text-align:right;"> 15.56 </td>
+   <td style="text-align:right;"> 15.64 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 391280.82 </td>
+   <td style="text-align:right;"> 1058635.36 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 21492261446557706878224194512560555318958906811299530155634048532609124066327921263457940601999605188330985931262087648661280285323388076488293702580620839983504362723131621455420342713748124441024317287126056391365705260379736561209119384535040.00 </td>
-   <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 0.97 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 1432436.66 </td>
+   <td style="text-align:right;"> 3854070.11 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 78680527158856422234669374599660380383054508733574658268693178056757029934434845984814415819709687127669195393945835631320316596501505507180282934486573589220770948042357587392174329882543370265441851646119845003664761242548342933481772663439360.00 </td>
-   <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 0.97 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 4260174.55 </td>
+   <td style="text-align:right;"> 11484423.54 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 234033839386622101128183308576379049029893698895782852153913929540282733816432287915751780550221484183442997740503878278308245246470762651054109042451172215451615649867569562204117438343120161729651819039623556990636027784150750930299737281134592.00 </td>
-   <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> 0.97 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -6137,9 +6337,13 @@ table(df_tot$vacc, df_tot$trial)
 
 ```
 ##    
-##     ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian RECOVERY TACTIC-R TOFACOV
-##   0  1033           182           0     108         0     4710        0     113
-##   1     0           102           0       2         0     3420        0       3
+##     ACTT2 Bari-Solidact COV-BARRIER COVINIB Ghazaeian PANCOVID RECOVERY
+##   0  1033           182           0     108         0      250     4710
+##   1     0           102           0       2         0       37     3420
+##    
+##     TACTIC-R TOFACOV
+##   0        0     113
+##   1        0       3
 ```
 
 ```r
@@ -6154,7 +6358,7 @@ vacc.ae28 <- glmmTMB(ae_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*vacc_centered_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -6174,39 +6378,41 @@ summary(vacc.ae28)
 ## ae_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * vacc_centered_n
+##     age_cent_trial_8 + age_cent_trial_9 + (clinstatus_baseline_n -  
+##     1 | trial_f) + trt_centered_n * vacc_centered_n
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   5097.4   5202.9  -2533.7   5067.4     8387 
+##   5316.1   5436.3  -2641.0   5282.1     8664 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance  Std.Dev. 
-##  trial_f   trt_centered_n        3.750e-09 6.124e-05
-##  trial_f.1 clinstatus_baseline_n 7.022e-01 8.380e-01
-## Number of obs: 8402, groups:  trial_f, 5
+##  trial_f   trt_centered_n        2.487e-09 4.987e-05
+##  trial_f.1 clinstatus_baseline_n 5.685e-01 7.540e-01
+## Number of obs: 8681, groups:  trial_f, 6
 ## 
 ## Conditional model:
 ##                                 Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                   -2.768417   0.300084  -9.225  < 2e-16 ***
-## trial_fBari-Solidact           -5.745739   1.696593  -3.387 0.000708 ***
-## trial_fCOVINIB                 -2.249111   1.342867  -1.675 0.093962 .  
-## trial_fRECOVERY                -4.533589   0.268536 -16.883  < 2e-16 ***
-## trial_fTOFACOV                 -4.473110   1.823705  -2.453 0.014177 *  
-## age_cent_trial_1                0.011034   0.010880   1.014 0.310472    
-## age_cent_trial_2                0.014572   0.004451   3.274 0.001062 ** 
+## trial_fACTT2                   -2.762113   0.299837  -9.212  < 2e-16 ***
+## trial_fBari-Solidact           -5.538676   1.688347  -3.281 0.001036 ** 
+## trial_fCOVINIB                 -2.183651   1.294038  -1.687 0.091513 .  
+## trial_fPANCOVID                -3.193435   1.075973  -2.968 0.002998 ** 
+## trial_fRECOVERY                -4.528176   0.268392 -16.871  < 2e-16 ***
+## trial_fTOFACOV                 -4.230729   1.727890  -2.448 0.014345 *  
+## age_cent_trial_1                0.010898   0.010856   1.004 0.315434    
+## age_cent_trial_2                0.014574   0.004450   3.275 0.001057 ** 
 ## age_cent_trial_3                      NA         NA      NA       NA    
-## age_cent_trial_4               -0.084897   0.025228  -3.365 0.000765 ***
-## age_cent_trial_5                0.023732   0.024937   0.952 0.341263    
+## age_cent_trial_4               -0.084210   0.025079  -3.358 0.000786 ***
+## age_cent_trial_5                0.024038   0.024853   0.967 0.333448    
 ## age_cent_trial_6                      NA         NA      NA       NA    
-## age_cent_trial_7                0.023328   0.003608   6.466 1.01e-10 ***
+## age_cent_trial_7                0.023173   0.003601   6.435 1.24e-10 ***
 ## age_cent_trial_8                      NA         NA      NA       NA    
-## trt_centered_n                 -0.103813   0.074501  -1.393 0.163485    
-## vacc_centered_n                -0.244919   0.099733  -2.456 0.014059 *  
-## trt_centered_n:vacc_centered_n -0.025897   0.187614  -0.138 0.890216    
+## age_cent_trial_9                0.007292   0.020126   0.362 0.717127    
+## trt_centered_n                 -0.092782   0.072967  -1.272 0.203530    
+## vacc_centered_n                -0.233150   0.098175  -2.375 0.017556 *  
+## trt_centered_n:vacc_centered_n -0.015663   0.185002  -0.085 0.932529    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -6224,8 +6430,8 @@ table(df_tot$vacc, df_tot$trt, useNA = "always")
 ```
 ##       
 ##           0    1 <NA>
-##   0    3049 3097    0
-##   1    1718 1809    0
+##   0    3173 3223    0
+##   1    1736 1828    0
 ##   <NA> 1009 1001    0
 ```
 
@@ -6246,24 +6452,24 @@ summary(ae.28.vacc.1)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                             coef    se(coef)  lower 0.95  upper 0.95
-## (Intercept)          -4.34382528 0.516749127 -5.39783072 -3.35914757
-## trt                  -0.13736440 0.144030011 -0.42106398  0.14594940
-## age                   0.02356226 0.005634425  0.01258028  0.03478812
-## clinstatus_baseline3  0.10250407 0.334138894 -0.50847960  0.81728482
-## clinstatus_baseline4  0.84964270 0.343361359  0.21746268  1.57942678
-## clinstatus_baseline5  2.17507510 0.470954996  1.25411291  3.11975650
+## (Intercept)          -4.28173860 0.503800263 -5.30693110 -3.32020885
+## trt                  -0.12584103 0.142359317 -0.40615887  0.15421104
+## age                   0.02333023 0.005575377  0.01246409  0.03443578
+## clinstatus_baseline3  0.07037612 0.320410252 -0.51770238  0.75237826
+## clinstatus_baseline4  0.79647289 0.330422901  0.18550814  1.49490432
+## clinstatus_baseline5  2.12131222 0.461391345  1.21562185  3.04232180
 ##                            Chisq            p method
 ## (Intercept)                  Inf 0.000000e+00      2
-## trt                   0.90416395 3.416677e-01      2
-## age                  18.06855124 2.130922e-05      2
-## clinstatus_baseline3  0.09597937 7.567090e-01      2
-## clinstatus_baseline4  7.23536641 7.148122e-03      2
-## clinstatus_baseline5 20.42129620 6.213450e-06      2
+## trt                   0.77677369 3.781297e-01      2
+## age                  18.09297756 2.103759e-05      2
+## clinstatus_baseline3  0.04882486 8.251209e-01      2
+## clinstatus_baseline4  6.75663062 9.339995e-03      2
+## clinstatus_baseline5 19.95117448 7.944514e-06      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=59.03254 on 5 df, p=1.92566e-11, n=2919
-## Wald test = 1199.855 on 5 df, p = 0
+## Likelihood ratio test=57.60072 on 5 df, p=3.802247e-11, n=2955
+## Wald test = 1219.258 on 5 df, p = 0
 ```
 
 ```r
@@ -6280,7 +6486,7 @@ summ(ae.28.vacc.0, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 5483 (663 missing obs. deleted) </td>
+   <td style="text-align:right;"> 5726 (670 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -6316,47 +6522,47 @@ summ(ae.28.vacc.0, exp = T, confint = T, model.info = T, model.fit = F, digits =
    <td style="text-align:right;"> 0.05 </td>
    <td style="text-align:right;"> 0.03 </td>
    <td style="text-align:right;"> 0.07 </td>
-   <td style="text-align:right;"> -14.02 </td>
+   <td style="text-align:right;"> -14.55 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.90 </td>
-   <td style="text-align:right;"> 0.77 </td>
-   <td style="text-align:right;"> 1.05 </td>
-   <td style="text-align:right;"> -1.30 </td>
-   <td style="text-align:right;"> 0.19 </td>
+   <td style="text-align:right;"> 0.91 </td>
+   <td style="text-align:right;"> 0.78 </td>
+   <td style="text-align:right;"> 1.06 </td>
+   <td style="text-align:right;"> -1.25 </td>
+   <td style="text-align:right;"> 0.21 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.02 </td>
    <td style="text-align:right;"> 1.02 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 8.06 </td>
+   <td style="text-align:right;"> 8.02 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.71 </td>
-   <td style="text-align:right;"> 0.53 </td>
-   <td style="text-align:right;"> 0.95 </td>
-   <td style="text-align:right;"> -2.27 </td>
-   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.79 </td>
+   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> -1.64 </td>
+   <td style="text-align:right;"> 0.10 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 1.58 </td>
-   <td style="text-align:right;"> 1.16 </td>
-   <td style="text-align:right;"> 2.14 </td>
-   <td style="text-align:right;"> 2.92 </td>
+   <td style="text-align:right;"> 1.74 </td>
+   <td style="text-align:right;"> 1.30 </td>
+   <td style="text-align:right;"> 2.34 </td>
+   <td style="text-align:right;"> 3.69 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 5.54 </td>
-   <td style="text-align:right;"> 3.80 </td>
-   <td style="text-align:right;"> 8.07 </td>
-   <td style="text-align:right;"> 8.89 </td>
+   <td style="text-align:right;"> 6.12 </td>
+   <td style="text-align:right;"> 4.23 </td>
+   <td style="text-align:right;"> 8.85 </td>
+   <td style="text-align:right;"> 9.61 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -6382,7 +6588,7 @@ symp.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*sympdur_centered # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -6395,42 +6601,44 @@ summary(symp.mort28)
 ## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * sympdur_centered
+##     age_cent_trial_8 + age_cent_trial_9 + (clinstatus_baseline_n -  
+##     1 | trial_f) + trt_centered_n * sympdur_centered
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   6834.1   6988.2  -3396.0   6792.1    11347 
+##   6902.2   7071.5  -3428.1   6856.2    11621 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance Std.Dev.
-##  trial_f   trt_centered_n        0.01606  0.1267  
-##  trial_f.1 clinstatus_baseline_n 0.86675  0.9310  
-## Number of obs: 11368, groups:  trial_f, 8
+##  trial_f   trt_centered_n        0.01782  0.1335  
+##  trial_f.1 clinstatus_baseline_n 0.80944  0.8997  
+## Number of obs: 11644, groups:  trial_f, 9
 ## 
 ## Conditional model:
 ##                                  Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                    -7.453113   0.696662 -10.698  < 2e-16 ***
-## trial_fBari-Solidact            -5.381598   1.854504  -2.902  0.00371 ** 
-## trial_fCOV-BARRIER              -6.966565   0.437554 -15.922  < 2e-16 ***
-## trial_fCOVINIB                  -5.457960   2.671426  -2.043  0.04104 *  
-## trial_fGhazaeian                -3.090033   2.670497  -1.157  0.24723    
-## trial_fRECOVERY                 -6.377655   0.218387 -29.203  < 2e-16 ***
-## trial_fTACTIC-R                 -6.451656   1.342138  -4.807 1.53e-06 ***
-## trial_fTOFACOV                  -5.814441   2.893933  -2.009  0.04452 *  
-## age_cent_trial_1                 0.087934   0.018631   4.720 2.36e-06 ***
-## age_cent_trial_2                 0.054583   0.010555   5.172 2.32e-07 ***
-## age_cent_trial_3                 0.026693   0.025140   1.062  0.28834    
-## age_cent_trial_4                 0.068639   0.095154   0.721  0.47069    
-## age_cent_trial_5                 0.121202   0.091173   1.329  0.18373    
-## age_cent_trial_6                 0.064357   0.006972   9.231  < 2e-16 ***
-## age_cent_trial_7                 0.078275   0.003006  26.043  < 2e-16 ***
-## age_cent_trial_8                 0.102190   0.019747   5.175 2.28e-07 ***
-## trt_centered_n                  -0.353985   0.113330  -3.123  0.00179 ** 
-## sympdur_centered                -0.041667   0.006656  -6.260 3.85e-10 ***
-## trt_centered_n:sympdur_centered -0.001561   0.012998  -0.120  0.90441    
+## trial_fACTT2                    -7.442625   0.695665 -10.699  < 2e-16 ***
+## trial_fBari-Solidact            -5.336298   1.843596  -2.895  0.00380 ** 
+## trial_fCOV-BARRIER              -6.964542   0.437443 -15.921  < 2e-16 ***
+## trial_fCOVINIB                  -5.425022   2.605796  -2.082  0.03735 *  
+## trial_fGhazaeian                -3.070045   2.589376  -1.186  0.23577    
+## trial_fPANCOVID                 -6.093350   2.043496  -2.982  0.00287 ** 
+## trial_fRECOVERY                 -6.375341   0.218337 -29.200  < 2e-16 ***
+## trial_fTACTIC-R                 -6.416856   1.334524  -4.808 1.52e-06 ***
+## trial_fTOFACOV                  -5.796409   2.823873  -2.053  0.04011 *  
+## age_cent_trial_1                 0.087931   0.018622   4.722 2.34e-06 ***
+## age_cent_trial_2                 0.054500   0.010550   5.166 2.39e-07 ***
+## age_cent_trial_3                 0.026693   0.025142   1.062  0.28839    
+## age_cent_trial_4                 0.068719   0.095122   0.722  0.47003    
+## age_cent_trial_5                 0.121285   0.091050   1.332  0.18284    
+## age_cent_trial_6                 0.064374   0.006973   9.232  < 2e-16 ***
+## age_cent_trial_7                 0.078276   0.003005  26.045  < 2e-16 ***
+## age_cent_trial_8                 0.102073   0.019727   5.174 2.29e-07 ***
+## age_cent_trial_9                 0.147342   0.052751   2.793  0.00522 ** 
+## trt_centered_n                  -0.373011   0.117539  -3.173  0.00151 ** 
+## sympdur_centered                -0.041516   0.006639  -6.253 4.02e-10 ***
+## trt_centered_n:sympdur_centered -0.003095   0.012961  -0.239  0.81125    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -6452,7 +6660,7 @@ table(df_tot$sympdur_cat, useNA = "always")
 ```
 ## 
 ##    0    1    2 <NA> 
-## 4749 5239 1668   27
+## 4812 5381 1750   27
 ```
 
 ```r
@@ -6470,7 +6678,7 @@ summ(mort.28.sympdur.a10, exp = T, confint = T, model.info = T, model.fit = F, d
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 4631 (118 missing obs. deleted) </td>
+   <td style="text-align:right;"> 4691 (121 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -6506,15 +6714,15 @@ summ(mort.28.sympdur.a10, exp = T, confint = T, model.info = T, model.fit = F, d
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -14.30 </td>
+   <td style="text-align:right;"> -14.40 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.70 </td>
-   <td style="text-align:right;"> 0.57 </td>
-   <td style="text-align:right;"> 0.86 </td>
-   <td style="text-align:right;"> -3.44 </td>
+   <td style="text-align:right;"> 0.69 </td>
+   <td style="text-align:right;"> 0.56 </td>
+   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> -3.54 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -6522,31 +6730,31 @@ summ(mort.28.sympdur.a10, exp = T, confint = T, model.info = T, model.fit = F, d
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 16.57 </td>
+   <td style="text-align:right;"> 16.52 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 3.28 </td>
-   <td style="text-align:right;"> 1.19 </td>
-   <td style="text-align:right;"> 9.05 </td>
-   <td style="text-align:right;"> 2.30 </td>
+   <td style="text-align:right;"> 3.45 </td>
+   <td style="text-align:right;"> 1.25 </td>
+   <td style="text-align:right;"> 9.49 </td>
+   <td style="text-align:right;"> 2.40 </td>
    <td style="text-align:right;"> 0.02 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 13.66 </td>
-   <td style="text-align:right;"> 4.97 </td>
-   <td style="text-align:right;"> 37.57 </td>
-   <td style="text-align:right;"> 5.06 </td>
+   <td style="text-align:right;"> 14.58 </td>
+   <td style="text-align:right;"> 5.31 </td>
+   <td style="text-align:right;"> 40.03 </td>
+   <td style="text-align:right;"> 5.20 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 47.20 </td>
-   <td style="text-align:right;"> 16.68 </td>
-   <td style="text-align:right;"> 133.55 </td>
-   <td style="text-align:right;"> 7.26 </td>
+   <td style="text-align:right;"> 50.43 </td>
+   <td style="text-align:right;"> 17.86 </td>
+   <td style="text-align:right;"> 142.42 </td>
+   <td style="text-align:right;"> 7.40 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -6568,7 +6776,7 @@ summ(mort.28.sympdur.510, exp = T, confint = T, model.info = T, model.fit = F, d
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 5118 (121 missing obs. deleted) </td>
+   <td style="text-align:right;"> 5254 (127 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -6604,7 +6812,7 @@ summ(mort.28.sympdur.510, exp = T, confint = T, model.info = T, model.fit = F, d
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -20.85 </td>
+   <td style="text-align:right;"> -21.11 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -6612,7 +6820,7 @@ summ(mort.28.sympdur.510, exp = T, confint = T, model.info = T, model.fit = F, d
    <td style="text-align:right;"> 0.77 </td>
    <td style="text-align:right;"> 0.64 </td>
    <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> -2.78 </td>
+   <td style="text-align:right;"> -2.75 </td>
    <td style="text-align:right;"> 0.01 </td>
   </tr>
   <tr>
@@ -6620,31 +6828,31 @@ summ(mort.28.sympdur.510, exp = T, confint = T, model.info = T, model.fit = F, d
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 19.87 </td>
+   <td style="text-align:right;"> 19.71 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 2.47 </td>
-   <td style="text-align:right;"> 1.45 </td>
-   <td style="text-align:right;"> 4.20 </td>
-   <td style="text-align:right;"> 3.32 </td>
+   <td style="text-align:right;"> 2.66 </td>
+   <td style="text-align:right;"> 1.57 </td>
+   <td style="text-align:right;"> 4.51 </td>
+   <td style="text-align:right;"> 3.62 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 9.53 </td>
-   <td style="text-align:right;"> 5.55 </td>
-   <td style="text-align:right;"> 16.37 </td>
-   <td style="text-align:right;"> 8.17 </td>
+   <td style="text-align:right;"> 10.72 </td>
+   <td style="text-align:right;"> 6.26 </td>
+   <td style="text-align:right;"> 18.35 </td>
+   <td style="text-align:right;"> 8.65 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 18.80 </td>
-   <td style="text-align:right;"> 9.85 </td>
-   <td style="text-align:right;"> 35.87 </td>
-   <td style="text-align:right;"> 8.90 </td>
+   <td style="text-align:right;"> 21.21 </td>
+   <td style="text-align:right;"> 11.15 </td>
+   <td style="text-align:right;"> 40.36 </td>
+   <td style="text-align:right;"> 9.31 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -6666,7 +6874,7 @@ summ(mort.28.sympdur.b5, exp = T, confint = T, model.info = T, model.fit = F, di
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 1619 (49 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1699 (51 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -6702,47 +6910,47 @@ summ(mort.28.sympdur.b5, exp = T, confint = T, model.info = T, model.fit = F, di
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -14.41 </td>
+   <td style="text-align:right;"> -14.72 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
    <td style="text-align:right;"> 0.87 </td>
-   <td style="text-align:right;"> 0.66 </td>
-   <td style="text-align:right;"> 1.15 </td>
-   <td style="text-align:right;"> -0.99 </td>
-   <td style="text-align:right;"> 0.32 </td>
+   <td style="text-align:right;"> 0.67 </td>
+   <td style="text-align:right;"> 1.14 </td>
+   <td style="text-align:right;"> -0.98 </td>
+   <td style="text-align:right;"> 0.33 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.06 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 12.35 </td>
+   <td style="text-align:right;"> 12.41 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 2.68 </td>
-   <td style="text-align:right;"> 1.60 </td>
-   <td style="text-align:right;"> 4.49 </td>
-   <td style="text-align:right;"> 3.75 </td>
+   <td style="text-align:right;"> 2.65 </td>
+   <td style="text-align:right;"> 1.61 </td>
+   <td style="text-align:right;"> 4.36 </td>
+   <td style="text-align:right;"> 3.82 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 5.41 </td>
-   <td style="text-align:right;"> 3.09 </td>
-   <td style="text-align:right;"> 9.46 </td>
-   <td style="text-align:right;"> 5.92 </td>
+   <td style="text-align:right;"> 5.72 </td>
+   <td style="text-align:right;"> 3.32 </td>
+   <td style="text-align:right;"> 9.87 </td>
+   <td style="text-align:right;"> 6.27 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 7.90 </td>
-   <td style="text-align:right;"> 3.52 </td>
-   <td style="text-align:right;"> 17.73 </td>
-   <td style="text-align:right;"> 5.01 </td>
+   <td style="text-align:right;"> 8.28 </td>
+   <td style="text-align:right;"> 3.72 </td>
+   <td style="text-align:right;"> 18.42 </td>
+   <td style="text-align:right;"> 5.18 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -6768,7 +6976,7 @@ crp.mort28 <- glmmTMB(mort_28 ~
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*crp_centered # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -6781,42 +6989,44 @@ summary(crp.mort28)
 ## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
 ##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
 ##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * crp_centered
+##     age_cent_trial_8 + age_cent_trial_9 + (clinstatus_baseline_n -  
+##     1 | trial_f) + trt_centered_n * crp_centered
 ## Data: df_tot
 ## 
 ##      AIC      BIC   logLik deviance df.resid 
-##   6655.5   6808.8  -3306.7   6613.5    10926 
+##   6718.1   6886.5  -3336.0   6672.1    11144 
 ## 
 ## Random effects:
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance  Std.Dev. 
-##  trial_f   trt_centered_n        3.299e-08 0.0001816
-##  trial_f.1 clinstatus_baseline_n 7.549e-01 0.8688301
-## Number of obs: 10947, groups:  trial_f, 8
+##  trial_f   trt_centered_n        3.090e-08 0.0001758
+##  trial_f.1 clinstatus_baseline_n 6.803e-01 0.8247732
+## Number of obs: 11167, groups:  trial_f, 9
 ## 
 ## Conditional model:
 ##                               Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                -7.218e+00  6.998e-01 -10.314  < 2e-16 ***
-## trial_fBari-Solidact        -5.193e+00  1.835e+00  -2.831  0.00465 ** 
-## trial_fCOV-BARRIER          -6.381e+00  4.612e-01 -13.836  < 2e-16 ***
-## trial_fCOVINIB              -5.371e+00  2.546e+00  -2.109  0.03493 *  
-## trial_fGhazaeian            -3.004e+00  2.513e+00  -1.195  0.23205    
-## trial_fRECOVERY             -6.171e+00  2.158e-01 -28.591  < 2e-16 ***
-## trial_fTACTIC-R             -6.253e+00  1.322e+00  -4.731 2.23e-06 ***
-## trial_fTOFACOV              -5.746e+00  2.768e+00  -2.076  0.03790 *  
-## age_cent_trial_1             8.807e-02  1.834e-02   4.802 1.57e-06 ***
-## age_cent_trial_2             5.481e-02  1.072e-02   5.113 3.16e-07 ***
-## age_cent_trial_3             2.739e-02  2.514e-02   1.090  0.27583    
-## age_cent_trial_4             6.834e-02  9.626e-02   0.710  0.47771    
-## age_cent_trial_5             1.218e-01  9.096e-02   1.339  0.18059    
-## age_cent_trial_6             6.533e-02  7.711e-03   8.473  < 2e-16 ***
-## age_cent_trial_7             7.896e-02  3.017e-03  26.174  < 2e-16 ***
-## age_cent_trial_8             1.010e-01  1.971e-02   5.122 3.02e-07 ***
-## trt_centered_n              -2.519e-01  6.408e-02  -3.931 8.48e-05 ***
-## crp_centered                -7.917e-05  3.207e-04  -0.247  0.80501    
-## trt_centered_n:crp_centered  5.852e-06  6.306e-04   0.009  0.99260    
+## trial_fACTT2                -7.200e+00  6.982e-01 -10.312  < 2e-16 ***
+## trial_fBari-Solidact        -5.120e+00  1.816e+00  -2.820  0.00481 ** 
+## trial_fCOV-BARRIER          -6.373e+00  4.608e-01 -13.831  < 2e-16 ***
+## trial_fCOVINIB              -5.326e+00  2.454e+00  -2.171  0.02994 *  
+## trial_fGhazaeian            -2.975e+00  2.398e+00  -1.240  0.21485    
+## trial_fPANCOVID             -5.378e+00  2.030e+00  -2.649  0.00806 ** 
+## trial_fRECOVERY             -6.170e+00  2.158e-01 -28.589  < 2e-16 ***
+## trial_fTACTIC-R             -6.189e+00  1.309e+00  -4.728 2.27e-06 ***
+## trial_fTOFACOV              -5.718e+00  2.670e+00  -2.142  0.03221 *  
+## age_cent_trial_1             8.802e-02  1.833e-02   4.803 1.57e-06 ***
+## age_cent_trial_2             5.475e-02  1.071e-02   5.112 3.19e-07 ***
+## age_cent_trial_3             2.740e-02  2.514e-02   1.090  0.27587    
+## age_cent_trial_4             6.840e-02  9.624e-02   0.711  0.47726    
+## age_cent_trial_5             1.220e-01  9.088e-02   1.342  0.17954    
+## age_cent_trial_6             6.532e-02  7.709e-03   8.473  < 2e-16 ***
+## age_cent_trial_7             7.897e-02  3.017e-03  26.176  < 2e-16 ***
+## age_cent_trial_8             1.008e-01  1.968e-02   5.122 3.03e-07 ***
+## age_cent_trial_9             1.887e-01  6.398e-02   2.950  0.00318 ** 
+## trt_centered_n              -2.581e-01  6.386e-02  -4.042 5.30e-05 ***
+## crp_centered                -8.432e-05  3.205e-04  -0.263  0.79250    
+## trt_centered_n:crp_centered  1.987e-06  6.305e-04   0.003  0.99749    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -6837,7 +7047,7 @@ table(df_tot$crp_75, useNA = "always")
 ```
 ## 
 ##    0    1 <NA> 
-## 6254 4953  476
+## 6354 5083  533
 ```
 
 ```r
@@ -6854,7 +7064,7 @@ summ(mort.28.crp.b75, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 4847 (106 missing obs. deleted) </td>
+   <td style="text-align:right;"> 4972 (111 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -6890,7 +7100,7 @@ summ(mort.28.crp.b75, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -21.07 </td>
+   <td style="text-align:right;"> -21.32 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -6898,7 +7108,7 @@ summ(mort.28.crp.b75, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 0.80 </td>
    <td style="text-align:right;"> 0.66 </td>
    <td style="text-align:right;"> 0.97 </td>
-   <td style="text-align:right;"> -2.29 </td>
+   <td style="text-align:right;"> -2.26 </td>
    <td style="text-align:right;"> 0.02 </td>
   </tr>
   <tr>
@@ -6906,31 +7116,31 @@ summ(mort.28.crp.b75, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.07 </td>
    <td style="text-align:right;"> 1.08 </td>
-   <td style="text-align:right;"> 18.32 </td>
+   <td style="text-align:right;"> 18.29 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 2.31 </td>
-   <td style="text-align:right;"> 1.44 </td>
-   <td style="text-align:right;"> 3.70 </td>
-   <td style="text-align:right;"> 3.47 </td>
+   <td style="text-align:right;"> 2.25 </td>
+   <td style="text-align:right;"> 1.42 </td>
+   <td style="text-align:right;"> 3.57 </td>
+   <td style="text-align:right;"> 3.45 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 9.19 </td>
-   <td style="text-align:right;"> 5.68 </td>
-   <td style="text-align:right;"> 14.85 </td>
-   <td style="text-align:right;"> 9.05 </td>
+   <td style="text-align:right;"> 9.30 </td>
+   <td style="text-align:right;"> 5.82 </td>
+   <td style="text-align:right;"> 14.88 </td>
+   <td style="text-align:right;"> 9.31 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 22.85 </td>
-   <td style="text-align:right;"> 12.95 </td>
-   <td style="text-align:right;"> 40.31 </td>
-   <td style="text-align:right;"> 10.80 </td>
+   <td style="text-align:right;"> 23.15 </td>
+   <td style="text-align:right;"> 13.24 </td>
+   <td style="text-align:right;"> 40.47 </td>
+   <td style="text-align:right;"> 11.03 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -6952,7 +7162,7 @@ summ(mort.28.crp.a75, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 6100 (154 missing obs. deleted) </td>
+   <td style="text-align:right;"> 6195 (159 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -6988,15 +7198,15 @@ summ(mort.28.crp.a75, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -21.76 </td>
+   <td style="text-align:right;"> -22.02 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.79 </td>
-   <td style="text-align:right;"> 0.67 </td>
-   <td style="text-align:right;"> 0.92 </td>
-   <td style="text-align:right;"> -2.90 </td>
+   <td style="text-align:right;"> 0.78 </td>
+   <td style="text-align:right;"> 0.66 </td>
+   <td style="text-align:right;"> 0.91 </td>
+   <td style="text-align:right;"> -3.04 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
@@ -7004,31 +7214,31 @@ summ(mort.28.crp.a75, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.08 </td>
    <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 22.48 </td>
+   <td style="text-align:right;"> 22.47 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 1.99 </td>
-   <td style="text-align:right;"> 1.19 </td>
-   <td style="text-align:right;"> 3.33 </td>
-   <td style="text-align:right;"> 2.63 </td>
-   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 2.08 </td>
+   <td style="text-align:right;"> 1.25 </td>
+   <td style="text-align:right;"> 3.47 </td>
+   <td style="text-align:right;"> 2.81 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 5.82 </td>
-   <td style="text-align:right;"> 3.46 </td>
-   <td style="text-align:right;"> 9.79 </td>
-   <td style="text-align:right;"> 6.65 </td>
+   <td style="text-align:right;"> 6.21 </td>
+   <td style="text-align:right;"> 3.71 </td>
+   <td style="text-align:right;"> 10.42 </td>
+   <td style="text-align:right;"> 6.93 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 14.33 </td>
-   <td style="text-align:right;"> 8.02 </td>
-   <td style="text-align:right;"> 25.58 </td>
-   <td style="text-align:right;"> 9.00 </td>
+   <td style="text-align:right;"> 15.33 </td>
+   <td style="text-align:right;"> 8.61 </td>
+   <td style="text-align:right;"> 27.31 </td>
+   <td style="text-align:right;"> 9.27 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -7108,16 +7318,16 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |                                     |variable            | log_odds_ratio| ci_lower| ci_upper| standard_error| p_value|approach  |
 |:------------------------------------|:-------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
-|trt_centered_n:clinstatus_baseline_n |respiratory support |          0.877|    0.731|    1.053|          0.093|   0.160|one-stage |
-|trt_centered_n:vbaseline_centered_n  |ventilation         |          0.784|    0.608|    1.010|          0.129|   0.059|one-stage |
+|trt_centered_n:clinstatus_baseline_n |respiratory support |          0.880|    0.734|    1.055|          0.092|   0.167|one-stage |
+|trt_centered_n:vbaseline_centered_n  |ventilation         |          0.784|    0.609|    1.010|          0.129|   0.060|one-stage |
 |trt_centered_n:age_centered          |age                 |          1.011|    1.001|    1.021|          0.005|   0.032|one-stage |
-|trt_centered_n:comorb_cat_n          |comorbidity         |          1.198|    1.019|    1.408|          0.082|   0.028|one-stage |
-|trt_centered_n:comorb_count          |comorbidity count   |          1.091|    0.969|    1.228|          0.061|   0.151|one-stage |
-|trt_centered_n:comorb_any            |any comorbidity     |          1.433|    1.081|    1.899|          0.144|   0.012|one-stage |
-|trt_centered_n:comed_cat_n           |comedication        |          1.037|    0.815|    1.319|          0.123|   0.766|one-stage |
-|trt_centered_n:vacc_centered_n       |vaccination on AEs  |          0.974|    0.675|    1.408|          0.188|   0.890|one-stage |
-|trt_centered_n:sympdur_centered      |symptom duration    |          0.998|    0.973|    1.024|          0.013|   0.904|one-stage |
-|trt_centered_n:crp_centered          |crp                 |          1.000|    0.999|    1.001|          0.001|   0.993|one-stage |
+|trt_centered_n:comorb_cat_n          |comorbidity         |          1.195|    1.017|    1.404|          0.082|   0.030|one-stage |
+|trt_centered_n:comorb_count          |comorbidity count   |          1.090|    0.969|    1.227|          0.060|   0.153|one-stage |
+|trt_centered_n:comorb_any            |any comorbidity     |          1.423|    1.075|    1.885|          0.143|   0.014|one-stage |
+|trt_centered_n:comed_cat_n           |comedication        |          1.016|    0.800|    1.290|          0.122|   0.897|one-stage |
+|trt_centered_n:vacc_centered_n       |vaccination on AEs  |          0.984|    0.685|    1.415|          0.185|   0.933|one-stage |
+|trt_centered_n:sympdur_centered      |symptom duration    |          0.997|    0.972|    1.023|          0.013|   0.811|one-stage |
+|trt_centered_n:crp_centered          |crp                 |          1.000|    0.999|    1.001|          0.001|   0.997|one-stage |
 
 ```r
 # Save
@@ -7305,29 +7515,29 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |      |variable                                       | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|
 |:-----|:----------------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|
-|trt   |High-flow or non-invasive, mechanical, or ECMO |         0.6908177| 0.5812646|  0.8204556|      0.0878956| 0.0000257|            342|               1686|       416|          1591|
-|trt1  |None or low-flow oxygen                        |         0.8478815| 0.7150021|  1.0050577|      0.0868346| 0.0573900|            314|               4051|       339|          4047|
-|trt2  |No oxygen                                      |         0.6719398| 0.3357291|  1.3176725|      0.3465722| 0.2513003|             17|                404|        23|           442|
-|trt3  |low-flow oxygen                                |         0.8560652| 0.7174544|  1.0210788|      0.0899926| 0.0841846|            297|               3647|       316|          3605|
-|trt4  |high-flow oxygen / NIV                         |         0.6787511| 0.5589144|  0.8235073|      0.0988378| 0.0000883|            270|               1447|       325|          1355|
+|trt   |High-flow or non-invasive, mechanical, or ECMO |         0.6915112| 0.5819232|  0.8211733|      0.0878298| 0.0000267|            342|               1687|       417|          1595|
+|trt1  |None or low-flow oxygen                        |         0.8365361| 0.7065149|  0.9900687|      0.0860481| 0.0380558|            316|               4190|       344|          4179|
+|trt2  |No oxygen                                      |         0.6757661| 0.3428083|  1.3099603|      0.3398500| 0.2488366|             18|                444|        23|           472|
+|trt3  |low-flow oxygen                                |         0.8468455| 0.7107565|  1.0085843|      0.0892450| 0.0625039|            298|               3746|       321|          3707|
+|trt4  |high-flow oxygen / NIV                         |         0.6794080| 0.5595549|  0.8241562|      0.0987466| 0.0000906|            270|               1448|       326|          1359|
 |trt5  |Mechanical ventilation / ECMO                  |         0.7343038| 0.4931504|  1.0913801|      0.2024191| 0.1270825|             72|                239|        91|           236|
-|trt6  |70 years and above                             |         0.9162511| 0.7673577|  1.0940188|      0.0904520| 0.3335566|            359|               1311|       368|          1243|
-|trt7  |below 70 years                                 |         0.6983989| 0.5931868|  0.8214679|      0.0830257| 0.0000154|            297|               4426|       387|          4395|
-|trt8  |No comorbidity                                 |         0.5968895| 0.4718493|  0.7529859|      0.1191486| 0.0000148|            147|               2517|       218|          2538|
-|trt9  |One comorbidity                                |         0.8869533| 0.7154211|  1.0992173|      0.1095081| 0.2733102|            224|               1746|       231|          1707|
-|trt10 |Multiple comorbidities                         |         0.7849680| 0.6443806|  0.9557371|      0.1005236| 0.0160177|            275|               1426|       300|          1348|
+|trt6  |70 years and above                             |         0.9005764| 0.7555070|  1.0734619|      0.0895834| 0.2424158|            361|               1374|       374|          1295|
+|trt7  |below 70 years                                 |         0.6994241| 0.5940777|  0.8226449|      0.0830092| 0.0000166|            297|               4503|       387|          4479|
+|trt8  |No comorbidity                                 |         0.5962554| 0.4717798|  0.7515216|      0.1186903| 0.0000132|            148|               2554|       219|          2563|
+|trt9  |One comorbidity                                |         0.8763902| 0.7076532|  1.0849528|      0.1089614| 0.2259250|            225|               1791|       233|          1743|
+|trt10 |Multiple comorbidities                         |         0.7907651| 0.6499323|  0.9615949|      0.0998939| 0.0187716|            275|               1484|       303|          1423|
 |trt11 |Immunocompromised                              |         2.5555239| 0.6056284| 12.8367621|      0.7633247| 0.2190074|             10|                 48|         6|            45|
 |trt12 |No Dexa, no Tocilizumab                        |         0.6265313| 0.4245063|  0.9177484|      0.1962885| 0.0172195|             52|                853|        81|           880|
-|trt13 |Dexa and Tocilizumab                           |         0.8203281| 0.7063234|  0.9524288|      0.0762388| 0.0093831|            422|               3567|       459|          3477|
-|trt14 |Dexa, but no Tocilizumab                       |         0.6922150| 0.5428271|  0.8812820|      0.1235469| 0.0029063|            174|               1299|       211|          1265|
+|trt13 |Dexa and Tocilizumab                           |         0.8157084| 0.7032728|  0.9458156|      0.0755652| 0.0070249|            424|               3702|       462|          3600|
+|trt14 |Dexa, but no Tocilizumab                       |         0.6864221| 0.5386564|  0.8732361|      0.1231756| 0.0022530|            174|               1304|       214|          1278|
 |trt15 |Tocilizumab, but no Dexa                       |         2.4876095| 0.5116709| 14.1863269|      0.8307323| 0.2726367|              8|                 18|         4|            16|
-|trt16 |vaccinated_firth                               |         0.8716525| 0.6563481|  1.1571376|      0.1440300| 0.3416677|            274|               1778|       283|          1688|
-|trt17 |not vaccinated                                 |         0.9013043| 0.7706047|  1.0539979|      0.0798672| 0.1932368|            279|               3022|       322|          2995|
-|trt18 |More than 10 days                              |         0.6972539| 0.5673974|  0.8557749|      0.1047837| 0.0005787|            219|               2334|       282|          2297|
-|trt19 |Between 5-10 days                              |         0.7689751| 0.6386208|  0.9252777|      0.0945530| 0.0054644|            292|               2566|       324|          2552|
-|trt20 |5 days and less                                |         0.8708437| 0.6612667|  1.1463164|      0.1402416| 0.3240821|            145|                834|       148|           785|
-|trt21 |CRP 75 and higher                              |         0.7856270| 0.6672593|  0.9245235|      0.0831658| 0.0037184|            367|               3052|       427|          3048|
-|trt22 |CRP below 75                                   |         0.7983075| 0.6582693|  0.9675690|      0.0982190| 0.0218215|            270|               2450|       296|          2397|
+|trt16 |vaccinated_firth                               |         0.8817550| 0.6662043|  1.1667371|      0.1423593| 0.3781297|            274|               1796|       284|          1706|
+|trt17 |not vaccinated                                 |         0.9067384| 0.7777862|  1.0569210|      0.0782087| 0.2106443|            281|               3144|       327|          3113|
+|trt18 |More than 10 days                              |         0.6901877| 0.5618475|  0.8467891|      0.1045984| 0.0003927|            219|               2372|       283|          2319|
+|trt19 |Between 5-10 days                              |         0.7715076| 0.6411690|  0.9276836|      0.0941996| 0.0058904|            292|               2633|       325|          2621|
+|trt20 |5 days and less                                |         0.8730587| 0.6656019|  1.1445965|      0.1381943| 0.3259367|            147|                869|       152|           830|
+|trt21 |CRP 75 and higher                              |         0.7772257| 0.6604360|  0.9141876|      0.0829199| 0.0023707|            367|               3102|       430|          3093|
+|trt22 |CRP below 75                                   |         0.8017471| 0.6619078|  0.9705665|      0.0976023| 0.0235802|            272|               2511|       299|          2461|
 
 ```r
 # Save
@@ -7508,6 +7718,7 @@ df_ctree <- df_ctree %>%
                              trial == "COV-BARRIER" ~ 6,
                              trial == "RECOVERY" ~ 7,
                            trial == "TACTIC-R" ~ 8,
+                           trial == "PANCOVID" ~ 9,
                              # trial == "Murugesan" ~ 8
                              ))
 # summary(df_ctree)
@@ -7757,68 +7968,15 @@ https://riccardo-df.github.io/aggTrees/articles/aggTrees-vignette.html
 # Multivariate interaction
 
 ```r
-x.mort28 <- glmmTMB(mort_28 ~ 
-                  + trial_f # stratified intercept
-                  + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
-                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
-                  + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
-                  + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
-                  + trt_centered_n*age_centered
-                  # + trt_centered_n*comorb_cat_n
-                  , data = df_tot, family = binomial)
-```
-
-```
-## dropping columns from rank-deficient conditional model: age_centered
-```
-
-```r
-summary(x.mort28)
-```
-
-```
-##  Family: binomial  ( logit )
-## Formula:          
-## mort_28 ~ +trial_f + (trt_centered_n - 1 | trial_f) - 1 + age_cent_trial_1 +  
-##     age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 +  
-##     age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 +  
-##     age_cent_trial_8 + (clinstatus_baseline_n - 1 | trial_f) +  
-##     trt_centered_n * age_centered
-## Data: df_tot
-## 
-##      AIC      BIC   logLik deviance df.resid 
-##   6877.2   7024.0  -3418.6   6837.2    11355 
-## 
-## Random effects:
-## 
-## Conditional model:
-##  Groups    Name                  Variance Std.Dev.
-##  trial_f   trt_centered_n        0.01249  0.1117  
-##  trial_f.1 clinstatus_baseline_n 0.79987  0.8944  
-## Number of obs: 11375, groups:  trial_f, 8
-## 
-## Conditional model:
-##                              Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                -7.407514   0.694539 -10.665  < 2e-16 ***
-## trial_fBari-Solidact        -5.255333   1.837709  -2.860  0.00424 ** 
-## trial_fCOV-BARRIER          -6.677950   0.428945 -15.568  < 2e-16 ***
-## trial_fCOVINIB              -5.411635   2.600950  -2.081  0.03747 *  
-## trial_fGhazaeian            -3.068381   2.576255  -1.191  0.23364    
-## trial_fRECOVERY             -6.212406   0.215230 -28.864  < 2e-16 ***
-## trial_fTACTIC-R             -6.302472   1.325578  -4.755 1.99e-06 ***
-## trial_fTOFACOV              -5.795649   2.816222  -2.058  0.03959 *  
-## age_cent_trial_1             0.088745   0.018398   4.823 1.41e-06 ***
-## age_cent_trial_2             0.055444   0.010531   5.265 1.41e-07 ***
-## age_cent_trial_3             0.028253   0.025098   1.126  0.26029    
-## age_cent_trial_4             0.069950   0.095553   0.732  0.46414    
-## age_cent_trial_5             0.122996   0.090870   1.354  0.17588    
-## age_cent_trial_6             0.064063   0.006941   9.230  < 2e-16 ***
-## age_cent_trial_7             0.079866   0.003018  26.466  < 2e-16 ***
-## age_cent_trial_8             0.102571   0.019682   5.211 1.88e-07 ***
-## trt_centered_n              -0.433884   0.116662  -3.719  0.00020 ***
-## age_centered                       NA         NA      NA       NA    
-## trt_centered_n:age_centered  0.010842   0.005057   2.144  0.03202 *  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# x.mort28 <- glmmTMB(mort_28 ~ 
+#                   + trial_f # stratified intercept
+#                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
+#                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
+#                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8
+#                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
+#                   + trt_centered_n*age_centered
+#                   # + trt_centered_n*comorb_cat_n
+#                   , data = df_tot, family = binomial)
+# summary(x.mort28)
 ```
 
