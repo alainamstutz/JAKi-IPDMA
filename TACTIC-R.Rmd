@@ -1932,8 +1932,6 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
-Discussion points
-1. Use F&G for sens-analysis (sustained discharge)?
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
 ```{r warning=FALSE}
@@ -1961,6 +1959,7 @@ vir.clear.15 <- df %>%
       , family = "binomial", data=.)
 summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
+
 # (viii) Quality of life at day 28 
 ```{r warning=FALSE}
 ```
@@ -2149,7 +2148,6 @@ mort.28.comorb.4 <- df %>%
 summ(mort.28.comorb.4, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 ```
-Discussion points
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 ```{r warning=FALSE}
@@ -2283,7 +2281,6 @@ mort.28.sympdur.b5 <- df %>%
       , family = "binomial", data=.)
 summ(mort.28.sympdur.b5, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
-Discussion points
 
 # SENS Subgroup analysis: CRP on primary endpoint
 ```{r warning=FALSE}
@@ -2327,7 +2324,6 @@ mort.28.crp.a75 <- df %>%
       , family = "binomial", data=.)
 summ(mort.28.crp.a75, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
-Discussion points
 
 # SENS Subgroup analysis: Variant on primary endpoint
 ```{r warning=FALSE}
@@ -2461,7 +2457,6 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(result_df, file = "trt_effects_tactic-r.RData")
 ```
-Discussion points
 
 # Collect all interaction estimates (stage one)
 ```{r message=FALSE, warning=FALSE}
@@ -2532,7 +2527,6 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(interaction_df, file = "int_effects_tactic-r.RData")
 ```
-Discussion points
 
 # Collect all subgroup treatment effect estimates
 ```{r message=FALSE, warning=FALSE}
