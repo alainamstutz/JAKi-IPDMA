@@ -48,13 +48,14 @@ df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
 df_ruxcovid <- readRDS("trt_effects_ruxcovid_07052024.RData")
+df_pancovid <- readRDS("trt_effects_pancovid.RData")
 
 ```
 
 # Reshape dataframes for all treatment effect estimates
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
-list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_ruxcovid) # add all trials
+list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_ruxcovid, df_pancovid) # add all trials
 
 ## Mortality at day 28
 outcomes <- "death at day 28"
@@ -102,17 +103,6 @@ for (df in list_df) {
   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
   df_mort28_dimp <- rbind(df_mort28_dimp, selected_rows)
 }
-
-# ## Mortality at day 28: multiple imputation
-# outcomes <- "death at day 28_mi"
-# outcomes.firth <- "death at day 28_mi_firth"
-# df_mort28_mi <- data.frame()
-# for (df in list_df) {
-#   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
-#   df_mort28_mi <- rbind(df_mort28_mi, selected_rows)
-# }
-# # Save
-# saveRDS(df_mort28_mi, file = "trt_effects_mi.RData") # collected on 7.5.24: Bari, ACTT2, RECOVERY, COV-BARRIER, TACTIC-R
 
 ## new MV within 28d
 outcomes <- "new MV within 28d"
@@ -306,6 +296,7 @@ df_mort28 <- df_mort28 %>%
                                         trial == "RECOVERY" ~ "02.2021-12.2021", 
                                         trial == "TACTIC-R" ~ "05.2020-05.2021",
                                         trial == "RUXCOVID" ~ "04.2020-09.2020",
+                                        trial == "PANCOVID" ~ "10.2020-09.2021",
                                         ))
 df_mort28 <- df_mort28 %>% 
   mutate(recruitment_period_cat = case_when(trial == "ACTT-2" ~ "mid2020",
@@ -317,6 +308,7 @@ df_mort28 <- df_mort28 %>%
                                             trial == "Bari-SolidAct" ~ "mid2021",
                                             trial == "TACTIC-R" ~ "beg2021",
                                             trial == "RUXCOVID" ~ "mid2020",
+                                            trial == "PANCOVID" ~ "beg2021",
                                         ))
 
 df_mort28 <- df_mort28 %>% 
@@ -329,6 +321,7 @@ df_mort28 <- df_mort28 %>%
                                             trial == "Bari-SolidAct" ~ "low risk",
                                 trial == "TACTIC-R" ~ "low risk",
                                 trial == "RUXCOVID" ~ "low risk",
+                                trial == "PANCOVID" ~ "low risk",
                                         ))
 
 #### read in aggregate data
@@ -380,29 +373,29 @@ row_cao <- tibble(
   recruitment_period_cat = "beg2020",
   rob_mort28 = "low risk")
 
-## Pancovid
-df_pancovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Pancovid")
-# analyse with same model
-addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))
-mort.28.pancovid <- df_pancovid %>% 
-  glm(mort_28 ~ trt
-      , family = "binomial", data=.)
-summ(mort.28.pancovid, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# add effect estimates and other parameters to df_mort28
-row_pancovid <- tibble(
-  variable = "death at day 28",
-  hazard_odds_ratio = exp(coef(mort.28.pancovid)["trt"]),
-  ci_lower = exp(confint(mort.28.pancovid)["trt", ])[1],
-  ci_upper = exp(confint(mort.28.pancovid)["trt", ])[2],
-  standard_error = summary(mort.28.pancovid)$coefficients["trt", "Std. Error"],
-  p_value = summary(mort.28.pancovid)$coefficients["trt", "Pr(>|z|)"],
-  n_intervention = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,2],
-  n_control = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,1],
-  trial = "Pancovid*",
-  JAKi = "Baricitinib",
-  recruitment_period = "10.2020-09.2021",
-  recruitment_period_cat = "beg2021",
-  rob_mort28 = "low risk")
+# ## Pancovid
+# df_pancovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Pancovid")
+# # analyse with same model
+# addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))
+# mort.28.pancovid <- df_pancovid %>% 
+#   glm(mort_28 ~ trt
+#       , family = "binomial", data=.)
+# summ(mort.28.pancovid, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+# # add effect estimates and other parameters to df_mort28
+# row_pancovid <- tibble(
+#   variable = "death at day 28",
+#   hazard_odds_ratio = exp(coef(mort.28.pancovid)["trt"]),
+#   ci_lower = exp(confint(mort.28.pancovid)["trt", ])[1],
+#   ci_upper = exp(confint(mort.28.pancovid)["trt", ])[2],
+#   standard_error = summary(mort.28.pancovid)$coefficients["trt", "Std. Error"],
+#   p_value = summary(mort.28.pancovid)$coefficients["trt", "Pr(>|z|)"],
+#   n_intervention = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,2],
+#   n_control = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,1],
+#   trial = "Pancovid*",
+#   JAKi = "Baricitinib",
+#   recruitment_period = "10.2020-09.2021",
+#   recruitment_period_cat = "beg2021",
+#   rob_mort28 = "low risk")
 
 ## STOP-COVID
 df_stopcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "STOP-COVID")
@@ -550,7 +543,7 @@ row_singh <- tibble(
 
 
 # Add the new rows to your existing dataframe
-df_mort28_agg <- bind_rows(df_mort28, row_prevent, row_cao, row_pancovid, row_stopcovid, row_ruxcoviddevent, row_dastan, row_singh)
+df_mort28_agg <- bind_rows(df_mort28, row_prevent, row_cao, row_stopcovid, row_ruxcoviddevent, row_dastan, row_singh)
 
 
 # Forestplot
@@ -768,14 +761,34 @@ Discussion points:
 
 # (i.vii) Primary outcome: Multiple imputation
 ```{r warning=FALSE, fig.width=14, fig.height=4}
-df_mort28_mi <- readRDS("trt_effects_mi.RData")
-df_ruxcovid_mi <- readRDS("trt_effects_ruxcovid.RData")
-df_ruxcovid_mi <- df_ruxcovid_mi %>%
-  filter(variable == "death at day 28_mi") %>% 
-  mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib",
-                          TRUE ~ JAKi))
-df_mort28_mi <- rbind(df_mort28_mi, df_ruxcovid_mi)
-  
+# ## Mortality at day 28: multiple imputation
+# outcomes <- "death at day 28_mi"
+# outcomes.firth <- "death at day 28_mi_firth"
+# df_mort28_mi <- data.frame()
+# for (df in list_df) {
+#   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+#   df_mort28_mi <- rbind(df_mort28_mi, selected_rows)
+# }
+# # Save
+# saveRDS(df_mort28_mi, file = "trt_effects_mi.RData") # collected on 7.5.24: Bari, ACTT2, RECOVERY, COV-BARRIER, TACTIC-R
+
+
+### UPDATE on 14.5.24
+# df_mort28_mi <- readRDS("trt_effects_mi.RData")
+# df_pancovid_mi <- readRDS("trt_effects_pancovid.RData")
+# df_pancovid_mi <- df_pancovid_mi %>%
+#   filter(variable == "death at day 28_mi")
+# df_ruxcovid_mi <- readRDS("trt_effects_ruxcovid.RData")
+# df_ruxcovid_mi <- df_ruxcovid_mi %>%
+#   filter(variable == "death at day 28_mi") %>% 
+#   mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib",
+#                           TRUE ~ JAKi))
+# df_mort28_mi <- rbind(df_mort28_mi, df_ruxcovid_mi, df_pancovid_mi)
+# Save
+# saveRDS(df_mort28_mi, file = "trt_effects_mi_14052024.RData") # updated on 14.5.24: incl. PANCOVID and RUXCOVID
+
+# LOAD
+df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
 # str(df_mort28_mi)
 # no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
 df_mort28_mi_add <- df_mort28_dimp %>% 
@@ -1527,13 +1540,14 @@ df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
 df_int_ruxcovid <- readRDS("int_effects_ruxcovid_07052024.RData")
+df_int_pancovid <- readRDS("int_effects_pancovid.RData")
 
 ```
 
 # Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint - and vacc.ae)
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
-list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier, df_int_recovery, df_int_tactic_r, df_int_ruxcovid) # add all trials
+list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier, df_int_recovery, df_int_tactic_r, df_int_ruxcovid, df_int_pancovid) # add all trials
 
 ## Respiratory support on Mortality at day 28
 outcomes <- "respiratory support"
@@ -1658,13 +1672,14 @@ df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
 df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
 df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
 df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_07052024.RData")
+df_subgroup_pancovid <- readRDS("subgroup_effects_pancovid.RData")
 
 ```
 
 # Reshape dataframes for subgroup estimates by trial
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
-list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian, df_subgroup_recovery, df_subgroup_tactic_r, df_subgroup_ruxcovid) # add all trials
+list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian, df_subgroup_recovery, df_subgroup_tactic_r, df_subgroup_ruxcovid, df_subgroup_pancovid) # add all trials
 
 ## Respiratory support
 outcomes1 <- "No oxygen"
@@ -2083,7 +2098,7 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID"), #### ADD NEW TRIALS!
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
                       # exclude = trial %in% c("Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(rs.mort28)
@@ -2301,6 +2316,28 @@ second_part <- df_sg_rs_mort28[31:nrow(df_sg_rs_mort28), ]
 # Insert the empty row before/after
 df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
 
+# Insert PANCOVID title
+empty_row <- data.frame(
+  variable = "PANCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_rs_mort28[1:34, ]
+second_part <- df_sg_rs_mort28[35:nrow(df_sg_rs_mort28), ]
+# Insert the empty row before/after
+df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
+
 
 # Create a forest plot
 # pdf("sg_vb_mort28.pdf", width=10, height=8)
@@ -2409,7 +2446,7 @@ vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R", "RUXCOVID"), #### ADD NEW TRIALS!
+                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(vb.mort28)
@@ -2627,6 +2664,28 @@ empty_row <- data.frame(
 # Split the dataframe into two parts before and after the third row
 first_part <- df_sg_vb_mort28[1:20, ]
 second_part <- df_sg_vb_mort28[21:nrow(df_sg_vb_mort28), ]
+# Insert the empty row before/after
+df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert PANCOVID title
+empty_row <- data.frame(
+  variable = "PANCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vb_mort28[1:23, ]
+second_part <- df_sg_vb_mort28[24:nrow(df_sg_vb_mort28), ]
 # Insert the empty row before/after
 df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
 
@@ -2919,6 +2978,28 @@ empty_row <- data.frame(
 # Split the dataframe into two parts before and after the third row
 first_part <- df_sg_age_mort28[1:24, ]
 second_part <- df_sg_age_mort28[25:nrow(df_sg_age_mort28), ]
+# Insert the empty row before/after
+df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert PANCOVID title
+empty_row <- data.frame(
+  variable = "PANCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_age_mort28[1:27, ]
+second_part <- df_sg_age_mort28[28:nrow(df_sg_age_mort28), ]
 # Insert the empty row before/after
 df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
 
@@ -3276,6 +3357,27 @@ second_part <- df_sg_comorb_mort28[39:nrow(df_sg_comorb_mort28), ]
 # Insert the empty row before/after
 df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
 
+# Insert PANCOVID title
+empty_row <- data.frame(
+  variable = "PANCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comorb_mort28[1:42, ]
+second_part <- df_sg_comorb_mort28[43:nrow(df_sg_comorb_mort28), ]
+# Insert the empty row before/after
+df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
 
 # Create a forest plot
 # pdf("sg_vb_mort28.pdf", width=10, height=8)
@@ -3383,7 +3485,7 @@ comed.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Comedication",
-                      subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID"), #### ADD NEW TRIALS!
+                      subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
                       # exclude = trial %in% c("Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(comed.mort28)
@@ -3601,6 +3703,28 @@ second_part <- df_sg_comed_mort28[27:nrow(df_sg_comed_mort28), ]
 # Insert the empty row before/after
 df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
 
+# Insert PANCOVID title
+empty_row <- data.frame(
+  variable = "PANCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_comed_mort28[1:29, ]
+second_part <- df_sg_comed_mort28[30:nrow(df_sg_comed_mort28), ]
+# Insert the empty row before/after
+df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
+
 
 # Create a forest plot
 # pdf("sg_vb_mort28.pdf", width=10, height=8)
@@ -3808,6 +3932,28 @@ empty_row <- data.frame(
 # Split the dataframe into two parts before and after the third row
 first_part <- df_sg_vacc_ae28[1:9, ]
 second_part <- df_sg_vacc_ae28[10:nrow(df_sg_vacc_ae28), ]
+# Insert the empty row before/after
+df_sg_vacc_ae28 <- rbind(first_part, empty_row, second_part)
+
+# Insert PANCOVID title
+empty_row <- data.frame(
+  variable = "PANCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_vacc_ae28[1:12, ]
+second_part <- df_sg_vacc_ae28[13:nrow(df_sg_vacc_ae28), ]
 # Insert the empty row before/after
 df_sg_vacc_ae28 <- rbind(first_part, empty_row, second_part)
 
@@ -4060,6 +4206,28 @@ empty_row <- data.frame(
 # Split the dataframe into two parts before and after the third row
 first_part <- df_sg_symp_mort28[1:31, ]
 second_part <- df_sg_symp_mort28[32:nrow(df_sg_symp_mort28), ]
+# Insert the empty row before/after
+df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert PANCOVID title
+empty_row <- data.frame(
+  variable = "PANCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_symp_mort28[1:35, ]
+second_part <- df_sg_symp_mort28[36:nrow(df_sg_symp_mort28), ]
 # Insert the empty row before/after
 df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
 
@@ -4365,6 +4533,28 @@ empty_row <- data.frame(
 # Split the dataframe into two parts before and after the third row
 first_part <- df_sg_crp_mort28[1:24, ]
 second_part <- df_sg_crp_mort28[25:nrow(df_sg_crp_mort28), ]
+# Insert the empty row before/after
+df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
+
+# Insert PANCOVID title
+empty_row <- data.frame(
+  variable = "PANCOVID",
+  hazard_odds_ratio = -1,
+  ci_lower = -1,
+  ci_upper = -1,
+  standard_error = NA,
+  p_value = NA,
+  n_intervention = NA,
+  n_intervention_tot = NA,
+  n_control = NA,
+  n_control_tot = NA,
+  trial = NA,
+  JAKi = NA,
+  inverse_variance = NA
+)
+# Split the dataframe into two parts before and after the third row
+first_part <- df_sg_crp_mort28[1:27, ]
+second_part <- df_sg_crp_mort28[28:nrow(df_sg_crp_mort28), ]
 # Insert the empty row before/after
 df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
 
@@ -4775,6 +4965,7 @@ df_aesi_ghazaeian <- readRDS("df_aesi_ghazaeian.RData")
 df_aesi_recovery <- readRDS("df_aesi_recovery.RData")
 df_aesi_tactic_r <- readRDS("df_aesi_tactic-r.RData")
 df_aesi_ruxcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RUXCOVID/RUXCOVID_desc.xlsx", sheet = "RUXCOVID_AESI")
+df_aesi_pancovid <- readRDS("df_aesi_pancovid.RData")
 
 df_aesi_actt2 <- df_aesi_actt2 %>%
   mutate(trial = "ACTT2") %>% 
@@ -4803,8 +4994,11 @@ df_aesi_tactic_r <- df_aesi_tactic_r %>%
 df_aesi_ruxcovid <- df_aesi_ruxcovid %>%
   mutate(trial = "RUXCOVID") %>% 
   select(trial, trt, aesi)
+df_aesi_pancovid <- df_aesi_pancovid %>%
+  mutate(trial = "RUXCOVID") %>% 
+  select(trial, trt, aesi)
 
-df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df_aesi_covinib, df_aesi_tofacov, df_aesi_ghazaeian, df_aesi_recovery, df_aesi_tactic_r, df_aesi_ruxcovid) # ADD NEW TRIALS
+df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df_aesi_covinib, df_aesi_tofacov, df_aesi_ghazaeian, df_aesi_recovery, df_aesi_tactic_r, df_aesi_ruxcovid, df_aesi_pancovid) # ADD NEW TRIALS
 
 # round(prop.table(table(df_aesi_tot$aesi, df_aesi_tot$trt),2)*100,0)
 # addmargins(table(df_aesi_tot$aesi, df_aesi_tot$trt))
@@ -4837,6 +5031,7 @@ df_ae_ghazaeian <- readRDS("df_ae_ghazaeian.RData")
 df_ae_recovery <- readRDS("df_ae_recovery.RData")
 df_ae_tactic_r <- readRDS("df_ae_tactic-r.RData")
 # df_ae_ruxcovid <- readRDS("df_aesi_ruxcovid.RData") # export from Virtual Desktop!
+df_ae_pancovid <- readRDS("df_ae_pancovid.RData")
 
 df_ae_actt2 <- df_ae_actt2 %>%
   mutate(trial = "ACTT2") %>% 
@@ -4863,8 +5058,12 @@ df_ae_recovery <- df_ae_recovery %>%
 df_ae_tactic_r <- df_ae_tactic_r %>%
   mutate(trial = "TACTIC-R") %>% 
   select(trial, trt, ae)
+df_ae_pancovid <- df_ae_pancovid %>%
+  mutate(trial = "PANCOVID") %>%
+  rename(ae = AETerm) %>% 
+  select(trial, trt, ae)
 
-df_ae_tot <- rbind(df_ae_actt2, df_ae_covbarrier, df_ae_barisolidact, df_ae_covinib, df_ae_tofacov, df_ae_ghazaeian, df_ae_recovery, df_ae_tactic_r)
+df_ae_tot <- rbind(df_ae_actt2, df_ae_covbarrier, df_ae_barisolidact, df_ae_covinib, df_ae_tofacov, df_ae_ghazaeian, df_ae_recovery, df_ae_tactic_r, df_ae_pancovid)
 
 # round(prop.table(table(df_ae_tot$ae, df_ae_tot$trt),2)*100,0)
 # addmargins(table(df_ae_tot$ae, df_ae_tot$trt))
