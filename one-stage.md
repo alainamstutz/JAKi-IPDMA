@@ -4326,6 +4326,64 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 
 ![](one-stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 
+# Plot treatment effect estimates across endpoints, without sensitivity endpoints
+
+```r
+# Filter
+main_result_df <- result_df %>% 
+  filter(variable %in% c("Any AE grade 3,4 within 28 days",
+                         "viral clearance until day 15",
+                         "viral clearance until day 10",
+                         "viral clearance until day 5",
+                         "discharge within 28 days, death=comp.event",
+                         "clinical status at day 28",
+                         "new MV or death within 28d",
+                         "death within fup",
+                         "death at day 60",
+                         "death at day 28"))
+# Rename
+main_result_df <- main_result_df %>% 
+  mutate(variable = case_when(variable == "Any AE grade 3,4 within 28 days" ~ "Any AE grade 3,4 or SAE within 28 days",
+                              variable == "viral clearance until day 15" ~ "Viral clearance at day 15",
+                              variable == "viral clearance until day 10" ~ "Viral clearance at day 10",
+                              variable == "viral clearance until day 5" ~ "Viral clearance at day 5",
+                              variable == "discharge within 28 days, death=comp.event" ~ "Days until discharge within 28 days",
+                              variable == "clinical status at day 28" ~ "Clinical status at day 28",
+                              variable == "new MV or death within 28d" ~ "New mechanical ventilation or death at day 28",
+                              variable == "death within fup" ~ "Days until death within 60 days",
+                              variable == "death at day 60" ~ "All-cause mortality at day 60",
+                              variable == "death at day 28" ~ "All-cause mortality at day 28",))
+# Order
+main_result_df$variable <- factor(main_result_df$variable, 
+                             levels = c("Any AE grade 3,4 or SAE within 28 days",
+                                        "Viral clearance at day 15",
+                                        "Viral clearance at day 10",
+                                        "Viral clearance at day 5",
+                                        "Days until discharge within 28 days",
+                                        "Clinical status at day 28",
+                                        "New mechanical ventilation or death at day 28",
+                                        "Days until death within 60 days",
+                                        "All-cause mortality at day 60",
+                                        "All-cause mortality at day 28"))
+# Plotting
+main_result_df$truncated <- ifelse(main_result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
+ggplot(main_result_df, aes(x = variable, y = hazard_odds_ratio)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
+  geom_segment(data = subset(main_result_df, truncated),
+               aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
+               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
+  labs(title = "All endpoints, one-stage approach",
+       x = "Endpoints",
+       y = "aOR / aHR") +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0.5, 1.3), breaks = seq(0.5, 1.3, 0.1)) +
+  coord_flip()
+```
+
+![](one-stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+
 
 # TREATMENT-COVARIATE INTERACTIONS
 
@@ -5921,12 +5979,12 @@ summary(comed.mort28)
 ## trial_fACTT2               -7.420128   0.696364 -10.656  < 2e-16 ***
 ## trial_fBari-Solidact       -5.325004   1.827614  -2.914  0.00357 ** 
 ## trial_fCOV-BARRIER         -6.755101   0.442502 -15.266  < 2e-16 ***
-## trial_fCOVINIB             -5.427438   2.524793  -2.150  0.03158 *  
+## trial_fCOVINIB             -5.427438   2.524794  -2.150  0.03158 *  
 ## trial_fGhazaeian           -3.147475   2.485558  -1.266  0.20540    
-## trial_fPANCOVID            -6.095032   1.998897  -3.049  0.00229 ** 
+## trial_fPANCOVID            -6.095033   1.998897  -3.049  0.00229 ** 
 ## trial_fRECOVERY            -6.279611   0.234729 -26.753  < 2e-16 ***
 ## trial_fTACTIC-R            -6.362883   1.324407  -4.804 1.55e-06 ***
-## trial_fTOFACOV             -5.877041   2.737764  -2.147  0.03182 *  
+## trial_fTOFACOV             -5.877040   2.737764  -2.147  0.03182 *  
 ## age_cent_trial_1            0.088382   0.018439   4.793 1.64e-06 ***
 ## age_cent_trial_2            0.054355   0.010549   5.153 2.57e-07 ***
 ## age_cent_trial_3            0.027504   0.025088   1.096  0.27295    
@@ -6626,7 +6684,7 @@ summary(symp.mort28)
 ## trial_fPANCOVID                 -6.093350   2.043496  -2.982  0.00287 ** 
 ## trial_fRECOVERY                 -6.375341   0.218337 -29.200  < 2e-16 ***
 ## trial_fTACTIC-R                 -6.416856   1.334524  -4.808 1.52e-06 ***
-## trial_fTOFACOV                  -5.796409   2.823873  -2.053  0.04011 *  
+## trial_fTOFACOV                  -5.796410   2.823873  -2.053  0.04011 *  
 ## age_cent_trial_1                 0.087931   0.018622   4.722 2.34e-06 ***
 ## age_cent_trial_2                 0.054500   0.010550   5.166 2.39e-07 ***
 ## age_cent_trial_3                 0.026693   0.025142   1.062  0.28839    
@@ -7958,7 +8016,7 @@ summary(results$model) # Coefficient of leafk is GATE in k-th leaf.
 plot(het, sequence = T) # plot tree with heterogeneous effects
 ```
 
-![](one-stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-2.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-3.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-4.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-5.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-6.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-7.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-38-8.png)<!-- -->
+![](one-stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-39-2.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-39-3.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-39-4.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-39-5.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-39-6.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-39-7.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-39-8.png)<!-- -->
 Notes: Nodes with predictions smaller (in our case: more effect on mortality) than the ATE (i.e., the root prediction) are colored in blue shades, and nodes with predictions larger than the ATE are colored in red shades. Moreover, predictions that are more distant in absolute value from the ATE get darker shades.
 
 Aggregation Trees: Nonparametric data-driven approach to discovering heterogeneous subgroups in a selection-on-observables framework, i.e. to define groups whereby each group has similar treatment effects, but across groups distinct differences in treatment effect. The approach constructs a sequence of groupings, one for each level of granularity. Groupings are nested and feature an optimality property. For each grouping, we obtain point estimation and standard errors for the group average treatment effects (GATEs). Additionally, we assess whether systematic heterogeneity is found by testing the hypotheses that the differences in the GATEs across all pairs of groups are zero. Finally, we investigate the driving mechanisms of effect heterogeneity by computing the average characteristics of units in each group. Aggregation trees are a three-step procedure. First, the conditional average treatment effects (CATEs) are estimated using any estimator. Second, a tree is grown to approximate the CATEs. Third, the tree is pruned to derive a nested sequence of optimal groupings, one for each granularity level. For each level of granularity, we can obtain point estimation and inference about the GATEs. Hypothesis testing: inference_aggtree uses the standard errors obtained by fitting the linear models above to test the hypotheses that the GATEs are different across all pairs of leaves. Here, we adjust p-values to account for multiple hypotheses testing using Holm’s procedure. inference_aggtree takes as input an aggTrees object constructed by build_aggtree. Then, for the desired granularity level, chosen via the n_groups argument, it provides point estimation and standard errors for the GATEs. Additionally, it performs some hypothesis testing to assess whether we find systematic heterogeneity and computes the average characteristics of the units in each group to investigate the driving mechanisms.

@@ -234,8 +234,9 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_mort28,
-                      n.e = n_intervention + n_control,
-                      # n.c = n_control,
+                      # n.e = n_intervention + n_control,
+                      n.e = n_intervention,
+                      n.c = n_control,
                       sm = "OR",
                       fixed = F,
                       random = T,
@@ -245,7 +246,7 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - mortality 28 days",
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      # exclude = trial %in% c("RUXCOVID") # include in forestplot but exclude from analysis
                       )
 summary(mort28)
 ```
@@ -291,13 +292,18 @@ summary(mort28)
 ```r
 forest.meta(mort28,
             # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            # leftcols = c("studlab", "seTE", "n.e"),
+            # leftlabs = c("Trial", "Standard Error", "Sample Size"),
+            leftcols = c("studlab", "n.e", "n.c"),
+            leftlabs = c("Trial", "Total Intervention", "Total Control"),
             text.random = "Average treatment effect (random effects model)",
             title = "Average treatment effect - mortality 28 days", # get the title into the figure
             xlim = c(0.15,5),
             sortvar = +TE,
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi"
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -988,7 +994,9 @@ mort28.agg <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_mort28_agg,
-                      n.e = n_intervention + n_control,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      # n.e = n_intervention + n_control,
                       sm = "OR",
                       fixed = F,
                       random = T,
@@ -1050,18 +1058,18 @@ summary(mort28.agg)
 
 ```r
 forest.meta(mort28.agg,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
             leftcols = c("studlab", 
-                         # "TE", 
-                         # "seTE", 
-                         "n.e"),
-            leftlabs = c("Trial", 
-                         # "log(OR)", 
-                         # "Standard Error", 
-                         "Sample Size"),
+                         "n.e", "n.c"),
+            leftlabs = c("Trial",
+                         "Total Intervention", "Total Control"),
             sortvar = +TE,
             text.random = "Average treatment effect (RE model)",
             title = "Average treatment effect - mortality 28 days", # get the title into the figure
             xlim = c(0.10,5),
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi"
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -1118,20 +1126,21 @@ funnel(mort28.agg, common = TRUE,
 mort28.agg.jaki <- update.meta(mort28.agg, 
                                subgroup = JAKi)
 forest.meta(mort28.agg.jaki,
+            hetstat = F,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
             leftcols = c("studlab", 
-                         # "TE", 
-                         # "seTE", 
-                         "n.e"),
-            leftlabs = c("Trial", 
-                         # "log(OR)", 
-                         # "Standard Error", 
-                         "Sample Size"),
+                         "n.e", "n.c"),
+            leftlabs = c("Trial",
+                         "Total Intervention", "Total Control"),
             sortvar = +TE,
             test.subgroup.random = TRUE,
             prediction = F,
             text.random = "Average treatment effect (RE model)",
             title = "Average treatment effect - mortality 28 days", # get the title into the figure
             xlim = c(0.03,30),
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi"
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
@@ -1147,53 +1156,49 @@ forest.meta(mort28.agg.jaki,
 
 ```r
 # meta-regression by recruitment period
-mort28.agg.rec <- update.meta(mort28.agg, 
-                               subgroup = recruitment_period_cat)
-forest.meta(mort28.agg.rec,
-            leftcols = c("studlab", 
-                         # "TE", 
-                         # "seTE", 
-                         "n.e"),
-            leftlabs = c("Trial", 
-                         # "log(OR)", 
-                         # "Standard Error", 
-                         "Sample Size"),
-            sortvar = +TE,
-            test.subgroup.random = TRUE,
-            text.random = "Average treatment effect (RE model)",
-            title = "Average treatment effect - mortality 28 days",
-            xlim = c(0.03,30),
-            # xlab = "Average treatment effect (95% CI)"
-            )
+# mort28.agg.rec <- update.meta(mort28.agg, 
+#                                subgroup = recruitment_period_cat)
+# forest.meta(mort28.agg.rec,
+#             leftcols = c("studlab", 
+#                          # "TE", 
+#                          # "seTE", 
+#                          "n.e"),
+#             leftlabs = c("Trial", 
+#                          # "log(OR)", 
+#                          # "Standard Error", 
+#                          "Sample Size"),
+#             sortvar = +TE,
+#             test.subgroup.random = TRUE,
+#             text.random = "Average treatment effect (RE model)",
+#             title = "Average treatment effect - mortality 28 days",
+#             xlim = c(0.03,30),
+#             # xlab = "Average treatment effect (95% CI)"
+#             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
-
-# (i.iv) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs
+# (i.iv) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs // except 1: all low-risk
 
 ```r
-# meta-regression by RoB
-mort28.agg.rob <- update.meta(mort28.agg,
-                               subgroup = rob_mort28)
-forest.meta(mort28.agg.rob,
-            leftcols = c("studlab",
-                         # "TE",
-                         # "seTE",
-                         "n.e"),
-            leftlabs = c("Trial",
-                         # "log(OR)",
-                         # "Standard Error",
-                         "Sample Size"),
-            sortvar = +TE,
-            test.subgroup.random = TRUE,
-            text.random = "Average treatment effect (RE model)",
-            title = "Average treatment effect - mortality 28 days",
-            xlim = c(0.03,30),
-            # xlab = "Average treatment effect (95% CI)"
-            )
+# # meta-regression by RoB
+# mort28.agg.rob <- update.meta(mort28.agg,
+#                                subgroup = rob_mort28)
+# forest.meta(mort28.agg.rob,
+#             leftcols = c("studlab",
+#                          # "TE",
+#                          # "seTE",
+#                          "n.e"),
+#             leftlabs = c("Trial",
+#                          # "log(OR)",
+#                          # "Standard Error",
+#                          "Sample Size"),
+#             sortvar = +TE,
+#             test.subgroup.random = TRUE,
+#             text.random = "Average treatment effect (RE model)",
+#             title = "Average treatment effect - mortality 28 days",
+#             xlim = c(0.03,30),
+#             # xlab = "Average treatment effect (95% CI)"
+#             )
 ```
-
-![](two_stage_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 # (i.v) Primary outcome: Covariate-adjusted Average marginal effects (RDs)
 
@@ -2406,8 +2411,8 @@ ae28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ae28,
-                      n.e = n_intervention + n_control,
-                      # n.c = n_control,
+                      n.e = n_intervention,
+                      n.c = n_control,
                       sm = "OR",
                       fixed = F,
                       random = T,
@@ -2464,18 +2469,55 @@ summary(ae28)
 forest.meta(ae28,
             # hetstat = T,
             # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+            leftcols = c("studlab", "n.e", "n.c"),
+            leftlabs = c("Trial", "Total Intervention", "Total Control"),
             text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - dverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY", # get the title into the figure
-            xlim = c(0.15,5),
+            title = "Average treatment effect - adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY", # get the title into the figure
+            xlim = c(0.2,5),
             sortvar = +TE,
             # xlab = "Average treatment effect (95% CI)"
             )
 ```
 
 ![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
-Discussion points
+
+# (x) Meta-regression by RoB: Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
+
+```r
+df_ae28 <- df_ae28 %>% 
+  mutate("Risk of Bias" = case_when(trial == "ACTT-2" ~ "low risk",
+                                            trial == "COV-BARRIER" ~ "low risk",
+                                            trial == "RECOVERY" ~ "some concerns",
+                                            trial == "TOFACOV" ~ "some concerns",
+                                            trial == "COVINIB" ~ "some concerns",
+                                            trial == "Ghazaeian" ~ "low risk",
+                                            trial == "Bari-SolidAct" ~ "low risk",
+                                trial == "TACTIC-R" ~ "some concerns",
+                                trial == "RUXCOVID" ~ "low risk",
+                                trial == "PANCOVID" ~ "some concerns",
+                                        ))
+
+# meta-regression by RoB
+ae28.rob <- update.meta(ae28,
+                        subgroup = df_ae28$`Risk of Bias`)
+forest.meta(ae28.rob,
+            hetstat = F,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", 
+                         "n.e", "n.c"),
+            leftlabs = c("Trial",
+                         "Total Intervention", "Total Control"),
+            sortvar = +TE,
+            test.subgroup.random = T,
+            text.random = "Average treatment effect (RE model)",
+            xlim = c(0.2,5),
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi"
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
 
@@ -2553,7 +2595,7 @@ forest.meta(ae28sev,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
 Discussion points
 
 # Collect all treatment effect estimates across endpoints
@@ -2753,7 +2795,7 @@ result_df$variable <- factor(result_df$variable,
                                         "new MV or death within 28d",
                                         "death within fup",
                                         "death at day 60",
-                                        "death at day 28_agg",
+                                        "death at day 28_agg", # CAVE: counts are without non-IPD!
                                         "death at day 28_mi",
                                         "death at day 28_dimp",
                                         "death at day 28"))
@@ -2783,7 +2825,146 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 ## generated.
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+
+# Plot treatment effect estimates across endpoints, without sensitivity endpoints
+
+```r
+# Filter
+main_result_df <- result_df %>% 
+  filter(variable %in% c("Any AE grade 3,4 within 28 days",
+                         "viral clearance until day 15",
+                         "viral clearance until day 10",
+                         "viral clearance until day 5",
+                         "discharge within 28 days, death=comp.event",
+                         "clinical status at day 28",
+                         "new MV or death within 28d",
+                         "death within fup",
+                         "death at day 60",
+                         "death at day 28"))
+# Rename
+main_result_df <- main_result_df %>% 
+  mutate(variable = case_when(variable == "Any AE grade 3,4 within 28 days" ~ "Any AE grade 3,4 or SAE within 28 days",
+                              variable == "viral clearance until day 15" ~ "Viral clearance at day 15",
+                              variable == "viral clearance until day 10" ~ "Viral clearance at day 10",
+                              variable == "viral clearance until day 5" ~ "Viral clearance at day 5",
+                              variable == "discharge within 28 days, death=comp.event" ~ "Days until discharge within 28 days",
+                              variable == "clinical status at day 28" ~ "Clinical status at day 28",
+                              variable == "new MV or death within 28d" ~ "New mechanical ventilation or death at day 28",
+                              variable == "death within fup" ~ "Days until death within 60 days",
+                              variable == "death at day 60" ~ "All-cause mortality at day 60",
+                              variable == "death at day 28" ~ "All-cause mortality at day 28",))
+# Order
+main_result_df$variable <- factor(main_result_df$variable, 
+                             levels = c("Any AE grade 3,4 or SAE within 28 days",
+                                        "Viral clearance at day 15",
+                                        "Viral clearance at day 10",
+                                        "Viral clearance at day 5",
+                                        "Days until discharge within 28 days",
+                                        "Clinical status at day 28",
+                                        "New mechanical ventilation or death at day 28",
+                                        "Days until death within 60 days",
+                                        "All-cause mortality at day 60",
+                                        "All-cause mortality at day 28"))
+# Plotting
+main_result_df$truncated <- ifelse(main_result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
+ggplot(main_result_df, aes(x = variable, y = hazard_odds_ratio)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
+  geom_segment(data = subset(main_result_df, truncated),
+               aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
+               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
+  labs(title = "All endpoints, two-stage approach",
+       x = "Endpoints",
+       y = "aOR / aHR") +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0.5, 1.3), breaks = seq(0.5, 1.3, 0.1)) +
+  coord_flip()
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+
+# Plot sensitivity treatment effect estimates across endpoints
+
+```r
+# Filter
+sens_result_df <- result_df %>% 
+  filter(variable %in% c("AEs grade 3,4 within 28 days",
+                         "sustained discharge within 28 days",
+                         "new MV within 28d",
+                         "death at day 28_mi"))
+# Rename
+sens_result_df <- sens_result_df %>% 
+  mutate(variable = case_when(variable == "AEs grade 3,4 within 28 days" ~ "AEs grade 3,4 or SAE within 28 days*",
+                              variable == "sustained discharge within 28 days" ~ "Days until sustained discharge within 28 days",
+                              variable == "new MV within 28d" ~ "New mechanical ventilation, among survivors, at day 28",
+                              variable == "death at day 28_mi" ~ "All-cause mortality at day 28, incl. multiple imputation"))
+# Order
+sens_result_df$variable <- factor(sens_result_df$variable, 
+                             levels = c("AEs grade 3,4 or SAE within 28 days*",
+                                        "Days until sustained discharge within 28 days",
+                                        "New mechanical ventilation, among survivors, at day 28",
+                                        "All-cause mortality at day 28, incl. multiple imputation"))
+# Plotting
+sens_result_df$truncated <- ifelse(sens_result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
+ggplot(sens_result_df, aes(x = variable, y = hazard_odds_ratio)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
+  geom_segment(data = subset(sens_result_df, truncated),
+               aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
+               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
+  labs(title = "Sensitivity analysis: Alternative endpoint definitions",
+       x = "Endpoints",
+       y = "aOR / aHR / aIRR") +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0.5, 1.3), breaks = seq(0.5, 1.3, 0.1)) +
+  coord_flip()
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+
+# Plot sensitivity treatment effect estimates across endpoints, to contrast against above
+
+```r
+# Filter
+main_red_result_df <- result_df %>% 
+  filter(variable %in% c("Any AE grade 3,4 within 28 days",
+                         "discharge within 28 days, death=comp.event",
+                         "new MV or death within 28d",
+                         "death at day 28"))
+# Rename
+main_red_result_df <- main_red_result_df %>% 
+  mutate(variable = case_when(variable == "Any AE grade 3,4 within 28 days" ~ "Any AE grade 3,4 or SAE within 28 days",
+                              variable == "discharge within 28 days, death=comp.event" ~ "Days until discharge within 28 days",
+                              variable == "new MV or death within 28d" ~ "New mechanical ventilation or death at day 28",
+                              variable == "death at day 28" ~ "All-cause mortality at day 28",))
+# Order
+main_red_result_df$variable <- factor(main_red_result_df$variable, 
+                             levels = c("Any AE grade 3,4 or SAE within 28 days",
+                                        "Days until discharge within 28 days",
+                                        "New mechanical ventilation or death at day 28",
+                                        "All-cause mortality at day 28"))
+# Plotting
+main_red_result_df$truncated <- ifelse(main_red_result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
+ggplot(main_red_result_df, aes(x = variable, y = hazard_odds_ratio)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
+  geom_segment(data = subset(main_red_result_df, truncated),
+               aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
+               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
+  labs(title = "To contrast alternative endpoint definitions",
+       x = "Endpoints",
+       y = "aOR / aHR") +
+  theme_minimal() +
+  scale_y_continuous(limits = c(0.5, 1.3), breaks = seq(0.5, 1.3, 0.1)) +
+  coord_flip()
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
+
 
 # TREATMENT-COVARIATE INTERACTIONS
 # Load treatment-covariate interaction estimates from all trials (on primary endpoint - and vacc.ae)
@@ -3411,7 +3592,7 @@ forest.meta(rs.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
 
 # Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Descriptive by trial
 
@@ -3652,7 +3833,7 @@ forest(df_sg_rs_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-36-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3713,7 +3894,7 @@ forest.meta(rs.no.ox.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-41-1.png)<!-- -->
 
 ```r
 # low-flow oxygen
@@ -3769,7 +3950,7 @@ forest.meta(rs.low.ox.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-41-2.png)<!-- -->
 
 ```r
 # NIV
@@ -3823,7 +4004,7 @@ forest.meta(rs.niv.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-41-3.png)<!-- -->
 
 ```r
 # ECMO
@@ -3874,7 +4055,7 @@ forest.meta(rs.ecmo.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-37-4.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-41-4.png)<!-- -->
 
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -3948,7 +4129,7 @@ forest.meta(vb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-42-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -4193,7 +4374,7 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-43-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -4255,7 +4436,7 @@ forest.meta(no.vent.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-44-1.png)<!-- -->
 
 ```r
 # Ventilation
@@ -4309,7 +4490,7 @@ forest.meta(vent.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-40-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-44-2.png)<!-- -->
 
 # Interaction: Age on primary endpoint
 
@@ -4386,7 +4567,7 @@ forest.meta(age.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-41-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-45-1.png)<!-- -->
 
 # Subgroups: Age on primary endpoint: Descriptive
 
@@ -4610,6 +4791,7 @@ second_part <- df_sg_age_mort28[28:nrow(df_sg_age_mort28), ]
 # Insert the empty row before/after
 df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
 
+df_sg_age_mort28$variable <- gsub("_firth$", "", df_sg_age_mort28$variable)
 
 # Create a forest plot
 # pdf("sg_age_mort28.pdf", width=10, height=8)
@@ -4627,7 +4809,7 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-42-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-46-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -4690,7 +4872,7 @@ forest.meta(age.above70.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-43-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-47-1.png)<!-- -->
 
 ```r
 # Age below 70 years
@@ -4747,7 +4929,7 @@ forest.meta(age.below70.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-43-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-47-2.png)<!-- -->
 
 # Interaction: Comorbidity on primary endpoint
 
@@ -4825,7 +5007,7 @@ forest.meta(comorb.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-44-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-48-1.png)<!-- -->
 
 ```r
 ### SENS
@@ -4899,7 +5081,7 @@ forest.meta(comorb.count.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-44-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-48-2.png)<!-- -->
 
 ```r
 # str(df_comorb_any_mort28)
@@ -4972,7 +5154,7 @@ forest.meta(comorb.any.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-44-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-48-3.png)<!-- -->
 
 # Subgroups: Comorbidity on primary endpoint: Descriptive
 
@@ -5196,6 +5378,8 @@ second_part <- df_sg_comorb_mort28[43:nrow(df_sg_comorb_mort28), ]
 # Insert the empty row before/after
 df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
 
+df_sg_comorb_mort28$variable <- gsub("_firth$", "", df_sg_comorb_mort28$variable)
+
 # Create a forest plot
 # pdf("sg_vb_mort28.pdf", width=10, height=8)
 forest(df_sg_comorb_mort28$hazard_odds_ratio,
@@ -5212,7 +5396,7 @@ forest(df_sg_comorb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-45-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-49-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -5273,7 +5457,7 @@ forest.meta(no.comorb.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-46-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-50-1.png)<!-- -->
 
 ```r
 # One comorbidity
@@ -5330,7 +5514,7 @@ forest.meta(one.comorb.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-46-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-50-2.png)<!-- -->
 
 ```r
 # Multiple comorbidity
@@ -5389,7 +5573,7 @@ forest.meta(mult.comorb.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-46-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-50-3.png)<!-- -->
 
 ```r
 # Immunosuppressed
@@ -5443,7 +5627,7 @@ forest.meta(immun.comorb.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-46-4.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-50-4.png)<!-- -->
 
 # Interaction: Comedication on primary endpoint
 
@@ -5518,7 +5702,7 @@ forest.meta(comed.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-47-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-51-1.png)<!-- -->
 
 # Subgroups: Comedication on primary endpoint: Descriptive
 
@@ -5759,7 +5943,7 @@ forest(df_sg_comed_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-48-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-52-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -5820,7 +6004,7 @@ forest.meta(no.comed.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-49-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-53-1.png)<!-- -->
 
 ```r
 # Dexa, but no Toci
@@ -5877,7 +6061,7 @@ forest.meta(dexa.comed.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-49-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-53-2.png)<!-- -->
 
 ```r
 # Dexa and Toci
@@ -5927,7 +6111,7 @@ forest.meta(dexa.toci.comed.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-49-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-53-3.png)<!-- -->
 
 ```r
 # No dexa, but toci
@@ -5958,7 +6142,7 @@ forest.meta(toci.comed.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-49-4.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-53-4.png)<!-- -->
 
 # Interaction: Vaccination on AEs
 
@@ -6028,9 +6212,9 @@ forest.meta(vacc.ae28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-50-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-54-1.png)<!-- -->
 
-# Subgroups: Vaccination on AEs
+# Subgroups: Vaccination on AEs: Descriptive
 
 ```r
 # Calculate the inverse variance
@@ -6158,11 +6342,115 @@ forest(df_sg_vacc_ae28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-51-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-55-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
+
+# Subgroups: Vaccination on AEs: Pooled across trials
+
+```r
+# Vaccinated
+vacc.yes.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_vaccyes_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(vacc.yes.ae28)
+```
+
+```
+##                   OR             95%-CI %W(common)
+## Bari-SolidAct 1.0153 [0.3866;   2.6670]        8.7
+## COVINIB       1.0001 [0.0091; 110.3643]        0.4
+## TOFACOV       1.0075 [0.0000;      Inf]        0.0
+## RECOVERY      0.8843 [0.6530;   1.1975]       88.7
+## PANCOVID      1.4750 [0.2101;  10.3555]        2.1
+## 
+## Number of studies: k = 5
+## Number of observations: o = 558
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.9054 [0.6804; 1.2047] -0.68  0.4951
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  0.32    4  0.9885
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+```
+
+```r
+forest.meta(vacc.yes.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-56-1.png)<!-- -->
+
+```r
+# Unvaccinated
+vacc.no.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_vaccno_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F)
+summary(vacc.no.ae28)
+```
+
+```
+##                   OR           95%-CI %W(common)
+## Bari-SolidAct 0.7785 [0.3958; 1.5314]        9.8
+## COVINIB       0.8436 [0.3304; 2.1544]        5.1
+## TOFACOV       0.6778 [0.2392; 1.9207]        4.1
+## RECOVERY      0.9245 [0.7227; 1.1825]       73.6
+## PANCOVID      1.1430 [0.5261; 2.4836]        7.4
+## 
+## Number of studies: k = 5
+## Number of observations: o = 547
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.9076 [0.7347; 1.1211] -0.90  0.3683
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.1307]; tau = 0 [0.0000; 0.3616]
+##  I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  0.88    4  0.9269
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(vacc.no.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-56-2.png)<!-- -->
 
 # Interaction: Symptom onset on primary endpoint
 
@@ -6237,7 +6525,7 @@ forest.meta(symp.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-52-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-57-1.png)<!-- -->
 
 # Subgroups: Symptom onset on primary endpoint: Descriptive
 
@@ -6478,7 +6766,7 @@ forest(df_sg_symp_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-53-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-58-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -6540,7 +6828,7 @@ forest.meta(sympdur.m10.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-54-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-59-1.png)<!-- -->
 
 ```r
 # Enrolment between 5 and 10 days after symptom onset
@@ -6597,7 +6885,7 @@ forest.meta(sympdur.510.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-54-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-59-2.png)<!-- -->
 
 ```r
 # Enrolment less than 5 days after symptom onset
@@ -6654,7 +6942,7 @@ forest.meta(sympdur.5.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-54-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-59-3.png)<!-- -->
 
 # Interaction: CRP on primary endpoint
 
@@ -6729,7 +7017,7 @@ forest.meta(crp.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-55-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-60-1.png)<!-- -->
 
 # Subgroups: CRP on primary endpoint: Descriptive
 
@@ -6970,7 +7258,7 @@ forest(df_sg_crp_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-56-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-61-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -7033,7 +7321,7 @@ forest.meta(crp.above75.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-57-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-62-1.png)<!-- -->
 
 ```r
 # CRP below 75
@@ -7090,7 +7378,7 @@ forest.meta(crp.below75.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-57-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-62-2.png)<!-- -->
 
 # Collect all interaction effect estimates
 
@@ -7365,7 +7653,85 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(subgroup_df, file = "subgroup_effects_two-stage.RData")
 ```
 
-# Forestplot subgroup - on primary endpoint / for vaccination on AE28 create another output
+# Collect all subgroup effect estimates for forestplot / for safety outcome
+
+```r
+# Empty data frame to store the results
+subgroup_df_ae <- data.frame(
+  variable = character(),
+  odds_ratio = numeric(),
+  ci_lower = numeric(),
+  ci_upper = numeric(),
+  standard_error = numeric(),
+  n_intervention = numeric(),
+  n_intervention_tot = numeric(),
+  n_control = numeric(),
+  n_control_tot = numeric()
+)
+
+# Function to extract subgroup results
+extract_subgroup <- function(model, variable_name, n_int, n_int_tot, n_cont, n_cont_tot) {
+  if (inherits(model, "metagen")) {
+    odds_ratio <- exp(model$TE.common)
+    ci_lower <- exp(model$lower.common)
+    ci_upper <- exp(model$upper.common)
+    standard_error <- model$seTE.common
+  } else {
+    stop("Unsupported model class")
+  }
+  # capture the results
+  result <- data.frame(
+    variable = variable_name,
+    odds_ratio = odds_ratio,
+    ci_lower = ci_lower,
+    ci_upper = ci_upper,
+    standard_error = standard_error,
+    n_intervention = n_int,
+    n_intervention_tot = n_int_tot,
+    n_control = n_cont,
+    n_control_tot = n_cont_tot
+  )
+  return(result)
+}
+
+# Loop through
+result_list <- list()
+
+result_list[[1]] <- extract_subgroup(vacc.yes.ae28, "Vaccinated",
+                                     sum(df_sg_vaccyes_ae28$n_intervention),
+                                     sum(df_sg_vaccyes_ae28$n_intervention_tot),
+                                     sum(df_sg_vaccyes_ae28$n_control),
+                                     sum(df_sg_vaccyes_ae28$n_control_tot))
+result_list[[2]] <- extract_subgroup(vacc.no.ae28, "Unvaccinated",
+                                     sum(df_sg_vaccno_ae28$n_intervention),
+                                     sum(df_sg_vaccno_ae28$n_intervention_tot),
+                                     sum(df_sg_vaccno_ae28$n_control),
+                                     sum(df_sg_vaccno_ae28$n_control_tot))
+
+# Filter out NULL results and bind the results into a single data frame
+subgroup_df_ae <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
+
+# Add the analysis approach
+subgroup_df_ae$approach <- "two-stage"
+
+# Nicely formatted table
+kable(subgroup_df_ae, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|variable     | odds_ratio|  ci_lower| ci_upper| standard_error| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
+|:------------|----------:|---------:|--------:|--------------:|--------------:|------------------:|---------:|-------------:|:---------|
+|Vaccinated   |  0.9053710| 0.6804382| 1.204660|      0.1457209|            274|               1796|       284|          1706|two-stage |
+|Unvaccinated |  0.9075733| 0.7347363| 1.121068|      0.1077891|            257|               2650|       290|          2621|two-stage |
+
+```r
+# Save
+saveRDS(subgroup_df_ae, file = "subgroup_effects_safety_two-stage.RData")
+```
+
+# Forestplot subgroup - on primary endpoint
 
 ```r
 # take the effect estimates from subgroup_df... 
@@ -7424,7 +7790,7 @@ summary <- tibble(mean  = mort_28_OR,
                   upper = mort_28_ci_upper,
                   subgroup = "Overall treatment effect",
                   summary = TRUE)
-header <- tibble(subgroup = c("Treatment effect on 28-day mortality, by subgroup"),
+header <- tibble(subgroup = c("Subgroup"),
                  events_i = c("Events int."),
                  tot_i = c("No. int."),
                  events_c = c("Events cont."),
@@ -7432,11 +7798,61 @@ header <- tibble(subgroup = c("Treatment effect on 28-day mortality, by subgroup
                  p_int = c("p-int*"),
                  summary = TRUE)
 mort28_fp <- bind_rows(header,base_data,summary)
+
+
+# # Open a pdf file
+# # pdf("mort28_fp.pdf", width=16, height=8)
+# font <- "sans"
+# mort28_fp %>%
+#   forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+#                               ticks = gpar(cex=0.88),
+#                               summary = gpar(cex=1),
+#                               xlab = gpar(cex=0.88)),
+#              # title = "Treatment effect on mortality at day 28 by subgroup",
+#              is.summary = summary,
+#              graph.pos = 6,
+#              clip = c(0.1, 2),
+#              hrzl_lines = list("2" = gpar(lty = 2),
+#                                "6" = gpar(lty = 2),
+#                                "8" = gpar(lty = 2),
+#                                "10" = gpar(lty = 2),
+#                                "14" = gpar(lty = 2),
+#                                "18" = gpar(lty = 2),
+#                                "21" = gpar(lty = 2),
+#                                "23" = gpar(lty = 2)),
+#              xlog = FALSE,
+#              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
+#              psize = sqrt(subgroup_df$inverse_variance),
+#              lty.ci = c(1),
+#              col = fpColors(box = "maroon4",
+#                             line = "maroon1",
+#                             summary = "magenta4",
+#                             hrz_lines = "gray63"),
+#              vertices = TRUE,
+#              xlab = "     Favours JAKi <-> Favours No JAKi",
+#              zero = 1,
+#              grid = structure(c(0.69), gp = gpar(lty = 2, col = "gray63")),
+#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+#              )
+# # x <- unit(0.3, 'npc')
+# # y <- unit(0.1, 'npc')
+# # grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
+# # dev.off()
+
+## main forestplot
+
+mort28_fp_main <- mort28_fp %>% 
+  filter(subgroup %in% c("Subgroup", "No ventilation at baseline", "Ventilation at baseline", 
+                         "70 years of age or older", 
+                         "Below 70 years of age", "No comorbidity", "One comorbidity", "Multiple comorbidities",
+                         "Immunocompromised", "No Dexamethasone, no Tocilizumab", 
+                         "Dexamethasone, but no Tocilizumab",
+                         "Dexamethasone and Tocilizumab", "Tocilizumab, but no Dexamethasone", 
+                         "Overall treatment effect"))
 font <- "sans"
 
-# Open a pdf file
-# pdf("mort28_fp.pdf", width=16, height=8)
-mort28_fp %>%
+mort28_fp_main %>%
   forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
                               ticks = gpar(cex=0.88),
@@ -7447,13 +7863,10 @@ mort28_fp %>%
              graph.pos = 6,
              clip = c(0.1, 2),
              hrzl_lines = list("2" = gpar(lty = 2),
+                               "4" = gpar(lty = 2),
                                "6" = gpar(lty = 2),
-                               "8" = gpar(lty = 2),
                                "10" = gpar(lty = 2),
-                               "14" = gpar(lty = 2),
-                               "18" = gpar(lty = 2),
-                               "21" = gpar(lty = 2),
-                               "23" = gpar(lty = 2)),
+                               "14" = gpar(lty = 2)),
              xlog = FALSE,
              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
              psize = sqrt(subgroup_df$inverse_variance),
@@ -7465,25 +7878,148 @@ mort28_fp %>%
              vertices = TRUE,
              xlab = "     Favours JAKi <-> Favours No JAKi",
              zero = 1,
-             grid = structure(c(0.69), gp = gpar(lty = 2, col = "gray63")),
+             grid = structure(c(0.71), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
              )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-60-1.png)<!-- -->
-
-```r
-# x <- unit(0.3, 'npc')
-# y <- unit(0.1, 'npc')
-# grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
-
-# dev.off()
-```
+![](two_stage_files/figure-html/unnamed-chunk-66-1.png)<!-- -->
 * The p-values for the interaction were obtained using a two-stage IPDMA approach, i.e. solely based on within-trial interactions ("deft"): 
 First, to produce a treatment-covariate interaction estimate and its variance, a binomial regression was fitted in each trial separately, adjusted (where appropriate) for respiratory support and age, including the treatment and the treatment-covariate interaction, using restricted maximum likelihood estimation (with Firth penalisation correction in case of sparse data). 
 Second, the interaction estimates were combined across trials in a random-effect model (the true interactions are assumed random across trials), using restricted maximum likelihood estimation and the confidence interval for the summary interaction derived using the Hartung-Knapp Sidik-Jonkman approach. 
 Sizing of all squares are in proportion to the inverse variance of the estimates. 
 For continuous covariates (age, symptom duration, and CRP), a cut-off was chosen for descriptive purpose, but these covariates were included as a continuous treatment-covariate interaction assuming linearity. Ordinal covariates (respiratory support, comorbidities and comedication) were included similarly. 
+
+# Forestplot additional subgroups - on primary endpoint
+
+```r
+mort28_fp_additional <- mort28_fp %>% 
+  filter(subgroup %in% c("Subgroup", "No oxygen", "Low-flow oxygen", 
+                         "High-flow or non-invasive ventilation", "Mechanical ventilation or ECMO", 
+                         "Enrolment more than 10 days after symptom onset", 
+                         "Enrolment between 5 and 10 days after symptom onset", 
+                         "Enrolment 5 days or earlier after symptom onset",
+                         "C-reactive protein 75mg/L or more", "C-reactive protein less than 75mg/L"
+                         # "Overall treatment effect"
+                         ))
+font <- "sans"
+
+mort28_fp_additional %>%
+  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+                              ticks = gpar(cex=0.88),
+                              summary = gpar(cex=1),
+                              xlab = gpar(cex=0.88)),
+             is.summary = summary,
+             graph.pos = 6,
+             clip = c(0.1, 2),
+             hrzl_lines = list("2" = gpar(lty = 2),
+                               "6" = gpar(lty = 2),
+                               "9" = gpar(lty = 2),
+                               "11" = gpar(lty = 2)),
+             xlog = FALSE,
+             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
+             psize = sqrt(subgroup_df$inverse_variance),
+             lty.ci = c(1),
+             col = fpColors(box = "maroon4",
+                            line = "maroon1",
+                            summary = "magenta4",
+                            hrz_lines = "gray63"),
+             vertices = TRUE,
+             xlab = "                             Favours JAKi <-> Favours No JAKi",
+             zero = 1,
+             # grid = structure(c(0.71), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
+             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+             )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-67-1.png)<!-- -->
+
+# Forestplot subgroup - on safety endpoint
+
+```r
+# take the effect estimates from subgroup_df... 
+subgroup_df_ae$inverse_variance <- 1 / subgroup_df_ae$standard_error^2
+events_i <- subgroup_df_ae$n_intervention
+tot_i <- subgroup_df_ae$n_intervention_tot
+events_c <- subgroup_df_ae$n_control
+tot_c <- subgroup_df_ae$n_control_tot
+# ...and p-interaction from interaction_df
+interaction_df_fp_ae <- interaction_df %>% 
+  select(variable, p_value) %>% 
+  filter(variable %in% c("vaccination on AEs"))
+empty_row <- data.frame(
+  variable = "",
+  p_value = "")
+first_part <- interaction_df_fp_ae[1:1, ]
+interaction_df_fp_ae <- rbind(first_part, empty_row)
+p_int <- interaction_df_fp_ae$p_value
+
+# ...and overall results from result_df
+ae_28_OR <- result_df$hazard_odds_ratio[17]
+ae_28_ci_lower <- result_df$ci_lower[17]
+ae_28_ci_upper <- result_df$ci_upper[17]
+
+# build forestplot
+base_data <- tibble(mean = subgroup_df_ae$odds_ratio,
+                    lower = subgroup_df_ae$ci_lower,
+                    upper = subgroup_df_ae$ci_upper,
+                    subgroup = as.character(subgroup_df_ae$variable),
+                    events_i = as.character(events_i),
+                    tot_i = as.character(tot_i),
+                    events_c = as.character(events_c),
+                    tot_c = as.character(tot_c),
+                    p_int = as.character(p_int))
+summary <- tibble(mean  = ae_28_OR,
+                  lower = ae_28_ci_lower,
+                  upper = ae_28_ci_upper,
+                  subgroup = "Overall safety effect",
+                  summary = TRUE)
+header <- tibble(subgroup = c("Subgroup"),
+                 events_i = c("Events int."),
+                 tot_i = c("No. int."),
+                 events_c = c("Events cont."),
+                 tot_c = c("No. cont."),
+                 p_int = c("p-int*"),
+                 summary = TRUE)
+ae28_fp <- bind_rows(header,base_data,summary)
+
+ae28_fp_red <- ae28_fp %>% 
+  filter(!subgroup %in% c("Overall safety effect"))
+
+# forestplot
+font <- "sans"
+
+ae28_fp_red %>%
+  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+                              ticks = gpar(cex=0.88),
+                              summary = gpar(cex=1),
+                              xlab = gpar(cex=0.88)),
+             is.summary = summary,
+             graph.pos = 6,
+             clip = c(0.1, 2),
+             hrzl_lines = list("2" = gpar(lty = 2),
+                               "4" = gpar(lty = 2)),
+             xlog = FALSE,
+             xticks = c(0.5,0.75,1,1.25,1.5),
+             psize = sqrt(subgroup_df_ae$inverse_variance),
+             lty.ci = c(1),
+             col = fpColors(box = "maroon4",
+                            line = "maroon1",
+                            summary = "magenta4",
+                            hrz_lines = "gray63"),
+             vertices = TRUE,
+             xlab = "  Less adverse events with JAKi <-> More adverse events with JAKi",
+             zero = 1,
+             # grid = structure(c(0.95), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
+             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+             )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-68-1.png)<!-- -->
+
+
 
 # AESI
 
@@ -7536,22 +8072,37 @@ df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df
 # addmargins(table(df_aesi_tot$aesi, df_aesi_tot$trt))
 
 df_aesi_tot <- df_aesi_tot %>% 
-  mutate(ARM = case_when(trt == 0 ~ "No JAK inhibitor",
-                         trt == 1 ~ "JAK inhibitor"))
+  mutate(Group = case_when(trt == 0 ~ "No JAK inhibitor",
+                         trt == 1 ~ "JAK inhibitor")) %>% 
+  mutate(aesi = case_when(aesi == "mods" ~ "Multiple organ dysfunction syndrome",
+                          aesi == "hepatox" ~ "Liver dysfunction",
+                          aesi == "git_bl" ~ "Gastrointestinal perforation",
+                          aesi == "malig" ~ "Malignancy",
+                          aesi == "penia" ~ "Bone marrow suppression",
+                          aesi == "cardiac" ~ "Cardiovascular and cardiac events",
+                          aesi == "reactivate" ~ "Reactivation of chronic infection",
+                          aesi == "sec_inf" ~ "Secondary infections",
+                          aesi == "thrombo" ~ "Thromboembolic events",))
+
 proportions <- df_aesi_tot %>%
-  drop_na(ARM) %>% 
-  group_by(ARM, aesi) %>%
+  drop_na(Group) %>% 
+  group_by(Group, aesi) %>%
   summarise(count = n()) %>%
-  group_by(ARM) %>%
-  mutate(proportion = (count / sum(count))*100) %>% 
-  mutate("Proportion (%)" = round(proportion,0))
-ggplot(proportions, aes(x = proportion, y = aesi, color = ARM, shape = ARM)) +
-  geom_point() +
-  labs(x = "Proportion (%) across all AESI by ARM", y = "AESI Category") +
-  theme_minimal()
+  group_by(Group) %>%
+  # mutate(proportion = (count / sum(count))*100) %>%
+  mutate(denom = case_when(Group == "No JAK inhibitor" ~ 6063, #### ADAPT if NEW TRIALS!
+                           Group == "JAK inhibitor" ~ 6339)) %>%  #### ADAPT if NEW TRIALS!
+  mutate(proportion = (count / denom)*100)
+ggplot(proportions, aes(x = proportion, y = aesi, color = Group, shape = Group)) +
+  geom_point(size = 2.5) +
+  labs(x = "Proportion (%), by treatment group", y = NULL) +
+  theme_minimal() + 
+  scale_x_continuous(breaks = seq(0, 5, by = 0.5)) +
+  theme(axis.text.y = element_text(size = 10),
+        axis.title.x = element_text(size = 9))
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-61-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-69-1.png)<!-- -->
 
 # AE
 
@@ -7621,5 +8172,5 @@ ggplot(proportions, aes(x = proportion, y = ae, color = ARM, shape = ARM)) +
   theme_minimal()
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-62-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-70-1.png)<!-- -->
 # Interactions: Multivariate IPD Meta-Analysis for Summarising Non-linear Interactions
