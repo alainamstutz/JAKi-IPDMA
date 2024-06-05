@@ -320,32 +320,32 @@ df_baseline$ARM <- ifelse(df_baseline$ARM == 0, "No JAK inhibitor", "JAK inhibit
 
 ```
 
-# Main Baseline table, by treatment arm (CAVE: RUXCOVID is included but only its categorical covariates, e.g. do not assess missingness of age)
+# Main Baseline table, by treatment arm (CAVE: RUXCOVID is included but only its categorical covariates)
 ```{r message=FALSE, warning=FALSE}
 vars.list_main <- c("ARM","Age, years", "Sex", "Vaccination", "Time from symptom onset to randomisation, days", "Clinical status on ordinal scale", "Comorbidities", "Dexamethasone and Tocilizumab", "Remdesivir", "C-reactive protein concentration, mg/L", "Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])", "Patients with undetectable viral load")
 table_baseline <- CreateTableOne(data = df_baseline, vars = vars.list_main[!vars.list_main %in% c("ARM")], strata = "ARM", includeNA = F, test = F, addOverall = TRUE)
-capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list_main,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = F))
+capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list_main,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = T))
 # print
 kable(table_baseline, format = "markdown", table.attr = 'class="table"', caption = "Main Baseline characteristics, by arm") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 
-# Appendix Baseline table, by treatment arm (CAVE: RUXCOVID is included but only its categorical covariates, e.g. do not assess missingness of age)
+# Appendix Baseline table, by treatment arm (CAVE: RUXCOVID is included but only its categorical covariates)
 ```{r message=FALSE, warning=FALSE}
 vars.list_appendix <- c("ARM", "Ethnicity", "Country", "Patients admitted to intensive care unit")
 table_baseline <- CreateTableOne(data = df_baseline, vars = vars.list_appendix[!vars.list_appendix %in% c("ARM")], strata = "ARM", includeNA = F, test = F, addOverall = TRUE)
-capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list_appendix,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = F))
+capture.output(table_baseline <- print(table_baseline, nonnormal = vars.list_appendix,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = T))
 # print
 kable(table_baseline, format = "markdown", table.attr = 'class="table"', caption = "Appendix Baseline characteristics, by arm") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 
-# All Baseline Characteristics, by trial (CAVE: RUXCOVID is included but only its categorical covariates, e.g. do not assess missingness of age)
+# All Baseline Characteristics, by trial (CAVE: RUXCOVID is included but only its categorical covariates)
 ```{r message=FALSE, warning=FALSE}
 # all participants, by trial
 table_baseline_trial <- CreateTableOne(data = df_baseline, vars = vars.list[!vars.list %in% c("Trial", "ARM")], strata = "Trial", includeNA = F, test = F, addOverall = TRUE)
-capture.output(table_baseline_trial <- print(table_baseline_trial, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = F))
+capture.output(table_baseline_trial <- print(table_baseline_trial, nonnormal = vars.list,catDigits = 1,SMD = TRUE,showAllLevels = TRUE,test = TRUE,printToggle = FALSE,missing = T))
 #print
 kable(table_baseline_trial, format = "markdown", table.attr = 'class="table"', caption = "Baseline characteristics, by trial") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
