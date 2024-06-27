@@ -2070,6 +2070,39 @@ Sizing of all squares are in proportion to the inverse of the variance of the es
 For continuous covariates (age, symptom duration, CRP), a cut-off was chosen for descriptive purpose, but they were included as a continuous treatment-covariate interaction, assuming linearity. 
 Similarly, ordinal covariates (detailed respiratory support, comorbidities) were included as a continuous treatment-covariate interaction, assuming linearity. 
 
+# Absolute Effect Estimates
+```{r}
+## see cochrane handbook: https://handbook-5-1.cochrane.org/chapter_12/12_5_4_3_computing_absolute_risk_reduction_or_nnt_from_an_odds.htm
+
+# All-cause mortality at day 28, no. (%)
+# intervention: 667/6159 (10.8)
+# control: 764/5916 (12.9)
+# aOR 0.71 (0.58 to 0.87), p = 0.004
+
+### binary outcome
+# assumed comparator risk (ACR) based on control group of the IPDMA dataset /
+acr <- 764/5916
+
+# corresponding intervention risk per 1000
+or <- c(0.71)
+
+1000*(or*acr/(1-acr+(or*acr)))
+
+# number fewer per 1000
+1000*(acr-(or*acr/(1-acr+(or*acr))))
+
+# NNT
+1/(acr-(or*acr/(1-acr+(or*acr))))
+
+# 95% CI for number fewer per 1000
+ll <- c(0.58)
+1000*(acr-(ll*acr/(1-acr+(ll*acr))))
+
+ul <- c(0.87)
+1000*(acr-(ul*acr/(1-acr+(ul*acr))))
+```
+
+
 # Exploratory: Explore treatment heterogeneity using causal trees
 ```{r, fig.width=16, fig.height=8}
 library(causalweight)
