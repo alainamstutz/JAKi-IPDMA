@@ -438,7 +438,6 @@ df <- df %>%
   mutate(death_time = case_when(death_time >60 ~ 60,
                                 TRUE ~ c(death_time)))
 
-
 # (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days
 # table(df_tte_set$PARAM)
 df_mvd <- df_tte_set %>% 

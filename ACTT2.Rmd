@@ -221,9 +221,7 @@ df <- df %>%
 df <- df %>% 
   mutate(comed_other = case_when(is.na(comed_other) ~ 0,
                                 TRUE ~ comed_other))
-df <- df %>% # all in intervention also received remdesivir
-  mutate(comed_rdv = case_when(trt == 1 ~ 1,
-                               TRUE ~ 0)) 
+df$comed_rdv <- 1 # all also received remdesivir
 df$comed_interferon <- 0 # see exclusion criteria       
 df$comed_toci <- 0 # see exclusion criteria   
 
@@ -409,6 +407,8 @@ df <- df %>% # no missing and those that were discharged and afterwards died hav
 #   filter(death_reached != 1) %>%
 #   filter(discharge_d < 29 & death_time < 28) %>%
 #   View()
+
+# max follow-up time in ACTT2 was 28 days => no restriction of time window to 60 days.
 
 
 # (iv) New mechanical ventilation among survivors within 28 days.

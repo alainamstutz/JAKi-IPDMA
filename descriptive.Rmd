@@ -218,13 +218,14 @@ df_baseline <- df_baseline %>%
 
 
 # Sex
-# unique(df_baseline$Sex)
+# addmargins(table(df_baseline$Sex, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(Sex = case_when(Sex == "male" | Sex == "M" | Sex == "2" ~ "Male",
                          Sex == "female" | Sex == "F" | Sex == "1" ~ "Female"))
 
 # Ethnicity
-# table(df_baseline$Ethnicity, useNA = "always")
+# addmargins(table(df_baseline$Ethnicity, df_baseline$Trial))
+# unique(df_baseline$Ethnicity)
 df_baseline <- df_baseline %>%
   mutate(Ethnicity = case_when(Ethnicity == "AMERICAN INDIAN OR ALASKA NATIVE" ~ "American Indian or Alaska Native",
                              Ethnicity == "BLACK OR AFRICAN AMERICAN" | Ethnicity == "Black or Black British" ~ "Black or African American",
@@ -238,6 +239,7 @@ df_baseline <- df_baseline %>%
 
 # Country
 # table(df_baseline$Country, useNA = "always")
+# addmargins(table(df_baseline$Country, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(Country = case_when(Country == "NORWAY" ~ "Norway",
                              Country == "FRANCE" ~ "France",
@@ -250,7 +252,7 @@ df_baseline <- df_baseline %>%
                              Country == "IRELAND" ~ "Ireland",
                              Country == "LUXEMBOURG" ~ "Luxembourg",
                              Country == "AUSTRIA" ~ "Austria",
-                             Country == "GBR" ~ "United Kingdom",
+                             Country == "GBR" | Country == "UK" ~ "United Kingdom",
                              Country == "PORTUGAL" ~ "Portugal",
                              Country == "MEX" ~ "Mexico",
                              Country == "ARG" ~ "Argentina",
@@ -266,14 +268,17 @@ df_baseline <- df_baseline %>%
                              ))
 
 # Vaccination
+# addmargins(table(df_baseline$Vaccination, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(Vaccination = case_when(Vaccination == "1" ~ "Any SARS CoV-2 vaccine",
                                 Vaccination == "0" ~ "No SARS CoV-2 vaccine"))
 # ICU
+# addmargins(table(df_baseline$`Patients admitted to intensive care unit`, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(`Patients admitted to intensive care unit` = case_when(`Patients admitted to intensive care unit` == "1" ~ "Yes",
                                                                 `Patients admitted to intensive care unit` == "0" ~ "No"))
 # Comorbidities
+# addmargins(table(df_baseline$Comorbidities, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(Comorbidities = case_when(Comorbidities == "1" ~ "No comorbidity",
                                    Comorbidities == "2" ~ "One comorbidity",
@@ -283,6 +288,7 @@ df_baseline$Comorbidities <- ordered(df_baseline$Comorbidities,
                                   levels = c("No comorbidity", "One comorbidity",
                                              "Multiple comorbidities", "Immunocompromised"))
 # Dexamethasone and Tocilizumab
+# addmargins(table(df_baseline$`Dexamethasone and Tocilizumab`, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(`Dexamethasone and Tocilizumab` = case_when(`Dexamethasone and Tocilizumab` == "1" ~ "No Dexamethasone, no Tocilizumab",
                                    `Dexamethasone and Tocilizumab` == "2" ~ "Dexamethasone and Tocilizumab",
@@ -293,6 +299,7 @@ df_baseline$`Dexamethasone and Tocilizumab` <- ordered(df_baseline$`Dexamethason
                                              "Dexamethasone and Tocilizumab", "Tocolizumab but no Dexamethasone"))
 
 # Clinstatus_baseline
+# addmargins(table(df_baseline$`Clinical status on ordinal scale`, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(`Clinical status on ordinal scale` = case_when(`Clinical status on ordinal scale` == "2" ~ "2: Hospitalised without need for oxygen therapy (WHO score 4)",
                                    `Clinical status on ordinal scale` == "3" ~ "3: Hospitalised with need for supplemental low-flow oxygen (WHO score 5)",
@@ -303,19 +310,25 @@ df_baseline$`Clinical status on ordinal scale` <- ordered(df_baseline$`Clinical 
                                   levels = c("2: Hospitalised without need for oxygen therapy (WHO score 4)", "3: Hospitalised with need for supplemental low-flow oxygen (WHO score 5)", "4: Hospitalised with need for high-flow oxygen or non- invasive ventilation (WHO score 6)", "5: Hospitalised with need for mechanical ventilation or ECMO (WHO score 7–9)"))
 
 # Remdesivir
+# addmargins(table(df_baseline$Remdesivir, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(Remdesivir = case_when(Remdesivir == "1" ~ "Remdesivir",
                                 Remdesivir == "0" ~ "No Remdesivir"))
+# addmargins(table(df_baseline$Remdesivir, df_baseline$Trial, df_baseline$ARM))
+
 # Seroconversion
+# addmargins(table(df_baseline$`Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])`, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(`Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])` = case_when(`Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])` == "1" ~ "Seroconverted",
                                 `Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])` == "0" ~ "Not seroconverted"))
 # Viremia
+# addmargins(table(df_baseline$`Patients with undetectable viral load`, df_baseline$Trial))
 df_baseline <- df_baseline %>%
   mutate(`Patients with undetectable viral load` = case_when(`Patients with undetectable viral load` == "1" ~ "Undetectable viral load",
                                 `Patients with undetectable viral load` == "0" ~ "Detectable viral load"))
 
 # Replace the strata variable labels
+# addmargins(table(df_baseline$ARM, df_baseline$Trial))
 df_baseline$ARM <- ifelse(df_baseline$ARM == 0, "No JAK inhibitor", "JAK inhibitor")
 
 ```

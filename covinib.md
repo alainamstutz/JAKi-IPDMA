@@ -235,7 +235,7 @@ table(df$mort_28, useNA = "always") # no transfer to hospice in covinib!
 ```r
 # df %>%
 #   select(mort_28, death_d, discharge_d, Clinstatus_28, clinstatus_baseline, everything()) %>%
-#   filter(is.na(mort_28)) %>%
+#   # filter(is.na(mort_28)) %>%
 #   View()
 
 # First, keep mort_28 as complete case
@@ -256,7 +256,7 @@ df <- df %>% # max fup time in COVINIB was +/- 70 days! No further deaths after 
                              discharge_d >60 ~ 0)) # discharged later, proof of still alive
 
 
-# (iii) Time to death within max. follow-up time
+# (iii) Time to death within max. follow-up time / max fup time in COVINIB was +/- 70 days, but we restrict it across studies to 60 days!
 # table(df$Clinstatus_70, useNA = "always") # 2 still hospitalized at day 70, 2 died, 3 LTFU, 103 discharged
 df <- df %>%
   mutate(death_reached = case_when(mort_60 == 1 ~ 1,
@@ -264,8 +264,8 @@ df <- df %>%
 df <- df %>% # no missing and those that were discharged and afterwards have correct time to event data
   mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
                                 ltfu_d >=0 ~ c(ltfu_d), # time to LTFU,
-                                TRUE ~ 70)) # time to max FUP: 70
-
+                                TRUE ~ 60)) # time to max FUP: 60
+# table(df$death_reached, df$death_time)
 
 # (iv) New mechanical ventilation among survivors within 28 days.
 df <- df %>% 
@@ -672,7 +672,7 @@ Table: By completeness (only mort_28)
 |                                  |NA          |3 (  2.7)             |3 (100.0)               |0 (  0.0)             |       |        |        |
 |death_reached (%)                 |0           |108 ( 98.2)           |3 (100.0)               |105 ( 98.1)           |1.000  |        |0.0     |
 |                                  |1           |2 (  1.8)             |0 (  0.0)               |2 (  1.9)             |       |        |        |
-|death_time (median [IQR])         |            |70.00 [70.00, 70.00]  |21.00 [21.00, 21.00]    |70.00 [70.00, 70.00]  |<0.001 |nonnorm |0.0     |
+|death_time (median [IQR])         |            |60.00 [60.00, 60.00]  |21.00 [21.00, 21.00]    |60.00 [60.00, 60.00]  |<0.001 |nonnorm |0.0     |
 |new_mv_28 (%)                     |0           |97 ( 88.2)            |0 (  0.0)               |97 ( 90.7)            |<0.001 |        |4.5     |
 |                                  |1           |8 (  7.3)             |0 (  0.0)               |8 (  7.5)             |       |        |        |
 |                                  |NA          |5 (  4.5)             |3 (100.0)               |2 (  1.9)             |       |        |        |
@@ -1949,7 +1949,7 @@ survfit2(Surv(death_time, death_reached) ~ trt, data=df) %>%
 ![](covinib_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 ```r
-# testing: cox ph, using firth regression
+# # testing: cox ph, using firth regression
 # ttdeath <- df %>%
 #   coxph(Surv(death_time, death_reached) ~ trt
 #         + age + clinstatus_baseline

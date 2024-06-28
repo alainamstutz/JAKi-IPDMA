@@ -263,7 +263,7 @@ df <- df %>% # no missing and those that were discharged were discharged alive
   mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
                                 withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal, then...
                                 TRUE ~ 28)) # time to death censoring data // All happened within 14 days. And without change until 28d follow-up (those discharged were still alive and not hospitalized)
-
+# max follow-up time in ACTT2 was 28 days => no restriction of time window to 60 days.
 
 # (iv) New mechanical ventilation among survivors within 28 days.
 df <- df %>% # all those intubated also then died

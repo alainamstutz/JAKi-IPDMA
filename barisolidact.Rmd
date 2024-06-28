@@ -301,6 +301,15 @@ df <- df %>% # 2 are left without any time to event data => impute max. follow-u
                                 maxfup_d >=0 & is.na(withdraw_d) & is.na(withdrawi_d) ~ c(maxfup_d), # max fup for the remaining ones not withdrawn
                                 withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal for those withdrawn (and not discharged before)
                                 withdrawi_d >=0 ~ c(withdrawi_d))) # time to investigator withdrawal for those inv-withdrawn (and not discharged before)
+# table(df$death_reached, df$death_time) # ignores the missing
+# table(df$mort_60, df$death_time) # excludes the missing
+df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+  mutate(death_reached = case_when(death_time>60 ~ 0,
+                                TRUE ~ death_reached))
+df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+  mutate(death_time = case_when(death_time>60 ~ 60,
+                                TRUE ~ death_time))
+
 
 # (iv) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.
 df <- df %>% # The NAs are not eligible (died or clinstatus_baseline == 5) and thus are excluded from denominator
@@ -1077,6 +1086,7 @@ summ(mort.60, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```{r warning=FALSE}
 # table(df$death_reached, df$death_time, useNA = "always")
 # table(df$death_reached, df$mort_60, useNA = "always")
+# table(df$death_reached, df$trt, useNA = "always")
 
 # df %>%
 #   drop_na(death_time) %>%

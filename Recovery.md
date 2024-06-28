@@ -793,13 +793,17 @@ df$mort_60 <- df$mort_28
 
 
 # (iii) Time to death within max. follow-up time
-df$death_reached <- df$mort_28 # do not bother about missings in mort_28
+df$death_reached <- df$mort_28 # do not bother about missings in mort_28 // and no deaths after day 28 anymore
 df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
   mutate(death_time = case_when(death_time >=0 ~ c(death_time), # time to death, if no time to death, then...
                                 discharge_time >=0 & (is.na(withdrawn_time) | withdrawn_time >28) ~ 28, # maxfup for all discharged and not withdrawn
                                 withdrawn_time >=0 ~ c(withdrawn_time), # time to withdrawal for those withdrawn (and not discharged before)
                                 is.na(death_time) & is.na(withdrawn_time) & is.na(discharge_time) ~ 28 # max fup for the remaining ones not withdrawn, not discharged, not dead (n=164)
                                 ))
+# table(df$death_reached, df$death_time)
+df <- df %>% # Max fup time in RECOVERY was +/- 28 days, but there are some later follow-up timepoints in dataset => restrict to 60d, according to protocol
+  mutate(death_time = case_when(death_time>60 ~ 60,
+                                TRUE ~ death_time))
 
 
 # (iv) New mechanical ventilation among survivors within 28 days

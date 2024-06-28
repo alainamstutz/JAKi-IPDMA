@@ -498,7 +498,6 @@ df <- df %>%
 ### COVID-19 vaccination at baseline // not available
 ### Variant // not available
 ```
-Discussion points:
 
 # Endpoints
 
@@ -857,6 +856,14 @@ df <- df %>% # first, death_d, then withdraw_d, then discharge_d, then max follo
   mutate(death_time = case_when(!is.na(death_d) ~ death_d, 
                                 !is.na(withdraw_d) ~ withdraw_d, 
                                 !is.na(discharge_d) ~ discharge_d))
+# table(df$death_reached, df$death_time) # ignores the missing
+# table(df$mort_60, df$death_time) # excludes the missing
+df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+  mutate(death_reached = case_when(death_time>60 ~ 0,
+                                TRUE ~ death_reached))
+df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+  mutate(death_time = case_when(death_time>60 ~ 60,
+                                TRUE ~ death_time))
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. TACTIC included across all clinstatus.
@@ -1153,7 +1160,6 @@ df_aesi <- df_aesi %>%
 saveRDS(df_aesi, file = "df_aesi_tactic-r.RData")
 
 # (xi) Adverse events, any grade and serious adverse event, excluding death, within 28 days, grouped by organ classes
-# Save
 df_ae <- df_ae %>% 
   group_by(id_pat) %>% 
   mutate(duplicate_id = duplicated(ae) & !is.na(ae)) %>% 
@@ -1162,7 +1168,6 @@ df_ae <- df_ae %>%
   filter(duplicate_id == F)
 saveRDS(df_ae, file = "df_ae_tactic-r.RData")
 ```
-Discussion points:
 
 # Define final datasets
 
@@ -1466,8 +1471,8 @@ Table: By completeness (only mort_28)
 |mort_60 (%)                       |0                      |222 ( 78.7)            |0 (  0.0)             |222 ( 82.8)            |<0.001 |        |6.4     |
 |                                  |1                      |42 ( 14.9)             |0 (  0.0)             |42 ( 15.7)             |       |        |        |
 |                                  |NA                     |18 (  6.4)             |14 (100.0)            |4 (  1.5)              |       |        |        |
-|death_reached (%)                 |0                      |238 ( 84.4)            |14 (100.0)            |224 ( 83.6)            |0.203  |        |0.0     |
-|                                  |1                      |44 ( 15.6)             |0 (  0.0)             |44 ( 16.4)             |       |        |        |
+|death_reached (%)                 |0                      |240 ( 85.1)            |14 (100.0)            |226 ( 84.3)            |0.222  |        |0.0     |
+|                                  |1                      |42 ( 14.9)             |0 (  0.0)             |42 ( 15.7)             |       |        |        |
 |death_time (median [IQR])         |                       |6.00 [4.00, 11.00]     |3.50 [0.25, 5.75]     |7.00 [4.00, 11.25]     |0.004  |nonnorm |0.0     |
 |new_mv_28 (%)                     |0                      |232 ( 82.3)            |14 (100.0)            |218 ( 81.3)            |0.204  |        |13.1    |
 |                                  |1                      |13 (  4.6)             |0 (  0.0)             |13 (  4.9)             |       |        |        |
@@ -2740,13 +2745,13 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 |**Characteristic**  |**HR**     |**95% CI** |**p-value** |
 |:-------------------|:----------|:----------|:-----------|
-|trt                 |1.31       |0.71, 2.41 |0.4         |
+|trt                 |1.28       |0.69, 2.37 |0.4         |
 |age                 |1.06       |1.03, 1.09 |<0.001      |
 |clinstatus_baseline |NA         |NA         |NA          |
 |1                   |NA         |NA         |NA          |
-|2                   |21,724,099 |0.00, Inf  |>0.9        |
-|3                   |15,009,785 |0.00, Inf  |>0.9        |
-|4                   |48,327,099 |0.00, Inf  |>0.9        |
+|2                   |22,491,751 |0.00, Inf  |>0.9        |
+|3                   |14,172,358 |0.00, Inf  |>0.9        |
+|4                   |52,441,243 |0.00, Inf  |>0.9        |
 |5                   |NA         |NA         |NA          |
 |6                   |NA         |NA         |NA          |
 
@@ -3275,8 +3280,6 @@ kable(ttdischarge_sus_reg_tbl, format = "markdown", table.attr = 'class="table"'
 |4                   |0.57   |0.08, 4.23 |0.6         |
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
-Discussion points
-1. Use F&G for sens-analysis (sustained discharge)?
 
 # (vii) Viral clearance up to day 5, day 10, and day 15
 
@@ -3582,6 +3585,7 @@ summ(vir.clear.15, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
 # (viii) Quality of life at day 28 
 
 Discussion points
@@ -5490,7 +5494,6 @@ summ(mort.28.comorb.4, exp = T, confint = T, model.info = T, model.fit = F, digi
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # Subgroup analysis: Concomitant COVID-19 treatment on primary endpoint
 
@@ -6445,7 +6448,6 @@ summ(mort.28.sympdur.b5, exp = T, confint = T, model.info = T, model.fit = F, di
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # SENS Subgroup analysis: CRP on primary endpoint
 
@@ -6775,7 +6777,6 @@ summ(mort.28.crp.a75, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
-Discussion points
 
 # SENS Subgroup analysis: Variant on primary endpoint
 
@@ -6917,7 +6918,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt1  |death at day 28_dimp                       |         0.8966336|  0.3978406| 2.0105465|      0.4104700| 0.7903837|            137|       145|TACTIC-R |Baricitinib |
 |trt2  |death at day 28_marginal                   |        -0.0182545| -0.0965741| 0.0600651|      0.0399597| 0.6477979|            130|       138|TACTIC-R |Baricitinib |
 |trt3  |death at day 60                            |         0.9558738|  0.4457384| 2.0451423|      0.3863856| 0.9070195|            129|       135|TACTIC-R |Baricitinib |
-|trt4  |death within fup                           |         1.3102674|  0.7133088| 2.4068125|      0.3102465| 0.3837427|            137|       145|TACTIC-R |Baricitinib |
+|trt4  |death within fup                           |         1.2770886|  0.6881608| 2.3700206|      0.3154730| 0.4381686|            137|       145|TACTIC-R |Baricitinib |
 |trt5  |new MV within 28d                          |         0.8582744|  0.2657998| 2.6916586|      0.5779994| 0.7914605|            119|       126|TACTIC-R |Baricitinib |
 |trt6  |new MV or death within 28d                 |         0.8713662|  0.4379743| 1.7223634|      0.3476931| 0.6920911|            137|       145|TACTIC-R |Baricitinib |
 |trt7  |clinical status at day 28                  |         0.8436558|  0.4665473| 1.5175791|      0.2999809| 0.5708920|            137|       145|TACTIC-R |Baricitinib |
@@ -6935,7 +6936,6 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(result_df, file = "trt_effects_tactic-r.RData")
 ```
-Discussion points
 
 # Collect all interaction estimates (stage one)
 
@@ -7023,7 +7023,6 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(interaction_df, file = "int_effects_tactic-r.RData")
 ```
-Discussion points
 
 # Collect all subgroup treatment effect estimates
 

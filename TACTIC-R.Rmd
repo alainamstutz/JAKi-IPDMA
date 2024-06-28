@@ -824,6 +824,14 @@ df <- df %>% # first, death_d, then withdraw_d, then discharge_d, then max follo
   mutate(death_time = case_when(!is.na(death_d) ~ death_d, 
                                 !is.na(withdraw_d) ~ withdraw_d, 
                                 !is.na(discharge_d) ~ discharge_d))
+# table(df$death_reached, df$death_time) # ignores the missing
+# table(df$mort_60, df$death_time) # excludes the missing
+df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+  mutate(death_reached = case_when(death_time>60 ~ 0,
+                                TRUE ~ death_reached))
+df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+  mutate(death_time = case_when(death_time>60 ~ 60,
+                                TRUE ~ death_time))
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. TACTIC included across all clinstatus.

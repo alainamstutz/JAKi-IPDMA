@@ -330,6 +330,14 @@ df <- df %>% # first, death_d, then withdraw_d, then withdrawi_d, then discharge
                                 !is.na(withdraw_d) ~ withdraw_d, 
                                 !is.na(withdrawi_d) ~ withdrawi_d, 
                                 !is.na(discharge_d) ~ discharge_d))
+# table(df$death_reached, df$death_time) # ignores the missing
+# table(df$mort_60, df$death_time) # excludes the missing
+df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+  mutate(death_reached = case_when(death_time>60 ~ 0,
+                                TRUE ~ death_reached))
+df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+  mutate(death_time = case_when(death_time>60 ~ 60,
+                                TRUE ~ death_time))
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. PANCOVID included across clinstatus 2-4.
@@ -1298,7 +1306,7 @@ Y<-data.frame(mort_28
                , comorb_cat
                , clinstatus_baseline
                , sqcrptrunc
-               , clinstatus_fup
+               # , clinstatus_fup
                , comed_rdv
                , comed_toci
                  )
@@ -1346,8 +1354,7 @@ imp.list <- imputationList(split(imputed_combined, imputed_combined$Imputation)[
 round(prop.table(table(imp.list[[1]]$`1`$mort_28, imp.list[[1]]$`1`$trt, useNA = "always"),2)*100,1) # first imputed dataset
 round(prop.table(table(imp.list[[1]]$`2`$mort_28, imp.list[[1]]$`2`$trt, useNA = "always"),2)*100,1) # second imputed dataset
 round(prop.table(table(df_imp$mort_28, df_imp$trt, useNA = "always"),2)*100,1) # original data
-summary(imp.list[[1]]$`1`$comorb_cat)
-summary(imp.list[[1]]$`2`$sqsympdur)
+summary(imp.list[[1]]$`2`$sqcrptrunc)
 ```
 
 # (i) Primary endpoint: Mortality at day 28
@@ -1551,7 +1558,7 @@ summ(mort.28.dimp, exp = T, confint = T, model.info = T, model.fit = F, digits =
 # mort.28.mi <- imp.list %>%
 #   with(glm(mort_28 ~ trt
 #            + age
-#            + clinicalstatus_baseline
+#            + clinstatus_baseline
 #            , family = binomial)) %>%
 #         pool() %>%
 #         summary(conf.int = T, exponentiate = T)

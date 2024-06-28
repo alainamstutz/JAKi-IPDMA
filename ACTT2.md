@@ -251,9 +251,7 @@ df <- df %>%
 df <- df %>% 
   mutate(comed_other = case_when(is.na(comed_other) ~ 0,
                                 TRUE ~ comed_other))
-df <- df %>% # all in intervention also received remdesivir
-  mutate(comed_rdv = case_when(trt == 1 ~ 1,
-                               TRUE ~ 0)) 
+df$comed_rdv <- 1 # all also received remdesivir
 df$comed_interferon <- 0 # see exclusion criteria       
 df$comed_toci <- 0 # see exclusion criteria   
 
@@ -450,6 +448,8 @@ df <- df %>% # no missing and those that were discharged and afterwards died hav
 #   filter(death_reached != 1) %>%
 #   filter(discharge_d < 29 & death_time < 28) %>%
 #   View()
+
+# max follow-up time in ACTT2 was 28 days => no restriction of time window to 60 days.
 
 
 # (iv) New mechanical ventilation among survivors within 28 days.
@@ -954,8 +954,7 @@ Table: By completeness (only mort_28)
 |                                  |1                                         |327 ( 31.7)            |21 ( 44.7)             |306 ( 31.0)            |       |        |        |
 |comed_dexa (%)                    |0                                         |991 ( 95.9)            |46 ( 97.9)             |945 ( 95.8)            |0.756  |        |0.0     |
 |                                  |1                                         |42 (  4.1)             |1 (  2.1)              |41 (  4.2)             |       |        |        |
-|comed_rdv (%)                     |0                                         |518 ( 50.1)            |26 ( 55.3)             |492 ( 49.9)            |0.564  |        |0.0     |
-|                                  |1                                         |515 ( 49.9)            |21 ( 44.7)             |494 ( 50.1)            |       |        |        |
+|comed_rdv (%)                     |1                                         |1033 (100.0)           |47 (100.0)             |986 (100.0)            |NA     |        |0.0     |
 |comed_toci (%)                    |0                                         |1033 (100.0)           |47 (100.0)             |986 (100.0)            |NA     |        |0.0     |
 |comed_ab (%)                      |0                                         |415 ( 40.2)            |31 ( 66.0)             |384 ( 38.9)            |<0.001 |        |0.0     |
 |                                  |1                                         |618 ( 59.8)            |16 ( 34.0)             |602 ( 61.1)            |       |        |        |
