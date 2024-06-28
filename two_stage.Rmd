@@ -228,6 +228,9 @@ for (df in list_df) {
 # (i) Primary outcome: Mortality at day 28
 ```{r warning=FALSE, fig.width=13, fig.height=5}
 # str(df_mort28)
+# df_mort28$e_intervention <- 100
+# df_mort28$e_control <- 200
+
 mort28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -248,29 +251,56 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       )
 summary(mort28)
 
-forest.meta(mort28,
-            # hetstat = T,
-            rightcols = c("effect", "ci", "w.random"),
-            rightlabs = c("aOR", "95%-CI", "Weight"),
-            # leftcols = c("studlab", "seTE", "n.e"),
-            # leftlabs = c("Trial", "Standard Error", "Sample Size"),
-            leftcols = c("studlab", "n.e", "n.c"),
-            leftlabs = c("Trial", "Total Intervention", "Total Control"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - mortality 28 days", # get the title into the figure
-            xlim = c(0.15,5),
-            sortvar = +TE,
-            label.left = "Favours JAKi",  
-            label.right = "Favours No JAKi"
-            # xlab = "Average treatment effect (95% CI)"
-            )
-
-# Open a pdf file
-# pdf("./fp_aggregated.pdf", width=9, height=4)
-# forest.meta(i.mort28_adhoc_se,
-#             xlim = c(0.1,5),
-#             xlab = "                  Favours JAKi <-> Favours No JAKi",
-#             fs.xlab = 9)
+# forest(mort28,
+#             rightcols = c("effect", "ci", "w.random"),
+#             rightlabs = c("aOR", "95%-CI", "Weight"),
+#             leftcols = c("studlab", "n.e", "n.c", "e_intervention", "e_control"),
+#             leftlabs = c("Trial", "JAK inhibitor", "no JAK inhibitor", "Events\nJAK inhibitor", "Events\nno JAK inhibitor"),
+#             text.random = "Average treatment effect",
+#             # xlim = c(0.15,5),
+#             sortvar = +TE,
+#             label.left = "Favours JAKi",
+#             label.right = "Favours No JAKi",
+#             xlog = TRUE
+#             )
+# 
+# # Open a pdf file
+# pdf("./fp_primary.pdf", width=13, height=5)
+# 
+# forestplot <- forest(mort28,
+#             rightcols = c("effect", "ci", "w.random"),
+#             rightlabs = c("aOR", "95%-CI", "Weight"),
+#             leftcols = c("studlab", "n.e", "n.c", "e_intervention", "e_control"),
+#             leftlabs = c("Trial", "JAK inhibitor", "no JAK inhibitor", "Events\nJAK inhibitor", "Events\nno JAK inhibitor"),
+#             text.random = "Average treatment effect",
+#             # xlim = c(0.15,5),
+#             sortvar = +TE,
+#             label.left = "Favours JAKi",
+#             label.right = "Favours No JAKi",
+#             xlog = TRUE,
+#             pooled.total = F
+# )
+# 
+# # Calculate the y-coordinate for the "Average treatment effect" row
+# # The y-coordinate might need to be adjusted depending on the plot layout
+# summary_row_y <- unit(0.26, "npc")
+# 
+# # Add text annotations for totals
+# total_row <- c(sum(df_mort28$n_intervention), sum(df_mort28$n_control),
+#                sum(df_mort28$e_intervention), sum(df_mort28$e_control))
+# 
+# # Convert current graphics device to a grid viewport
+# pushViewport(viewport())
+# 
+# # Add text annotations aligned with the summary row
+# grid.text(label = total_row[1], x = unit(0.27, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+# grid.text(label = total_row[2], x = unit(0.375, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+# grid.text(label = total_row[3], x = unit(0.435, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+# grid.text(label = total_row[4], x = unit(0.53, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+# 
+# # Pop the viewport to finalize the plot
+# popViewport()
+# 
 # dev.off()
 
 ```
