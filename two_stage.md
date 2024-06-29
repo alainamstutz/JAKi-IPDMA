@@ -4278,244 +4278,6 @@ forest.meta(rs.mort28,
 ```r
 # Calculate the inverse variance
 df_sg_rs_mort28$inverse_variance <- 1 / df_sg_rs_mort28$standard_error^2
-
-# Insert ACTT2 title
-empty_row <- data.frame(
-  variable = "ACTT2",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-df_sg_rs_mort28 <- rbind(empty_row, df_sg_rs_mort28)
-
-# Insert cov-barrier title
-empty_row <- data.frame(
-  variable = "COV-BARRIER",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_rs_mort28[1:5, ]
-second_part <- df_sg_rs_mort28[6:nrow(df_sg_rs_mort28), ]
-# Insert the empty row before/after
-df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert bari-solidact title
-empty_row <- data.frame(
-  variable = "BARI-SOLIDACT",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_rs_mort28[1:10, ]
-second_part <- df_sg_rs_mort28[11:nrow(df_sg_rs_mort28), ]
-# Insert the empty row before/after
-df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Covinib title
-empty_row <- data.frame(
-  variable = "COVINIB",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_rs_mort28[1:13, ]
-second_part <- df_sg_rs_mort28[14:nrow(df_sg_rs_mort28), ]
-# Insert the empty row before/after
-df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TOFACOV title
-empty_row <- data.frame(
-  variable = "TOFACOV",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_rs_mort28[1:16, ]
-second_part <- df_sg_rs_mort28[17:nrow(df_sg_rs_mort28), ]
-# Insert the empty row before/after
-df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Ghazaeian title
-empty_row <- data.frame(
-  variable = "GHAZAEIAN",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_rs_mort28[1:19, ]
-second_part <- df_sg_rs_mort28[20:nrow(df_sg_rs_mort28), ]
-# Insert the empty row before/after
-df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RECOVERY title
-empty_row <- data.frame(
-  variable = "RECOVERY",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_rs_mort28[1:21, ]
-second_part <- df_sg_rs_mort28[22:nrow(df_sg_rs_mort28), ]
-# Insert the empty row before/after
-df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TACTIC-R title
-empty_row <- data.frame(
-  variable = "TACTIC-R",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_rs_mort28[1:26, ]
-second_part <- df_sg_rs_mort28[27:nrow(df_sg_rs_mort28), ]
-# Insert the empty row before/after
-df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RUXCOVID title
-empty_row <- data.frame(
-  variable = "RUXCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_rs_mort28[1:30, ]
-second_part <- df_sg_rs_mort28[31:nrow(df_sg_rs_mort28), ]
-# Insert the empty row before/after
-df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert PANCOVID title
-empty_row <- data.frame(
-  variable = "PANCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_rs_mort28[1:34, ]
-second_part <- df_sg_rs_mort28[35:nrow(df_sg_rs_mort28), ]
-# Insert the empty row before/after
-df_sg_rs_mort28 <- rbind(first_part, empty_row, second_part)
-
-
-# Create a forest plot
-# pdf("sg_vb_mort28.pdf", width=10, height=8)
-forest(df_sg_rs_mort28$hazard_odds_ratio,
-       ci.lb = df_sg_rs_mort28$ci_lower,
-       ci.ub = df_sg_rs_mort28$ci_upper,
-       slab = df_sg_rs_mort28$variable,
-       alim = c(0, 2),
-       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.5,
-       refline = 1,
-       annotate = F,
-       lwd.ci = 1,
-       psize = sqrt(df_sg_rs_mort28$inverse_variance),
-       )
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-44-1.png)<!-- -->
-
-```r
-# dev.off()
 ```
 
 # Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Pooled across trials
@@ -4819,244 +4581,6 @@ forest.meta(vb.mort28,
 ```r
 # Calculate the inverse variance
 df_sg_vb_mort28$inverse_variance <- 1 / df_sg_vb_mort28$standard_error^2
-
-# Insert ACTT2 title
-empty_row <- data.frame(
-  variable = "ACTT2",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-df_sg_vb_mort28 <- rbind(empty_row, df_sg_vb_mort28)
-
-# Insert cov-barrier title
-empty_row <- data.frame(
-  variable = "COV-BARRIER",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vb_mort28[1:3, ]
-second_part <- df_sg_vb_mort28[4:nrow(df_sg_vb_mort28), ]
-# Insert the empty row before/after
-df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert bari-solidact title
-empty_row <- data.frame(
-  variable = "BARI-SOLIDACT",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vb_mort28[1:6, ]
-second_part <- df_sg_vb_mort28[7:nrow(df_sg_vb_mort28), ]
-# Insert the empty row before/after
-df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Covinib title
-empty_row <- data.frame(
-  variable = "COVINIB",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vb_mort28[1:8, ]
-second_part <- df_sg_vb_mort28[9:nrow(df_sg_vb_mort28), ]
-# Insert the empty row before/after
-df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TOFACOV title
-empty_row <- data.frame(
-  variable = "TOFACOV",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vb_mort28[1:10, ]
-second_part <- df_sg_vb_mort28[11:nrow(df_sg_vb_mort28), ]
-# Insert the empty row before/after
-df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Ghazaeian title
-empty_row <- data.frame(
-  variable = "GHAZAEIAN",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vb_mort28[1:12, ]
-second_part <- df_sg_vb_mort28[13:nrow(df_sg_vb_mort28), ]
-# Insert the empty row before/after
-df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RECOVERY title
-empty_row <- data.frame(
-  variable = "RECOVERY",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vb_mort28[1:14, ]
-second_part <- df_sg_vb_mort28[15:nrow(df_sg_vb_mort28), ]
-# Insert the empty row before/after
-df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TACTIC-R title
-empty_row <- data.frame(
-  variable = "TACTIC-R",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vb_mort28[1:17, ]
-second_part <- df_sg_vb_mort28[18:nrow(df_sg_vb_mort28), ]
-# Insert the empty row before/after
-df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RUXCOVID title
-empty_row <- data.frame(
-  variable = "RUXCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vb_mort28[1:20, ]
-second_part <- df_sg_vb_mort28[21:nrow(df_sg_vb_mort28), ]
-# Insert the empty row before/after
-df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert PANCOVID title
-empty_row <- data.frame(
-  variable = "PANCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vb_mort28[1:23, ]
-second_part <- df_sg_vb_mort28[24:nrow(df_sg_vb_mort28), ]
-# Insert the empty row before/after
-df_sg_vb_mort28 <- rbind(first_part, empty_row, second_part)
-
-
-# Create a forest plot
-# pdf("sg_vb_mort28.pdf", width=10, height=8)
-forest(df_sg_vb_mort28$hazard_odds_ratio,
-       ci.lb = df_sg_vb_mort28$ci_lower,
-       ci.ub = df_sg_vb_mort28$ci_upper,
-       slab = df_sg_vb_mort28$variable,
-       alim = c(0, 3),
-       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.5,
-       refline = 1,
-       annotate = F,
-       lwd.ci = 1,
-       psize = sqrt(df_sg_vb_mort28$inverse_variance),
-       )
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-47-1.png)<!-- -->
-
-```r
-# dev.off()
 ```
 
 # Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint: Pooled across trials
@@ -5175,19 +4699,16 @@ forest.meta(vent.mort28,
 
 ```r
 # str(df_age_mort28)
+df_age_mort28 <- df_age_mort28[order(df_age_mort28$trial), ]
 age.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_age_mort28,
-                      # n.e = n_int + n_cont,
-                      # n.c = n_control,
                       sm = "OR",
-                      fixed = F, # the true interaction is assumed the same in all trials 
-                      random = T, # the true interactions are assumed random across trials
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Treatment-covariate interaction on primary endpoint: Age",
+                      fixed = F, 
+                      random = T, 
+                      method.tau = "ML", 
+                      method.random.ci = "HK",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
@@ -5195,24 +4716,22 @@ summary(age.mort28)
 ```
 
 ```
-## Review:     Treatment-covariate interaction on primary endpoint: Age
-## 
 ##                   OR           95%-CI %W(random)
-## Bari-SolidAct 1.0266 [0.9535; 1.1054]        1.8
 ## ACTT-2        0.9925 [0.9515; 1.0352]        5.5
-## Ghazaeian     1.0505 [0.9466; 1.1657]        0.9
-## TOFACOV       1.0471 [0.8652; 1.2672]        0.3
-## COVINIB       0.8660 [0.7030; 1.0668]        0.2
+## Bari-SolidAct 1.0266 [0.9535; 1.1054]        1.8
 ## COV-BARRIER   1.0241 [0.9960; 1.0529]       12.6
-## RECOVERY      1.0080 [0.9967; 1.0195]       76.5
-## TACTIC-R      1.0545 [0.9700; 1.1463]        1.4
-## RUXCOVID      1.0129 [0.8943; 1.1473]        0.6
+## COVINIB       0.8660 [0.7030; 1.0668]        0.2
+## Ghazaeian     1.0505 [0.9466; 1.1657]        0.9
 ## PANCOVID      1.0308 [0.8044; 1.3208]        0.2
+## RECOVERY      1.0080 [0.9967; 1.0195]       76.5
+## RUXCOVID      1.0129 [0.8943; 1.1473]        0.6
+## TACTIC-R      1.0545 [0.9700; 1.1463]        1.4
+## TOFACOV       1.0471 [0.8652; 1.2672]        0.3
 ## 
 ## Number of studies: k = 10
 ## 
-##                                  OR           95%-CI    t p-value
-## Random effects model (HK-CI) 1.0103 [1.0004; 1.0204] 2.04  0.0410
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.0103 [1.0012; 1.0196] 2.56  0.0307
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 0.0026]; tau = 0 [0.0000; 0.0510]
@@ -5226,7 +4745,7 @@ summary(age.mort28)
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = )
+## - Hartung-Knapp adjustment for random effects model (df = 9)
 ```
 
 ```r
@@ -5234,23 +4753,20 @@ age.mort28$pval.random
 ```
 
 ```
-## [1] 0.0410467
+## [1] 0.03071685
 ```
 
 ```r
-# pdf("age.mort28.pdf", width=11, height=4)
-fp <- forest.meta(age.mort28,
+forest.meta(age.mort28,
             hetstat = F,
             leftcols = c("studlab"),
             leftlabs = c("Trial"),
             # text.common = "Average interaction effect (common effect model)*",
             # text.random = "Average interaction effect (random effect model)*",
             text.random = "",
-            title = "Treatment-covariate interaction on primary endpoint: Age",
-            # xlim = c(0.8,1.35),
-            # xlab = "younger: greater effect <-> older: greater effect",
-            # xlab.pos = -0.02,
-            # fs.xlab = 11,
+            xlab = "    older: greater effect < > younger: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11
             )
 ```
 
@@ -5259,249 +4775,75 @@ fp <- forest.meta(age.mort28,
 # Subgroups: Age on primary endpoint: Descriptive
 
 ```r
-# Calculate the inverse variance
 df_sg_age_mort28$inverse_variance <- 1 / df_sg_age_mort28$standard_error^2
-
-# Insert ACTT2 title
-empty_row <- data.frame(
-  variable = "ACTT2",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-df_sg_age_mort28 <- rbind(empty_row, df_sg_age_mort28)
-
-# Insert cov-barrier title
-empty_row <- data.frame(
-  variable = "COV-BARRIER",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_age_mort28[1:3, ]
-second_part <- df_sg_age_mort28[4:nrow(df_sg_age_mort28), ]
-# Insert the empty row before/after
-df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert bari-solidact title
-empty_row <- data.frame(
-  variable = "BARI-SOLIDACT",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_age_mort28[1:6, ]
-second_part <- df_sg_age_mort28[7:nrow(df_sg_age_mort28), ]
-# Insert the empty row before/after
-df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Covinib title
-empty_row <- data.frame(
-  variable = "COVINIB",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_age_mort28[1:9, ]
-second_part <- df_sg_age_mort28[10:nrow(df_sg_age_mort28), ]
-# Insert the empty row before/after
-df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TOFACOV title
-empty_row <- data.frame(
-  variable = "TOFACOV",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_age_mort28[1:12, ]
-second_part <- df_sg_age_mort28[13:nrow(df_sg_age_mort28), ]
-# Insert the empty row before/after
-df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Ghazaeian title
-empty_row <- data.frame(
-  variable = "GHAZAEIAN",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_age_mort28[1:15, ]
-second_part <- df_sg_age_mort28[16:nrow(df_sg_age_mort28), ]
-# Insert the empty row before/after
-df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RECOVERY title
-empty_row <- data.frame(
-  variable = "RECOVERY",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_age_mort28[1:18, ]
-second_part <- df_sg_age_mort28[19:nrow(df_sg_age_mort28), ]
-# Insert the empty row before/after
-df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TACTIC-R title
-empty_row <- data.frame(
-  variable = "TACTIC-R",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_age_mort28[1:21, ]
-second_part <- df_sg_age_mort28[22:nrow(df_sg_age_mort28), ]
-# Insert the empty row before/after
-df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RUXCOVID title
-empty_row <- data.frame(
-  variable = "RUXCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_age_mort28[1:24, ]
-second_part <- df_sg_age_mort28[25:nrow(df_sg_age_mort28), ]
-# Insert the empty row before/after
-df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert PANCOVID title
-empty_row <- data.frame(
-  variable = "PANCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_age_mort28[1:27, ]
-second_part <- df_sg_age_mort28[28:nrow(df_sg_age_mort28), ]
-# Insert the empty row before/after
-df_sg_age_mort28 <- rbind(first_part, empty_row, second_part)
-
 df_sg_age_mort28$variable <- gsub("_firth$", "", df_sg_age_mort28$variable)
+df_sg_age_mort28 <- df_sg_age_mort28[order(df_sg_age_mort28$trial), ]
 
-# Create a forest plot
-# pdf("sg_age_mort28.pdf", width=10, height=8)
-forest(df_sg_age_mort28$hazard_odds_ratio,
-       ci.lb = df_sg_age_mort28$ci_lower,
-       ci.ub = df_sg_age_mort28$ci_upper,
-       slab = df_sg_age_mort28$variable,
-       alim = c(0, 5),
-       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.5,
-       refline = 1,
-       annotate = F,
-       lwd.ci = 1,
-       # psize = sqrt(df_sg_age_mort28$inverse_variance),
-       xlog = TRUE
-       )
+mort28.age <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = variable,
+                      data = df_sg_age_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = F,
+                      prediction = F,
+                      subgroup = trial,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      )
+summary(mort28.age)
+```
+
+```
+##                        OR             95%-CI         trial
+## 70 years and above 0.6904 [0.2639;   1.8060]        ACTT-2
+## below 70 years     0.6762 [0.3346;   1.3666]        ACTT-2
+## 70 years and above 0.9118 [0.3189;   2.6069] Bari-SolidAct
+## below 70 years     0.6336 [0.2161;   1.8583] Bari-SolidAct
+## 70 years and above 0.6487 [0.3824;   1.1005]   COV-BARRIER
+## below 70 years     0.4610 [0.3005;   0.7073]   COV-BARRIER
+## 70 years and above 0.5556 [0.0082;  37.5625]       COVINIB
+## below 70 years     0.1924 [0.0110;   3.3653]       COVINIB
+## 70 years and above 3.5455 [0.1188; 105.8203]     Ghazaeian
+## below 70 years     0.5700 [0.1141;   2.8473]     Ghazaeian
+## 70 years and above 0.3086 [0.0568;   1.6781]      PANCOVID
+## below 70 years     1.1214 [0.0634;  19.8484]      PANCOVID
+## 70 years and above 0.9414 [0.7692;   1.1521]      RECOVERY
+## below 70 years     0.7614 [0.6289;   0.9218]      RECOVERY
+## 70 years and above 1.3829 [0.2462;   7.7685]      RUXCOVID
+## below 70 years     2.0882 [0.2304;  18.9276]      RUXCOVID
+## 70 years and above 1.1695 [0.3822;   3.5787]      TACTIC-R
+## below 70 years     0.7340 [0.2362;   2.2812]      TACTIC-R
+## 70 years and above 0.6800 [0.0123;  37.7107]       TOFACOV
+## below 70 years     3.0013 [0.1729;  52.0999]       TOFACOV
+## 
+## Number of studies: k = 20
+## Number of observations: o = 1431
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+```
+
+```r
+forest.meta(mort28.age,
+            rightcols = c("effect", "ci"),
+            rightlabs = c("aOR", "95%-CI"),
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            text.random = "",
+            # xlim = c(0.10,5),
+            # label.left = "Favours JAKi",  
+            # label.right = "Favours No JAKi",
+            overall.hetstat = F,
+            test.subgroup = F,
+            overall = F,
+            hetstat = F
+            )
 ```
 
 ![](two_stage_files/figure-html/unnamed-chunk-50-1.png)<!-- -->
-
-```r
-# dev.off()
-```
 
 # Subgroups: Age on primary endpoint: Pooled across trials
 
@@ -5622,17 +4964,17 @@ forest.meta(age.below70.mort28,
 # Interaction: Comorbidity on primary endpoint
 
 ```r
+# str(df_comorb_mort28)
+df_comorb_mort28 <- df_comorb_mort28[order(df_comorb_mort28$trial), ]
 comorb.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_comorb_mort28,
-                      # sm = "log(Ratio of OR)",
                       sm = "OR",
-                      fixed = F, # the true interaction is assumed the same in all trials 
-                      random = T, # the true interactions are assumed random across trials
-                      # prediction = T,
-                      method.tau = "ML", # same results with REML (-> see one-stage!)
-                      method.random.ci = "HK", # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+                      fixed = F, 
+                      random = T, 
+                      method.tau = "ML", 
+                      method.random.ci = "HK",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
@@ -5641,16 +4983,16 @@ summary(comorb.mort28)
 
 ```
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 1.0985 [0.4283;  2.8175]        2.9
 ## ACTT-2        0.8088 [0.3396;  1.9262]        3.4
-## Ghazaeian     1.9139 [0.2974; 12.3188]        0.7
-## TOFACOV       0.6061 [0.0405;  9.0812]        0.4
-## COVINIB       1.5083 [0.1261; 18.0458]        0.4
+## Bari-SolidAct 1.0985 [0.4283;  2.8175]        2.9
 ## COV-BARRIER   0.8492 [0.5329;  1.3530]       11.9
-## RECOVERY      1.3073 [1.0883;  1.5705]       76.7
-## TACTIC-R      1.2511 [0.4605;  3.3990]        2.6
-## RUXCOVID      0.5421 [0.0629;  4.6724]        0.6
+## COVINIB       1.5083 [0.1261; 18.0458]        0.4
+## Ghazaeian     1.9139 [0.2974; 12.3188]        0.7
 ## PANCOVID      0.3798 [0.0349;  4.1372]        0.5
+## RECOVERY      1.3073 [1.0883;  1.5705]       76.7
+## RUXCOVID      0.5421 [0.0629;  4.6724]        0.6
+## TACTIC-R      1.2511 [0.4605;  3.3990]        2.6
+## TOFACOV       0.6061 [0.0405;  9.0812]        0.4
 ## 
 ## Number of studies: k = 10
 ## 
@@ -5891,248 +5233,91 @@ forest.meta(comorb.noimmuno.mort28,
 # Subgroups: Comorbidity on primary endpoint: Descriptive
 
 ```r
-# Calculate the inverse variance
 df_sg_comorb_mort28$inverse_variance <- 1 / df_sg_comorb_mort28$standard_error^2
-
-# Insert ACTT2 title
-empty_row <- data.frame(
-  variable = "ACTT2",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-df_sg_comorb_mort28 <- rbind(empty_row, df_sg_comorb_mort28)
-
-# Insert cov-barrier title
-empty_row <- data.frame(
-  variable = "COV-BARRIER",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comorb_mort28[1:5, ]
-second_part <- df_sg_comorb_mort28[6:nrow(df_sg_comorb_mort28), ]
-# Insert the empty row before/after
-df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert bari-solidact title
-empty_row <- data.frame(
-  variable = "BARI-SOLIDACT",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comorb_mort28[1:10, ]
-second_part <- df_sg_comorb_mort28[11:nrow(df_sg_comorb_mort28), ]
-# Insert the empty row before/after
-df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Covinib title
-empty_row <- data.frame(
-  variable = "COVINIB",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comorb_mort28[1:15, ]
-second_part <- df_sg_comorb_mort28[16:nrow(df_sg_comorb_mort28), ]
-# Insert the empty row before/after
-df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TOFACOV title
-empty_row <- data.frame(
-  variable = "TOFACOV",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comorb_mort28[1:20, ]
-second_part <- df_sg_comorb_mort28[21:nrow(df_sg_comorb_mort28), ]
-# Insert the empty row before/after
-df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Ghazaeian title
-empty_row <- data.frame(
-  variable = "GHAZAEIAN",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comorb_mort28[1:24, ]
-second_part <- df_sg_comorb_mort28[25:nrow(df_sg_comorb_mort28), ]
-# Insert the empty row before/after
-df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RECOVERY title
-empty_row <- data.frame(
-  variable = "RECOVERY",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comorb_mort28[1:29, ]
-second_part <- df_sg_comorb_mort28[30:nrow(df_sg_comorb_mort28), ]
-# Insert the empty row before/after
-df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TACTIC-R title
-empty_row <- data.frame(
-  variable = "TACTIC-R",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comorb_mort28[1:33, ]
-second_part <- df_sg_comorb_mort28[34:nrow(df_sg_comorb_mort28), ]
-# Insert the empty row before/after
-df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RUXCOVID title
-empty_row <- data.frame(
-  variable = "RUXCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comorb_mort28[1:38, ]
-second_part <- df_sg_comorb_mort28[39:nrow(df_sg_comorb_mort28), ]
-# Insert the empty row before/after
-df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert PANCOVID title
-empty_row <- data.frame(
-  variable = "PANCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comorb_mort28[1:42, ]
-second_part <- df_sg_comorb_mort28[43:nrow(df_sg_comorb_mort28), ]
-# Insert the empty row before/after
-df_sg_comorb_mort28 <- rbind(first_part, empty_row, second_part)
-
 df_sg_comorb_mort28$variable <- gsub("_firth$", "", df_sg_comorb_mort28$variable)
+df_sg_comorb_mort28 <- df_sg_comorb_mort28[order(df_sg_comorb_mort28$trial), ]
 
-# Create a forest plot
-# pdf("sg_vb_mort28.pdf", width=10, height=8)
-forest(df_sg_comorb_mort28$hazard_odds_ratio,
-       ci.lb = df_sg_comorb_mort28$ci_lower,
-       ci.ub = df_sg_comorb_mort28$ci_upper,
-       slab = df_sg_comorb_mort28$variable,
-       alim = c(0, 2),
-       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.5,
-       refline = 1,
-       annotate = F,
-       lwd.ci = 1,
-       psize = sqrt(df_sg_comorb_mort28$inverse_variance),
-       )
+mort28.comorb <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = variable,
+                      data = df_sg_comorb_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = F,
+                      random = F,
+                      prediction = F,
+                      subgroup = trial,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      )
+summary(mort28.comorb)
+```
+
+```
+##                            OR             95%-CI         trial
+## No comorbidity         1.2952 [0.0855;  19.6131]        ACTT-2
+## One comorbidity        0.7249 [0.2337;   2.2484]        ACTT-2
+## Multiple comorbidities 0.4953 [0.2382;   1.0303]        ACTT-2
+## Immunocompromised      1.9815 [0.1023;  38.3933]        ACTT-2
+## No comorbidity         0.7929 [0.0850;   7.4008] Bari-SolidAct
+## One comorbidity        0.7583 [0.1125;   5.1119] Bari-SolidAct
+## Multiple comorbidities 0.7853 [0.2708;   2.2772] Bari-SolidAct
+## Immunocompromised      0.7265 [0.0470;  11.2330] Bari-SolidAct
+## No comorbidity         0.5583 [0.2058;   1.5143]   COV-BARRIER
+## One comorbidity        0.6398 [0.3270;   1.2517]   COV-BARRIER
+## Multiple comorbidities 0.4352 [0.2829;   0.6696]   COV-BARRIER
+## Immunocompromised      1.2579 [0.0447;  35.3617]   COV-BARRIER
+## No comorbidity         0.0726 [0.0019;   2.8390]       COVINIB
+## One comorbidity        0.8352 [0.0443;  15.7418]       COVINIB
+## Multiple comorbidities 0.3561 [0.0220;   5.7711]       COVINIB
+## Immunocompromised      1.0000 [0.0108;  92.4216]       COVINIB
+## No comorbidity         0.6585 [0.0545;   7.9515]     Ghazaeian
+## One comorbidity        1.2592 [0.0451;  35.1269]     Ghazaeian
+## Multiple comorbidities 0.3298 [0.0217;   5.0076]     Ghazaeian
+## Immunocompromised      9.0000 [0.0974; 831.7956]     Ghazaeian
+## No comorbidity         0.1569 [0.0038;   6.4039]      PANCOVID
+## One comorbidity        0.3019 [0.0395;   2.3070]      PANCOVID
+## Multiple comorbidities 0.1874 [0.0121;   2.9133]      PANCOVID
+## No comorbidity         0.5901 [0.4605;   0.7561]      RECOVERY
+## One comorbidity        0.9027 [0.7102;   1.1474]      RECOVERY
+## Multiple comorbidities 1.0041 [0.7729;   1.3044]      RECOVERY
+## No comorbidity         1.0973 [0.0576;  20.8949]      RUXCOVID
+## One comorbidity        2.4121 [0.2328;  24.9889]      RUXCOVID
+## Multiple comorbidities 0.9901 [0.1623;   6.0405]      RUXCOVID
+## No comorbidity         0.4901 [0.0327;   7.3446]      TACTIC-R
+## One comorbidity        1.4596 [0.2164;   9.8430]      TACTIC-R
+## Multiple comorbidities 0.5951 [0.1891;   1.8724]      TACTIC-R
+## Immunocompromised      4.1181 [0.2585;  65.6097]      TACTIC-R
+## No comorbidity         1.1018 [0.0585;  20.7441]       TOFACOV
+## One comorbidity        2.6426 [0.1674;  41.7124]       TOFACOV
+## Multiple comorbidities 0.3895 [0.0140;  10.8361]       TOFACOV
+## 
+## Number of studies: k = 36
+## Number of observations: o = 1431
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+```
+
+```r
+forest.meta(mort28.comorb,
+            rightcols = c("effect", "ci"),
+            rightlabs = c("aOR", "95%-CI"),
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            text.random = "",
+            # xlim = c(0.10,5),
+            # label.left = "Favours JAKi",  
+            # label.right = "Favours No JAKi",
+            overall.hetstat = F,
+            test.subgroup = F,
+            overall = F,
+            hetstat = F
+            )
 ```
 
 ![](two_stage_files/figure-html/unnamed-chunk-53-1.png)<!-- -->
-
-```r
-# dev.off()
-```
 
 # Subgroups: Comorbidity on primary endpoint: Pooled across trials (only for overall forestplot; descriptive)
 
@@ -6441,244 +5626,6 @@ forest.meta(comed.mort28,
 ```r
 # Calculate the inverse variance
 df_sg_comed_mort28$inverse_variance <- 1 / df_sg_comed_mort28$standard_error^2
-
-# Insert ACTT2 title
-empty_row <- data.frame(
-  variable = "ACTT2",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-df_sg_comed_mort28 <- rbind(empty_row, df_sg_comed_mort28)
-
-# Insert cov-barrier title
-empty_row <- data.frame(
-  variable = "COV-BARRIER",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comed_mort28[1:3, ]
-second_part <- df_sg_comed_mort28[4:nrow(df_sg_comed_mort28), ]
-# Insert the empty row before/after
-df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert bari-solidact title
-empty_row <- data.frame(
-  variable = "BARI-SOLIDACT",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comed_mort28[1:6, ]
-second_part <- df_sg_comed_mort28[7:nrow(df_sg_comed_mort28), ]
-# Insert the empty row before/after
-df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Covinib title
-empty_row <- data.frame(
-  variable = "COVINIB",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comed_mort28[1:9, ]
-second_part <- df_sg_comed_mort28[10:nrow(df_sg_comed_mort28), ]
-# Insert the empty row before/after
-df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TOFACOV title
-empty_row <- data.frame(
-  variable = "TOFACOV",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comed_mort28[1:12, ]
-second_part <- df_sg_comed_mort28[13:nrow(df_sg_comed_mort28), ]
-# Insert the empty row before/after
-df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Ghazaeian title
-empty_row <- data.frame(
-  variable = "GHAZAEIAN",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comed_mort28[1:15, ]
-second_part <- df_sg_comed_mort28[16:nrow(df_sg_comed_mort28), ]
-# Insert the empty row before/after
-df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RECOVERY title
-empty_row <- data.frame(
-  variable = "RECOVERY",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comed_mort28[1:17, ]
-second_part <- df_sg_comed_mort28[18:nrow(df_sg_comed_mort28), ]
-# Insert the empty row before/after
-df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TACTIC-R title
-empty_row <- data.frame(
-  variable = "TACTIC-R",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comed_mort28[1:22, ]
-second_part <- df_sg_comed_mort28[23:nrow(df_sg_comed_mort28), ]
-# Insert the empty row before/after
-df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RUXCOVID title
-empty_row <- data.frame(
-  variable = "RUXCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comed_mort28[1:26, ]
-second_part <- df_sg_comed_mort28[27:nrow(df_sg_comed_mort28), ]
-# Insert the empty row before/after
-df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert PANCOVID title
-empty_row <- data.frame(
-  variable = "PANCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_comed_mort28[1:29, ]
-second_part <- df_sg_comed_mort28[30:nrow(df_sg_comed_mort28), ]
-# Insert the empty row before/after
-df_sg_comed_mort28 <- rbind(first_part, empty_row, second_part)
-
-
-# Create a forest plot
-# pdf("sg_vb_mort28.pdf", width=10, height=8)
-forest(df_sg_comed_mort28$hazard_odds_ratio,
-       ci.lb = df_sg_comed_mort28$ci_lower,
-       ci.ub = df_sg_comed_mort28$ci_upper,
-       slab = df_sg_comed_mort28$variable,
-       alim = c(0, 2),
-       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.5,
-       refline = 1,
-       annotate = F,
-       lwd.ci = 1,
-       psize = sqrt(df_sg_comed_mort28$inverse_variance),
-       )
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-56-1.png)<!-- -->
-
-```r
-# dev.off()
 ```
 
 # Subgroups: Comedication on primary endpoint: Pooled across trials
@@ -6951,133 +5898,6 @@ forest.meta(vacc.ae28,
 ```r
 # Calculate the inverse variance
 df_sg_vacc_ae28$inverse_variance <- 1 / df_sg_vacc_ae28$standard_error^2
-
-# Insert bari-solidact title
-empty_row <- data.frame(
-  variable = "BARI-SOLIDACT",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-df_sg_vacc_ae28 <- rbind(empty_row, df_sg_vacc_ae28)
-
-# Insert Covinib title
-empty_row <- data.frame(
-  variable = "COVINIB",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vacc_ae28[1:3, ]
-second_part <- df_sg_vacc_ae28[4:nrow(df_sg_vacc_ae28), ]
-# Insert the empty row before/after
-df_sg_vacc_ae28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TOFACOV title
-empty_row <- data.frame(
-  variable = "TOFACOV",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vacc_ae28[1:6, ]
-second_part <- df_sg_vacc_ae28[7:nrow(df_sg_vacc_ae28), ]
-# Insert the empty row before/after
-df_sg_vacc_ae28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RECOVERY title
-empty_row <- data.frame(
-  variable = "RECOVERY",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vacc_ae28[1:9, ]
-second_part <- df_sg_vacc_ae28[10:nrow(df_sg_vacc_ae28), ]
-# Insert the empty row before/after
-df_sg_vacc_ae28 <- rbind(first_part, empty_row, second_part)
-
-# Insert PANCOVID title
-empty_row <- data.frame(
-  variable = "PANCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_vacc_ae28[1:12, ]
-second_part <- df_sg_vacc_ae28[13:nrow(df_sg_vacc_ae28), ]
-# Insert the empty row before/after
-df_sg_vacc_ae28 <- rbind(first_part, empty_row, second_part)
-
-# Create a forest plot
-# pdf("sg_vb_mort28.pdf", width=10, height=8)
-forest(df_sg_vacc_ae28$hazard_odds_ratio,
-       ci.lb = df_sg_vacc_ae28$ci_lower,
-       ci.ub = df_sg_vacc_ae28$ci_upper,
-       slab = df_sg_vacc_ae28$variable,
-       alim = c(0, 2),
-       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.5,
-       refline = 1,
-       annotate = F,
-       lwd.ci = 1,
-       psize = sqrt(df_sg_vacc_ae28$inverse_variance),
-       )
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-59-1.png)<!-- -->
-
-```r
-# dev.off()
 ```
 
 # Subgroups: Vaccination on AEs: Pooled across trials
@@ -7264,244 +6084,6 @@ forest.meta(symp.mort28,
 ```r
 # Calculate the inverse variance
 df_sg_symp_mort28$inverse_variance <- 1 / df_sg_symp_mort28$standard_error^2
-
-# Insert ACTT2 title
-empty_row <- data.frame(
-  variable = "ACTT2",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-df_sg_symp_mort28 <- rbind(empty_row, df_sg_symp_mort28)
-
-# Insert cov-barrier title
-empty_row <- data.frame(
-  variable = "COV-BARRIER",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_symp_mort28[1:4, ]
-second_part <- df_sg_symp_mort28[5:nrow(df_sg_symp_mort28), ]
-# Insert the empty row before/after
-df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert bari-solidact title
-empty_row <- data.frame(
-  variable = "BARI-SOLIDACT",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_symp_mort28[1:8, ]
-second_part <- df_sg_symp_mort28[9:nrow(df_sg_symp_mort28), ]
-# Insert the empty row before/after
-df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Covinib title
-empty_row <- data.frame(
-  variable = "COVINIB",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_symp_mort28[1:12, ]
-second_part <- df_sg_symp_mort28[13:nrow(df_sg_symp_mort28), ]
-# Insert the empty row before/after
-df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TOFACOV title
-empty_row <- data.frame(
-  variable = "TOFACOV",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_symp_mort28[1:15, ]
-second_part <- df_sg_symp_mort28[16:nrow(df_sg_symp_mort28), ]
-# Insert the empty row before/after
-df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Ghazaeian title
-empty_row <- data.frame(
-  variable = "GHAZAEIAN",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_symp_mort28[1:19, ]
-second_part <- df_sg_symp_mort28[20:nrow(df_sg_symp_mort28), ]
-# Insert the empty row before/after
-df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RECOVERY title
-empty_row <- data.frame(
-  variable = "RECOVERY",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_symp_mort28[1:23, ]
-second_part <- df_sg_symp_mort28[24:nrow(df_sg_symp_mort28), ]
-# Insert the empty row before/after
-df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TACTIC-R title
-empty_row <- data.frame(
-  variable = "TACTIC-R",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_symp_mort28[1:27, ]
-second_part <- df_sg_symp_mort28[28:nrow(df_sg_symp_mort28), ]
-# Insert the empty row before/after
-df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RUXCOVID title
-empty_row <- data.frame(
-  variable = "RUXCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_symp_mort28[1:31, ]
-second_part <- df_sg_symp_mort28[32:nrow(df_sg_symp_mort28), ]
-# Insert the empty row before/after
-df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert PANCOVID title
-empty_row <- data.frame(
-  variable = "PANCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_symp_mort28[1:35, ]
-second_part <- df_sg_symp_mort28[36:nrow(df_sg_symp_mort28), ]
-# Insert the empty row before/after
-df_sg_symp_mort28 <- rbind(first_part, empty_row, second_part)
-
-
-# Create a forest plot
-# pdf("sg_vb_mort28.pdf", width=10, height=8)
-forest(df_sg_symp_mort28$hazard_odds_ratio,
-       ci.lb = df_sg_symp_mort28$ci_lower,
-       ci.ub = df_sg_symp_mort28$ci_upper,
-       slab = df_sg_symp_mort28$variable,
-       alim = c(0, 2),
-       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.5,
-       refline = 1,
-       annotate = F,
-       lwd.ci = 1,
-       psize = sqrt(df_sg_symp_mort28$inverse_variance),
-       )
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-62-1.png)<!-- -->
-
-```r
-# dev.off()
 ```
 
 # Subgroups: Symptom onset on primary endpoint: Pooled across trials
@@ -7756,244 +6338,6 @@ forest.meta(crp.mort28,
 ```r
 # Calculate the inverse variance
 df_sg_crp_mort28$inverse_variance <- 1 / df_sg_crp_mort28$standard_error^2
-
-# Insert ACTT2 title
-empty_row <- data.frame(
-  variable = "ACTT2",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-df_sg_crp_mort28 <- rbind(empty_row, df_sg_crp_mort28)
-
-# Insert cov-barrier title
-empty_row <- data.frame(
-  variable = "COV-BARRIER",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_crp_mort28[1:3, ]
-second_part <- df_sg_crp_mort28[4:nrow(df_sg_crp_mort28), ]
-# Insert the empty row before/after
-df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert bari-solidact title
-empty_row <- data.frame(
-  variable = "BARI-SOLIDACT",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_crp_mort28[1:6, ]
-second_part <- df_sg_crp_mort28[7:nrow(df_sg_crp_mort28), ]
-# Insert the empty row before/after
-df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Covinib title
-empty_row <- data.frame(
-  variable = "COVINIB",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_crp_mort28[1:9, ]
-second_part <- df_sg_crp_mort28[10:nrow(df_sg_crp_mort28), ]
-# Insert the empty row before/after
-df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TOFACOV title
-empty_row <- data.frame(
-  variable = "TOFACOV",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_crp_mort28[1:12, ]
-second_part <- df_sg_crp_mort28[13:nrow(df_sg_crp_mort28), ]
-# Insert the empty row before/after
-df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert Ghazaeian title
-empty_row <- data.frame(
-  variable = "GHAZAEIAN",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_crp_mort28[1:15, ]
-second_part <- df_sg_crp_mort28[16:nrow(df_sg_crp_mort28), ]
-# Insert the empty row before/after
-df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RECOVERY title
-empty_row <- data.frame(
-  variable = "RECOVERY",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_crp_mort28[1:18, ]
-second_part <- df_sg_crp_mort28[19:nrow(df_sg_crp_mort28), ]
-# Insert the empty row before/after
-df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert TACTIC-R title
-empty_row <- data.frame(
-  variable = "TACTIC-R",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_crp_mort28[1:21, ]
-second_part <- df_sg_crp_mort28[22:nrow(df_sg_crp_mort28), ]
-# Insert the empty row before/after
-df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert RUXCOVID title
-empty_row <- data.frame(
-  variable = "RUXCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_crp_mort28[1:24, ]
-second_part <- df_sg_crp_mort28[25:nrow(df_sg_crp_mort28), ]
-# Insert the empty row before/after
-df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
-
-# Insert PANCOVID title
-empty_row <- data.frame(
-  variable = "PANCOVID",
-  hazard_odds_ratio = -1,
-  ci_lower = -1,
-  ci_upper = -1,
-  standard_error = NA,
-  p_value = NA,
-  n_intervention = NA,
-  n_intervention_tot = NA,
-  n_control = NA,
-  n_control_tot = NA,
-  trial = NA,
-  JAKi = NA,
-  inverse_variance = NA
-)
-# Split the dataframe into two parts before and after the third row
-first_part <- df_sg_crp_mort28[1:27, ]
-second_part <- df_sg_crp_mort28[28:nrow(df_sg_crp_mort28), ]
-# Insert the empty row before/after
-df_sg_crp_mort28 <- rbind(first_part, empty_row, second_part)
-
-
-# Create a forest plot
-# pdf("sg_vb_mort28.pdf", width=10, height=8)
-forest(df_sg_crp_mort28$hazard_odds_ratio,
-       ci.lb = df_sg_crp_mort28$ci_lower,
-       ci.ub = df_sg_crp_mort28$ci_upper,
-       slab = df_sg_crp_mort28$variable,
-       alim = c(0, 2),
-       xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
-       cex = 0.5,
-       refline = 1,
-       annotate = F,
-       lwd.ci = 1,
-       psize = sqrt(df_sg_crp_mort28$inverse_variance),
-       )
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-65-1.png)<!-- -->
-
-```r
-# dev.off()
 ```
 
 # Subgroups: CRP on primary endpoint: Pooled across trials
@@ -8180,7 +6524,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |:--------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
 |respiratory support  |          0.880|    0.698|    1.109|          0.101|   0.239|two-stage |
 |ventilation          |          0.787|    0.572|    1.082|          0.124|   0.111|two-stage |
-|age                  |          1.010|    1.000|    1.020|          0.005|   0.041|two-stage |
+|age                  |          1.010|    1.001|    1.020|          0.004|   0.031|two-stage |
 |comorbidity          |          1.202|    1.037|    1.394|          0.065|   0.020|two-stage |
 |comorbidity count    |          1.093|    0.983|    1.216|          0.047|   0.089|two-stage |
 |any comorbidity      |          1.456|    1.177|    1.802|          0.094|   0.003|two-stage |
@@ -8503,12 +6847,14 @@ interaction_df_fp <- rbind(first_part, empty_row, empty_row, second_part)
 interaction_df_fp <- rbind(interaction_df_fp, empty_row)
 p_int <- interaction_df_fp$p_value
 # p_int <- round(p_int,2)
-# p_int <- c("0", "", "0", "", "", "", "0", "", "0", "", "", "", "0", "", "","","0", "", "", "0","")
 
 # ...and overall results from result_df
 mort_28_OR <- result_df$hazard_odds_ratio[1]
 mort_28_ci_lower <- result_df$ci_lower[1]
 mort_28_ci_upper <- result_df$ci_upper[1]
+
+# ...and ICEMAN assessments
+iceman <- c("not assessed", "", "", "", "not assessed", "", "moderate credibility", "", "low credibility", "", "", "", "not assessed", "", "", "", "not assessed", "", "", "not assessed", "")
 
 # build forestplot
 base_data <- tibble(mean = subgroup_df$odds_ratio,
@@ -8519,7 +6865,8 @@ base_data <- tibble(mean = subgroup_df$odds_ratio,
                     events_i = as.character(events_i),
                     tot_c = as.character(tot_c),
                     events_c = as.character(events_c),
-                    p_int = as.character(p_int))
+                    p_int = as.character(p_int),
+                    iceman = as.character(iceman))
 summary <- tibble(mean  = mort_28_OR,
                   lower = mort_28_ci_lower,
                   upper = mort_28_ci_upper,
@@ -8531,6 +6878,7 @@ header <- tibble(subgroup = c("Subgroup"),
                  tot_c = c("No JAKi"),
                  events_c = c("Events no JAKi"),
                  p_int = c("p-int*"),
+                 iceman = c("ICEMAN\ncredibility assessment"),
                  summary = TRUE)
 mort28_fp <- bind_rows(header,base_data,summary)
 
@@ -8546,7 +6894,7 @@ mort28_fp_main <- mort28_fp %>%
 font <- "sans"
 
 mort28_fp_main %>%
-  forestplot(labeltext = c(subgroup, tot_i, events_i, tot_c, events_c, p_int),
+  forestplot(labeltext = c(subgroup, tot_i, events_i, tot_c, events_c, p_int, iceman),
              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
                               ticks = gpar(cex=0.88),
                               summary = gpar(cex=1),
@@ -8560,8 +6908,8 @@ mort28_fp_main %>%
                                "6" = gpar(lty = 2),
                                "10" = gpar(lty = 2),
                                "14" = gpar(lty = 2)),
-             xlog = FALSE,
-             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
+             xlog = T,
+             # xticks = c(1),
              psize = sqrt(subgroup_df$inverse_variance),
              lty.ci = c(1),
              col = fpColors(box = "maroon4",
@@ -8569,7 +6917,7 @@ mort28_fp_main %>%
                             summary = "magenta4",
                             hrz_lines = "gray63"),
              vertices = TRUE,
-             xlab = "     Favours JAKi <-> Favours No JAKi",
+             xlab = "              Favours JAKi < > Favours No JAKi",
              zero = 1,
              grid = structure(c(0.71), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
