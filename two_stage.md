@@ -49,7 +49,14 @@ df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
-df_ruxcovid <- readRDS("trt_effects_ruxcovid_07052024.RData")
+df_ruxcovid <- readRDS("trt_effects_ruxcovid_07052024.RData") ### UPDATE !
+df_ruxcovid <- df_ruxcovid %>% ### UPDATE !
+  rename(n_int = n_intervention,
+         n_cont = n_control) 
+df_ruxcovid <- df_ruxcovid %>% ### UPDATE !
+  mutate(e_int = c(9, 9, 9, 9, 12, 21, NA, 260, 260, 260, 260, 27, NA, 9),
+         e_cont = c(3, 3, 3, 3, 5, 8, NA, 135, 135, 135, 135, 21, NA, 3))
+
 df_pancovid <- readRDS("trt_effects_pancovid.RData")
 ```
 
@@ -226,7 +233,7 @@ for (df in list_df) {
 }
 ```
 
-# (i) Primary outcome: Mortality at day 28
+# (i) Primary outcome: Mortality at day 28. Only IPD trials
 
 ```r
 # str(df_mort28)
@@ -234,17 +241,16 @@ mort28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_mort28,
-                      # n.e = n_intervention + n_control,
-                      n.e = n_intervention,
-                      n.c = n_control,
+                      n.e = n_int,
+                      n.c = n_cont,
                       sm = "OR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - mortality 28 days",
+                      method.tau = "ML", # same results with REML (-> see one-stage!)
+                      # hakn = T, 
+                      # adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+                      method.random.ci = "HK", # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
                       # exclude = trial %in% c("RUXCOVID") # include in forestplot but exclude from analysis
                       )
@@ -252,8 +258,6 @@ summary(mort28)
 ```
 
 ```
-## Review:     Average treatment effect - mortality 28 days
-## 
 ##                   OR            95%-CI %W(random)
 ## Bari-SolidAct 0.6573 [0.3068;  1.4084]        6.2
 ## ACTT-2        0.7041 [0.3996;  1.2406]       10.4
@@ -290,21 +294,16 @@ summary(mort28)
 ```
 
 ```r
-forest.meta(mort28,
-            # hetstat = T,
+forest(mort28, 
             rightcols = c("effect", "ci", "w.random"),
             rightlabs = c("aOR", "95%-CI", "Weight"),
-            # leftcols = c("studlab", "seTE", "n.e"),
-            # leftlabs = c("Trial", "Standard Error", "Sample Size"),
-            leftcols = c("studlab", "n.e", "n.c"),
-            leftlabs = c("Trial", "Total Intervention", "Total Control"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - mortality 28 days", # get the title into the figure
-            xlim = c(0.15,5),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            # xlim = c(0.15,5),
             sortvar = +TE,
-            label.left = "Favours JAKi",  
-            label.right = "Favours No JAKi"
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
 ```
 
@@ -312,17 +311,54 @@ forest.meta(mort28,
 
 ```r
 # Open a pdf file
-# pdf("./fp_aggregated.pdf", width=9, height=4)
-# forest.meta(i.mort28_adhoc_se,
-#             xlim = c(0.1,5),
-#             xlab = "                  Favours JAKi <-> Favours No JAKi",
-#             fs.xlab = 9)
-# dev.off()
+pdf("./fp_mort_28.pdf", width=13, height=5)
+
+forestplot <- forest(mort28,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect   ",
+            # xlim = c(0.15,5),
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+)
+
+# Calculate the y-coordinate for the "Average treatment effect" row
+# The y-coordinate might need to be adjusted depending on the plot layout
+summary_row_y <- unit(0.26, "npc")
+
+# Add text annotations for totals
+total_row <- c(sum(df_mort28$n_int, na.rm = TRUE), 
+               sum(df_mort28$e_int, na.rm = TRUE), 
+               sum(df_mort28$n_cont, na.rm = TRUE),
+               sum(df_mort28$e_cont, na.rm = TRUE))
+
+# Convert current graphics device to a grid viewport
+pushViewport(viewport())
+
+# Add text annotations aligned with the summary row
+grid.text(label = total_row[1], x = unit(0.318, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.37, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.42 , "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.475 , "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+
+# Pop the viewport to finalize the plot
+popViewport()
+
+dev.off()
+```
+
+```
+## quartz_off_screen 
+##                 2
 ```
 Discussion points:
 1. REML or ML -> Give the exact same result, but the one-stage uses ML (including centering) due to rare events. The choice of estimator might have the biggest influence on the 95%CI, larger than other model parameter choices.
 
-# Funnel plot
+### Funnel plot
 
 ```r
 ## funnel plot (contour enhanced)
@@ -347,7 +383,7 @@ funnel(mort28, common = TRUE,
 # par(oldpar)
 ```
 
-# (i.i) Primary outcome: Including the non-IPD RCTs
+# (i.i) Primary outcome: Including the non-IPD RCTs // data preparation
 
 ```r
 # first, add more columns to df_mort28
@@ -378,16 +414,29 @@ df_mort28 <- df_mort28 %>%
 
 df_mort28 <- df_mort28 %>% 
   mutate(rob_mort28 = case_when(trial == "ACTT-2" ~ "low risk",
-                                            trial == "COV-BARRIER" ~ "low risk",
-                                            trial == "RECOVERY" ~ "low risk",
-                                            trial == "TOFACOV" ~ "low risk",
-                                            trial == "COVINIB" ~ "low risk",
-                                            trial == "Ghazaeian" ~ "low risk",
-                                            trial == "Bari-SolidAct" ~ "low risk",
+                                trial == "COV-BARRIER" ~ "low risk",
+                                trial == "RECOVERY" ~ "low risk",
+                                trial == "TOFACOV" ~ "low risk",
+                                trial == "COVINIB" ~ "low risk",
+                                trial == "Ghazaeian" ~ "low risk",
+                                trial == "Bari-SolidAct" ~ "low risk",
                                 trial == "TACTIC-R" ~ "low risk",
                                 trial == "RUXCOVID" ~ "low risk",
                                 trial == "PANCOVID" ~ "low risk",
                                         ))
+df_mort28 <- df_mort28 %>% 
+  mutate('Data provided' = case_when(trial == "ACTT-2" ~ "IPD trials",
+                                trial == "COV-BARRIER" ~ "IPD trials",
+                                trial == "RECOVERY" ~ "IPD trials",
+                                trial == "TOFACOV" ~ "IPD trials",
+                                trial == "COVINIB" ~ "IPD trials",
+                                trial == "Ghazaeian" ~ "IPD trials",
+                                trial == "Bari-SolidAct" ~ "IPD trials",
+                                trial == "TACTIC-R" ~ "IPD trials",
+                                trial == "RUXCOVID" ~ "IPD trials",
+                                trial == "PANCOVID" ~ "IPD trials",
+                                        ))
+
 
 #### read in aggregate data
 ## PRE-VENT
@@ -477,21 +526,17 @@ row_prevent <- tibble(
   ci_upper = exp(confint(mort.28.prevent)["trt", ])[2],
   standard_error = summary(mort.28.prevent)$coefficients["trt", "Std. Error"],
   p_value = summary(mort.28.prevent)$coefficients["trt", "Pr(>|z|)"],
-  n_intervention = addmargins(table(df_prevent$mort_28, df_prevent$trt, useNA = "always"))[4,2],
-  n_control = addmargins(table(df_prevent$mort_28, df_prevent$trt, useNA = "always"))[4,1],
+  n_int = addmargins(table(df_prevent$mort_28, df_prevent$trt))[3,2],
+  n_cont = addmargins(table(df_prevent$mort_28, df_prevent$trt))[3,1],
+  e_int = addmargins(table(df_prevent$mort_28, df_prevent$trt))[2,2],
+  e_cont = addmargins(table(df_prevent$mort_28, df_prevent$trt))[2,1],
   trial = "PRE-VENT*",
   JAKi = "Pacritinib",
   recruitment_period = "06.2020-02.2021",
   recruitment_period_cat = "mid2020",
-  rob_mort28 = "low risk")
-```
+  rob_mort28 = "low risk",
+  'Data provided' = "non-IPD trials")
 
-```
-## Waiting for profiling to be done...
-## Waiting for profiling to be done...
-```
-
-```r
 ## CAO
 df_cao <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "CAO")
 # analyse with same model
@@ -541,37 +586,16 @@ row_cao <- tibble(
   ci_upper = exp(mort.28.cao$ci.upper["trt"]),
   standard_error = sqrt(diag(vcov(mort.28.cao)))["trt"],
   p_value = mort.28.cao$prob["trt"],
-  n_intervention = addmargins(table(df_cao$mort_28, df_cao$trt, useNA = "always"))[4,2],
-  n_control = addmargins(table(df_cao$mort_28, df_cao$trt, useNA = "always"))[4,1],
+  n_int = addmargins(table(df_cao$mort_28, df_cao$trt))[3,2],
+  n_cont = addmargins(table(df_cao$mort_28, df_cao$trt))[3,1],
+  e_int = addmargins(table(df_cao$mort_28, df_cao$trt))[2,2],
+  e_cont = addmargins(table(df_cao$mort_28, df_cao$trt))[2,1],
   trial = "CAO*",
   JAKi = "Ruxolitinib",
   recruitment_period = "02.2020",
   recruitment_period_cat = "beg2020",
-  rob_mort28 = "low risk")
-
-# ## Pancovid
-# df_pancovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Pancovid")
-# # analyse with same model
-# addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))
-# mort.28.pancovid <- df_pancovid %>% 
-#   glm(mort_28 ~ trt
-#       , family = "binomial", data=.)
-# summ(mort.28.pancovid, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# # add effect estimates and other parameters to df_mort28
-# row_pancovid <- tibble(
-#   variable = "death at day 28",
-#   hazard_odds_ratio = exp(coef(mort.28.pancovid)["trt"]),
-#   ci_lower = exp(confint(mort.28.pancovid)["trt", ])[1],
-#   ci_upper = exp(confint(mort.28.pancovid)["trt", ])[2],
-#   standard_error = summary(mort.28.pancovid)$coefficients["trt", "Std. Error"],
-#   p_value = summary(mort.28.pancovid)$coefficients["trt", "Pr(>|z|)"],
-#   n_intervention = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,2],
-#   n_control = addmargins(table(df_pancovid$mort_28, df_pancovid$trt, useNA = "always"))[4,1],
-#   trial = "Pancovid*",
-#   JAKi = "Baricitinib",
-#   recruitment_period = "10.2020-09.2021",
-#   recruitment_period_cat = "beg2021",
-#   rob_mort28 = "low risk")
+  rob_mort28 = "low risk",
+  'Data provided' = "non-IPD trials")
 
 ## STOP-COVID
 df_stopcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "STOP-COVID")
@@ -660,21 +684,17 @@ row_stopcovid <- tibble(
   ci_upper = exp(confint(mort.28.stopcovid)["trt", ])[2],
   standard_error = summary(mort.28.stopcovid)$coefficients["trt", "Std. Error"],
   p_value = summary(mort.28.stopcovid)$coefficients["trt", "Pr(>|z|)"],
-  n_intervention = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))[4,2],
-  n_control = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))[4,1],
+  n_int = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt))[3,2],
+  n_cont = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt))[3,1],
+  e_int = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt))[2,2],
+  e_cont = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt))[2,1],
   trial = "STOP-COVID*",
   JAKi = "Tofacitinib",
   recruitment_period = "09.2020-12.2020",
   recruitment_period_cat = "mid2020",
-  rob_mort28 = "low risk")
-```
+  rob_mort28 = "low risk",
+  'Data provided' = "non-IPD trials")
 
-```
-## Waiting for profiling to be done...
-## Waiting for profiling to be done...
-```
-
-```r
 ## RUXCOVID-DEVENT
 df_ruxcoviddevent <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "RUXCOVID-DEVENT")
 # analyse with same model
@@ -762,68 +782,16 @@ row_ruxcoviddevent <- tibble(
   ci_upper = exp(confint(mort.28.ruxcoviddevent)["trt", ])[2],
   standard_error = summary(mort.28.ruxcoviddevent)$coefficients["trt", "Std. Error"],
   p_value = summary(mort.28.ruxcoviddevent)$coefficients["trt", "Pr(>|z|)"],
-  n_intervention = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))[4,2],
-  n_control = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))[4,1],
+  n_int = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt))[3,2],
+  n_cont = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt))[3,1],
+  e_int = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt))[2,2],
+  e_cont = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt))[2,1],
   trial = "RUXCOVID-DEVENT*",
   JAKi = "Ruxolitinib",
   recruitment_period = "05.2020-12.2020",
   recruitment_period_cat = "mid2020",
-  rob_mort28 = "low risk")
-```
-
-```
-## Waiting for profiling to be done...
-## Waiting for profiling to be done...
-```
-
-```r
-## RUXCOVID
-# df_ruxcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "RUXCOVID")
-# # analyse with same model
-# addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))
-# mort.28.ruxcovid <- df_ruxcovid %>% 
-#   glm(mort_28 ~ trt
-#       , family = "binomial", data=.)
-# summ(mort.28.ruxcovid, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# # add effect estimates and other parameters to df_mort28
-# row_ruxcovid <- tibble(
-#   variable = "death at day 28",
-#   hazard_odds_ratio = exp(coef(mort.28.ruxcovid)["trt"]),
-#   ci_lower = exp(confint(mort.28.ruxcovid)["trt", ])[1],
-#   ci_upper = exp(confint(mort.28.ruxcovid)["trt", ])[2],
-#   standard_error = summary(mort.28.ruxcovid)$coefficients["trt", "Std. Error"],
-#   p_value = summary(mort.28.ruxcovid)$coefficients["trt", "Pr(>|z|)"],
-#   n_intervention = addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))[4,2],
-#   n_control = addmargins(table(df_ruxcovid$mort_28, df_ruxcovid$trt, useNA = "always"))[4,1],
-#   trial = "RUXCOVID*",
-#   JAKi = "Ruxolitinib",
-#   recruitment_period = "04.2020-09.2020",
-#   recruitment_period_cat = "mid2020",
-#   rob_mort28 = "low risk")
-
-# ## TACTIC-R
-# df_tacticr <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "TACTIC-R")
-# # analyse with same model
-# addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))
-# mort.28.tacticr <- df_tacticr %>% 
-#   glm(mort_28 ~ trt
-#       , family = "binomial", data=.)
-# summ(mort.28.tacticr, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# # add effect estimates and other parameters to df_mort28
-# row_tacticr <- tibble(
-#   variable = "death at day 28",
-#   hazard_odds_ratio = exp(coef(mort.28.tacticr)["trt"]),
-#   ci_lower = exp(confint(mort.28.tacticr)["trt", ])[1],
-#   ci_upper = exp(confint(mort.28.tacticr)["trt", ])[2],
-#   standard_error = summary(mort.28.tacticr)$coefficients["trt", "Std. Error"],
-#   p_value = summary(mort.28.tacticr)$coefficients["trt", "Pr(>|z|)"],
-#   n_intervention = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,2],
-#   n_control = addmargins(table(df_tacticr$mort_28, df_tacticr$trt, useNA = "always"))[4,1],
-#   trial = "TACTIC-R*",
-#   JAKi = "Baricitinib",
-#   recruitment_period = "05.2020-05.2021",
-#   recruitment_period_cat = "beg2021",
-#   rob_mort28 = "low risk")
+  rob_mort28 = "low risk",
+  'Data provided' = "non-IPD trials")
 
 ## Dastan
 df_dastan <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Dastan")
@@ -874,13 +842,16 @@ row_dastan <- tibble(
   ci_upper = exp(mort.28.dastan$ci.upper["trt"]),
   standard_error = sqrt(diag(vcov(mort.28.dastan)))["trt"],
   p_value = mort.28.dastan$prob["trt"],
-  n_intervention = addmargins(table(df_dastan$mort_28, df_dastan$trt, useNA = "always"))[4,2],
-  n_control = addmargins(table(df_dastan$mort_28, df_dastan$trt, useNA = "always"))[4,1],
+  n_int = addmargins(table(df_dastan$mort_28, df_dastan$trt))[3,2],
+  n_cont = addmargins(table(df_dastan$mort_28, df_dastan$trt))[3,1],
+  e_int = addmargins(table(df_dastan$mort_28, df_dastan$trt))[2,2],
+  e_cont = addmargins(table(df_dastan$mort_28, df_dastan$trt))[2,1],
   trial = "Dastan*",
   JAKi = "Baricitinib",
   recruitment_period = "03.2022-08.2022",
   recruitment_period_cat = "beg2022",
-  rob_mort28 = "Some concerns")
+  rob_mort28 = "Some concerns",
+  'Data provided' = "non-IPD trials")
 
 ## Singh
 df_singh <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "Singh")
@@ -969,52 +940,362 @@ row_singh <- tibble(
   ci_upper = exp(confint(mort.28.singh)["trt", ])[2],
   standard_error = summary(mort.28.singh)$coefficients["trt", "Std. Error"],
   p_value = summary(mort.28.singh)$coefficients["trt", "Pr(>|z|)"],
-  n_intervention = addmargins(table(df_singh$mort_28, df_singh$trt, useNA = "always"))[4,2],
-  n_control = addmargins(table(df_singh$mort_28, df_singh$trt, useNA = "always"))[4,1],
+  n_int = addmargins(table(df_singh$mort_28, df_singh$trt))[3,2],
+  n_cont = addmargins(table(df_singh$mort_28, df_singh$trt))[3,1],
+  e_int = addmargins(table(df_singh$mort_28, df_singh$trt))[2,2],
+  e_cont = addmargins(table(df_singh$mort_28, df_singh$trt))[2,1],
   trial = "Singh*",
   JAKi = "Nezulcitinib",
   recruitment_period = "06.2020-04.2021",
   recruitment_period_cat = "mid2021",
-  rob_mort28 = "low risk")
-```
+  rob_mort28 = "low risk",
+  'Data provided' = "non-IPD trials")
 
-```
-## Waiting for profiling to be done...
-## Waiting for profiling to be done...
-```
 
-```r
 # Add the new rows to your existing dataframe
 df_mort28_agg <- bind_rows(df_mort28, row_prevent, row_cao, row_stopcovid, row_ruxcoviddevent, row_dastan, row_singh)
+```
+Discussion points:
+* How much do the true effects vary, and over what specific interval?
+a. The confidence interval tells us that the mean effect size in the universe of comparable studies probably falls in the interval -xxx to -xxx.
+b. The prediction interval tells us that in any single study (selected at random from the universe of comparable studies) the true effect size will usually fall between -xxx and +xxx.
+The confidence interval is based on the standard error of the mean and speaks to the precision of the mean. The prediction interval is based on the standard deviation of true effects and speaks to the dispersion of those effects.
+Researchers often assume that if the effect is beneficial and statistically significant, it must be helpful in all populations. However, this is a mistake. The fact that an effect is statisti- cally significant tells us (for example) that the treatment is associated with a benefit on average. It may still be associ- ated with harm in some populations.
+a. The results are statistically significant because the confidence interval excludes zero. However, this speaks only to the mean effect size.
+b. The dispersion of effects is an entirely separate matter.
 
+### Forestplot
 
+```r
 # Forestplot
 # str(df_mort28_agg)
 mort28.agg <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_mort28_agg,
-                      n.e = n_intervention,
-                      n.c = n_control,
-                      # n.e = n_intervention + n_control,
+                      n.e = n_int,
+                      n.c = n_cont,
                       sm = "OR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      # subgroup = JAKi,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      # adhoc.hakn.ci = "", # 'adhoc.hakn.ci' in case of I-squared 0 (either "", "se", "ci", or "IQWiG6").
-                      title = "Average treatment effect - mortality 28 days",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      subgroup = df_mort28_agg$`Data provided`,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
                       )
 summary(mort28.agg)
 ```
 
 ```
-## Review:     Average treatment effect - mortality 28 days
+##                      OR            95%-CI %W(random) `Data provided`
+## Bari-SolidAct    0.6573 [0.3068;  1.4084]        5.8      IPD trials
+## ACTT-2           0.7041 [0.3996;  1.2406]        9.5      IPD trials
+## Ghazaeian        0.7909 [0.1654;  3.7807]        1.5      IPD trials
+## TOFACOV          2.5366 [0.1928; 33.3748]        0.6      IPD trials
+## COVINIB          0.1816 [0.0126;  2.6139]        0.5      IPD trials
+## COV-BARRIER      0.5131 [0.3666;  0.7182]       19.5      IPD trials
+## RECOVERY         0.8109 [0.7034;  0.9349]       37.0      IPD trials
+## TACTIC-R         0.8119 [0.3571;  1.8458]        5.1      IPD trials
+## RUXCOVID         1.4674 [0.3805;  5.6590]        2.0      IPD trials
+## PANCOVID         0.2920 [0.0515;  1.6567]        1.2      IPD trials
+## PRE-VENT*        1.3062 [0.4931;  3.4597]        3.7  non-IPD trials
+## CAO*             0.1289 [0.0062;  2.6659]        0.4  non-IPD trials
+## STOP-COVID*      0.4893 [0.1440;  1.6625]        2.4  non-IPD trials
+## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        6.8  non-IPD trials
+## Dastan*          0.1884 [0.0087;  4.0746]        0.4  non-IPD trials
+## Singh*           0.4235 [0.1544;  1.1618]        3.5  non-IPD trials
 ## 
+## Number of studies: k = 16
+## Number of observations: o = 13089
+## 
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.6715 [0.5525; 0.8160] -4.36  0.0006
+## Prediction interval              [0.4582; 0.9839]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0217 [0.0000; 0.3793]; tau = 0.1474 [0.0000; 0.6158]
+##  I^2 = 13.5% [0.0%; 50.8%]; H = 1.08 [1.00; 1.43]
+## 
+## Test of heterogeneity:
+##      Q d.f. p-value
+##  17.35   15  0.2984
+## 
+## Results for subgroups (random effects model (HK)):
+##                                    k     OR           95%-CI  tau^2    tau
+## `Data provided` = IPD trials      10 0.7085 [0.5758; 0.8718] 0.0159 0.1262
+## `Data provided` = non-IPD trials   6 0.5359 [0.2976; 0.9648]      0      0
+##                                      Q   I^2
+## `Data provided` = IPD trials     10.28 12.5%
+## `Data provided` = non-IPD trials  5.01  0.2%
+## 
+## Test for subgroup differences (random effects model (HK)):
+##                   Q d.f. p-value
+## Between groups 1.28    1  0.2571
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 15)
+## - Prediction interval based on t-distribution (df = 14)
+```
+
+```r
+forest.meta(mort28.agg,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            # xlim = c(0.10,5),
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi",
+            overall.hetstat = T,
+            test.subgroup = F
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+```r
+# Open a pdf file
+pdf("./fp_mort_28_agg.pdf", width=13, height=7)
+
+forestplot <- forest(mort28.agg,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            # xlim = c(0.15,5),
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            overall.hetstat = T,
+            test.subgroup = F,
+            pooled.total = F
+)
+
+# Calculate the y-coordinate for the "Average treatment effect" row
+# The y-coordinate might need to be adjusted depending on the plot layout
+summary_row_y <- unit(0.142, "npc")
+
+# Add text annotations for totals
+total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE), 
+               sum(df_mort28_agg$e_int, na.rm = TRUE), 
+               sum(df_mort28_agg$n_cont, na.rm = TRUE),
+               sum(df_mort28_agg$e_cont, na.rm = TRUE))
+
+# Convert current graphics device to a grid viewport
+pushViewport(viewport())
+
+# Add text annotations aligned with the summary row
+grid.text(label = total_row[1], x = unit(0.318, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.42, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+
+# Pop the viewport to finalize the plot
+popViewport()
+
+dev.off()
+```
+
+```
+## quartz_off_screen 
+##                 2
+```
+
+### Funnel plot
+
+```r
+## funnel plot (contour enhanced)
+funnel(mort28.agg)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
+```r
+funnel(mort28.agg, common = TRUE,
+  level = 0.95, contour = c(0.9, 0.95, 0.99),
+  col.contour = c("grey", "lightgrey", "lightyellow"),
+  lwd = 2, cex = 1.5, pch = 16, studlab = TRUE, cex.studlab = 1.0)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-8-2.png)<!-- -->
+
+```r
+# legend(0.05, 0.05,
+#   c("0.1 > p > 0.05", "0.05 > p > 0.01", "< 0.01"),
+#   fill = c("darkgreen", "green", "lightgreen"))
+# par(oldpar)
+```
+
+# (i.ii) Primary outcome: Subgroup by JAKi, including the non-IPD RCTs
+
+```r
+# meta-regression by JAKi / or as subgroup?
+# forest(mort28.agg.jaki, layout = "subgroup", calcwidth.hetstat = TRUE) // use custom design instead
+
+mort28.agg.jaki <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_agg,
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      subgroup = JAKi,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      )
+summary(mort28.agg.jaki)
+```
+
+```
+##                      OR            95%-CI %W(random)         JAKi
+## Bari-SolidAct    0.6573 [0.3068;  1.4084]        5.8  Baricitinib
+## ACTT-2           0.7041 [0.3996;  1.2406]        9.5  Baricitinib
+## Ghazaeian        0.7909 [0.1654;  3.7807]        1.5  Tofacitinib
+## TOFACOV          2.5366 [0.1928; 33.3748]        0.6  Tofacitinib
+## COVINIB          0.1816 [0.0126;  2.6139]        0.5  Baricitinib
+## COV-BARRIER      0.5131 [0.3666;  0.7182]       19.5  Baricitinib
+## RECOVERY         0.8109 [0.7034;  0.9349]       37.0  Baricitinib
+## TACTIC-R         0.8119 [0.3571;  1.8458]        5.1  Baricitinib
+## RUXCOVID         1.4674 [0.3805;  5.6590]        2.0  Ruxolitinib
+## PANCOVID         0.2920 [0.0515;  1.6567]        1.2  Baricitinib
+## PRE-VENT*        1.3062 [0.4931;  3.4597]        3.7   Pacritinib
+## CAO*             0.1289 [0.0062;  2.6659]        0.4  Ruxolitinib
+## STOP-COVID*      0.4893 [0.1440;  1.6625]        2.4  Tofacitinib
+## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        6.8  Ruxolitinib
+## Dastan*          0.1884 [0.0087;  4.0746]        0.4  Baricitinib
+## Singh*           0.4235 [0.1544;  1.1618]        3.5 Nezulcitinib
+## 
+## Number of studies: k = 16
+## Number of observations: o = 13089
+## 
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.6715 [0.5525; 0.8160] -4.36  0.0006
+## Prediction interval              [0.4582; 0.9839]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0217 [0.0000; 0.3793]; tau = 0.1474 [0.0000; 0.6158]
+##  I^2 = 13.5% [0.0%; 50.8%]; H = 1.08 [1.00; 1.43]
+## 
+## Test of heterogeneity:
+##      Q d.f. p-value
+##  17.35   15  0.2984
+## 
+## Results for subgroups (random effects model (HK)):
+##                       k     OR           95%-CI   tau^2    tau    Q   I^2
+## JAKi = Baricitinib    8 0.6797 [0.5394; 0.8564]  0.0205 0.1431 9.24 24.2%
+## JAKi = Tofacitinib    3 0.7025 [0.1412; 3.4951]       0      0 1.31  0.0%
+## JAKi = Ruxolitinib    3 0.5391 [0.0986; 2.9474] <0.0001 0.0004 3.26 38.6%
+## JAKi = Pacritinib     1 1.3062 [0.4931; 3.4597]      --     -- 0.00    --
+## JAKi = Nezulcitinib   1 0.4235 [0.1544; 1.1618]      --     -- 0.00    --
+## 
+## Test for subgroup differences (random effects model (HK)):
+##                   Q d.f. p-value
+## Between groups 2.92    4  0.5708
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 15)
+## - Prediction interval based on t-distribution (df = 14)
+```
+
+```r
+forest.meta(mort28.agg.jaki,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            # xlim = c(0.10,5),
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi",
+            overall.hetstat = F,
+            test.subgroup = T
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+
+```r
+# Open a pdf file
+pdf("./fp_mort_28_JAKi.pdf", width=13, height=9)
+
+forestplot <- forest(mort28.agg.jaki,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            # xlim = c(0.15,5),
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            test.subgroup = T,
+            pooled.total = F
+)
+
+# Calculate the y-coordinate for the "Average treatment effect" row
+# The y-coordinate might need to be adjusted depending on the plot layout
+summary_row_y <- unit(0.143, "npc")
+
+# Add text annotations for totals
+total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE), 
+               sum(df_mort28_agg$e_int, na.rm = TRUE), 
+               sum(df_mort28_agg$n_cont, na.rm = TRUE),
+               sum(df_mort28_agg$e_cont, na.rm = TRUE))
+
+# Convert current graphics device to a grid viewport
+pushViewport(viewport())
+
+# Add text annotations aligned with the summary row
+grid.text(label = total_row[1], x = unit(0.318, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.42, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+
+# Pop the viewport to finalize the plot
+popViewport()
+
+dev.off()
+```
+
+```
+## quartz_off_screen 
+##                 2
+```
+
+# (i.ii) Primary outcome: Meta-regression by JAKi, including the non-IPD RCTs
+
+```r
+mort28.agg.jaki <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_agg,
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      # subgroup = JAKi,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      )
+summary(mort28.agg.jaki)
+```
+
+```
 ##                      OR            95%-CI %W(random)
 ## Bari-SolidAct    0.6573 [0.3068;  1.4084]        5.8
 ## ACTT-2           0.7041 [0.3996;  1.2406]        9.5
@@ -1057,99 +1338,37 @@ summary(mort28.agg)
 ```
 
 ```r
-forest.meta(mort28.agg,
-            rightcols = c("effect", "ci", "w.random"),
-            rightlabs = c("aOR", "95%-CI", "Weight"),
-            leftcols = c("studlab", 
-                         "n.e", "n.c"),
-            leftlabs = c("Trial",
-                         "Total Intervention", "Total Control"),
-            sortvar = +TE,
-            text.random = "Average treatment effect (RE model)",
-            title = "Average treatment effect - mortality 28 days", # get the title into the figure
-            xlim = c(0.10,5),
-            label.left = "Favours JAKi",  
-            label.right = "Favours No JAKi"
-            # xlab = "Average treatment effect (95% CI)"
-            )
+mort28.agg.jaki.mreg <- metareg(mort28.agg.jaki, ~JAKi)
+mort28.agg.jaki.mreg
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
-
-```r
-# Open a pdf file
-# pdf("./fp_aggregated.pdf", width=9, height=4)
-# forest.meta(i.mort28_adhoc_se,
-#             xlim = c(0.1,5),
-#             xlab = "                  Favours JAKi <-> Favours No JAKi",
-#             fs.xlab = 9)
-# dev.off()
 ```
-Discussion points:
-* How much do the true effects vary, and over what specific interval?
-a. The confidence interval tells us that the mean effect size in the universe of comparable studies probably falls in the interval -xxx to -xxx.
-b. The prediction interval tells us that in any single study (selected at random from the universe of comparable studies) the true effect size will usually fall between -xxx and +xxx.
-The confidence interval is based on the standard error of the mean and speaks to the precision of the mean. The prediction interval is based on the standard deviation of true effects and speaks to the dispersion of those effects.
-Researchers often assume that if the effect is beneficial and statistically significant, it must be helpful in all populations. However, this is a mistake. The fact that an effect is statisti- cally significant tells us (for example) that the treatment is associated with a benefit on average. It may still be associ- ated with harm in some populations.
-a. The results are statistically significant because the confidence interval excludes zero. However, this speaks only to the mean effect size.
-b. The dispersion of effects is an entirely separate matter.
-
-# Funnel plot
-
-```r
-## funnel plot (contour enhanced)
-funnel(mort28.agg)
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
-
-```r
-funnel(mort28.agg, common = TRUE,
-  level = 0.95, contour = c(0.9, 0.95, 0.99),
-  col.contour = c("grey", "lightgrey", "lightyellow"),
-  lwd = 2, cex = 1.5, pch = 16, studlab = TRUE, cex.studlab = 1.0)
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
-
-```r
-# legend(0.05, 0.05,
-#   c("0.1 > p > 0.05", "0.05 > p > 0.01", "< 0.01"),
-#   fill = c("darkgreen", "green", "lightgreen"))
-# par(oldpar)
-```
-
-# (i.ii) Primary outcome: Meta-regression by JAKi, including the non-IPD RCTs
-
-```r
-# meta-regression by JAKi
-mort28.agg.jaki <- update.meta(mort28.agg, 
-                               subgroup = JAKi)
-forest.meta(mort28.agg.jaki,
-            hetstat = F,
-            rightcols = c("effect", "ci", "w.random"),
-            rightlabs = c("aOR", "95%-CI", "Weight"),
-            leftcols = c("studlab", 
-                         "n.e", "n.c"),
-            leftlabs = c("Trial",
-                         "Total Intervention", "Total Control"),
-            sortvar = +TE,
-            test.subgroup.random = TRUE,
-            prediction = F,
-            text.random = "Average treatment effect (RE model)",
-            title = "Average treatment effect - mortality 28 days", # get the title into the figure
-            xlim = c(0.03,30),
-            label.left = "Favours JAKi",  
-            label.right = "Favours No JAKi"
-            # xlab = "Average treatment effect (95% CI)"
-            )
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
-
-```r
-# Print only subgroup results
-# forest(mort28.agg.jaki, layout = "subgroup", calcwidth.hetstat = TRUE)
+## 
+## Mixed-Effects Model (k = 16; tau^2 estimator: ML)
+## 
+## tau^2 (estimated amount of residual heterogeneity):     0.0158 (SE = 0.0258)
+## tau (square root of estimated tau^2 value):             0.1256
+## I^2 (residual heterogeneity / unaccounted variability): 13.37%
+## H^2 (unaccounted variability / sampling variability):   1.15
+## R^2 (amount of heterogeneity accounted for):            27.41%
+## 
+## Test for Residual Heterogeneity:
+## QE(df = 11) = 13.8078, p-val = 0.2438
+## 
+## Test of Moderators (coefficients 2:5):
+## F(df1 = 4, df2 = 11) = 0.7718, p-val = 0.5657
+## 
+## Model Results:
+## 
+##                   estimate      se     tval  df    pval    ci.lb    ci.ub     
+## intrcpt            -0.3757  0.1005  -3.7400  11  0.0033  -0.5968  -0.1546  ** 
+## JAKiNezulcitinib   -0.4835  0.5235  -0.9237  11  0.3755  -1.6357   0.6686     
+## JAKiPacritinib      0.6428  0.5069   1.2681  11  0.2310  -0.4729   1.7586     
+## JAKiRuxolitinib    -0.2312  0.3301  -0.7004  11  0.4982  -0.9578   0.4953     
+## JAKiTofacitinib     0.0281  0.4643   0.0604  11  0.9529  -0.9939   1.0500     
+## 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 # (i.iii) Primary outcome: Meta-regression by Recruitment Period, including the non-IPD RCTs
@@ -1208,7 +1427,7 @@ mort28.ame <- metagen(TE = hazard_odds_ratio,
                       seTE = standard_error,
                       studlab = trial,
                       data = df_mort28_ame,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       # sm = "SMD",
                       fixed = F,
@@ -1274,7 +1493,7 @@ forest.meta(mort28.ame,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 *Covariate-Adjusted Analysis for Marginal Estimands based on https://arxiv.org/abs/2306.05823 & FDA guidance https://www.fda.gov/media/148910/download
 
 # (i) Primary outcome: Deterministic imputation
@@ -1285,7 +1504,7 @@ mort28.dimp <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_mort28_dimp,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -1353,7 +1572,7 @@ forest.meta(mort28.dimp,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 Discussion points:
 
 # (i.vii) Primary outcome: Multiple imputation
@@ -1385,87 +1604,43 @@ Discussion points:
 # Save
 # saveRDS(df_mort28_mi, file = "trt_effects_mi_14052024.RData") # updated on 14.5.24: incl. PANCOVID and RUXCOVID
 
-# LOAD
-df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
-# str(df_mort28_mi)
-# no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
-df_mort28_mi_add <- df_mort28_dimp %>% 
-  filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
-df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
-
-mort28.mi <- metagen(TE = log(hazard_odds_ratio),
-                      seTE = standard_error,
-                      studlab = trial,
-                      data = df_mort28_mi_ext,
-                      n.e = n_intervention + n_control,
-                      # n.c = n_control,
-                      sm = "OR",
-                      fixed = F,
-                      random = T,
-                      prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect, multiple imputation - mortality 28 days",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
-                      )
-summary(mort28.mi)
+# # LOAD
+# df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
+# # no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
+# df_mort28_mi_add <- df_mort28_dimp %>% 
+#   filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
+# df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
+# 
+# mort28.mi <- metagen(TE = log(hazard_odds_ratio),
+#                       seTE = standard_error,
+#                       studlab = trial,
+#                       data = df_mort28_mi_ext,
+#                       n.e = n_int + n_cont,
+#                       # n.c = n_control,
+#                       sm = "OR",
+#                       fixed = F,
+#                       random = T,
+#                       prediction = T,
+#                       method.tau = "ML", # same results with ML (-> see one-stage!)
+#                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
+#                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
+#                       title = "Average treatment effect, multiple imputation - mortality 28 days",
+#                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+#                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+#                       )
+# summary(mort28.mi)
+# forest.meta(mort28.mi,
+#             # hetstat = T,
+#             # rightcols = c("w.random"),
+#             leftcols = c("studlab", "TE", "seTE", "n.e"),
+#             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
+#             text.random = "Average treatment effect (random effects model)",
+#             title = "Average treatment effect, multiple imputation - mortality 28 days", # get the title into the figure
+#             xlim = c(0.15,5),
+#             sortvar = +TE,
+#             # xlab = "Average treatment effect (95% CI)"
+#             )
 ```
-
-```
-## Review:     Average treatment effect, multiple imputation - mortality 28 days
-## 
-##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.6486 [0.3031;  1.3877]        6.3
-## ACTT-2        0.7344 [0.4147;  1.3007]       10.4
-## COV-BARRIER   0.5106 [0.3645;  0.7152]       22.9
-## RECOVERY      0.8118 [0.7040;  0.9361]       48.3
-## TACTIC-R      1.0507 [0.4769;  2.3152]        5.9
-## RUXCOVID      1.3425 [0.3504;  5.1438]        2.2
-## PANCOVID      0.2840 [0.0500;  1.6133]        1.3
-## Ghazaeian     0.7909 [0.1654;  3.7807]        1.6
-## TOFACOV       2.5366 [0.1928; 33.3748]        0.6
-## COVINIB       0.1822 [0.0127;  2.6082]        0.6
-## 
-## Number of studies: k = 10
-## Number of observations: o = 12078
-## 
-##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.7198 [0.5791; 0.8948] -3.42  0.0077
-## Prediction interval              [0.4926; 1.0518]              
-## 
-## Quantifying heterogeneity:
-##  tau^2 = 0.0165 [0.0000; 0.6869]; tau = 0.1285 [0.0000; 0.8288]
-##  I^2 = 17.2% [0.0%; 58.3%]; H = 1.10 [1.00; 1.55]
-## 
-## Test of heterogeneity:
-##      Q d.f. p-value
-##  10.87    9  0.2846
-## 
-## Details on meta-analytical method:
-## - Inverse variance method
-## - Maximum-likelihood estimator for tau^2
-## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 9)
-## - Prediction interval based on t-distribution (df = 8)
-```
-
-```r
-forest.meta(mort28.mi,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect, multiple imputation - mortality 28 days", # get the title into the figure
-            xlim = c(0.15,5),
-            sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
-            )
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 # (ii) Mortality at day 60
 
@@ -1475,7 +1650,7 @@ mort60 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_mort60,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -1543,7 +1718,7 @@ forest.meta(mort60,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 Discussion points
 
 # (iii) Time to death within max. follow-up time
@@ -1554,7 +1729,7 @@ ttdeath <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ttdeath,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -1574,31 +1749,31 @@ summary(ttdeath)
 ## Review:     Average treatment effect - time to death
 ## 
 ##                   OR             95%-CI %W(random)
-## Bari-SolidAct 0.7727 [0.4322;   1.3817]        8.0
-## ACTT-2        0.7409 [0.4415;   1.2434]        9.7
-## Ghazaeian     0.8380 [0.1874;   3.7469]        1.4
+## Bari-SolidAct 0.7426 [0.4132;   1.3346]        7.8
+## ACTT-2        0.7409 [0.4415;   1.2434]        9.6
+## Ghazaeian     0.8380 [0.1874;   3.7469]        1.3
 ## TOFACOV       3.0000 [0.0325; 277.2599]        0.2
 ## COVINIB       0.1748 [0.0039;   7.8470]        0.2
 ## COV-BARRIER   0.5947 [0.4612;   0.7668]       25.9
-## RECOVERY      0.8531 [0.7562;   0.9626]       44.0
-## TACTIC-R      1.3103 [0.7133;   2.4068]        7.4
-## RUXCOVID      1.4336 [0.3855;   5.3314]        1.8
+## RECOVERY      0.8531 [0.7562;   0.9626]       44.7
+## TACTIC-R      1.2771 [0.6882;   2.3700]        7.1
+## RUXCOVID      1.4336 [0.3855;   5.3314]        1.7
 ## PANCOVID      0.4164 [0.1021;   1.6983]        1.5
 ## 
 ## Number of studies: k = 10
 ## Number of observations: o = 12273
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.7820 [0.6471; 0.9451] -2.94  0.0166
-## Prediction interval              [0.5511; 1.1098]              
+## Random effects model (HK) 0.7774 [0.6461; 0.9355] -3.08  0.0132
+## Prediction interval              [0.5514; 1.0962]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0148 [0.0000; 0.3218]; tau = 0.1218 [0.0000; 0.5672]
-##  I^2 = 21.4% [0.0%; 61.5%]; H = 1.13 [1.00; 1.61]
+##  tau^2 = 0.0142 [0.0000; 0.3073]; tau = 0.1190 [0.0000; 0.5543]
+##  I^2 = 19.5% [0.0%; 60.1%]; H = 1.11 [1.00; 1.58]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f. p-value
-##  11.45    9  0.2459
+##  11.18    9  0.2633
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -1622,7 +1797,7 @@ forest.meta(ttdeath,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 Discussion points
 
 # (iv) New mechanical ventilation or death within 28 days
@@ -1633,7 +1808,7 @@ new.mvd28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_new_mvd28,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -1701,7 +1876,7 @@ forest.meta(new.mvd28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 Discussion points
 
 # (iv.i) New mechanical ventilation among survivors within 28 days
@@ -1712,7 +1887,7 @@ new.mv28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_new_mv28,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -1779,7 +1954,7 @@ forest.meta(new.mv28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 Discussion points:
 1. Ghazaeian: new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => not a single event in either arm!
 
@@ -1791,7 +1966,7 @@ clin28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_clin28,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -1859,7 +2034,7 @@ forest.meta(clin28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
@@ -1870,7 +2045,7 @@ ttdischarge.comp <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ttdischarge_comp,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -1938,7 +2113,7 @@ forest.meta(ttdischarge.comp,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
 Discussion points
 
 # (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
@@ -1949,7 +2124,7 @@ ttdischarge.hypo <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ttdischarge_hypo,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -2017,7 +2192,7 @@ forest.meta(ttdischarge.hypo,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 Discussion points
 
 # (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -2028,7 +2203,7 @@ ttdischarge.cens <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ttdischarge,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -2096,7 +2271,7 @@ forest.meta(ttdischarge.cens,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
 Discussion points
 
 # (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
@@ -2107,7 +2282,7 @@ ttdischarge.sus <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ttdischarge_sus,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -2175,7 +2350,7 @@ forest.meta(ttdischarge.sus,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
 Discussion points
 
 # (vii) Viral clearance up to day 5
@@ -2186,7 +2361,7 @@ vir.clear5 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_vir_clear_5,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -2249,7 +2424,7 @@ forest.meta(vir.clear5,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 Discussion points:
 1. No VL data from Ghazaeian, TOFACOV, COVINIB, RUXCOVID
 
@@ -2261,7 +2436,7 @@ vir.clear10 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_vir_clear_10,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -2324,7 +2499,7 @@ forest.meta(vir.clear10,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 Discussion points:
 1. No VL data from Ghazaeian, TOFACOV, COVINIB, RUXCOVID
 
@@ -2336,7 +2511,7 @@ vir.clear15 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_vir_clear_15,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -2399,7 +2574,7 @@ forest.meta(vir.clear15,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 Discussion points:
 1. No VL data from Ghazaeian, TOFACOV, COVINIB, RUXCOVID
 
@@ -2411,8 +2586,8 @@ ae28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ae28,
-                      n.e = n_intervention,
-                      n.c = n_control,
+                      n.e = n_int,
+                      n.c = n_cont,
                       sm = "OR",
                       fixed = F,
                       random = T,
@@ -2479,7 +2654,7 @@ forest.meta(ae28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
 
 # (x) Meta-regression by RoB: Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
 
@@ -2517,7 +2692,7 @@ forest.meta(ae28.rob,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
 
@@ -2527,7 +2702,7 @@ ae28sev <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ae28sev,
-                      n.e = n_intervention + n_control,
+                      n.e = n_int + n_cont,
                       # n.c = n_control,
                       sm = "OR",
                       fixed = F,
@@ -2595,7 +2770,7 @@ forest.meta(ae28sev,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
 Discussion points
 
 # Collect all treatment effect estimates across endpoints
@@ -2655,11 +2830,11 @@ result_list[[2]] <- extract_trt_results(mort28.dimp, "death at day 28_dimp",
                                         addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[3,1])
-result_list[[3]] <- extract_trt_results(mort28.mi, "death at day 28_mi",
-                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], 
-                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
-                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
-                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+# result_list[[3]] <- extract_trt_results(mort28.mi, "death at day 28_mi",
+#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], 
+#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
+#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
+#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 result_list[[4]] <- extract_trt_results(mort28.agg, "death at day 28_agg",
                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], # CAVE: counts are without non-IPD!
                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
@@ -2753,10 +2928,9 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
 |death at day 28                            |         0.7085112| 0.5758061| 0.8718006|      0.0916801| 0.0044947|            667|               6159|       764|          5916|two-stage |
 |death at day 28_dimp                       |         0.7115181| 0.5779297| 0.8759855|      0.0919249| 0.0049014|            667|               6339|       764|          6063|two-stage |
-|death at day 28_mi                         |         0.7198414| 0.5790670| 0.8948388|      0.0961970| 0.0076618|            667|               6159|       764|          5916|two-stage |
 |death at day 28_agg                        |         0.6714559| 0.5525446| 0.8159576|      0.0914467| 0.0005650|            667|               6159|       764|          5916|two-stage |
 |death at day 60                            |         0.7688075| 0.6703457| 0.8817317|      0.0605825| 0.0018781|            700|               6148|       788|          5898|two-stage |
-|death within fup                           |         0.7820327| 0.6471337| 0.9450523|      0.0837005| 0.0165576|            702|               6264|       789|          6009|two-stage |
+|death within fup                           |         0.7774449| 0.6460937| 0.9354997|      0.0818105| 0.0132007|            700|               6264|       788|          6009|two-stage |
 |new MV or death within 28d                 |         0.8119202| 0.7319354| 0.9006457|      0.0529142| 0.0000823|           1021|               6199|      1113|          5952|two-stage |
 |new MV within 28d                          |         0.8996797| 0.7136961| 1.1341291|      0.1004255| 0.3232391|            323|               5363|       328|          5040|two-stage |
 |clinical status at day 28                  |         0.7933730| 0.7228844| 0.8707349|      0.0474724| 0.0000011|           6334|               6334|      6057|          6057|two-stage |
@@ -2796,9 +2970,10 @@ result_df$variable <- factor(result_df$variable,
                                         "death within fup",
                                         "death at day 60",
                                         "death at day 28_agg", # CAVE: counts are without non-IPD!
-                                        "death at day 28_mi",
+                                        # "death at day 28_mi",
                                         "death at day 28_dimp",
                                         "death at day 28"))
+
 
 # Plotting
 result_df$truncated <- ifelse(result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
@@ -2809,11 +2984,11 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
                aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
                arrow = arrow(length = unit(0.3, "cm")), color = "black") +
   geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
-  labs(title = "All endpoint results - two-stage",
+  labs(title = "All endpoints, two-stage approach",
        x = "Endpoints",
-       y = "aOR/aHR/aIRR") +
+       y = "aOR / aHR") +
   theme_minimal() +
-  scale_y_continuous(limits = c(0.4, 1.6), breaks = seq(0.4, 1.6, 0.1)) +
+  scale_y_continuous(limits = c(0.5, 1.3), breaks = seq(0.5, 1.3, 0.5)) + # log scale
   coord_flip()
 ```
 
@@ -2825,7 +3000,7 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 ## generated.
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
 
 # Plot treatment effect estimates across endpoints, without sensitivity endpoints
 
@@ -2883,7 +3058,7 @@ ggplot(main_result_df, aes(x = variable, y = hazard_odds_ratio)) +
   coord_flip()
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-31-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
 
 # Plot sensitivity treatment effect estimates across endpoints
 
@@ -2892,20 +3067,23 @@ ggplot(main_result_df, aes(x = variable, y = hazard_odds_ratio)) +
 sens_result_df <- result_df %>% 
   filter(variable %in% c("AEs grade 3,4 within 28 days",
                          "sustained discharge within 28 days",
-                         "new MV within 28d",
-                         "death at day 28_mi"))
+                         "new MV within 28d"
+                         # "death at day 28_mi",
+                         ))
 # Rename
 sens_result_df <- sens_result_df %>% 
   mutate(variable = case_when(variable == "AEs grade 3,4 within 28 days" ~ "AEs grade 3,4 or SAE within 28 days*",
                               variable == "sustained discharge within 28 days" ~ "Days until sustained discharge within 28 days",
                               variable == "new MV within 28d" ~ "New mechanical ventilation, among survivors, at day 28",
-                              variable == "death at day 28_mi" ~ "All-cause mortality at day 28, incl. multiple imputation"))
+                              # variable == "death at day 28_mi" ~ "All-cause mortality at day 28, incl. multiple imputation"
+                              ))
 # Order
 sens_result_df$variable <- factor(sens_result_df$variable, 
                              levels = c("AEs grade 3,4 or SAE within 28 days*",
                                         "Days until sustained discharge within 28 days",
-                                        "New mechanical ventilation, among survivors, at day 28",
-                                        "All-cause mortality at day 28, incl. multiple imputation"))
+                                        "New mechanical ventilation, among survivors, at day 28"
+                                        # "All-cause mortality at day 28, incl. multiple imputation"
+                                        ))
 # Plotting
 sens_result_df$truncated <- ifelse(sens_result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
 ggplot(sens_result_df, aes(x = variable, y = hazard_odds_ratio)) +
@@ -2923,7 +3101,7 @@ ggplot(sens_result_df, aes(x = variable, y = hazard_odds_ratio)) +
   coord_flip()
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-32-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-34-1.png)<!-- -->
 
 # Plot sensitivity treatment effect estimates across endpoints, to contrast against above
 
@@ -2963,7 +3141,7 @@ ggplot(main_red_result_df, aes(x = variable, y = hazard_odds_ratio)) +
   coord_flip()
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-33-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-35-1.png)<!-- -->
 
 
 # TREATMENT-COVARIATE INTERACTIONS
@@ -2979,6 +3157,16 @@ df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
 df_int_ruxcovid <- readRDS("int_effects_ruxcovid_07052024.RData")
+
+# UPDATE ONCE DATA AVAILABLE!!!
+row_to_duplicate <- df_int_ruxcovid[df_int_ruxcovid$variable == "comorbidity", ]
+# Create a new row by copying the identified row
+new_row <- row_to_duplicate
+# Modify the "variable" column for the new row
+new_row$variable <- "comorbidity_noimmuno"
+# Append the new row to the original data frame
+df_int_ruxcovid <- rbind(df_int_ruxcovid, new_row)
+  
 df_int_pancovid <- readRDS("int_effects_pancovid.RData")
 ```
 
@@ -3054,6 +3242,17 @@ for (df in list_int_df) {
   df_comorb_any_mort28 <- rbind(df_comorb_any_mort28, selected_rows)
 }
 
+## Comorbidity without immunosuppressed on Mortality at day 28
+outcomes <- "comorbidity_noimmuno"
+outcomes.firth <- "comorbidity_noimmuno_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_comorb_noimmuno_mort28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_comorb_noimmuno_mort28 <- rbind(df_comorb_noimmuno_mort28, selected_rows)
+}
+
 ## Comedication on Mortality at day 28
 outcomes <- "comedication"
 outcomes.firth <- "comedication_firth" # depends on which estimates to include
@@ -3098,6 +3297,222 @@ for (df in list_int_df) {
   df_crp_mort28 <- rbind(df_crp_mort28, selected_rows)
 }
 ```
+
+## Show interaction estimates across trials
+
+```r
+# Nicely formatted table
+kable(df_rs_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|                           |variable                  | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:--------------------------|:-------------------------|--------------:|---------:|----------:|--------------:|---------:|:-------------|:-----------|
+|trt:clinstatus_baseline_n  |respiratory support       |      0.2120952| 0.0216867|   1.492091|      1.0509098| 0.1400520|Bari-SolidAct |Baricitinib |
+|trt:clinstatus_baseline_n1 |respiratory support       |      1.7465135| 0.8949053|   3.517276|      0.3473074| 0.1083715|ACTT-2        |Baricitinib |
+|trt:clinstatus_baseline_n2 |respiratory support_firth |      1.0000000| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian     |Tofacitinib |
+|trt:clinstatus_baseline_n3 |respiratory support_firth |      1.1883509| 0.0031529| 689.752137|      2.4621311| 0.9487548|TOFACOV       |Tofacitinib |
+|trt:clinstatus_baseline_n4 |respiratory support_firth |      0.2524142| 0.0004994|  80.306181|      2.4418058| 0.5899644|COVINIB       |Baricitinib |
+|trt:clinstatus_baseline_n5 |respiratory support       |      0.8770690| 0.5632959|   1.365549|      0.2255726| 0.5609060|COV-BARRIER   |Baricitinib |
+|trt:clinstatus_baseline_n6 |respiratory support       |      0.8420453| 0.6754221|   1.049383|      0.1123806| 0.1260627|RECOVERY      |Baricitinib |
+|trt:clinstatus_baseline_n7 |respiratory support       |      0.8715173| 0.1955359|   3.951934|      0.7556393| 0.8555898|TACTIC-R      |Baricitinib |
+|trt:clinstatus_baseline_n8 |respiratory support       |      1.2192547| 0.0775021|  17.152121|      1.3374900| 0.8821709|RUXCOVID      |Ruxolitinib |
+|trt:clinstatus_baseline_n9 |respiratory support       |      0.0372326| 0.0006964|   1.901509|      1.9012026| 0.0834903|PANCOVID      |Baricitinib |
+
+```r
+kable(df_vb_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|               |variable          | log_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:--------------|:-----------------|--------------:|---------:|-----------:|--------------:|---------:|:-------------|:-----------|
+|trt:vbaseline  |ventilation_firth |      0.7731991| 0.0000000|   1.6339739|      0.0717185| 0.2422306|Bari-SolidAct |Baricitinib |
+|trt:vbaseline1 |ventilation       |      2.1962233| 0.6476978|   8.2809444|      0.6412119| 0.2198389|ACTT-2        |Baricitinib |
+|trt:vbaseline2 |ventilation       |      0.7885977| 0.4089575|   1.5269399|      0.3355537| 0.4790806|COV-BARRIER   |Baricitinib |
+|trt:vbaseline3 |ventilation       |      0.7462126| 0.5605528|   0.9930332|      0.1458505| 0.0447330|RECOVERY      |Baricitinib |
+|trt:vbaseline4 |ventilation       |      0.6567971| 0.1060567|   4.0059285|      0.9110306| 0.6444875|TACTIC-R      |Baricitinib |
+|trt:vbaseline5 |ventilation_firth |      0.1648545| 0.0007272|  36.9297493|      2.1698850| 0.4277741|RUXCOVID      |Ruxolitinib |
+|trt:vbaseline6 |ventilation_firth |      9.8019038| 0.0403478| 702.0425957|      2.1662596| 0.3352295|PANCOVID      |Baricitinib |
+
+```r
+kable(df_age_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|         |variable  | log_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:--------|:---------|--------------:|---------:|--------:|--------------:|---------:|:-------------|:-----------|
+|trt:age  |age       |      1.0266420| 0.9543445| 1.108300|      0.0376993| 0.4855233|Bari-SolidAct |Baricitinib |
+|trt:age1 |age       |      0.9924607| 0.9514065| 1.035299|      0.0214898| 0.7247154|ACTT-2        |Baricitinib |
+|trt:age2 |age       |      1.0504721| 0.9508741| 1.180266|      0.0531186| 0.3539392|Ghazaeian     |Tofacitinib |
+|trt:age3 |age_firth |      1.0470785| 0.6614695| 1.665865|      0.0973369| 0.7745284|TOFACOV       |Tofacitinib |
+|trt:age4 |age_firth |      0.8660242| 0.5581487| 1.539408|      0.1063739| 0.4253310|COVINIB       |Baricitinib |
+|trt:age5 |age       |      1.0240520| 0.9961887| 1.053274|      0.0141903| 0.0939543|COV-BARRIER   |Baricitinib |
+|trt:age6 |age       |      1.0080396| 0.9967378| 1.019495|      0.0057570| 0.1642554|RECOVERY      |Baricitinib |
+|trt:age7 |age       |      1.0544741| 0.9719703| 1.150721|      0.0426149| 0.2132469|TACTIC-R      |Baricitinib |
+|trt:age8 |age       |      1.0129174| 0.8844238| 1.140805|      0.0635585| 0.8399680|RUXCOVID      |Ruxolitinib |
+|trt:age9 |age       |      1.0307682| 0.8131631| 1.359848|      0.1264829| 0.8106459|PANCOVID      |Baricitinib |
+
+```r
+kable(df_comorb_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|                |variable          | log_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:---------------|:-----------------|--------------:|---------:|-----------:|--------------:|---------:|:-------------|:-----------|
+|trt:comorb_cat  |comorbidity       |      1.0985344| 0.4298968|    2.902199|      0.4805639| 0.8449580|Bari-SolidAct |Baricitinib |
+|trt:comorb_cat1 |comorbidity       |      0.8088102| 0.3373946|    1.939348|      0.4427415| 0.6317493|ACTT-2        |Baricitinib |
+|trt:comorb_cat2 |comorbidity       |      1.9139158| 0.3278192|   16.486883|      0.9500040| 0.4944083|Ghazaeian     |Tofacitinib |
+|trt:comorb_cat3 |comorbidity_firth |      0.6061082| 0.0054610|   88.272626|      1.3811009| 0.7773835|TOFACOV       |Tofacitinib |
+|trt:comorb_cat4 |comorbidity_firth |      1.5083366| 0.0234199| 5786.072176|      1.2663027| 0.7880265|COVINIB       |Baricitinib |
+|trt:comorb_cat5 |comorbidity       |      0.8491513| 0.5344257|    1.359975|      0.2376823| 0.4914727|COV-BARRIER   |Baricitinib |
+|trt:comorb_cat6 |comorbidity       |      1.3073433| 1.0885552|    1.570974|      0.0935633| 0.0041788|RECOVERY      |Baricitinib |
+|trt:comorb_cat7 |comorbidity       |      1.2511032| 0.4672406|    3.534220|      0.5099396| 0.6604311|TACTIC-R      |Baricitinib |
+|trt:comorb_cat8 |comorbidity       |      0.5421417| 0.0286079|    3.573009|      1.0989479| 0.5774567|RUXCOVID      |Ruxolitinib |
+|trt:comorb_cat9 |comorbidity       |      0.3797651| 0.0174044|    3.400573|      1.2185020| 0.4268554|PANCOVID      |Baricitinib |
+
+```r
+kable(df_comorb_count_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|                  |variable                | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:-----------------|:-----------------------|--------------:|---------:|---------:|--------------:|---------:|:-------------|:-----------|
+|trt:comorb_count  |comorbidity_count       |      1.2400296| 0.7033591|  2.235382|      0.2921383| 0.4614777|Bari-SolidAct |Baricitinib |
+|trt:comorb_count1 |comorbidity_count       |      0.8221079| 0.5480154|  1.226120|      0.2047512| 0.3387233|ACTT-2        |Baricitinib |
+|trt:comorb_count2 |comorbidity_count       |      1.6527667| 0.4561498|  7.127619|      0.6797149| 0.4597807|Ghazaeian     |Tofacitinib |
+|trt:comorb_count3 |comorbidity_count_firth |      0.5792559| 0.0111203| 71.683097|      1.1610445| 0.7259072|TOFACOV       |Tofacitinib |
+|trt:comorb_count4 |comorbidity_count_firth |      1.4734268| 0.0715237| 44.559658|      0.6844395| 0.6646862|COVINIB       |Baricitinib |
+|trt:comorb_count5 |comorbidity_count       |      1.0128857| 0.7834545|  1.310115|      0.1309990| 0.9221418|COV-BARRIER   |Baricitinib |
+|trt:comorb_count6 |comorbidity_count       |      1.1785783| 1.0084527|  1.377930|      0.0796135| 0.0390336|RECOVERY      |Baricitinib |
+|trt:comorb_count7 |comorbidity_count       |      1.0288121| 0.5968718|  1.776240|      0.2761055| 0.9180608|TACTIC-R      |Baricitinib |
+|trt:comorb_count8 |comorbidity_count       |      0.7865137| 0.3212603|  2.010084|      0.4543178| 0.5970940|RUXCOVID      |Ruxolitinib |
+|trt:comorb_count9 |comorbidity_count       |      0.4323923| 0.0197156|  2.636989|      1.1444389| 0.4637992|PANCOVID      |Baricitinib |
+
+```r
+kable(df_comorb_any_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|                |variable              | log_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:---------------|:---------------------|--------------:|---------:|-----------:|--------------:|---------:|:-------------|:-----------|
+|trt:comorb_any  |comorbidity_any       |      0.8065627| 0.0781916|    8.310637|      1.1302683| 0.8491548|Bari-SolidAct |Baricitinib |
+|trt:comorb_any1 |comorbidity_any       |      0.2910316| 0.0122596|    3.553572|      1.3081572| 0.3453950|ACTT-2        |Baricitinib |
+|trt:comorb_any2 |comorbidity_any       |      1.2376379| 0.0481126|   47.600700|      1.6602489| 0.8978188|Ghazaeian     |Tofacitinib |
+|trt:comorb_any3 |comorbidity_any_firth |      2.0316540| 0.0046406| 1792.745926|      2.3389317| 0.8051105|TOFACOV       |Tofacitinib |
+|trt:comorb_any4 |comorbidity_any_firth |      2.6114916| 0.0071795| 1109.685140|      2.2845963| 0.7167929|COVINIB       |Baricitinib |
+|trt:comorb_any5 |comorbidity_any       |      0.8300117| 0.2988331|    2.420735|      0.5288732| 0.7246225|COV-BARRIER   |Baricitinib |
+|trt:comorb_any6 |comorbidity_any       |      1.5902636| 1.1766232|    2.153221|      0.1541064| 0.0026103|RECOVERY      |Baricitinib |
+|trt:comorb_any7 |comorbidity_any       |      1.6654141| 0.1106514|   45.120711|      1.4142407| 0.7183464|TACTIC-R      |Baricitinib |
+|trt:comorb_any8 |comorbidity_any_firth |      1.1338499| 0.0067774|   29.856153|      1.7351052| 0.9446033|RUXCOVID      |Ruxolitinib |
+|trt:comorb_any9 |comorbidity_any       |      0.3750313| 0.0062031|   16.919231|      1.8634990| 0.5986849|PANCOVID      |Baricitinib |
+
+```r
+kable(df_comorb_noimmuno_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|                     |variable                   | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:--------------------|:--------------------------|--------------:|---------:|---------:|--------------:|---------:|:-------------|:-----------|
+|trt:comorb_noimmuno  |comorbidity_noimmuno       |      1.1602232| 0.4010770|  3.556440|      0.5469590| 0.7858476|Bari-SolidAct |Baricitinib |
+|trt:comorb_noimmuno1 |comorbidity_noimmuno       |      0.5510679| 0.2105313|  1.425191|      0.4816795| 0.2160410|ACTT-2        |Baricitinib |
+|trt:comorb_noimmuno2 |comorbidity_noimmuno       |      0.7627025| 0.0914175|  6.377876|      1.0144732| 0.7894518|Ghazaeian     |Tofacitinib |
+|trt:comorb_noimmuno3 |comorbidity_noimmuno_firth |      0.6061082| 0.0054610| 88.272626|      1.3811009| 0.7773835|TOFACOV       |Tofacitinib |
+|trt:comorb_noimmuno4 |comorbidity_noimmuno_firth |      1.4490143| 0.0221204| 77.884746|      1.2880327| 0.8069154|COVINIB       |Baricitinib |
+|trt:comorb_noimmuno5 |comorbidity_noimmuno       |      0.8069903| 0.5011118|  1.309559|      0.2443724| 0.3801998|COV-BARRIER   |Baricitinib |
+|trt:comorb_count1    |comorbidity_noimmuno       |      1.1785783| 1.0084527|  1.377930|      0.0796135| 0.0390336|RECOVERY      |Baricitinib |
+|trt:comorb_noimmuno6 |comorbidity_noimmuno       |      0.8725508| 0.2526574|  3.156544|      0.6303995| 0.8287799|TACTIC-R      |Baricitinib |
+|trt:comorb_cat1      |comorbidity_noimmuno       |      0.5421417| 0.0286079|  3.573009|      1.0989479| 0.5774567|RUXCOVID      |Ruxolitinib |
+|trt:comorb_cat11     |comorbidity_noimmuno       |      0.3797651| 0.0174044|  3.400573|      1.2185020| 0.4268554|PANCOVID      |Baricitinib |
+
+```r
+kable(df_comed_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|               |variable           | log_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:--------------|:------------------|--------------:|---------:|-----------:|--------------:|---------:|:-------------|:-----------|
+|trt:comed_cat  |comedication_firth |      2.7732555| 0.0990539|  478.163891|      1.7967362| 0.5593131|Bari-SolidAct |Baricitinib |
+|trt:comed_cat1 |comedication       |      2.1775073| 0.2043023|   23.309170|      1.1514131| 0.4991369|ACTT-2        |Baricitinib |
+|trt:comed_cat2 |comedication_firth |      0.9812005| 0.0000001|   22.809022|      0.0768805| 0.9268050|Ghazaeian     |Tofacitinib |
+|trt:comed_cat3 |comedication_firth |      3.6145387| 0.0090955| 2352.731675|      2.4282252| 0.6361043|TOFACOV       |Tofacitinib |
+|trt:comed_cat4 |comedication_firth |      1.8595017| 0.0054508|  997.162606|      2.4370110| 0.8119091|COVINIB       |Baricitinib |
+|trt:comed_cat5 |comedication       |      1.4282252| 0.5549093|    3.877636|      0.4923985| 0.4691455|COV-BARRIER   |Baricitinib |
+|trt:comed_cat6 |comedication       |      0.9439961| 0.7294600|    1.221383|      0.1314592| 0.6610880|RECOVERY      |Baricitinib |
+|trt:comed_cat7 |comedication       |      0.3978042| 0.0546930|    3.009177|      1.0151769| 0.3638705|TACTIC-R      |Baricitinib |
+|trt:comed_cat8 |comedication       |      1.1749551| 0.0734291|   32.844519|      1.4398826| 0.9108437|RUXCOVID      |Ruxolitinib |
+|trt:comed_cat9 |comedication_firth |      0.6602075| 0.0034688|   21.917325|      1.8491390| 0.8269920|PANCOVID      |Baricitinib |
+
+```r
+kable(df_vacc_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|          |variable                 | log_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:---------|:------------------------|--------------:|---------:|-------------:|--------------:|---------:|:-------------|:-----------|
+|trt:vacc  |vaccination on AEs       |      1.4025601| 0.4397817|  4.499607e+00|      0.5914840| 0.5673559|Bari-SolidAct |Baricitinib |
+|trt:vacc1 |vaccination on AEs_firth |      2.6499354| 0.0097053|  7.652130e+02|      2.3583074| 0.6837461|TOFACOV       |Tofacitinib |
+|trt:vacc2 |vaccination on AEs_firth |      1.0000000| 0.0000000| 1.774721e+204|      2.3995390| 0.9999999|COVINIB       |Baricitinib |
+|trt:vacc3 |vaccination on AEs       |      0.9483684| 0.6418187|  1.401235e+00|      0.1990351| 0.7899724|RECOVERY      |Baricitinib |
+|trt:vacc4 |vaccination on AEs       |      1.3276689| 0.1663357|  1.267403e+01|      1.0618899| 0.7895416|PANCOVID      |Baricitinib |
+
+```r
+kable(df_symp_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|             |variable               | log_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:------------|:----------------------|--------------:|---------:|-----------:|--------------:|---------:|:-------------|:-----------|
+|trt:sympdur  |symptom duration       |      0.8094195| 0.6375130|   1.0188508|      0.1184351| 0.0742183|Bari-SolidAct |Baricitinib |
+|trt:sympdur1 |symptom duration       |      0.9527670| 0.8245538|   1.0896952|      0.0710958| 0.4961508|ACTT-2        |Baricitinib |
+|trt:sympdur2 |symptom duration       |      1.1956574| 0.6406956|   2.3620705|      0.3232509| 0.5803940|Ghazaeian     |Tofacitinib |
+|trt:sympdur3 |symptom duration_firth |      0.8235629| 0.3882541|   3.7407409|      0.2589834| 0.6358318|TOFACOV       |Tofacitinib |
+|trt:sympdur4 |symptom duration_firth |      1.2662547| 0.0574558| 106.9157996|      0.5252723| 0.7623855|COVINIB       |Baricitinib |
+|trt:sympdur5 |symptom duration       |      1.0402961| 0.9725413|   1.1110205|      0.0338918| 0.2437633|COV-BARRIER   |Baricitinib |
+|trt:sympdur6 |symptom duration       |      0.9969161| 0.9682696|   1.0263879|      0.0148674| 0.8354261|RECOVERY      |Baricitinib |
+|trt:sympdur7 |symptom duration       |      0.9948033| 0.8653390|   1.1538854|      0.0721968| 0.9424687|TACTIC-R      |Baricitinib |
+|trt:sympdur8 |symptom duration       |      1.0252332| 0.8101625|   1.3652073|      0.1314394| 0.8496274|RUXCOVID      |Ruxolitinib |
+|trt:sympdur9 |symptom duration       |      0.5936892| 0.2696346|   0.9818156|      0.3133931| 0.0961678|PANCOVID      |Baricitinib |
+
+```r
+kable(df_crp_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|         |variable  | log_odds_ratio|  ci_lower| ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:--------|:---------|--------------:|---------:|--------:|--------------:|---------:|:-------------|:-----------|
+|trt:crp  |crp       |      1.0001293| 0.9949001| 1.003014|      0.0015382| 0.9330246|Bari-SolidAct |Baricitinib |
+|trt:crp1 |crp       |      0.9983016| 0.9932335| 1.003022|      0.0024671| 0.4908312|ACTT-2        |Baricitinib |
+|trt:crp2 |crp       |      0.9966468| 0.9552354| 1.034729|      0.0196176| 0.8640553|Ghazaeian     |Tofacitinib |
+|trt:crp3 |crp_firth |      0.9892815| 0.4830348| 1.046442|      0.0245673| 0.6953879|TOFACOV       |Tofacitinib |
+|trt:crp4 |crp_firth |      1.0215022| 0.9090829| 1.111718|      0.0156007| 0.3665624|COVINIB       |Baricitinib |
+|trt:crp5 |crp       |      1.0005119| 0.9972352| 1.003570|      0.0015972| 0.7486330|COV-BARRIER   |Baricitinib |
+|trt:crp6 |crp       |      1.0001251| 0.9983955| 1.001859|      0.0008830| 0.8873777|RECOVERY      |Baricitinib |
+|trt:crp7 |crp       |      1.0009004| 0.9896404| 1.012042|      0.0056165| 0.8726872|TACTIC-R      |Baricitinib |
+|trt:crp8 |crp       |      0.9940109| 0.9731708| 1.015258|      0.0101573| 0.5542488|RUXCOVID      |Ruxolitinib |
+|trt:crp9 |crp       |      0.9743573| 0.9146557| 1.016907|      0.0254621| 0.3076190|PANCOVID      |Baricitinib |
+
 
 # Load subgroup effects from all trials (on primary endpoint - and vacc.ae)
 
@@ -3255,7 +3670,271 @@ for (df in list_subgroup_df) {
 }
 ```
 
-# Reshape dataframes for each subgroup estimate
+## Show subgroup estimates across trials
+
+```r
+# Nicely formatted table
+kable(df_sg_rs_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|      |variable                      | hazard_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:-----|:-----------------------------|-----------------:|---------:|------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt2  |No oxygen_firth               |         1.0919885| 0.0059969| 2.007611e+02|      1.6675670| 0.9648055|              0|                 69|         0|            69|ACTT-2        |Baricitinib |
+|trt3  |low-flow oxygen               |         0.4213865| 0.1311519| 1.170453e+00|      0.5460303| 0.1134887|              5|                274|        12|           268|ACTT-2        |Baricitinib |
+|trt4  |high-flow oxygen / NIV        |         0.5655007| 0.1999432| 1.488924e+00|      0.5046464| 0.2586488|              7|                100|        13|           103|ACTT-2        |Baricitinib |
+|trt5  |Mechanical ventilation / ECMO |         1.3801539| 0.5192725| 3.763665e+00|      0.5010200| 0.5201734|             12|                 51|        12|            52|ACTT-2        |Baricitinib |
+|trt21 |No oxygen                     |         0.2603719| 0.0130648| 1.826796e+00|      1.1348746| 0.2357326|              1|                 83|         4|            95|COV-BARRIER   |Baricitinib |
+|trt31 |low-flow oxygen               |         0.6283049| 0.3722225| 1.047315e+00|      0.2629286| 0.0771423|             29|                458|        41|           452|COV-BARRIER   |Baricitinib |
+|trt41 |high-flow oxygen / NIV        |         0.4574430| 0.2646483| 7.778078e-01|      0.2742737| 0.0043508|             32|                168|        55|           170|COV-BARRIER   |Baricitinib |
+|trt51 |Mechanical ventilation / ECMO |         0.4437773| 0.1896494| 1.012665e+00|      0.4255403| 0.0562390|             20|                 49|        29|            48|COV-BARRIER   |Baricitinib |
+|trt1  |high-flow oxygen / NIV        |         0.8859899| 0.3692133| 2.110649e+00|      0.4409887| 0.7837033|             13|                119|        14|           118|Bari-SolidAct |Baricitinib |
+|trt22 |Mechanical ventilation / ECMO |         0.2363617| 0.0292844| 1.231437e+00|      0.9156439| 0.1151927|              2|                 18|         7|            22|Bari-SolidAct |Baricitinib |
+|trt11 |No oxygen_firth               |         1.4516881| 0.0050949| 3.369693e+02|      1.7562814| 0.8724571|              0|                 16|         0|            19|COVINIB       |Baricitinib |
+|trt23 |low-flow oxygen_firth         |         0.1826966| 0.0013043| 2.354803e+00|      1.4673121| 0.2091351|              0|                 37|         2|            35|COVINIB       |Baricitinib |
+|trt12 |No oxygen_firth               |         1.3918259| 0.0072404| 2.921471e+02|      1.7165860| 0.8722372|              0|                  9|         0|            16|TOFACOV       |Tofacitinib |
+|trt24 |low-flow oxygen_firth         |         2.1912808| 0.1141366| 3.226519e+02|      1.4564436| 0.6142125|              1|                 49|         0|            42|TOFACOV       |Tofacitinib |
+|trt13 |low-flow oxygen               |         0.7908805| 0.1472786| 3.826382e+00|      0.7982111| 0.7688207|              3|                 46|         4|            49|Ghazaeian     |Tofacitinib |
+|trt25 |No oxygen                     |         0.7830900| 0.3626356| 1.666827e+00|      0.3863765| 0.5268497|             15|                225|        19|           233|RECOVERY      |Baricitinib |
+|trt32 |low-flow oxygen               |         0.9178995| 0.7540459| 1.117162e+00|      0.1002336| 0.3927301|            256|               2723|       253|          2696|RECOVERY      |Baricitinib |
+|trt42 |high-flow oxygen / NIV        |         0.6961781| 0.5530496| 8.754001e-01|      0.1170969| 0.0019832|            204|                992|       230|           899|RECOVERY      |Baricitinib |
+|trt52 |Mechanical ventilation / ECMO |         0.7466881| 0.4176651| 1.329774e+00|      0.2947054| 0.3215950|             38|                121|        43|           112|RECOVERY      |Baricitinib |
+|trt26 |No oxygen_firth               |        19.3071486| 0.6167050| 1.790272e+04|      1.8523368| 0.0917713|              1|                  2|         0|             8|TACTIC-R      |Baricitinib |
+|trt33 |low-flow oxygen               |         0.7614310| 0.1231444| 4.467120e+00|      0.8831130| 0.7576025|              3|                 60|         4|            63|TACTIC-R      |Baricitinib |
+|trt43 |high-flow oxygen / NIV        |         0.7354511| 0.2799213| 1.892107e+00|      0.4832333| 0.5248642|             14|                 68|        13|            65|TACTIC-R      |Baricitinib |
+|trt27 |No oxygen                     |         1.0477132| 0.0938198| 2.350193e+01|      1.2599112| 0.9704893|              2|                 93|         1|            46|RUXCOVID      |Ruxolitinib |
+|trt34 |low-flow oxygen               |         1.6975119| 0.3830702| 1.179016e+01|      0.8287241| 0.5231300|              7|                173|         2|            91|RUXCOVID      |Ruxolitinib |
+|trt44 |high-flow oxygen / NIV_firth  |         0.4863857| 0.0035026| 8.579832e+01|      1.7363739| 0.7129026|              0|                 16|         0|             5|RUXCOVID      |Ruxolitinib |
+|trt28 |No oxygen_firth               |         1.5003070| 0.0417655| 2.438915e+02|      1.5823848| 0.8177485|              1|                 40|         0|            30|PANCOVID      |Baricitinib |
+|trt35 |low-flow oxygen               |         0.1731803| 0.0087166| 1.154727e+00|      1.1274769| 0.1199048|              1|                 99|         5|           102|PANCOVID      |Baricitinib |
+|trt45 |high-flow oxygen / NIV_firth  |         1.9100247| 0.0062494| 1.197791e+03|      2.4951044| 0.7951504|              0|                  1|         1|             4|PANCOVID      |Baricitinib |
+
+```r
+kable(df_sg_vb_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|      |variable                                             | hazard_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:-----|:----------------------------------------------------|-----------------:|---------:|------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt   |High-flow or non-invasive, mechanical, or ECMO       |         0.8593021| 0.4376303|    1.6717306|      0.3400416| 0.6556478|             19|                151|        25|           155|ACTT-2        |Baricitinib |
+|trt1  |None or low-flow oxygen                              |         0.3915676| 0.1222188|    1.0811603|      0.5438087| 0.0846843|              5|                343|        12|           337|ACTT-2        |Baricitinib |
+|trt2  |High-flow or non-invasive, mechanical, or ECMO       |         0.4891922| 0.3155362|    0.7522581|      0.2212980| 0.0012339|             52|                217|        84|           218|COV-BARRIER   |Baricitinib |
+|trt11 |None or low-flow oxygen                              |         0.5931543| 0.3582739|    0.9683809|      0.2527486| 0.0387829|             30|                541|        45|           547|COV-BARRIER   |Baricitinib |
+|trt3  |High-flow or non-invasive, mechanical, or ECMO       |         0.6429029| 0.2971201|    1.3578034|      0.3851009| 0.2513271|             15|                137|        21|           140|Bari-SolidAct |Baricitinib |
+|trt4  |None or low-flow oxygen_firth                        |         0.1706455| 0.0012210|    2.1822568|      1.4796585| 0.1882367|              0|                 53|         2|            54|COVINIB       |Baricitinib |
+|trt5  |None or low-flow oxygen_firth                        |         2.6388102| 0.1384454|  386.7412922|      1.4601179| 0.5277118|              1|                 58|         0|            58|TOFACOV       |Tofacitinib |
+|trt6  |None or low-flow oxygen                              |         0.8256311| 0.1539036|    3.9893830|      0.7975640| 0.8101437|              3|                 46|         4|            51|Ghazaeian     |Tofacitinib |
+|trt7  |High-flow or non-invasive, mechanical, or ECMO       |         0.7051714| 0.5704914|    0.8708986|      0.1078700| 0.0012025|            242|               1113|       273|          1011|RECOVERY      |Baricitinib |
+|trt12 |None or low-flow oxygen                              |         0.9130572| 0.7551250|    1.1038115|      0.0968063| 0.3474358|            271|               2948|       272|          2929|RECOVERY      |Baricitinib |
+|trt8  |High-flow or non-invasive, mechanical, or ECMO       |         0.8531787| 0.3338317|    2.1587604|      0.4721503| 0.7366413|             14|                 68|        13|            67|TACTIC-R      |Baricitinib |
+|trt13 |None or low-flow oxygen                              |         1.4550266| 0.2801228|    8.1156596|      0.8331843| 0.6526315|              4|                 62|         4|            71|TACTIC-R      |Baricitinib |
+|trt9  |High-flow or non-invasive, mechanical, or ECMO_firth |         0.4863857| 0.0035026|   85.7983170|      1.7363739| 0.7129026|              0|                 16|         0|             5|RUXCOVID      |Ruxolitinib |
+|trt14 |None or low-flow oxygen                              |         1.4770681| 0.4192599|    6.8591547|      0.6877409| 0.5706055|              9|                266|         3|           137|RUXCOVID      |Ruxolitinib |
+|trt10 |High-flow or non-invasive, mechanical, or ECMO_firth |         1.9100247| 0.0062494| 1197.7908134|      2.4951044| 0.7951504|              0|                  1|         1|             4|PANCOVID      |Baricitinib |
+|trt15 |None or low-flow oxygen                              |         0.2852505| 0.0384313|    1.4242911|      0.8757422| 0.1520378|              2|                139|         5|           132|PANCOVID      |Baricitinib |
+
+```r
+kable(df_sg_age_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|      |variable                 | hazard_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:-----|:------------------------|-----------------:|---------:|-----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt6  |70 years and above       |         0.6903606| 0.2538418|   1.7742777|      0.4906427| 0.4501194|              9|                 79|        17|           103|ACTT-2        |Baricitinib |
+|trt7  |below 70 years           |         0.6761784| 0.3293397|   1.3605339|      0.3590061| 0.2757356|             15|                415|        20|           389|ACTT-2        |Baricitinib |
+|trt61 |70 years and above       |         0.6487276| 0.3808324|   1.0986424|      0.2696579| 0.1085416|             39|                160|        53|           149|COV-BARRIER   |Baricitinib |
+|trt71 |below 70 years           |         0.4610049| 0.2980637|   0.7029898|      0.2183732| 0.0003912|             43|                598|        76|           616|COV-BARRIER   |Baricitinib |
+|trt3  |70 years and above       |         0.9118120| 0.3128627|   2.6071685|      0.5359718| 0.8632406|              9|                 31|        12|            38|Bari-SolidAct |Baricitinib |
+|trt4  |below 70 years           |         0.6336362| 0.2045538|   1.8358261|      0.5489705| 0.4058853|              6|                106|         9|           102|Bari-SolidAct |Baricitinib |
+|trt31 |70 years and above_firth |         0.5555556| 0.0025702| 118.9958301|      2.1499335| 0.7854220|              0|                  4|         0|             2|COVINIB       |Baricitinib |
+|trt41 |below 70 years_firth     |         0.1924344| 0.0013769|   2.4589299|      1.4599915| 0.2232569|              0|                 49|         2|            52|COVINIB       |Baricitinib |
+|trt32 |70 years and above_firth |         0.6800000| 0.0035112| 131.6116714|      2.0488160| 0.8510803|              0|                 12|         0|            10|TOFACOV       |Tofacitinib |
+|trt42 |below 70 years_firth     |         3.0012688| 0.1548825| 443.0235976|      1.4562141| 0.4745683|              1|                 46|         0|            48|TOFACOV       |Tofacitinib |
+|trt2  |70 years and above_firth |         3.5454545| 0.1547877| 562.4644435|      1.7327236| 0.4360413|              1|                  6|         0|             6|Ghazaeian     |Tofacitinib |
+|trt33 |below 70 years_firth     |         0.5699856| 0.0947452|   2.7368400|      0.8206782| 0.4855442|              2|                 40|         4|            45|Ghazaeian     |Tofacitinib |
+|trt62 |70 years and above       |         0.9413563| 0.7691387|   1.1522282|      0.1030750| 0.5576692|            289|                985|       277|           904|RECOVERY      |Baricitinib |
+|trt72 |below 70 years           |         0.7613837| 0.6285147|   0.9214499|      0.0975500| 0.0051956|            224|               3076|       268|          3036|RECOVERY      |Baricitinib |
+|trt5  |70 years and above       |         1.1694762| 0.3810221|   3.6471657|      0.5706403| 0.7838146|             12|                 34|         9|            31|TACTIC-R      |Baricitinib |
+|trt63 |below 70 years           |         0.7340426| 0.2258070|   2.2735076|      0.5785174| 0.5930306|              6|                 96|         8|           107|TACTIC-R      |Baricitinib |
+|trt51 |70 years and above       |         1.3828988| 0.2710617|  10.2534520|      0.8805727| 0.7127622|              5|                 46|         2|            23|RUXCOVID      |Ruxolitinib |
+|trt64 |below 70 years           |         2.0881534| 0.3040500|  41.1362112|      1.1246855| 0.5126904|              4|                236|         1|           119|RUXCOVID      |Ruxolitinib |
+|trt52 |70 years and above       |         0.3086067| 0.0425681|   1.5174887|      0.8639586| 0.1735722|              2|                 63|         6|            52|PANCOVID      |Baricitinib |
+|trt65 |below 70 years_firth     |         1.1213635| 0.0065563| 179.8552865|      1.4661394| 0.9524669|              0|                 77|         0|            84|PANCOVID      |Baricitinib |
+
+```r
+kable(df_sg_comorb_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|       |variable                     | hazard_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:------|:----------------------------|-----------------:|---------:|-----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt8   |No comorbidity               |         1.2952150| 0.0855367|  33.5700990|      1.3865145| 0.8520008|              2|                 67|         1|            86|ACTT-2        |Baricitinib |
+|trt9   |One comorbidity              |         0.7248784| 0.2236579|   2.2478605|      0.5775547| 0.5774643|              6|                150|         8|           130|ACTT-2        |Baricitinib |
+|trt10  |Multiple comorbidities       |         0.4953443| 0.2316928|   1.0135053|      0.3736364| 0.0600841|             13|                261|        28|           263|ACTT-2        |Baricitinib |
+|trt11  |Immunocompromised_firth      |         1.9814786| 0.0347474| 291.0219751|      1.5122930| 0.6767261|              3|                 16|         0|            13|ACTT-2        |Baricitinib |
+|trt81  |No comorbidity               |         0.5582887| 0.1968226|   1.4856867|      0.5091167| 0.2522577|              8|                173|        14|           163|COV-BARRIER   |Baricitinib |
+|trt91  |One comorbidity              |         0.6398101| 0.3223249|   1.2423907|      0.3424055| 0.1921468|             20|                207|        29|           241|COV-BARRIER   |Baricitinib |
+|trt101 |Multiple comorbidities       |         0.4352340| 0.2810257|   0.6662287|      0.2197616| 0.0001535|             54|                370|        86|           353|COV-BARRIER   |Baricitinib |
+|trt111 |Immunocompromised_firth      |         1.2578568| 0.0018082| 321.9030187|      1.7021842| 0.9129185|              0|                  8|         0|             8|COV-BARRIER   |Baricitinib |
+|trt5   |No comorbidity               |         0.7929289| 0.0700449|   8.0798326|      1.1396212| 0.8386696|              2|                 50|         2|            50|Bari-SolidAct |Baricitinib |
+|trt6   |One comorbidity              |         0.7583215| 0.0915641|   5.1732692|      0.9735989| 0.7762957|              2|                 32|         7|            40|Bari-SolidAct |Baricitinib |
+|trt7   |Multiple comorbidities       |         0.7853308| 0.2645997|   2.2796711|      0.5431823| 0.6564074|              9|                 50|        10|            46|Bari-SolidAct |Baricitinib |
+|trt82  |Immunocompromised            |         0.7264759| 0.0401836|  12.2615910|      1.3971732| 0.8190929|              2|                  5|         2|             4|Bari-SolidAct |Baricitinib |
+|trt51  |No comorbidity_firth         |         0.0726380| 0.0000024|   3.7073075|      1.8702986| 0.2226213|              0|                 17|         1|            19|COVINIB       |Baricitinib |
+|trt61  |One comorbidity_firth        |         0.8351792| 0.0035622| 686.3844738|      1.4982055| 0.9239355|              0|                 21|         0|            19|COVINIB       |Baricitinib |
+|trt71  |Multiple comorbidities_firth |         0.3560667| 0.0022367|   7.3735105|      1.4211978| 0.5163665|              0|                 14|         1|            15|COVINIB       |Baricitinib |
+|trt83  |Immunocompromised_firth      |         1.0000000| 0.0054376|  72.9457681|      2.3094100| 1.0000000|              0|                  1|         0|             1|COVINIB       |Baricitinib |
+|trt52  |No comorbidity_firth         |         1.1018332| 0.0053609| 201.0166882|      1.4976235| 0.9621649|              0|                 19|         0|            25|TOFACOV       |Tofacitinib |
+|trt62  |One comorbidity_firth        |         2.6425798| 0.1102389| 502.7508467|      1.4077006| 0.5733840|              1|                 22|         0|            24|TOFACOV       |Tofacitinib |
+|trt72  |Multiple comorbidities_firth |         0.3895007| 0.0021761|  62.9694758|      1.6968530| 0.6320255|              0|                 17|         0|             9|TOFACOV       |Tofacitinib |
+|trt4   |No comorbidity               |         0.6584886| 0.0290147|   7.5164490|      1.2710281| 0.7423699|              1|                 17|         2|            24|Ghazaeian     |Tofacitinib |
+|trt53  |One comorbidity_firth        |         1.2592497| 0.0078305| 225.3160083|      1.6982200| 0.9056900|              0|                 11|         0|            11|Ghazaeian     |Tofacitinib |
+|trt63  |Multiple comorbidities       |         0.3297898| 0.0109202|   4.2837044|      1.3879102| 0.4241402|              1|                 17|         2|            15|Ghazaeian     |Tofacitinib |
+|trt73  |Immunocompromised_firth      |         9.0000000| 0.1388609|  53.0508399|      2.3094109| 0.9999995|              1|                  1|         0|             1|Ghazaeian     |Tofacitinib |
+|trt84  |No comorbidity               |         0.5900827| 0.4597569|   0.7550507|      0.1264554| 0.0000303|            133|               2154|       196|          2147|RECOVERY      |Baricitinib |
+|trt92  |One comorbidity              |         0.9026893| 0.7099810|   1.1474058|      0.1223753| 0.4028283|            192|               1276|       184|          1208|RECOVERY      |Baricitinib |
+|trt102 |Multiple comorbidities       |         1.0040793| 0.7728712|   1.3046520|      0.1334930| 0.9756714|            188|                631|       165|           585|RECOVERY      |Baricitinib |
+|trt74  |No comorbidity               |         0.4900922| 0.0184000|   6.7493869|      1.3812104| 0.6056233|              1|                 20|         2|            24|TACTIC-R      |Baricitinib |
+|trt85  |One comorbidity              |         1.4595901| 0.1952204|  10.4786421|      0.9737953| 0.6977705|              3|                 27|         3|            34|TACTIC-R      |Baricitinib |
+|trt93  |Multiple comorbidities       |         0.5950590| 0.1835300|   1.8743635|      0.5848668| 0.3747864|             10|                 66|         8|            62|TACTIC-R      |Baricitinib |
+|trt103 |Immunocompromised            |         4.1181357| 0.3422433| 124.6625022|      1.4124359| 0.3162958|              4|                 17|         4|            18|TACTIC-R      |Baricitinib |
+|trt75  |No comorbidity_firth         |         1.0973275| 0.0578292| 161.1420251|      1.5034095| 0.9545145|              1|                 78|         0|            27|RUXCOVID      |Ruxolitinib |
+|trt86  |One comorbidity              |         2.4121297| 0.2931049|  51.1062611|      1.1928393| 0.4604153|              4|                 85|         1|            49|RUXCOVID      |Ruxolitinib |
+|trt94  |Multiple comorbidities       |         0.9901053| 0.1679785|   7.6965819|      0.9226840| 0.9914012|              4|                119|         2|            66|RUXCOVID      |Ruxolitinib |
+|trt76  |No comorbidity               |         0.1568725| 0.0018455|   6.5063845|      1.8924981| 0.3276933|              1|                 37|         1|            25|PANCOVID      |Baricitinib |
+|trt87  |One comorbidity_firth        |         0.3019481| 0.0230217|   2.6596564|      1.0374992| 0.2779638|              1|                 45|         2|            36|PANCOVID      |Baricitinib |
+|trt95  |Multiple comorbidities_firth |         0.1874210| 0.0011875|   2.9390338|      1.3998641| 0.2578515|              0|                 58|         3|            75|PANCOVID      |Baricitinib |
+
+```r
+kable(df_sg_comed_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|       |variable                       | hazard_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:------|:------------------------------|-----------------:|---------:|-----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt12  |No Dexa, no Tocilizumab        |         0.6654049| 0.3654969|   1.1915474|      0.3000191| 0.1745339|             22|                479|        35|           466|ACTT-2        |Baricitinib |
+|trt13  |Dexa, but no Tocilizumab       |         2.9174518| 0.2213323|  51.4447749|      1.3066912| 0.4125548|              2|                 15|         2|            26|ACTT-2        |Baricitinib |
+|trt121 |No Dexa, no Tocilizumab        |         0.3812643| 0.1450479|   0.9209251|      0.4659481| 0.0385026|              9|                145|        21|           159|COV-BARRIER   |Baricitinib |
+|trt131 |Dexa, but no Tocilizumab       |         0.5379299| 0.3721265|   0.7721814|      0.1859546| 0.0008552|             73|                613|       108|           606|COV-BARRIER   |Baricitinib |
+|trt9   |No Dexa, no Tocilizumab_firth  |         0.3455477| 0.0018718|  21.3158124|      1.8492116| 0.5749819|              0|                  5|         1|             8|Bari-SolidAct |Baricitinib |
+|trt10  |Dexa, but no Tocilizumab       |         0.6922707| 0.3127963|   1.5013292|      0.3974459| 0.3547818|             15|                132|        20|           131|Bari-SolidAct |Baricitinib |
+|trt91  |No Dexa, no Tocilizumab_firth  |         0.2037385| 0.0014640|   2.6000348|      1.3605340| 0.2406854|              0|                 43|         2|            49|COVINIB       |Baricitinib |
+|trt101 |Dexa, but no Tocilizumab_firth |         0.6005072| 0.0002599| 105.8983987|      1.8568148| 0.7916402|              0|                 10|         0|             5|COVINIB       |Baricitinib |
+|trt8   |No Dexa, no Tocilizumab_firth  |         0.7355841| 0.0027926| 295.8054120|      1.9546827| 0.8874282|              0|                  4|         0|             3|TOFACOV       |Tofacitinib |
+|trt92  |Dexa, but no Tocilizumab_firth |         2.5607746| 0.1263794| 389.6015294|      1.3173202| 0.5518554|              1|                 54|         0|            55|TOFACOV       |Tofacitinib |
+|trt81  |Dexa, but no Tocilizumab       |         0.7908805| 0.1472786|   3.8263828|      0.7982351| 0.7688275|              3|                 46|         4|            51|Ghazaeian     |Tofacitinib |
+|trt11  |No Dexa, no Tocilizumab        |         0.7069704| 0.3239083|   1.5125246|      0.3905753| 0.3746294|             17|                163|        19|           176|RECOVERY      |Baricitinib |
+|trt122 |Dexa, but no Tocilizumab       |         0.8683616| 0.7231699|   1.0424523|      0.0932543| 0.1301347|            314|               2584|       313|          2491|RECOVERY      |Baricitinib |
+|trt132 |Dexa and Tocilizumab           |         0.6961076| 0.5456052|   0.8867254|      0.1238151| 0.0034364|            174|               1296|       209|          1257|RECOVERY      |Baricitinib |
+|trt14  |Tocilizumab, but no Dexa       |         2.4876095| 0.5116709|  14.1863269|      0.8307323| 0.2726367|              8|                 18|         4|            16|RECOVERY      |Baricitinib |
+|trt111 |No Dexa, no Tocilizumab        |         1.4949575| 0.2191866|  10.8322478|      0.9622551| 0.6760420|              4|                 14|         3|            19|TACTIC-R      |Baricitinib |
+|trt123 |Dexa, but no Tocilizumab       |         0.8410536| 0.3110521|   2.2637460|      0.5011918| 0.7298113|             14|                113|        12|           112|TACTIC-R      |Baricitinib |
+|trt133 |Dexa and Tocilizumab_firth     |         0.2648583| 0.0002575|  17.2561182|      1.9399011| 0.5439963|              0|                  3|         2|             7|TACTIC-R      |Baricitinib |
+|trt102 |No Dexa, no Tocilizumab        |         1.4643774| 0.2973444|  10.6241413|      0.8642946| 0.6589816|              5|                115|         2|            64|RUXCOVID      |Ruxolitinib |
+|trt112 |Dexa, but no Tocilizumab       |         1.7041865| 0.2228257|  34.8053599|      1.1613405| 0.6462140|              4|                167|         1|            78|RUXCOVID      |Ruxolitinib |
+|trt103 |Dexa, but no Tocilizumab       |         0.5974062| 0.0638119|   4.9334371|      1.0461094| 0.6224003|              2|                135|         3|           123|PANCOVID      |Baricitinib |
+|trt113 |Dexa and Tocilizumab_firth     |         0.5405387| 0.0034865|  10.5496740|      1.6719732| 0.7060920|              0|                  5|         3|            13|PANCOVID      |Baricitinib |
+
+```r
+kable(df_sg_vacc_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|       |variable         | hazard_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:------|:----------------|-----------------:|---------:|-------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt11  |vaccinated       |         1.0153459| 0.3847503|  2.689931e+00|   4.927174e-01| 0.9753421|             11|                 49|         7|            49|Bari-SolidAct |Baricitinib |
+|trt12  |not vaccinated   |         0.7785301| 0.3932854|  1.529344e+00|   3.451862e-01| 0.4682963|              4|                 85|        14|            90|Bari-SolidAct |Baricitinib |
+|trt111 |vaccinated_firth |         1.0000980| 0.0000000| 2.005975e+204|   2.399885e+00| 1.0000000|              0|                  2|         0|             0|COVINIB       |Baricitinib |
+|trt121 |not vaccinated   |         0.8436332| 0.3258987|  2.160550e+00|   4.783483e-01| 0.7222391|              0|                 51|         2|            54|COVINIB       |Baricitinib |
+|trt10  |vaccinated_firth |         1.0074623| 0.0000000|  7.364779e+09|   3.839147e+06| 1.0000000|              0|                  1|         0|             2|TOFACOV       |Tofacitinib |
+|trt112 |not vaccinated   |         0.6777994| 0.2341347|  1.922727e+00|   5.314252e-01| 0.4642826|              1|                 57|         0|            56|TOFACOV       |Tofacitinib |
+|trt15  |vaccinated       |         0.8843193| 0.6526309|  1.197942e+00|   1.546928e-01| 0.4267778|            263|               1726|       276|          1637|RECOVERY      |Baricitinib |
+|trt16  |not vaccinated   |         0.9244622| 0.7224957|  1.182727e+00|   1.256030e-01| 0.5317556|            250|               2335|       269|          2303|RECOVERY      |Baricitinib |
+|trt122 |vaccinated       |         1.4750109| 0.2100704|  1.268436e+01|   9.943302e-01| 0.6958847|              0|                 18|         1|            18|PANCOVID      |Baricitinib |
+|trt13  |not vaccinated   |         1.1430250| 0.5257026|  2.514096e+00|   3.959354e-01| 0.7356446|              2|                122|         5|           118|PANCOVID      |Baricitinib |
+
+```r
+kable(df_sg_symp_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|       |variable                | hazard_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:------|:-----------------------|-----------------:|---------:|------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt14  |More than 10 days       |         0.5058205| 0.0943159| 2.193279e+00|      0.7765180| 0.3800900|              3|                118|        11|           129|ACTT-2        |Baricitinib |
+|trt15  |Between 5-10 days       |         0.7310760| 0.3315374| 1.588828e+00|      0.3967103| 0.4297682|             15|                247|        17|           238|ACTT-2        |Baricitinib |
+|trt16  |5 days and less         |         0.7104569| 0.2209617| 2.166117e+00|      0.5717647| 0.5499197|              6|                129|         9|           124|ACTT-2        |Baricitinib |
+|trt141 |More than 10 days       |         0.4369590| 0.2648428| 7.093433e-01|      0.2506618| 0.0009568|             37|                363|        66|           358|COV-BARRIER   |Baricitinib |
+|trt151 |Between 5-10 days       |         0.6139536| 0.3609758| 1.030274e+00|      0.2667360| 0.0674133|             40|                312|        50|           329|COV-BARRIER   |Baricitinib |
+|trt161 |5 days and less         |         0.3162069| 0.0844070| 1.036694e+00|      0.6289219| 0.0671475|              5|                 82|        12|            75|COV-BARRIER   |Baricitinib |
+|trt13  |More than 10 days       |         0.0739507| 0.0033760| 5.180141e-01|      1.1898877| 0.0286156|              1|                 41|        10|            56|Bari-SolidAct |Baricitinib |
+|trt142 |Between 5-10 days       |         1.0123236| 0.3080375| 3.428702e+00|      0.6038935| 0.9838182|              8|                 79|         6|            69|Bari-SolidAct |Baricitinib |
+|trt152 |5 days and less         |         1.6344455| 0.2916523| 1.057614e+01|      0.8920304| 0.5817913|              6|                 17|         5|            15|Bari-SolidAct |Baricitinib |
+|trt131 |Between 5-10 days_firth |         0.3211533| 0.0022370| 5.873839e+00|      1.3674548| 0.4494179|              0|                 15|         1|            15|COVINIB       |Baricitinib |
+|trt143 |5 days and less_firth   |         0.2792402| 0.0018768| 5.345121e+00|      1.4061063| 0.4040744|              0|                 53|         2|            54|COVINIB       |Baricitinib |
+|trt12  |More than 10 days_firth |         0.7396999| 0.0039160| 1.386971e+02|      1.8179073| 0.8816021|              0|                 14|         0|            14|TOFACOV       |Tofacitinib |
+|trt132 |Between 5-10 days_firth |         2.2140054| 0.1104893| 3.199455e+02|      1.3096022| 0.6123815|              1|                 36|         0|            34|TOFACOV       |Tofacitinib |
+|trt144 |5 days and less_firth   |         0.9633832| 0.0056439| 1.605331e+02|      1.5390619| 0.9844307|              0|                  8|         0|            10|TOFACOV       |Tofacitinib |
+|trt9   |More than 10 days       |         2.9024345| 0.0835128| 1.198579e+02|      1.6591221| 0.5207192|              1|                  4|         1|            10|Ghazaeian     |Tofacitinib |
+|trt10  |Between 5-10 days       |         0.4834340| 0.0216008| 5.406545e+00|      1.2594224| 0.5638570|              1|                 31|         2|            31|Ghazaeian     |Tofacitinib |
+|trt11  |5 days and less         |         0.5674658| 0.0083068| 1.867271e+01|      1.6959239| 0.7383190|              1|                 11|         1|            10|Ghazaeian     |Tofacitinib |
+|trt17  |More than 10 days       |         0.7990657| 0.6269355| 1.017568e+00|      0.1234705| 0.0692590|            171|               1734|       184|          1662|RECOVERY      |Baricitinib |
+|trt18  |Between 5-10 days       |         0.7563059| 0.6083257| 9.393367e-01|      0.1107783| 0.0116910|            221|               1779|       244|          1761|RECOVERY      |Baricitinib |
+|trt19  |5 days and less         |         0.9395257| 0.6879729| 1.282821e+00|      0.1588092| 0.6944680|            121|                548|       117|           517|RECOVERY      |Baricitinib |
+|trt145 |More than 10 days       |         0.5045655| 0.1437220| 1.616668e+00|      0.6080721| 0.2606055|              6|                 60|        10|            68|TACTIC-R      |Baricitinib |
+|trt153 |Between 5-10 days       |         1.2964431| 0.2556725| 7.048851e+00|      0.8240088| 0.7527049|              6|                 44|         4|            51|TACTIC-R      |Baricitinib |
+|trt162 |5 days and less         |         0.7874688| 0.0836207| 6.826361e+00|      1.0859700| 0.8258581|              6|                 24|         3|            19|TACTIC-R      |Baricitinib |
+|trt121 |More than 10 days       |         1.2046913| 0.2269692| 8.922388e+00|      0.8842326| 0.8331959|              4|                144|         2|            79|RUXCOVID      |Ruxolitinib |
+|trt133 |Between 5-10 days_firth |         1.6877981| 0.1187169| 2.400328e+02|      1.3658585| 0.7299147|              2|                114|         0|            52|RUXCOVID      |Ruxolitinib |
+|trt146 |5 days and less         |         0.1098062| 0.0002275| 6.801107e+00|      2.3000080| 0.3368297|              3|                 24|         1|            10|RUXCOVID      |Ruxolitinib |
+|trt147 |More than 10 days_firth |         0.1681943| 0.0000939| 4.203424e+00|      1.4704909| 0.3018142|              0|                 38|         1|            22|PANCOVID      |Baricitinib |
+|trt154 |Between 5-10 days_firth |         0.4977165| 0.0000000| 1.392540e+04|      1.4684665| 0.7472348|              0|                 67|         1|            69|PANCOVID      |Baricitinib |
+|trt163 |5 days and less         |         0.5685283| 0.0587075| 4.177559e+00|      1.0372987| 0.5861671|              2|                 35|         4|            45|PANCOVID      |Baricitinib |
+
+```r
+kable(df_sg_crp_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|       |variable                | hazard_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:------|:-----------------------|-----------------:|---------:|------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt17  |CRP 75 and higher       |         0.5399877| 0.2800221| 1.011633e+00|      0.3256949| 0.0584934|             17|                332|        32|           321|ACTT-2        |Baricitinib |
+|trt18  |CRP below 75            |         2.6842316| 0.5455134| 1.593476e+01|      0.8357233| 0.2374101|              5|                142|         4|           155|ACTT-2        |Baricitinib |
+|trt171 |CRP 75 and higher       |         0.5538630| 0.3339109| 9.076951e-01|      0.2544456| 0.0202297|             40|                279|        53|           274|COV-BARRIER   |Baricitinib |
+|trt181 |CRP below 75            |         0.6042953| 0.3450617| 1.043177e+00|      0.2812340| 0.0732920|             30|                328|        53|           362|COV-BARRIER   |Baricitinib |
+|trt16  |CRP 75 and higher       |         0.8154793| 0.3097797| 2.074896e+00|      0.4805930| 0.6712505|             10|                 68|        16|            87|Bari-SolidAct |Baricitinib |
+|trt172 |CRP below 75            |         0.6505667| 0.1545927| 2.664087e+00|      0.7090284| 0.5442898|              5|                 64|         5|            51|Bari-SolidAct |Baricitinib |
+|trt15  |CRP 75 and higher_firth |         0.2566485| 0.0011791| 5.486143e+00|      1.4168444| 0.3927276|              0|                 30|         1|            25|COVINIB       |Baricitinib |
+|trt161 |CRP below 75_firth      |         0.2436989| 0.0000120| 5.526709e+00|      1.4582197| 0.3923310|              0|                 23|         1|            29|COVINIB       |Baricitinib |
+|trt151 |CRP 75 and higher_firth |         1.0000000| 0.0000000| 2.685274e+38|      3.3984400| 1.0000000|              0|                  1|         0|             2|TOFACOV       |Tofacitinib |
+|trt162 |CRP below 75_firth      |         2.5399995| 0.1307656| 3.735116e+02|      1.3151530| 0.5470383|              1|                 57|         0|            55|TOFACOV       |Tofacitinib |
+|trt12  |CRP 75 and higher       |         0.5965489| 0.0247845| 7.899474e+00|      1.3282549| 0.6973302|              1|                 16|         2|            16|Ghazaeian     |Tofacitinib |
+|trt13  |CRP below 75            |         1.0842493| 0.1216951| 9.604896e+00|      1.0395168| 0.9379768|              2|                 29|         2|            34|Ghazaeian     |Tofacitinib |
+|trt20  |CRP 75 and higher       |         0.8244370| 0.6810753| 9.974766e-01|      0.0972990| 0.0472405|            283|               2238|       308|          2220|RECOVERY      |Baricitinib |
+|trt21  |CRP below 75            |         0.8182184| 0.6585040| 1.016098e+00|      0.1105972| 0.0696742|            225|               1766|       229|          1676|RECOVERY      |Baricitinib |
+|trt173 |CRP 75 and higher       |         0.8408724| 0.3381275| 2.057402e+00|      0.4570872| 0.7045591|             16|                 88|        15|           103|TACTIC-R      |Baricitinib |
+|trt182 |CRP below 75            |         0.5298220| 0.0260199| 9.129443e+00|      1.4005096| 0.6501460|              2|                 41|         2|            35|TACTIC-R      |Baricitinib |
+|trt152 |CRP 75 and higher       |         1.1965174| 0.2315528| 8.996186e+00|      0.8881625| 0.8399111|              5|                 90|         2|            37|RUXCOVID      |Ruxolitinib |
+|trt163 |CRP below 75_firth      |         4.4774319| 0.4533582| 5.998628e+02|      1.3565592| 0.2329516|              4|                187|         0|           101|RUXCOVID      |Ruxolitinib |
+|trt174 |CRP 75 and higher_firth |         0.0852210| 0.0005786| 1.070148e+00|      1.4063062| 0.0573738|              0|                 50|         3|            45|PANCOVID      |Baricitinib |
+|trt183 |CRP below 75            |         0.9213102| 0.0894348| 9.279883e+00|      1.1102131| 0.9411518|              2|                 61|         3|            64|PANCOVID      |Baricitinib |
+
+# Reshape dataframes for each subgroup estimate (for overall forestplot only; descriptive purpose)
 
 ```r
 ## Respiratory support: No oxygen
@@ -3528,9 +4207,9 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_rs_mort28,
-                      # n.e = n_intervention + n_control,
+                      # n.e = n_int + n_cont,
                       # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "ML", # same results with ML (-> see one-stage!)
@@ -3546,21 +4225,21 @@ summary(rs.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Respiratory ...
 ## 
-##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct          -1.5507 [-3.6105; 0.5090]        0.8
-## ACTT-2                  0.5576 [-0.1231; 1.2383]        7.5
-## TOFACOV                 0.1726 [-4.6531; 4.9983]        0.1
-## COVINIB                -1.3767 [-6.1625; 3.4092]        0.2
-## COV-BARRIER            -0.1312 [-0.5733; 0.3109]       17.7
-## RECOVERY               -0.1719 [-0.3922; 0.0483]       71.4
-## TACTIC-R               -0.1375 [-1.6185; 1.3435]        1.6
-## RUXCOVID                0.1982 [-2.4232; 2.8197]        0.5
-## PANCOVID               -3.2906 [-7.0169; 0.4357]        0.2
+##                   OR             95%-CI %W(random)
+## Bari-SolidAct 0.2121 [0.0270;   1.6637]        0.8
+## ACTT-2        1.7465 [0.8842;   3.4499]        7.5
+## TOFACOV       1.1884 [0.0095; 148.1544]        0.1
+## COVINIB       0.2524 [0.0021;  30.2401]        0.2
+## COV-BARRIER   0.8771 [0.5637;   1.3647]       17.7
+## RECOVERY      0.8420 [0.6756;   1.0495]       71.4
+## TACTIC-R      0.8715 [0.1982;   3.8325]        1.6
+## RUXCOVID      1.2193 [0.0886;  16.7713]        0.5
+## PANCOVID      0.0372 [0.0009;   1.5461]        0.2
 ## 
 ## Number of studies: k = 9
 ## 
-##                           log(Ratio of OR)            95%-CI     t p-value
-## Random effects model (HK)          -0.1281 [-0.3601; 0.1039] -1.27  0.2387
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.8797 [0.6976; 1.1095] -1.27  0.2387
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 2.9373]; tau = 0 [0.0000; 1.7139]
@@ -3592,7 +4271,7 @@ forest.meta(rs.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-39-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-43-1.png)<!-- -->
 
 # Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Descriptive by trial
 
@@ -3833,7 +4512,7 @@ forest(df_sg_rs_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-40-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-44-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -3894,7 +4573,7 @@ forest.meta(rs.no.ox.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-41-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-45-1.png)<!-- -->
 
 ```r
 # low-flow oxygen
@@ -3950,7 +4629,7 @@ forest.meta(rs.low.ox.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-41-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-45-2.png)<!-- -->
 
 ```r
 # NIV
@@ -4004,7 +4683,7 @@ forest.meta(rs.niv.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-41-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-45-3.png)<!-- -->
 
 ```r
 # ECMO
@@ -4055,7 +4734,7 @@ forest.meta(rs.ecmo.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-41-4.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-45-4.png)<!-- -->
 
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -4066,9 +4745,9 @@ vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_vb_mort28,
-                      # n.e = n_intervention + n_control,
+                      # n.e = n_int + n_cont,
                       # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "ML", # same results with ML (-> see one-stage!)
@@ -4084,26 +4763,26 @@ summary(vb.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Ventilation ...
 ## 
-##             log(Ratio of OR)                  95%-CI %W(random)
-## ACTT-2                0.7867 [   -0.4700;    2.0435]        4.1
-## COV-BARRIER          -0.2375 [   -0.8952;    0.4202]       14.9
-## RECOVERY             -0.2927 [   -0.5786;   -0.0069]       78.7
-## TACTIC-R             -0.4204 [   -2.2060;    1.3652]        2.0
-## RUXCOVID             -1.8027 [   -6.0556;    2.4502]        0.4
-## PANCOVID            -12.6569 [-4715.6792; 4690.3655]        0.0
+##                 OR             95%-CI %W(random)
+## ACTT-2      2.1962 [0.6250;   7.7175]        4.1
+## COV-BARRIER 0.7886 [0.4085;   1.5222]       14.8
+## RECOVERY    0.7462 [0.5607;   0.9931]       78.4
+## TACTIC-R    0.6568 [0.1101;   3.9165]        2.0
+## RUXCOVID    0.1649 [0.0023;  11.5907]        0.4
+## PANCOVID    9.8019 [0.1404; 684.2802]        0.4
 ## 
 ## Number of studies: k = 6
 ## 
-##                           log(Ratio of OR)            95%-CI     t p-value
-## Random effects model (HK)          -0.2485 [-0.5166; 0.0195] -2.38  0.0629
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.7870 [0.5722; 1.0824] -1.93  0.1112
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 1.9043]; tau = 0 [0.0000; 1.3800]
+##  tau^2 < 0.0001 [0.0000; 7.2290]; tau = 0.0010 [0.0000; 2.6887]
 ##  I^2 = 0.0% [0.0%; 74.6%]; H = 1.00 [1.00; 1.99]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  3.25    5  0.6618
+##  4.61    5  0.4655
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -4129,7 +4808,7 @@ forest.meta(vb.mort28,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-42-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-46-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -4374,7 +5053,7 @@ forest(df_sg_vb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-43-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-47-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -4436,7 +5115,7 @@ forest.meta(no.vent.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-44-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-48-1.png)<!-- -->
 
 ```r
 # Ventilation
@@ -4490,7 +5169,7 @@ forest.meta(vent.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-44-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-48-2.png)<!-- -->
 
 # Interaction: Age on primary endpoint
 
@@ -4500,9 +5179,9 @@ age.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_age_mort28,
-                      # n.e = n_intervention + n_control,
+                      # n.e = n_int + n_cont,
                       # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "ML", # same results with ML (-> see one-stage!)
@@ -4518,22 +5197,22 @@ summary(age.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Age
 ## 
-##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.0263 [-0.0476; 0.1002]        1.8
-## ACTT-2                 -0.0076 [-0.0497; 0.0346]        5.5
-## Ghazaeian               0.0492 [-0.0549; 0.1534]        0.9
-## TOFACOV                 0.0460 [-0.1448; 0.2368]        0.3
-## COVINIB                -0.1438 [-0.3523; 0.0646]        0.2
-## COV-BARRIER             0.0238 [-0.0040; 0.0516]       12.6
-## RECOVERY                0.0080 [-0.0033; 0.0193]       76.5
-## TACTIC-R                0.0530 [-0.0305; 0.1366]        1.4
-## RUXCOVID                0.0128 [-0.1117; 0.1374]        0.6
-## PANCOVID                0.0303 [-0.2176; 0.2782]        0.2
+##                   OR           95%-CI %W(random)
+## Bari-SolidAct 1.0266 [0.9535; 1.1054]        1.8
+## ACTT-2        0.9925 [0.9515; 1.0352]        5.5
+## Ghazaeian     1.0505 [0.9466; 1.1657]        0.9
+## TOFACOV       1.0471 [0.8652; 1.2672]        0.3
+## COVINIB       0.8660 [0.7030; 1.0668]        0.2
+## COV-BARRIER   1.0241 [0.9960; 1.0529]       12.6
+## RECOVERY      1.0080 [0.9967; 1.0195]       76.5
+## TACTIC-R      1.0545 [0.9700; 1.1463]        1.4
+## RUXCOVID      1.0129 [0.8943; 1.1473]        0.6
+## PANCOVID      1.0308 [0.8044; 1.3208]        0.2
 ## 
 ## Number of studies: k = 10
 ## 
-##                              log(Ratio of OR)           95%-CI    t p-value
-## Random effects model (HK-CI)           0.0103 [0.0004; 0.0202] 2.04  0.0410
+##                                  OR           95%-CI    t p-value
+## Random effects model (HK-CI) 1.0103 [1.0004; 1.0204] 2.04  0.0410
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 0.0026]; tau = 0 [0.0000; 0.0510]
@@ -4551,8 +5230,16 @@ summary(age.mort28)
 ```
 
 ```r
+age.mort28$pval.random
+```
+
+```
+## [1] 0.0410467
+```
+
+```r
 # pdf("age.mort28.pdf", width=11, height=4)
-forest.meta(age.mort28,
+fp <- forest.meta(age.mort28,
             hetstat = F,
             leftcols = c("studlab"),
             leftlabs = c("Trial"),
@@ -4560,14 +5247,14 @@ forest.meta(age.mort28,
             # text.random = "Average interaction effect (random effect model)*",
             text.random = "",
             title = "Treatment-covariate interaction on primary endpoint: Age",
-            xlim = c(-0.1,0.1),
+            # xlim = c(0.8,1.35),
             # xlab = "younger: greater effect <-> older: greater effect",
-            xlab.pos = -0.02,
-            fs.xlab = 11
+            # xlab.pos = -0.02,
+            # fs.xlab = 11,
             )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-45-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-49-1.png)<!-- -->
 
 # Subgroups: Age on primary endpoint: Descriptive
 
@@ -4799,17 +5486,18 @@ forest(df_sg_age_mort28$hazard_odds_ratio,
        ci.lb = df_sg_age_mort28$ci_lower,
        ci.ub = df_sg_age_mort28$ci_upper,
        slab = df_sg_age_mort28$variable,
-       alim = c(0, 2),
+       alim = c(0, 5),
        xlab = "Favours JAK inhibitor < > Favours no JAK inhibitor",
        cex = 0.5,
        refline = 1,
        annotate = F,
        lwd.ci = 1,
-       psize = sqrt(df_sg_age_mort28$inverse_variance),
+       # psize = sqrt(df_sg_age_mort28$inverse_variance),
+       xlog = TRUE
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-46-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-50-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -4872,7 +5560,7 @@ forest.meta(age.above70.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-47-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-51-1.png)<!-- -->
 
 ```r
 # Age below 70 years
@@ -4929,26 +5617,22 @@ forest.meta(age.below70.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-47-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-51-2.png)<!-- -->
 
 # Interaction: Comorbidity on primary endpoint
 
 ```r
-# str(df_comorb_mort28)
 comorb.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_comorb_mort28,
-                      # n.e = n_intervention + n_control,
-                      # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      # sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
-                      prediction = T,
+                      # prediction = T,
+                      method.tau = "ML", # same results with REML (-> see one-stage!)
+                      method.random.ci = "HK", # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
@@ -4956,25 +5640,22 @@ summary(comorb.mort28)
 ```
 
 ```
-## Review:     Treatment-covariate interaction on primary endpoint: Comorbidity
-## 
-##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.0940 [-0.8479; 1.0359]        2.9
-## ACTT-2                 -0.2122 [-1.0799; 0.6556]        3.4
-## Ghazaeian               0.6492 [-1.2128; 2.5111]        0.7
-## TOFACOV                -0.5007 [-3.2076; 2.2062]        0.4
-## COVINIB                 0.4110 [-2.0709; 2.8929]        0.4
-## COV-BARRIER            -0.1635 [-0.6294; 0.3023]       11.9
-## RECOVERY                0.2680 [ 0.0846; 0.4514]       76.7
-## TACTIC-R                0.2240 [-0.7754; 1.2235]        2.6
-## RUXCOVID               -0.6122 [-2.7661; 1.5417]        0.6
-## PANCOVID               -0.9682 [-3.3564; 1.4200]        0.5
+##                   OR            95%-CI %W(random)
+## Bari-SolidAct 1.0985 [0.4283;  2.8175]        2.9
+## ACTT-2        0.8088 [0.3396;  1.9262]        3.4
+## Ghazaeian     1.9139 [0.2974; 12.3188]        0.7
+## TOFACOV       0.6061 [0.0405;  9.0812]        0.4
+## COVINIB       1.5083 [0.1261; 18.0458]        0.4
+## COV-BARRIER   0.8492 [0.5329;  1.3530]       11.9
+## RECOVERY      1.3073 [1.0883;  1.5705]       76.7
+## TACTIC-R      1.2511 [0.4605;  3.3990]        2.6
+## RUXCOVID      0.5421 [0.0629;  4.6724]        0.6
+## PANCOVID      0.3798 [0.0349;  4.1372]        0.5
 ## 
 ## Number of studies: k = 10
 ## 
-##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.1843 [ 0.0237; 0.3449] 2.25  0.0245
-## Prediction interval                           [-0.0046; 0.3733]             
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.2024 [1.0372; 1.3939] 2.82  0.0200
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 0.0912]; tau = 0 [0.0000; 0.3020]
@@ -4988,8 +5669,7 @@ summary(comorb.mort28)
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = )
-## - Prediction interval based on t-distribution (df = 8)
+## - Hartung-Knapp adjustment for random effects model (df = 9)
 ```
 
 ```r
@@ -5007,7 +5687,7 @@ forest.meta(comorb.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-48-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-52-1.png)<!-- -->
 
 ```r
 ### SENS
@@ -5016,40 +5696,35 @@ comorb.count.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_comorb_count_mort28,
-                      # n.e = n_intervention + n_control,
-                      # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Treatment-covariate interaction on primary endpoint: Comorbidity Count",
+                      # prediction = T,
+                      method.tau = "ML", # same results with REML (-> see one-stage!)
+                      method.random.ci = "HK", # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
-                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis                               
                       )
 summary(comorb.count.mort28)
 ```
 
 ```
-## Review:     Treatment-covariate interaction on primary endpoint: Comorbidity ...
-## 
-##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.2151 [-0.3574; 0.7877]        4.3
-## ACTT-2                 -0.1959 [-0.5972; 0.2054]        8.7
-## Ghazaeian               0.5025 [-0.8298; 1.8347]        0.8
-## TOFACOV                -0.5460 [-2.8216; 1.7296]        0.3
-## COVINIB                 0.3876 [-0.9539; 1.7291]        0.8
-## COV-BARRIER             0.0128 [-0.2439; 0.2696]       21.2
-## RECOVERY                0.1643 [ 0.0083; 0.3203]       57.3
-## TACTIC-R                0.0284 [-0.5128; 0.5696]        4.8
-## RUXCOVID               -0.2401 [-1.1306; 0.6503]        1.8
-## PANCOVID               -0.8384 [-3.0815; 1.4046]        0.3
+##                   OR           95%-CI %W(random)
+## Bari-SolidAct 1.2400 [0.6995; 2.1984]        4.3
+## ACTT-2        0.8221 [0.5504; 1.2280]        8.7
+## Ghazaeian     1.6528 [0.4362; 6.2631]        0.8
+## TOFACOV       0.5793 [0.0595; 5.6384]        0.3
+## COVINIB       1.4734 [0.3852; 5.6354]        0.8
+## COV-BARRIER   1.0129 [0.7835; 1.3094]       21.2
+## RECOVERY      1.1786 [1.0083; 1.3776]       57.3
+## TACTIC-R      1.0288 [0.5988; 1.7675]        4.8
+## RUXCOVID      0.7865 [0.3228; 1.9161]        1.8
+## PANCOVID      0.4324 [0.0459; 4.0740]        0.3
 ## 
 ## Number of studies: k = 10
 ## 
-##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.0893 [-0.0288; 0.2074] 1.48  0.1383
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.0934 [0.9834; 1.2157] 1.91  0.0891
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 0.0630]; tau = 0 [0.0000; 0.2510]
@@ -5063,7 +5738,7 @@ summary(comorb.count.mort28)
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = )
+## - Hartung-Knapp adjustment for random effects model (df = 9)
 ```
 
 ```r
@@ -5081,7 +5756,7 @@ forest.meta(comorb.count.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-48-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-52-2.png)<!-- -->
 
 ```r
 # str(df_comorb_any_mort28)
@@ -5089,40 +5764,32 @@ comorb.any.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_comorb_any_mort28,
-                      # n.e = n_intervention + n_control,
-                      # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Treatment-covariate interaction on primary endpoint: Any Comorbidity",
-                      # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
-                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      method.random.ci = "HK",
                       )
 summary(comorb.any.mort28)
 ```
 
 ```
-## Review:     Treatment-covariate interaction on primary endpoint: Any Comorbidity
-## 
-##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct          -0.2150 [-2.4303; 2.0003]        1.6
-## ACTT-2                 -1.2343 [-3.7983; 1.3296]        1.2
-## Ghazaeian               0.2132 [-3.0408; 3.4672]        0.7
-## TOFACOV                 0.7089 [-3.8754; 5.2931]        0.4
-## COVINIB                 0.9599 [-3.5178; 5.4376]        0.4
-## COV-BARRIER            -0.1863 [-1.2229; 0.8503]        7.3
-## RECOVERY                0.4639 [ 0.1619; 0.7659]       86.1
-## TACTIC-R                0.5101 [-2.2618; 3.2819]        1.0
-## RUXCOVID                0.1256 [-3.2751; 3.5264]        0.7
-## PANCOVID               -0.9807 [-4.6331; 2.6716]        0.6
+##                   OR             95%-CI %W(random)
+## Bari-SolidAct 0.8066 [0.0880;   7.3914]        1.6
+## ACTT-2        0.2910 [0.0224;   3.7796]        1.2
+## Ghazaeian     1.2376 [0.0478;  32.0479]        0.7
+## TOFACOV       2.0317 [0.0207; 198.9537]        0.4
+## COVINIB       2.6115 [0.0297; 229.9008]        0.4
+## COV-BARRIER   0.8300 [0.2944;   2.3402]        7.3
+## RECOVERY      1.5903 [1.1757;   2.1510]       86.1
+## TACTIC-R      1.6654 [0.1042;  26.6272]        1.0
+## RUXCOVID      1.1338 [0.0378;  34.0001]        0.7
+## PANCOVID      0.3750 [0.0097;  14.4637]        0.6
 ## 
 ## Number of studies: k = 10
 ## 
-##                              log(Ratio of OR)           95%-CI    t p-value
-## Random effects model (HK-CI)           0.3759 [0.0956; 0.6561] 2.63  0.0086
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.4563 [1.1770; 1.8018] 3.99  0.0031
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 0.1184]; tau = 0 [0.0000; 0.3441]
@@ -5136,7 +5803,7 @@ summary(comorb.any.mort28)
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = )
+## - Hartung-Knapp adjustment for random effects model (df = 9)
 ```
 
 ```r
@@ -5154,7 +5821,72 @@ forest.meta(comorb.any.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-48-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-52-3.png)<!-- -->
+
+```r
+# str(df_comorb_noimmuno_mort28)
+comorb.noimmuno.mort28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_comorb_noimmuno_mort28,
+                      sm = "OR",
+                      fixed = F, # the true interaction is assumed the same in all trials 
+                      random = T, # the true interactions are assumed random across trials
+                      method.tau = "ML", # same results with ML (-> see one-stage!)
+                      method.random.ci = "HK",
+                      )
+summary(comorb.noimmuno.mort28)
+```
+
+```
+##                   OR            95%-CI %W(random)
+## Bari-SolidAct 1.1602 [0.3972;  3.3893]        1.8
+## ACTT-2        0.5511 [0.2144;  1.4165]        2.3
+## Ghazaeian     0.7627 [0.1044;  5.5703]        0.5
+## TOFACOV       0.6061 [0.0405;  9.0812]        0.3
+## COVINIB       1.4490 [0.1161; 18.0904]        0.3
+## COV-BARRIER   0.8070 [0.4999;  1.3028]        8.9
+## RECOVERY      1.1786 [1.0083;  1.3776]       83.8
+## TACTIC-R      0.8726 [0.2536;  3.0018]        1.3
+## RUXCOVID      0.5421 [0.0629;  4.6724]        0.4
+## PANCOVID      0.3798 [0.0349;  4.1372]        0.4
+## 
+## Number of studies: k = 10
+## 
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.1030 [0.9630; 1.2633] 1.63  0.1367
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.0859]; tau = 0 [0.0000; 0.2931]
+##  I^2 = 0.0% [0.0%; 62.4%]; H = 1.00 [1.00; 1.63]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  6.10    9  0.7300
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 9)
+```
+
+```r
+forest.meta(comorb.noimmuno.mort28,
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            # text.common = "Average interaction effect (common effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
+            xlab = "any comorbidity: greater effect <-> no comorbidity: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-52-4.png)<!-- -->
 
 # Subgroups: Comorbidity on primary endpoint: Descriptive
 
@@ -5396,13 +6128,13 @@ forest(df_sg_comorb_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-49-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-53-1.png)<!-- -->
 
 ```r
 # dev.off()
 ```
 
-# Subgroups: Comorbidity on primary endpoint: Pooled across trials
+# Subgroups: Comorbidity on primary endpoint: Pooled across trials (only for overall forestplot; descriptive)
 
 ```r
 # No comorbidity
@@ -5457,7 +6189,7 @@ forest.meta(no.comorb.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-50-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-54-1.png)<!-- -->
 
 ```r
 # One comorbidity
@@ -5514,7 +6246,7 @@ forest.meta(one.comorb.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-50-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-54-2.png)<!-- -->
 
 ```r
 # Multiple comorbidity
@@ -5573,7 +6305,7 @@ forest.meta(mult.comorb.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-50-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-54-3.png)<!-- -->
 
 ```r
 # Immunosuppressed
@@ -5627,7 +6359,7 @@ forest.meta(immun.comorb.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-50-4.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-54-4.png)<!-- -->
 
 # Interaction: Comedication on primary endpoint
 
@@ -5638,9 +6370,9 @@ comed.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_comed_mort28,
-                      # n.e = n_intervention + n_control,
+                      # n.e = n_int + n_cont,
                       # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "ML", # same results with ML (-> see one-stage!)
@@ -5656,29 +6388,29 @@ summary(comed.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Comedication
 ## 
-##               log(Ratio of OR)                  95%-CI %W(random)
-## Bari-SolidAct           1.0200 [   -2.5015;    4.5416]        0.5
-## ACTT-2                  0.7782 [   -1.4785;    3.0349]        1.2
-## TOFACOV                 1.2850 [   -3.4743;    6.0442]        0.3
-## COVINIB                 0.6203 [   -4.1561;    5.3968]        0.3
-## COV-BARRIER             0.3564 [   -0.6087;    1.3215]        6.4
-## RECOVERY               -0.0576 [   -0.3153;    0.2000]       89.2
-## TACTIC-R               -0.9218 [   -2.9115;    1.0679]        1.5
-## RUXCOVID                0.1612 [   -2.6609;    2.9833]        0.7
-## PANCOVID              -15.1702 [-3275.4752; 3245.1348]        0.0
+##                   OR             95%-CI %W(random)
+## Bari-SolidAct 2.7733 [0.0820;  93.8371]        0.5
+## ACTT-2        2.1775 [0.2280;  20.7991]        1.2
+## TOFACOV       3.6145 [0.0310; 421.6596]        0.3
+## COVINIB       1.8595 [0.0157; 220.6907]        0.3
+## COV-BARRIER   1.4282 [0.5441;   3.7491]        6.3
+## RECOVERY      0.9440 [0.7296;   1.2214]       88.8
+## TACTIC-R      0.3978 [0.0544;   2.9093]        1.5
+## RUXCOVID      1.1750 [0.0699;  19.7538]        0.7
+## PANCOVID      0.6602 [0.0176;  24.7554]        0.4
 ## 
 ## Number of studies: k = 9
 ## 
-##                              log(Ratio of OR)            95%-CI     t p-value
-## Random effects model (HK-CI)          -0.0225 [-0.2659; 0.2209] -0.18  0.8565
+##                                  OR           95%-CI     t p-value
+## Random effects model (HK-CI) 0.9761 [0.7656; 1.2444] -0.20  0.8450
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0974]; tau = 0 [0.0000; 0.3120]
+##  tau^2 = 0 [0.0000; 0.1209]; tau = 0 [0.0000; 0.3477]
 ##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  2.64    8  0.9547
+##  2.69    8  0.9523
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -5702,7 +6434,7 @@ forest.meta(comed.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-51-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-55-1.png)<!-- -->
 
 # Subgroups: Comedication on primary endpoint: Descriptive
 
@@ -5943,7 +6675,7 @@ forest(df_sg_comed_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-52-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-56-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -6004,7 +6736,7 @@ forest.meta(no.comed.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-53-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-57-1.png)<!-- -->
 
 ```r
 # Dexa, but no Toci
@@ -6061,7 +6793,7 @@ forest.meta(dexa.comed.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-53-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-57-2.png)<!-- -->
 
 ```r
 # Dexa and Toci
@@ -6111,7 +6843,7 @@ forest.meta(dexa.toci.comed.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-53-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-57-3.png)<!-- -->
 
 ```r
 # No dexa, but toci
@@ -6142,7 +6874,7 @@ forest.meta(toci.comed.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-53-4.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-57-4.png)<!-- -->
 
 # Interaction: Vaccination on AEs
 
@@ -6152,9 +6884,9 @@ vacc.ae28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_vacc_ae28,
-                      # n.e = n_intervention + n_control,
+                      # n.e = n_int + n_cont,
                       # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "ML", # same results with ML (-> see one-stage!)
@@ -6170,17 +6902,17 @@ summary(vacc.ae28)
 ```
 ## Review:     Treatment-covariate interaction on AEs: vaccination
 ## 
-##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.3383 [-0.8210; 1.4976]        9.7
-## TOFACOV                 0.9745 [-3.6477; 5.5967]        0.6
-## COVINIB                 0.0000 [-4.7030; 4.7030]        0.6
-## RECOVERY               -0.0530 [-0.4431; 0.3371]       86.0
-## PANCOVID                0.2834 [-1.7978; 2.3647]        3.0
+##                   OR             95%-CI %W(random)
+## Bari-SolidAct 1.4026 [0.4400;   4.4709]        9.7
+## TOFACOV       2.6499 [0.0261; 269.5443]        0.6
+## COVINIB       1.0000 [0.0091; 110.2786]        0.6
+## RECOVERY      0.9484 [0.6420;   1.4009]       86.0
+## PANCOVID      1.3277 [0.1657;  10.6407]        3.0
 ## 
 ## Number of studies: k = 5
 ## 
-##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.0019 [-0.3599; 0.3637] 0.01  0.9918
+##                                  OR           95%-CI    t p-value
+## Random effects model (HK-CI) 1.0019 [0.6977; 1.4387] 0.01  0.9918
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 0.0749]; tau = 0 [0.0000; 0.2737]
@@ -6212,7 +6944,7 @@ forest.meta(vacc.ae28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-54-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-58-1.png)<!-- -->
 
 # Subgroups: Vaccination on AEs: Descriptive
 
@@ -6342,7 +7074,7 @@ forest(df_sg_vacc_ae28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-55-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-59-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -6398,7 +7130,7 @@ forest.meta(vacc.yes.ae28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-56-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-60-1.png)<!-- -->
 
 ```r
 # Unvaccinated
@@ -6450,7 +7182,7 @@ forest.meta(vacc.no.ae28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-56-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-60-2.png)<!-- -->
 
 # Interaction: Symptom onset on primary endpoint
 
@@ -6460,9 +7192,9 @@ symp.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_symp_mort28,
-                      # n.e = n_intervention + n_control,
+                      # n.e = n_int + n_cont,
                       # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "ML", # same results with ML (-> see one-stage!)
@@ -6478,22 +7210,22 @@ summary(symp.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: Symptom dur ...
 ## 
-##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct          -0.2114 [-0.4436; 0.0207]        1.2
-## ACTT-2                 -0.0484 [-0.1877; 0.0910]        3.3
-## Ghazaeian               0.1787 [-0.4549; 0.8123]        0.2
-## TOFACOV                -0.1941 [-0.7017; 0.3135]        0.3
-## COVINIB                 0.2361 [-0.7935; 1.2656]        0.1
-## COV-BARRIER             0.0395 [-0.0269; 0.1059]       14.6
-## RECOVERY               -0.0031 [-0.0322; 0.0261]       76.0
-## TACTIC-R               -0.0052 [-0.1467; 0.1363]        3.2
-## RUXCOVID                0.0249 [-0.2327; 0.2825]        1.0
-## PANCOVID               -0.5214 [-1.1356; 0.0928]        0.2
+##                   OR           95%-CI %W(random)
+## Bari-SolidAct 0.8094 [0.6417; 1.0209]        1.2
+## ACTT-2        0.9528 [0.8288; 1.0952]        3.3
+## Ghazaeian     1.1957 [0.6345; 2.2530]        0.2
+## TOFACOV       0.8236 [0.4957; 1.3682]        0.3
+## COVINIB       1.2663 [0.4523; 3.5451]        0.1
+## COV-BARRIER   1.0403 [0.9734; 1.1117]       14.6
+## RECOVERY      0.9969 [0.9683; 1.0264]       76.0
+## TACTIC-R      0.9948 [0.8635; 1.1460]        3.2
+## RUXCOVID      1.0252 [0.7924; 1.3265]        1.0
+## PANCOVID      0.5937 [0.3212; 1.0973]        0.2
 ## 
 ## Number of studies: k = 10
 ## 
-##                              log(Ratio of OR)            95%-CI     t p-value
-## Random effects model (HK-CI)          -0.0016 [-0.0308; 0.0276] -0.12  0.9050
+##                                  OR           95%-CI     t p-value
+## Random effects model (HK-CI) 0.9984 [0.9697; 1.0280] -0.12  0.9050
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 0.0624]; tau = 0 [0.0000; 0.2499]
@@ -6525,7 +7257,7 @@ forest.meta(symp.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-57-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-61-1.png)<!-- -->
 
 # Subgroups: Symptom onset on primary endpoint: Descriptive
 
@@ -6766,7 +7498,7 @@ forest(df_sg_symp_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-58-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-62-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -6828,7 +7560,7 @@ forest.meta(sympdur.m10.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-59-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-63-1.png)<!-- -->
 
 ```r
 # Enrolment between 5 and 10 days after symptom onset
@@ -6885,7 +7617,7 @@ forest.meta(sympdur.510.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-59-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-63-2.png)<!-- -->
 
 ```r
 # Enrolment less than 5 days after symptom onset
@@ -6942,7 +7674,7 @@ forest.meta(sympdur.5.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-59-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-63-3.png)<!-- -->
 
 # Interaction: CRP on primary endpoint
 
@@ -6952,9 +7684,9 @@ crp.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_crp_mort28,
-                      # n.e = n_intervention + n_control,
+                      # n.e = n_int + n_cont,
                       # n.c = n_control,
-                      sm = "log(Ratio of OR)",
+                      sm = "OR",
                       fixed = F, # the true interaction is assumed the same in all trials 
                       random = T, # the true interactions are assumed random across trials
                       method.tau = "ML", # same results with ML (-> see one-stage!)
@@ -6970,22 +7702,22 @@ summary(crp.mort28)
 ```
 ## Review:     Treatment-covariate interaction on primary endpoint: CRP
 ## 
-##               log(Ratio of OR)            95%-CI %W(random)
-## Bari-SolidAct           0.0001 [-0.0029; 0.0031]       18.3
-## ACTT-2                 -0.0017 [-0.0065; 0.0031]        7.1
-## Ghazaeian              -0.0034 [-0.0418; 0.0351]        0.1
-## TOFACOV                -0.0108 [-0.0589; 0.0374]        0.1
-## COVINIB                 0.0213 [-0.0093; 0.0519]        0.2
-## COV-BARRIER             0.0005 [-0.0026; 0.0036]       16.9
-## RECOVERY                0.0001 [-0.0016; 0.0019]       55.5
-## TACTIC-R                0.0009 [-0.0101; 0.0119]        1.4
-## RUXCOVID               -0.0060 [-0.0259; 0.0139]        0.4
-## PANCOVID               -0.0260 [-0.0759; 0.0239]        0.1
+##                   OR           95%-CI %W(random)
+## Bari-SolidAct 1.0001 [0.9971; 1.0031]       18.3
+## ACTT-2        0.9983 [0.9935; 1.0031]        7.1
+## Ghazaeian     0.9966 [0.9591; 1.0357]        0.1
+## TOFACOV       0.9893 [0.9428; 1.0381]        0.1
+## COVINIB       1.0215 [0.9907; 1.0532]        0.2
+## COV-BARRIER   1.0005 [0.9974; 1.0036]       16.9
+## RECOVERY      1.0001 [0.9984; 1.0019]       55.5
+## TACTIC-R      1.0009 [0.9899; 1.0120]        1.4
+## RUXCOVID      0.9940 [0.9744; 1.0140]        0.4
+## PANCOVID      0.9744 [0.9269; 1.0242]        0.1
 ## 
 ## Number of studies: k = 10
 ## 
-##                              log(Ratio of OR)            95%-CI    t p-value
-## Random effects model (HK-CI)           0.0001 [-0.0012; 0.0013] 0.08  0.9332
+##                                  OR           95%-CI    t p-value
+## Random effects model (HK-CI) 1.0001 [0.9988; 1.0013] 0.08  0.9332
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0 [0.0000; 0.0001]; tau = 0 [0.0000; 0.0103]
@@ -7017,7 +7749,7 @@ forest.meta(crp.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-60-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-64-1.png)<!-- -->
 
 # Subgroups: CRP on primary endpoint: Descriptive
 
@@ -7258,7 +7990,7 @@ forest(df_sg_crp_mort28$hazard_odds_ratio,
        )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-61-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-65-1.png)<!-- -->
 
 ```r
 # dev.off()
@@ -7321,7 +8053,7 @@ forest.meta(crp.above75.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-62-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-66-1.png)<!-- -->
 
 ```r
 # CRP below 75
@@ -7378,7 +8110,7 @@ forest.meta(crp.below75.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-62-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-66-2.png)<!-- -->
 
 # Collect all interaction effect estimates
 
@@ -7425,10 +8157,11 @@ result_list[[3]] <- extract_interaction(age.mort28, "age")
 result_list[[4]] <- extract_interaction(comorb.mort28, "comorbidity") 
 result_list[[5]] <- extract_interaction(comorb.count.mort28, "comorbidity count") 
 result_list[[6]] <- extract_interaction(comorb.any.mort28, "any comorbidity") 
-result_list[[7]] <- extract_interaction(comed.mort28, "comedication")
-result_list[[8]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
-result_list[[9]] <- extract_interaction(symp.mort28, "symptom duration") 
-result_list[[10]] <- extract_interaction(crp.mort28, "crp") 
+result_list[[7]] <- extract_interaction(comorb.noimmuno.mort28, "comorbidity_noimmuno") 
+result_list[[8]] <- extract_interaction(comed.mort28, "comedication")
+result_list[[9]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
+result_list[[10]] <- extract_interaction(symp.mort28, "symptom duration") 
+result_list[[11]] <- extract_interaction(crp.mort28, "crp") 
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -7443,18 +8176,19 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|variable            | log_odds_ratio| ci_lower| ci_upper| standard_error| p_value|approach  |
-|:-------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
-|respiratory support |          0.880|    0.698|    1.109|          0.101|   0.239|two-stage |
-|ventilation         |          0.780|    0.597|    1.020|          0.104|   0.063|two-stage |
-|age                 |          1.010|    1.000|    1.020|          0.005|   0.041|two-stage |
-|comorbidity         |          1.202|    1.024|    1.412|          0.082|   0.024|two-stage |
-|comorbidity count   |          1.093|    0.972|    1.231|          0.060|   0.138|two-stage |
-|any comorbidity     |          1.456|    1.100|    1.927|          0.143|   0.009|two-stage |
-|comedication        |          0.978|    0.767|    1.247|          0.124|   0.856|two-stage |
-|vaccination on AEs  |          1.002|    0.698|    1.439|          0.185|   0.992|two-stage |
-|symptom duration    |          0.998|    0.970|    1.028|          0.013|   0.905|two-stage |
-|crp                 |          1.000|    0.999|    1.001|          0.001|   0.933|two-stage |
+|variable             | log_odds_ratio| ci_lower| ci_upper| standard_error| p_value|approach  |
+|:--------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
+|respiratory support  |          0.880|    0.698|    1.109|          0.101|   0.239|two-stage |
+|ventilation          |          0.787|    0.572|    1.082|          0.124|   0.111|two-stage |
+|age                  |          1.010|    1.000|    1.020|          0.005|   0.041|two-stage |
+|comorbidity          |          1.202|    1.037|    1.394|          0.065|   0.020|two-stage |
+|comorbidity count    |          1.093|    0.983|    1.216|          0.047|   0.089|two-stage |
+|any comorbidity      |          1.456|    1.177|    1.802|          0.094|   0.003|two-stage |
+|comorbidity_noimmuno |          1.103|    0.963|    1.263|          0.060|   0.137|two-stage |
+|comedication         |          0.976|    0.766|    1.244|          0.124|   0.845|two-stage |
+|vaccination on AEs   |          1.002|    0.698|    1.439|          0.185|   0.992|two-stage |
+|symptom duration     |          0.998|    0.970|    1.028|          0.013|   0.905|two-stage |
+|crp                  |          1.000|    0.999|    1.001|          0.001|   0.933|two-stage |
 
 ```r
 # Save
@@ -7740,10 +8474,11 @@ events_i <- subgroup_df$n_intervention
 tot_i <- subgroup_df$n_intervention_tot
 events_c <- subgroup_df$n_control
 tot_c <- subgroup_df$n_control_tot
-# ...and p-interaction from interaction_df
+
+# ...and add p-interaction from interaction_df
 interaction_df_fp <- interaction_df %>% 
   select(variable, p_value) %>% 
-  filter(!variable %in% c("comorbidity count", "any comorbidity", "vaccination on AEs"))
+  filter(!variable %in% c("comorbidity count", "any comorbidity", "comorbidity_noimmuno", "vaccination on AEs"))
 empty_row <- data.frame(
   variable = "",
   p_value = "")
@@ -7780,10 +8515,10 @@ base_data <- tibble(mean = subgroup_df$odds_ratio,
                     lower = subgroup_df$ci_lower,
                     upper = subgroup_df$ci_upper,
                     subgroup = as.character(subgroup_df$variable),
-                    events_i = as.character(events_i),
                     tot_i = as.character(tot_i),
-                    events_c = as.character(events_c),
+                    events_i = as.character(events_i),
                     tot_c = as.character(tot_c),
+                    events_c = as.character(events_c),
                     p_int = as.character(p_int))
 summary <- tibble(mean  = mort_28_OR,
                   lower = mort_28_ci_lower,
@@ -7791,57 +8526,15 @@ summary <- tibble(mean  = mort_28_OR,
                   subgroup = "Overall treatment effect",
                   summary = TRUE)
 header <- tibble(subgroup = c("Subgroup"),
-                 events_i = c("Events int."),
-                 tot_i = c("No. int."),
-                 events_c = c("Events cont."),
-                 tot_c = c("No. cont."),
+                 tot_i = c("JAKi"),
+                 events_i = c("Events JAKi"),
+                 tot_c = c("No JAKi"),
+                 events_c = c("Events no JAKi"),
                  p_int = c("p-int*"),
                  summary = TRUE)
 mort28_fp <- bind_rows(header,base_data,summary)
 
-
-# # Open a pdf file
-# # pdf("mort28_fp.pdf", width=16, height=8)
-# font <- "sans"
-# mort28_fp %>%
-#   forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
-#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
-#                               ticks = gpar(cex=0.88),
-#                               summary = gpar(cex=1),
-#                               xlab = gpar(cex=0.88)),
-#              # title = "Treatment effect on mortality at day 28 by subgroup",
-#              is.summary = summary,
-#              graph.pos = 6,
-#              clip = c(0.1, 2),
-#              hrzl_lines = list("2" = gpar(lty = 2),
-#                                "6" = gpar(lty = 2),
-#                                "8" = gpar(lty = 2),
-#                                "10" = gpar(lty = 2),
-#                                "14" = gpar(lty = 2),
-#                                "18" = gpar(lty = 2),
-#                                "21" = gpar(lty = 2),
-#                                "23" = gpar(lty = 2)),
-#              xlog = FALSE,
-#              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
-#              psize = sqrt(subgroup_df$inverse_variance),
-#              lty.ci = c(1),
-#              col = fpColors(box = "maroon4",
-#                             line = "maroon1",
-#                             summary = "magenta4",
-#                             hrz_lines = "gray63"),
-#              vertices = TRUE,
-#              xlab = "     Favours JAKi <-> Favours No JAKi",
-#              zero = 1,
-#              grid = structure(c(0.69), gp = gpar(lty = 2, col = "gray63")),
-#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-#              )
-# # x <- unit(0.3, 'npc')
-# # y <- unit(0.1, 'npc')
-# # grid.text('', x, y, gp = gpar(fontsize=9, font = 3))
-# # dev.off()
-
 ## main forestplot
-
 mort28_fp_main <- mort28_fp %>% 
   filter(subgroup %in% c("Subgroup", "No ventilation at baseline", "Ventilation at baseline", 
                          "70 years of age or older", 
@@ -7853,7 +8546,7 @@ mort28_fp_main <- mort28_fp %>%
 font <- "sans"
 
 mort28_fp_main %>%
-  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+  forestplot(labeltext = c(subgroup, tot_i, events_i, tot_c, events_c, p_int),
              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
                               ticks = gpar(cex=0.88),
                               summary = gpar(cex=1),
@@ -7883,7 +8576,7 @@ mort28_fp_main %>%
              )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-66-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-70-1.png)<!-- -->
 * The p-values for the interaction were obtained using a two-stage IPDMA approach, i.e. solely based on within-trial interactions ("deft"): 
 First, to produce a treatment-covariate interaction estimate and its variance, a binomial regression was fitted in each trial separately, adjusted (where appropriate) for respiratory support and age, including the treatment and the treatment-covariate interaction, using restricted maximum likelihood estimation (with Firth penalisation correction in case of sparse data). 
 Second, the interaction estimates were combined across trials in a random-effect model (the true interactions are assumed random across trials), using restricted maximum likelihood estimation and the confidence interval for the summary interaction derived using the Hartung-Knapp Sidik-Jonkman approach. 
@@ -7933,7 +8626,7 @@ mort28_fp_additional %>%
              )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-67-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-71-1.png)<!-- -->
 
 # Forestplot subgroup - on safety endpoint
 
@@ -8017,8 +8710,7 @@ ae28_fp_red %>%
              )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-68-1.png)<!-- -->
-
+![](two_stage_files/figure-html/unnamed-chunk-72-1.png)<!-- -->
 
 
 # AESI
@@ -8102,75 +8794,72 @@ ggplot(proportions, aes(x = proportion, y = aesi, color = Group, shape = Group))
         axis.title.x = element_text(size = 9))
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-69-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-73-1.png)<!-- -->
 
 # AE
 
 ```r
-df_ae_actt2 <- readRDS("df_ae_actt2.RData")
-df_ae_covbarrier <- readRDS("df_ae_cov-barrier.RData")
-df_ae_barisolidact <- readRDS("df_ae_barisolidact.RData")
-df_ae_covinib <- readRDS("df_ae_covinib.RData")
-df_ae_tofacov <- readRDS("df_ae_tofacov.RData")
-df_ae_ghazaeian <- readRDS("df_ae_ghazaeian.RData")
-df_ae_recovery <- readRDS("df_ae_recovery.RData")
-df_ae_tactic_r <- readRDS("df_ae_tactic-r.RData")
-# df_ae_ruxcovid <- readRDS("df_aesi_ruxcovid.RData") # export from Virtual Desktop!
-df_ae_pancovid <- readRDS("df_ae_pancovid.RData")
-
-df_ae_actt2 <- df_ae_actt2 %>%
-  mutate(trial = "ACTT2") %>% 
-  select(trial, trt, ae)
-df_ae_covbarrier <- df_ae_covbarrier %>%
-  mutate(trial = "COV-BARRIER") %>% 
-  select(trial, trt, ae)
-df_ae_barisolidact <- df_ae_barisolidact %>%
-  mutate(trial = "BARI-SOLIDACT") %>% 
-  rename(ae = MeddraPT) %>% 
-  select(trial, trt, ae)
-df_ae_covinib <- df_ae_covinib %>%
-  mutate(trial = "COVINIB") %>% 
-  select(trial, trt, ae)
-df_ae_tofacov <- df_ae_tofacov %>%
-  mutate(trial = "TOFACOV") %>% 
-  select(trial, trt, ae)
-df_ae_ghazaeian <- df_ae_ghazaeian %>%
-  mutate(trial = "GHAZAEIAN") %>% 
-  select(trial, trt, ae)
-df_ae_recovery <- df_ae_recovery %>%
-  mutate(trial = "RECOVERY") %>% 
-  select(trial, trt, ae)
-df_ae_tactic_r <- df_ae_tactic_r %>%
-  mutate(trial = "TACTIC-R") %>% 
-  select(trial, trt, ae)
-df_ae_pancovid <- df_ae_pancovid %>%
-  mutate(trial = "PANCOVID") %>%
-  rename(ae = AETerm) %>% 
-  select(trial, trt, ae)
-
-df_ae_tot <- rbind(df_ae_actt2, df_ae_covbarrier, df_ae_barisolidact, df_ae_covinib, df_ae_tofacov, df_ae_ghazaeian, df_ae_recovery, df_ae_tactic_r, df_ae_pancovid)
-
-# round(prop.table(table(df_ae_tot$ae, df_ae_tot$trt),2)*100,0)
-# addmargins(table(df_ae_tot$ae, df_ae_tot$trt))
-
-## GROUP the AEs
-# unique(df_ae_tot$ae)
-
-df_ae_tot <- df_ae_tot %>% 
-  mutate(ARM = case_when(trt == 0 ~ "No JAK inhibitor",
-                         trt == 1 ~ "JAK inhibitor"))
-proportions <- df_ae_tot %>%
-  drop_na(ARM) %>% 
-  group_by(ARM, ae) %>%
-  summarise(count = n()) %>%
-  group_by(ARM) %>%
-  mutate(proportion = (count / sum(count))*100) %>% 
-  mutate("Proportion (%)" = round(proportion,0))
-ggplot(proportions, aes(x = proportion, y = ae, color = ARM, shape = ARM)) +
-  geom_point() +
-  labs(x = "Proportion (%) across all ae by ARM", y = "ae Category") +
-  theme_minimal()
+# df_ae_actt2 <- readRDS("df_ae_actt2.RData")
+# df_ae_covbarrier <- readRDS("df_ae_cov-barrier.RData")
+# df_ae_barisolidact <- readRDS("df_ae_barisolidact.RData")
+# df_ae_covinib <- readRDS("df_ae_covinib.RData")
+# df_ae_tofacov <- readRDS("df_ae_tofacov.RData")
+# df_ae_ghazaeian <- readRDS("df_ae_ghazaeian.RData")
+# df_ae_recovery <- readRDS("df_ae_recovery.RData")
+# df_ae_tactic_r <- readRDS("df_ae_tactic-r.RData")
+# # df_ae_ruxcovid <- readRDS("df_aesi_ruxcovid.RData") # export from Virtual Desktop!
+# df_ae_pancovid <- readRDS("df_ae_pancovid.RData")
+# 
+# df_ae_actt2 <- df_ae_actt2 %>%
+#   mutate(trial = "ACTT2") %>% 
+#   select(trial, trt, ae)
+# df_ae_covbarrier <- df_ae_covbarrier %>%
+#   mutate(trial = "COV-BARRIER") %>% 
+#   select(trial, trt, ae)
+# df_ae_barisolidact <- df_ae_barisolidact %>%
+#   mutate(trial = "BARI-SOLIDACT") %>% 
+#   rename(ae = MeddraPT) %>% 
+#   select(trial, trt, ae)
+# df_ae_covinib <- df_ae_covinib %>%
+#   mutate(trial = "COVINIB") %>% 
+#   select(trial, trt, ae)
+# df_ae_tofacov <- df_ae_tofacov %>%
+#   mutate(trial = "TOFACOV") %>% 
+#   select(trial, trt, ae)
+# df_ae_ghazaeian <- df_ae_ghazaeian %>%
+#   mutate(trial = "GHAZAEIAN") %>% 
+#   select(trial, trt, ae)
+# df_ae_recovery <- df_ae_recovery %>%
+#   mutate(trial = "RECOVERY") %>% 
+#   select(trial, trt, ae)
+# df_ae_tactic_r <- df_ae_tactic_r %>%
+#   mutate(trial = "TACTIC-R") %>% 
+#   select(trial, trt, ae)
+# df_ae_pancovid <- df_ae_pancovid %>%
+#   mutate(trial = "PANCOVID") %>%
+#   rename(ae = AETerm) %>% 
+#   select(trial, trt, ae)
+# 
+# df_ae_tot <- rbind(df_ae_actt2, df_ae_covbarrier, df_ae_barisolidact, df_ae_covinib, df_ae_tofacov, df_ae_ghazaeian, df_ae_recovery, df_ae_tactic_r, df_ae_pancovid)
+# 
+# # round(prop.table(table(df_ae_tot$ae, df_ae_tot$trt),2)*100,0)
+# # addmargins(table(df_ae_tot$ae, df_ae_tot$trt))
+# 
+# ## GROUP the AEs
+# # unique(df_ae_tot$ae)
+# 
+# df_ae_tot <- df_ae_tot %>% 
+#   mutate(ARM = case_when(trt == 0 ~ "No JAK inhibitor",
+#                          trt == 1 ~ "JAK inhibitor"))
+# proportions <- df_ae_tot %>%
+#   drop_na(ARM) %>% 
+#   group_by(ARM, ae) %>%
+#   summarise(count = n()) %>%
+#   group_by(ARM) %>%
+#   mutate(proportion = (count / sum(count))*100) %>% 
+#   mutate("Proportion (%)" = round(proportion,0))
+# ggplot(proportions, aes(x = proportion, y = ae, color = ARM, shape = ARM)) +
+#   geom_point() +
+#   labs(x = "Proportion (%) across all ae by ARM", y = "ae Category") +
+#   theme_minimal()
 ```
-
-![](two_stage_files/figure-html/unnamed-chunk-70-1.png)<!-- -->
-# Interactions: Multivariate IPD Meta-Analysis for Summarising Non-linear Interactions
