@@ -129,15 +129,6 @@ for (df in list_df) {
   df_new_mvd28 <- rbind(df_new_mvd28, selected_rows)
 }
 
-## new MV or death within 28d
-outcomes <- "new MV or death within 28d"
-outcomes.firth <- "new MV or death within 28d_firth"
-df_new_mvd28 <- data.frame()
-for (df in list_df) {
-  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
-  df_new_mvd28 <- rbind(df_new_mvd28, selected_rows)
-}
-
 ## clinical status at day 28
 outcomes <- "clinical status at day 28"
 outcomes.firth <- "clinical status at day 28_firth"
@@ -232,6 +223,47 @@ for (df in list_df) {
 
 ```
 
+## Show treatment estimates across trials
+```{r, warning=F, message=F}
+# Nicely formatted table
+kable(df_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_mort60, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_ttdeath, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_mort28_ame, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_mort28_dimp, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_new_mv28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_new_mvd28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_clin28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_ttdischarge, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_ttdischarge_comp, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_ttdischarge_hypo, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_ttdischarge_sus, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_vir_clear_5, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_vir_clear_10, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_vir_clear_15, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_ae28sev, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+
 # (i) Primary outcome: Mortality at day 28. Only IPD trials
 ```{r warning=FALSE, fig.width=13, fig.height=5}
 # str(df_mort28)
@@ -282,17 +314,12 @@ forestplot <- forest(mort28,
             pooled.total = F
 )
 
-# Calculate the y-coordinate for the "Average treatment effect" row
-# The y-coordinate might need to be adjusted depending on the plot layout
 summary_row_y <- unit(0.26, "npc")
-
-# Add text annotations for totals
 total_row <- c(sum(df_mort28$n_int, na.rm = TRUE), 
                sum(df_mort28$e_int, na.rm = TRUE), 
                sum(df_mort28$n_cont, na.rm = TRUE),
                sum(df_mort28$e_cont, na.rm = TRUE))
 
-# Convert current graphics device to a grid viewport
 pushViewport(viewport())
 
 # Add text annotations aligned with the summary row
@@ -301,7 +328,6 @@ grid.text(label = total_row[2], x = unit(0.37, "npc"), y = summary_row_y, just =
 grid.text(label = total_row[3], x = unit(0.42 , "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[4], x = unit(0.475 , "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 
-# Pop the viewport to finalize the plot
 popViewport()
 
 dev.off()
@@ -557,8 +583,6 @@ b. The dispersion of effects is an entirely separate matter.
 
 ### Forestplot
 ```{r, warning=FALSE, message=FALSE, fig.width=13, fig.height=7}
-# Forestplot
-# str(df_mort28_agg)
 mort28.agg <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -608,17 +632,12 @@ forestplot <- forest(mort28.agg,
             pooled.total = F
 )
 
-# Calculate the y-coordinate for the "Average treatment effect" row
-# The y-coordinate might need to be adjusted depending on the plot layout
 summary_row_y <- unit(0.142, "npc")
-
-# Add text annotations for totals
 total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE), 
                sum(df_mort28_agg$e_int, na.rm = TRUE), 
                sum(df_mort28_agg$n_cont, na.rm = TRUE),
                sum(df_mort28_agg$e_cont, na.rm = TRUE))
 
-# Convert current graphics device to a grid viewport
 pushViewport(viewport())
 
 # Add text annotations aligned with the summary row
@@ -627,7 +646,6 @@ grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just 
 grid.text(label = total_row[3], x = unit(0.42, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 
-# Pop the viewport to finalize the plot
 popViewport()
 
 dev.off()
@@ -700,26 +718,16 @@ forestplot <- forest(mort28.agg.jaki,
             pooled.total = F
 )
 
-# Calculate the y-coordinate for the "Average treatment effect" row
-# The y-coordinate might need to be adjusted depending on the plot layout
 summary_row_y <- unit(0.143, "npc")
-
-# Add text annotations for totals
 total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE), 
                sum(df_mort28_agg$e_int, na.rm = TRUE), 
                sum(df_mort28_agg$n_cont, na.rm = TRUE),
                sum(df_mort28_agg$e_cont, na.rm = TRUE))
-
-# Convert current graphics device to a grid viewport
 pushViewport(viewport())
-
-# Add text annotations aligned with the summary row
 grid.text(label = total_row[1], x = unit(0.318, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[3], x = unit(0.42, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
-
-# Pop the viewport to finalize the plot
 popViewport()
 
 dev.off()
@@ -798,7 +806,6 @@ mort28.agg.jaki.mreg
 
 # (i.v) Primary outcome: Covariate-adjusted Average marginal effects (RDs)
 ```{r warning=FALSE, fig.width=14, fig.height=4}
-# str(df_mort60)
 mort28.ame <- metagen(TE = hazard_odds_ratio,
                       seTE = standard_error,
                       studlab = trial,
@@ -834,7 +841,6 @@ forest.meta(mort28.ame,
 
 # (i) Primary outcome: Deterministic imputation
 ```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_mort28_dimp)
 mort28.dimp <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -935,116 +941,185 @@ Discussion points:
 ```
 
 # (ii) Mortality at day 60
-```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_mort60)
+```{r warning=FALSE, fig.width=13, fig.height=5}
 mort60 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_mort60,
-                      n.e = n_int + n_cont,
-                      # n.c = n_control,
+                      n.e = n_int,
+                      n.c = n_cont,
                       sm = "OR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - mortality 60 days",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      method.tau = "ML",
+                      method.random.ci = "HK"
                       )
 summary(mort60)
-forest.meta(mort60,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - mortality 60 days", # get the title into the figure
-            xlim = c(0.15,5),
+forest(mort60, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
             sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
+
+# Open a pdf file
+pdf("./fp_mort_60.pdf", width=13, height=5)
+
+forestplot <- forest(mort60, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+            )
+summary_row_y <- unit(0.26, "npc")
+total_row <- c(sum(df_mort60$n_int, na.rm = TRUE), 
+               sum(df_mort60$e_int, na.rm = TRUE), 
+               sum(df_mort60$n_cont, na.rm = TRUE),
+               sum(df_mort60$e_cont, na.rm = TRUE))
+pushViewport(viewport())
+grid.text(label = total_row[1], x = unit(0.313, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.358, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.415, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.461, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+popViewport()
+
+dev.off()
 
 ```
 Discussion points
 
 # (iii) Time to death within max. follow-up time
-```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_ttdeath) # COVINIB and TOFACOV have not enough data for time to event
-ttdeath <- metagen(TE = log(hazard_odds_ratio),
+```{r warning=FALSE, fig.width=13, fig.height=5}
+ttdeath <- metagen(TE = log(hazard_odds_ratio), # check COVINIB and TOFACOV
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ttdeath,
-                      n.e = n_int + n_cont,
-                      # n.c = n_control,
-                      sm = "OR",
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "HR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - time to death",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      method.tau = "ML",
+                      method.random.ci = "HK"
                       )
 summary(ttdeath)
-forest.meta(ttdeath,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - time to death", # get the title into the figure
-            xlim = c(0.15,5),
+forest(ttdeath, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aHR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
             sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
+
+# Open a pdf file
+pdf("./fp_ttdeath.pdf", width=13, height=5)
+
+forestplot <- forest(ttdeath, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aHR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+            )
+
+summary_row_y <- unit(0.26, "npc")
+total_row <- c(sum(df_ttdeath$n_int, na.rm = TRUE), 
+               sum(df_ttdeath$e_int, na.rm = TRUE), 
+               sum(df_ttdeath$n_cont, na.rm = TRUE),
+               sum(df_ttdeath$e_cont, na.rm = TRUE))
+pushViewport(viewport())
+grid.text(label = total_row[1], x = unit(0.31, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.355, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.414, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.46, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+
+popViewport()
+
+dev.off()
 
 ```
 Discussion points
 
 # (iv) New mechanical ventilation or death within 28 days
-```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_new_mvd28)
+```{r warning=FALSE, fig.width=13, fig.height=5}
 new.mvd28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_new_mvd28,
-                      n.e = n_int + n_cont,
-                      # n.c = n_control,
+                      n.e = n_int,
+                      n.c = n_cont,
                       sm = "OR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - New MV or death within 28 days",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      method.tau = "ML",
+                      method.random.ci = "HK"
                       )
 summary(new.mvd28)
-forest.meta(new.mvd28,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - New MV or death within 28 days", # get the title into the figure
-            xlim = c(0.15,5),
+forest(new.mvd28, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
             sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
+
+# Open a pdf file
+pdf("./fp_newmvd28.pdf", width=13, height=5)
+
+forestplot <- forest(new.mvd28, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+            )
+
+summary_row_y <- unit(0.26, "npc")
+total_row <- c(sum(df_new_mvd28$n_int, na.rm = TRUE), 
+               sum(df_new_mvd28$e_int, na.rm = TRUE), 
+               sum(df_new_mvd28$n_cont, na.rm = TRUE),
+               sum(df_new_mvd28$e_cont, na.rm = TRUE))
+pushViewport(viewport())
+grid.text(label = total_row[1], x = unit(0.315, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.357, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.418, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.46, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+
+popViewport()
+
+dev.off()
 
 ```
 Discussion points
 
 # (iv.i) New mechanical ventilation among survivors within 28 days
 ```{r warning=FALSE, fig.width=12, fig.height=4}
-# str(df_new_mv28)
 new.mv28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1080,80 +1155,119 @@ Discussion points:
 1. Ghazaeian: new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => not a single event in either arm!
 
 # (v) Clinical status at day 28
-```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_clin28)
+```{r warning=FALSE, fig.width=13, fig.height=5}
 clin28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_clin28,
-                      n.e = n_int + n_cont,
-                      # n.c = n_control,
+                      n.e = n_int,
+                      n.c = n_cont,
                       sm = "OR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - Clinical status at day 28",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      method.tau = "ML",
+                      method.random.ci = "HK"
                       )
 summary(clin28)
-forest.meta(clin28,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - Clinical status at day 28", # get the title into the figure
-            xlim = c(0.15,5),
+forest(clin28, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
             sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
+
+# Open a pdf file
+pdf("./fp_clin28.pdf", width=13, height=5)
+
+forestplot <- forest(clin28, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "n.c"),
+            leftlabs = c("Trial", "JAKi", "no JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+            )
+summary_row_y <- unit(0.26, "npc")
+total_row <- c(sum(df_clin28$n_int, na.rm = TRUE), 
+               sum(df_clin28$n_cont, na.rm = TRUE))
+pushViewport(viewport())
+grid.text(label = total_row[1], x = unit(0.3668, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.422, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+popViewport()
+
+dev.off()
 
 ```
 Discussion points
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
 ```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_ttdischarge_comp)
 ttdischarge.comp <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_ttdischarge_comp,
-                      n.e = n_int + n_cont,
-                      # n.c = n_control,
-                      sm = "OR",
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "HR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - Time to discharge within 28 days",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      method.tau = "ML",
+                      method.random.ci = "HK"
                       )
 summary(ttdischarge.comp)
-forest.meta(ttdischarge.comp,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - Time to discharge within 28 days", # get the title into the figure
-            xlim = c(0.15,5),
+forest(ttdischarge.comp, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aHR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
             sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
+
+# Open a pdf file
+pdf("./fp_ttdischarge_comp.pdf", width=13, height=5)
+
+forestplot <- forest(ttdischarge.comp, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aHR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+            )
+summary_row_y <- unit(0.26, "npc")
+total_row <- c(sum(df_ttdischarge_comp$n_int, na.rm = TRUE), 
+               sum(df_ttdischarge_comp$e_int, na.rm = TRUE), 
+               sum(df_ttdischarge_comp$n_cont, na.rm = TRUE),
+               sum(df_ttdischarge_comp$e_cont, na.rm = TRUE))
+pushViewport(viewport())
+grid.text(label = total_row[1], x = unit(0.316, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.358, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.419, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.463, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+popViewport()
+
+dev.off()
 
 ```
 Discussion points
 
 # (vi.i) Time to discharge or reaching discharge criteria up to day 28. Death = Hypothetical
 ```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_ttdischarge_hypo)
 ttdischarge.hypo <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1189,7 +1303,6 @@ Discussion points
 
 # (vi.ii) Time to discharge or reaching discharge criteria up to day 28. Death = Censored
 ```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_ttdischarge)
 ttdischarge.cens <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1225,7 +1338,6 @@ Discussion points
 
 # (vi.iii) Time to sustained discharge or reaching discharge criteria up to day 28. Death = Censored
 ```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_ttdischarge_sus)
 ttdischarge.sus <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1257,122 +1369,195 @@ forest.meta(ttdischarge.sus,
             )
 
 ```
-Discussion points
 
 # (vii) Viral clearance up to day 5
-```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_vir_clear_5)
+```{r warning=FALSE, fig.width=13, fig.height=5}
 vir.clear5 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_vir_clear_5,
-                      n.e = n_int + n_cont,
-                      # n.c = n_control,
+                      n.e = n_int,
+                      n.c = n_cont,
                       sm = "OR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - Viral clearance up to day 5",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      method.tau = "ML",
+                      method.random.ci = "HK"
                       )
 summary(vir.clear5)
-forest.meta(vir.clear5,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - Viral clearance up to day 5", # get the title into the figure
-            xlim = c(0.15,5),
+forest(vir.clear5, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
             sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
 
+# Open a pdf file
+pdf("./fp_vir_clear5.pdf", width=13, height=5)
+
+forestplot <- forest(vir.clear5, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+            )
+
+summary_row_y <- unit(0.36, "npc")
+
+total_row <- c(sum(df_vir_clear_5$n_int, na.rm = TRUE), 
+               sum(df_vir_clear_5$e_int, na.rm = TRUE), 
+               sum(df_vir_clear_5$n_cont, na.rm = TRUE),
+               sum(df_vir_clear_5$e_cont, na.rm = TRUE))
+
+pushViewport(viewport())
+
+grid.text(label = total_row[1], x = unit(0.315, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.36, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.418, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.466, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+
+popViewport()
+
+dev.off()
+
 ```
-Discussion points:
-1. No VL data from Ghazaeian, TOFACOV, COVINIB, RUXCOVID
 
 # (viii) Viral clearance up to day 10
-```{r warning=FALSE, fig.width=12, fig.height=4}
-# str(df_vir_clear_10)
+```{r warning=FALSE, fig.width=12, fig.height=5}
 vir.clear10 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_vir_clear_10,
-                      n.e = n_int + n_cont,
-                      # n.c = n_control,
+                      n.e = n_int,
+                      n.c = n_cont,
                       sm = "OR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - Viral clearance up to day 10",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      method.tau = "ML",
+                      method.random.ci = "HK"
                       )
 summary(vir.clear10)
-forest.meta(vir.clear10,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - Viral clearance up to day 10", # get the title into the figure
-            xlim = c(0.15,5),
+forest(vir.clear10, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
             sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
 
+# Open a pdf file
+pdf("./fp_vir_clear10.pdf", width=13, height=5)
+
+forestplot <- forest(vir.clear10, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+            )
+
+summary_row_y <- unit(0.36, "npc")
+
+total_row <- c(sum(df_vir_clear_10$n_int, na.rm = TRUE), 
+               sum(df_vir_clear_10$e_int, na.rm = TRUE), 
+               sum(df_vir_clear_10$n_cont, na.rm = TRUE),
+               sum(df_vir_clear_10$e_cont, na.rm = TRUE))
+
+pushViewport(viewport())
+
+grid.text(label = total_row[1], x = unit(0.315, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.36, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.418, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.466, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+
+popViewport()
+
+dev.off()
+
 ```
-Discussion points:
-1. No VL data from Ghazaeian, TOFACOV, COVINIB, RUXCOVID
 
 # (ix) Viral clearance up to day 15
-```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_vir_clear_15)
+```{r warning=FALSE, fig.width=13, fig.height=5}
 vir.clear15 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_vir_clear_15,
-                      n.e = n_int + n_cont,
-                      # n.c = n_control,
+                      n.e = n_int,
+                      n.c = n_cont,
                       sm = "OR",
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - Viral clearance up to day 15",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      method.tau = "ML",
+                      method.random.ci = "HK"
                       )
 summary(vir.clear15)
-forest.meta(vir.clear15,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "TE", "seTE", "n.e"),
-            leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - Viral clearance up to day 15", # get the title into the figure
-            xlim = c(0.15,5),
+forest(vir.clear15, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
             sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
 
+# Open a pdf file
+pdf("./fp_vir_clear15.pdf", width=13, height=5)
+
+forestplot <- forest(vir.clear15, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+            )
+
+summary_row_y <- unit(0.36, "npc")
+
+total_row <- c(sum(df_vir_clear_15$n_int, na.rm = TRUE), 
+               sum(df_vir_clear_15$e_int, na.rm = TRUE), 
+               sum(df_vir_clear_15$n_cont, na.rm = TRUE),
+               sum(df_vir_clear_15$e_cont, na.rm = TRUE))
+
+pushViewport(viewport())
+
+grid.text(label = total_row[1], x = unit(0.315, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.36, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.418, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.466, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+
+popViewport()
+
+dev.off()
+
 ```
-Discussion points:
-1. No VL data from Ghazaeian, TOFACOV, COVINIB, RUXCOVID
 
 # (x) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
-```{r warning=FALSE, fig.width=13, fig.height=4}
-# str(df_ae28)
+```{r warning=FALSE, fig.width=13, fig.height=5}
 ae28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1383,25 +1568,54 @@ ae28 <- metagen(TE = log(hazard_odds_ratio),
                       fixed = F,
                       random = T,
                       prediction = T,
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Average treatment effect - dverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      method.tau = "ML",
+                      method.random.ci = "HK"
                       )
 summary(ae28)
-forest.meta(ae28,
-            # hetstat = T,
-            # rightcols = c("w.random"),
-            leftcols = c("studlab", "n.e", "n.c"),
-            leftlabs = c("Trial", "Total Intervention", "Total Control"),
-            text.random = "Average treatment effect (random effects model)",
-            title = "Average treatment effect - adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY", # get the title into the figure
-            xlim = c(0.2,5),
+forest(ae28, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
             sortvar = +TE,
-            # xlab = "Average treatment effect (95% CI)"
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
             )
+
+# Open a pdf file
+pdf("./fp_ae28.pdf", width=13, height=5)
+
+forestplot <- forest(ae28, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            pooled.total = F
+            )
+
+summary_row_y <- unit(0.26, "npc")
+
+total_row <- c(sum(df_ae28$n_int, na.rm = TRUE), 
+               sum(df_ae28$e_int, na.rm = TRUE), 
+               sum(df_ae28$n_cont, na.rm = TRUE),
+               sum(df_ae28$e_cont, na.rm = TRUE))
+
+pushViewport(viewport())
+
+grid.text(label = total_row[1], x = unit(0.314, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.36, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.417, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.466, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+
+popViewport()
+
+dev.off()
+
 ```
 
 # (x) Meta-regression by RoB: Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
@@ -1630,6 +1844,8 @@ Discussion points
 
 # Plot all treatment effect estimates across endpoints
 ```{r}
+str(result_df)
+
 # Order
 result_df$variable <- factor(result_df$variable, 
                              levels = c("AEs grade 3,4 within 28 days",
