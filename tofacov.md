@@ -3093,27 +3093,18 @@ summary(mort.28.age.firth)
 ```
 
 ```r
-# effect by subgroup
+# effect by subgroup // adapted to cut-off 65, see deft plot!
 df <- df %>% 
-  mutate(age_70 = case_when(age < 70 ~ 0,
-                            age > 69 ~ 1))
-table(df$age_70, useNA = "always")
-```
+  mutate(age_70 = case_when(age < 65 ~ 0,
+                            age > 64 ~ 1))
 
-```
-## 
-##    0    1 <NA> 
-##   94   22    0
-```
-
-```r
-mort.28.age.a70 <- df %>%
+mort.28.age.a70.firth <- df %>%
   filter(age_70 == 1) %>% # 70 and above
   logistf(mort_28 ~ trt
      # + age
       + clinstatus_baseline
       , data=.)
-summary(mort.28.age.a70)
+summary(mort.28.age.a70.firth)
 ```
 
 ```
@@ -3122,28 +3113,72 @@ summary(mort.28.age.a70)
 ## Model fitted by Penalized ML
 ## Coefficients:
 ##                            coef se(coef) lower 0.95 upper 0.95     Chisq
-## (Intercept)          -1.6094379 1.549193  -6.536132  0.8993577 1.4555158
-## trt                  -0.3856625 2.048816  -5.651788  4.8798557 0.0352464
-## clinstatus_baseline3 -1.2237754 2.125476  -6.575319  4.1157318 0.3186315
-##                              p method
-## (Intercept)          0.2276449      2
-## trt                  0.8510803      2
-## clinstatus_baseline3 0.5724312      2
+## (Intercept)          -2.5524477 1.491142  -7.578965 -0.2703118 5.0692167
+## trt                   1.0699546 1.491761  -1.977233  6.1298676 0.4532162
+## clinstatus_baseline3 -0.8873996 1.633198  -4.421353  4.2418115 0.2149586
+##                               p method
+## (Intercept)          0.02435439      2
+## trt                  0.50081156      2
+## clinstatus_baseline3 0.64290836      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=0.5443297 on 2 df, p=0.7617287, n=22
-## Wald test = 9.851189 on 2 df, p = 0.007258409
+## Likelihood ratio test=0.5141832 on 2 df, p=0.7732974, n=34
+## Wald test = 14.9285 on 2 df, p = 0.0005732141
 ```
 
 ```r
-mort.28.age.b70 <- df %>% 
+tab_model(mort.28.age.a70.firth)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">&nbsp;</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">mort 28</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">Predictors</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">Odds Ratios</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">CI</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">p</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">(Intercept)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.08</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;1.45</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.024</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trt</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.92</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.16&nbsp;&ndash;&nbsp;54.26</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.501</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline [3]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.41</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02&nbsp;&ndash;&nbsp;10.11</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.643</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">34</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">R<sup>2</sup></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">1.000</td>
+</tr>
+
+</table>
+
+```r
+mort.28.age.b70.firth <- df %>% 
   filter(age_70 == 0) %>% # below 70
   logistf(mort_28 ~ trt
       # + age 
       + clinstatus_baseline 
       , data=.)
-summary(mort.28.age.b70)
+summary(mort.28.age.b70.firth)
 ```
 
 ```
@@ -3151,20 +3186,60 @@ summary(mort.28.age.b70)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                            coef se(coef) lower 0.95 upper 0.95       Chisq
-## (Intercept)          -4.1808177 1.584296  -9.587893  -1.813196 21.21214863
-## trt                   1.0990351 1.456214  -1.865089   6.093623  0.51131938
-## clinstatus_baseline3 -0.1715299 1.476578  -3.179321   4.834799  0.01034347
+##                            coef se(coef) lower 0.95 upper 0.95        Chisq
+## (Intercept)          -3.3849804 1.385988  -8.404373  -1.264752 14.274233929
+## trt                   0.1091219 1.665971  -5.151994   5.388888  0.002833658
+## clinstatus_baseline3 -1.0820434 1.666725  -6.355694   4.185129  0.267631868
 ##                                 p method
-## (Intercept)          4.111501e-06      2
-## trt                  4.745683e-01      2
-## clinstatus_baseline3 9.189925e-01      2
+## (Intercept)          0.0001580131      2
+## trt                  0.9575469719      2
+## clinstatus_baseline3 0.6049247772      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=0.5114344 on 2 df, p=0.7743609, n=94
-## Wald test = 30.30299 on 2 df, p = 2.628994e-07
+## Likelihood ratio test=0.2719344 on 2 df, p=0.8728713, n=82
+## Wald test = 22.58359 on 2 df, p = 1.247485e-05
 ```
+
+```r
+tab_model(mort.28.age.b70.firth)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">&nbsp;</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">mort 28</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">Predictors</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">Odds Ratios</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">CI</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">p</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">(Intercept)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.03</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.51</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trt</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.12</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.04&nbsp;&ndash;&nbsp;29.21</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.958</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline [3]</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.34</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;8.89</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.605</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">82</td>
+</tr>
+
+</table>
 
 # Subgroup analysis: Comorbidities on primary endpoint
 
@@ -5098,12 +5173,12 @@ result_list[[4]] <- extract_subgroup_results(mort.28.vent.rs.3, "low-flow oxygen
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,2], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,2,1], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,1]) 
-result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above_firth",
+result_list[[7]] <- extract_subgroup_results(mort.28.age.a70.firth, "70 years and above_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,2],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,2],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,1],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,1])
-result_list[[8]] <- extract_subgroup_results(mort.28.age.b70, "below 70 years_firth",
+result_list[[8]] <- extract_subgroup_results(mort.28.age.b70.firth, "below 70 years_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,3,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,1], 
@@ -5193,8 +5268,8 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt   |None or low-flow oxygen_firth  |         2.6388102| 0.1384454| 3.867413e+02|   1.460118e+00| 0.5277118|              1|                 58|         0|            58|TOFACOV |Tofacitinib |
 |trt1  |No oxygen_firth                |         1.3918259| 0.0072404| 2.921471e+02|   1.716586e+00| 0.8722372|              0|                  9|         0|            16|TOFACOV |Tofacitinib |
 |trt2  |low-flow oxygen_firth          |         2.1912808| 0.1141366| 3.226519e+02|   1.456444e+00| 0.6142125|              1|                 49|         0|            42|TOFACOV |Tofacitinib |
-|trt3  |70 years and above_firth       |         0.6800000| 0.0035112| 1.316117e+02|   2.048816e+00| 0.8510803|              0|                 12|         0|            10|TOFACOV |Tofacitinib |
-|trt4  |below 70 years_firth           |         3.0012688| 0.1548825| 4.430236e+02|   1.456214e+00| 0.4745683|              1|                 46|         0|            48|TOFACOV |Tofacitinib |
+|trt3  |70 years and above_firth       |         2.9152473| 0.1384519| 4.593753e+02|   1.491761e+00| 0.5008116|              1|                 17|         0|            17|TOFACOV |Tofacitinib |
+|trt4  |below 70 years_firth           |         1.1152983| 0.0057878| 2.189598e+02|   1.665971e+00| 0.9575470|              0|                 41|         0|            41|TOFACOV |Tofacitinib |
 |trt5  |No comorbidity_firth           |         1.1018332| 0.0053609| 2.010167e+02|   1.497623e+00| 0.9621649|              0|                 19|         0|            25|TOFACOV |Tofacitinib |
 |trt6  |One comorbidity_firth          |         2.6425798| 0.1102389| 5.027508e+02|   1.407701e+00| 0.5733840|              1|                 22|         0|            24|TOFACOV |Tofacitinib |
 |trt7  |Multiple comorbidities_firth   |         0.3895007| 0.0021761| 6.296948e+01|   1.696853e+00| 0.6320255|              0|                 17|         0|             9|TOFACOV |Tofacitinib |

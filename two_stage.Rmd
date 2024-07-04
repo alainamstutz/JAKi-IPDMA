@@ -50,7 +50,7 @@ df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
 df_ruxcovid <- readRDS("trt_effects_ruxcovid_07052024.RData") ### UPDATE !
 df_ruxcovid <- df_ruxcovid %>% ### UPDATE !
   rename(n_int = n_intervention,
-         n_cont = n_control) 
+         n_cont = n_control)
 df_ruxcovid <- df_ruxcovid %>% ### UPDATE !
   mutate(e_int = c(9, 9, 9, 9, 12, 21, NA, 260, 260, 260, 260, 27, NA, 9),
          e_cont = c(3, 3, 3, 3, 5, 8, NA, 135, 135, 135, 135, 21, NA, 3))
@@ -62,7 +62,9 @@ df_pancovid <- readRDS("trt_effects_pancovid.RData")
 # Reshape dataframes for all treatment effect estimates
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
-list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_ruxcovid, df_pancovid) # add all trials
+list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, 
+                df_ruxcovid, 
+                df_pancovid) # add all trials
 
 ## Mortality at day 28
 outcomes <- "death at day 28"
@@ -875,7 +877,9 @@ Discussion points:
 
 # (i.vii) Primary outcome: Multiple imputation
 ```{r warning=FALSE, fig.width=14, fig.height=4}
-# ## Mortality at day 28: multiple imputation
+## Mortality at day 28: multiple imputation
+
+##### ONLY WORKS IF NEW MI ESTIMATES
 # outcomes <- "death at day 28_mi"
 # outcomes.firth <- "death at day 28_mi_firth"
 # df_mort28_mi <- data.frame()
@@ -884,59 +888,57 @@ Discussion points:
 #   df_mort28_mi <- rbind(df_mort28_mi, selected_rows)
 # }
 # # Save
-# saveRDS(df_mort28_mi, file = "trt_effects_mi.RData") # collected on 7.5.24: Bari, ACTT2, RECOVERY, COV-BARRIER, TACTIC-R
+# saveRDS(df_mort28_mi, file = "trt_effects_mi.RData") # collected on 7.5.24: Bari-Solidact, ACTT2, RECOVERY, COV-BARRIER, TACTIC-R
+##### ONLY WORKS IF NEW MI ESTIMATES
 
-
-### UPDATE on 14.5.24
-# df_mort28_mi <- readRDS("trt_effects_mi.RData")
+##### ONLY RUN IF NEW MI ESTIMATES
+# ## UPDATE on 14.5.24
+# df_mort28_mi <- readRDS("trt_effects_mi.RData") # use the one above
 # df_pancovid_mi <- readRDS("trt_effects_pancovid.RData")
-# df_pancovid_mi <- df_pancovid_mi %>%
+# df_pancovid_mi <- df_pancovid_mi %>% # add PANCOVID
 #   filter(variable == "death at day 28_mi")
 # df_ruxcovid_mi <- readRDS("trt_effects_ruxcovid.RData")
-# df_ruxcovid_mi <- df_ruxcovid_mi %>%
-#   filter(variable == "death at day 28_mi") %>% 
-#   mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib",
-#                           TRUE ~ JAKi))
+# df_ruxcovid_mi <- df_ruxcovid_mi %>% # add RUXCOVID
+#   filter(variable == "death at day 28_mi")
+# # %>%
+# #   mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib", ## shoud be fine now, double-check
+# #                           TRUE ~ JAKi))
 # df_mort28_mi <- rbind(df_mort28_mi, df_ruxcovid_mi, df_pancovid_mi)
 # Save
 # saveRDS(df_mort28_mi, file = "trt_effects_mi_14052024.RData") # updated on 14.5.24: incl. PANCOVID and RUXCOVID
+##### ONLY RUN IF NEW MI ESTIMATES
 
-# # LOAD
-# df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
-# # no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
-# df_mort28_mi_add <- df_mort28_dimp %>% 
-#   filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
-# df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
-# 
-# mort28.mi <- metagen(TE = log(hazard_odds_ratio),
-#                       seTE = standard_error,
-#                       studlab = trial,
-#                       data = df_mort28_mi_ext,
-#                       n.e = n_int + n_cont,
-#                       # n.c = n_control,
-#                       sm = "OR",
-#                       fixed = F,
-#                       random = T,
-#                       prediction = T,
-#                       method.tau = "ML", # same results with ML (-> see one-stage!)
-#                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-#                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-#                       title = "Average treatment effect, multiple imputation - mortality 28 days",
-#                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-#                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
-#                       )
-# summary(mort28.mi)
-# forest.meta(mort28.mi,
-#             # hetstat = T,
-#             # rightcols = c("w.random"),
-#             leftcols = c("studlab", "TE", "seTE", "n.e"),
-#             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-#             text.random = "Average treatment effect (random effects model)",
-#             title = "Average treatment effect, multiple imputation - mortality 28 days", # get the title into the figure
-#             xlim = c(0.15,5),
-#             sortvar = +TE,
-#             # xlab = "Average treatment effect (95% CI)"
-#             )
+# LOAD
+df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
+# no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
+df_mort28_mi_add <- df_mort28_dimp %>%
+  filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
+df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
+
+mort28.mi <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_mi_ext,
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      method.tau = "ML",
+                      method.random.ci = "HK"
+                      )
+summary(mort28.mi)
+forest(mort28.mi, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            )
 
 ```
 
@@ -2855,6 +2857,25 @@ forest.meta(age.mort28,
 df_sg_age_mort28$inverse_variance <- 1 / df_sg_age_mort28$standard_error^2
 df_sg_age_mort28$variable <- gsub("_firth$", "", df_sg_age_mort28$variable)
 df_sg_age_mort28 <- df_sg_age_mort28[order(df_sg_age_mort28$trial), ]
+
+# modify labels because for 4 trials (COVINIB, PANCOVID, RUXCOVID, TOFACOV) we used a different threshold.
+df_sg_age_mort28 <- df_sg_age_mort28 %>% 
+  mutate(trial = case_when(trial == "COVINIB" ~ "COVINIB*",
+                           trial == "PANCOVID" ~ "PANCOVID*",
+                           trial == "RUXCOVID" ~ "RUXCOVID*",
+                           trial == "TOFACOV" ~ "TOFACOV*",
+                           TRUE ~ trial),
+         variable = case_when(trial == "COVINIB*" & variable == "70 years and above" ~ "65 years and above",
+                              trial == "COVINIB*" & variable == "below 70 years" ~ "below 65 years",
+                              trial == "PANCOVID*" & variable == "70 years and above" ~ "75 years and above",
+                              trial == "PANCOVID*" & variable == "below 70 years" ~ "below 75 years",
+                              trial == "RUXCOVID*" & variable == "70 years and above" ~ "60 years and above",
+                              trial == "RUXCOVID*" & variable == "below 70 years" ~ "below 60 years",
+                              trial == "TOFACOV*" & variable == "70 years and above" ~ "65 years and above",
+                              trial == "TOFACOV*" & variable == "below 70 years" ~ "below 65 years",
+                              TRUE ~ variable)
+         )
+  
 
 mort28.age <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,

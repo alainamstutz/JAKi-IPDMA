@@ -411,18 +411,30 @@ df <- df %>%
 
 ## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days)
 df <- df %>%
-  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28) & !is.na(mort_28) & progression_d <29 & !is.na(clinstatus_fup) ~ clinstatus_fup,
+  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28) & 
+                                         !is.na(mort_28) & progression_d <29 & !is.na(clinstatus_fup) ~ clinstatus_fup,
                                      TRUE ~ clinstatus_28)) # take last value from progression score during follow-up
+
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 df <- df %>%
   mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28_imp) & !is.na(mort_28) ~ clinstatus_baseline_n,
                                      TRUE ~ clinstatus_28_imp)) # take from baseline score
+df <- df %>%
+  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28_imp) & !is.na(withdraw_d) ~ clinstatus_baseline_n,
+                                     TRUE ~ clinstatus_28_imp)) # take from baseline score
+df <- df %>%
+  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28_imp) & !is.na(withdrawi_d) ~ clinstatus_baseline_n,
+                                     TRUE ~ clinstatus_28_imp)) # take from baseline score
+
 df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6)
 df$clinstatus_28_imp <- factor(df$clinstatus_28_imp, levels = 1:6)
 # table(df$clinstatus_28, useNA = "always")
 # table(df$clinstatus_28_imp, useNA = "always")
 # table(df$clinstatus_28_imp, df$discharge_reached, useNA = "always") # correct
 # table(df$clinstatus_28_imp, df$mort_28, useNA = "always") # correct
+
+
+
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 # table(df$discharge_reached, useNA = "always") # this is already within 28 days
@@ -2127,12 +2139,12 @@ table(df$clinstatus_28_imp, df$trt, useNA = "always")
 ##       
 ##         0  1 <NA>
 ##   1    72 93    0
-##   2    34 25    0
-##   3    18 13    0
+##   2    36 27    0
+##   3    22 16    0
 ##   4     3  3    0
 ##   5     3  4    0
 ##   6     6  2    0
-##   <NA>  6  5    0
+##   <NA>  0  0    0
 ```
 
 ```r
@@ -2163,15 +2175,15 @@ kable(clin.28_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 |                     |Variable             |  Odds.Ratio|   CI.Lower|    CI.Upper|
 |:--------------------|:--------------------|-----------:|----------:|-----------:|
-|1&#124;2             |1&#124;2             |   4.4907805|  0.7448207|  27.0764617|
-|2&#124;3             |2&#124;3             |  13.2980850|  2.1732742|  81.3698818|
-|3&#124;4             |3&#124;4             |  37.7392561|  5.9513926| 239.3139786|
-|4&#124;5             |4&#124;5             |  54.1672103|  8.3605226| 350.9453647|
-|5&#124;6             |5&#124;6             | 104.8379921| 15.1749493| 724.2860804|
-|trt                  |trt                  |   0.5660118|  0.3521005|   0.9098805|
-|age                  |age                  |   1.0232639|  0.9966124|   1.0506282|
-|clinstatus_baseline3 |clinstatus_baseline3 |   0.8030048|  0.4762049|   1.3540740|
-|clinstatus_baseline4 |clinstatus_baseline4 |   0.8632289|  0.1330719|   5.5997115|
+|1&#124;2             |1&#124;2             |   4.5048464|  0.8059775|  25.1789175|
+|2&#124;3             |2&#124;3             |  13.1635995|  2.3200790|  74.6872648|
+|3&#124;4             |3&#124;4             |  43.5300694|  7.3613276| 257.4083172|
+|4&#124;5             |4&#124;5             |  62.4160387| 10.3245263| 377.3308116|
+|5&#124;6             |5&#124;6             | 120.6603128| 18.6851468| 779.1702805|
+|trt                  |trt                  |   0.5708269|  0.3606839|   0.9034041|
+|age                  |age                  |   1.0243477|  0.9986744|   1.0506811|
+|clinstatus_baseline3 |clinstatus_baseline3 |   0.8300541|  0.5023931|   1.3714158|
+|clinstatus_baseline4 |clinstatus_baseline4 |   0.8082078|  0.1248880|   5.2302846|
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 
@@ -3244,11 +3256,11 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 </table>
 
 ```r
-# effect by subgroup
+# effect by subgroup // adapted to cut-off 73, see deft plot!
 df <- df %>% 
-  mutate(age_70 = case_when(age < 70 ~ 0,
-                            age > 69 ~ 1))
-# table(df$age_70, df$mort_28, useNA = "always") # no-one below age 70 died!
+  mutate(age_70 = case_when(age < 75 ~ 0,
+                            age > 74 ~ 1))
+
 mort.28.age.a70 <- df %>% 
   filter(age_70 == 1) %>% # 70 and above
   glm(mort_28 ~ trt
@@ -3262,7 +3274,7 @@ summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 115 (5 missing obs. deleted) </td>
+   <td style="text-align:right;"> 61 (4 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -3295,35 +3307,35 @@ summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 0.09 </td>
    <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> 0.60 </td>
-   <td style="text-align:right;"> -2.42 </td>
-   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> -1.92 </td>
+   <td style="text-align:right;"> 0.05 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.31 </td>
-   <td style="text-align:right;"> 0.06 </td>
-   <td style="text-align:right;"> 1.68 </td>
-   <td style="text-align:right;"> -1.36 </td>
-   <td style="text-align:right;"> 0.17 </td>
+   <td style="text-align:right;"> 0.74 </td>
+   <td style="text-align:right;"> 0.09 </td>
+   <td style="text-align:right;"> 5.89 </td>
+   <td style="text-align:right;"> -0.28 </td>
+   <td style="text-align:right;"> 0.78 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 1.66 </td>
-   <td style="text-align:right;"> 0.19 </td>
-   <td style="text-align:right;"> 14.79 </td>
-   <td style="text-align:right;"> 0.45 </td>
-   <td style="text-align:right;"> 0.65 </td>
+   <td style="text-align:right;"> 0.93 </td>
+   <td style="text-align:right;"> 0.09 </td>
+   <td style="text-align:right;"> 10.23 </td>
+   <td style="text-align:right;"> -0.06 </td>
+   <td style="text-align:right;"> 0.96 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 13.83 </td>
-   <td style="text-align:right;"> 0.42 </td>
-   <td style="text-align:right;"> 454.19 </td>
-   <td style="text-align:right;"> 1.47 </td>
-   <td style="text-align:right;"> 0.14 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.01 </td>
+   <td style="text-align:right;"> 1.00 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -3353,31 +3365,35 @@ tab_model(mort.28.age.b70.firth)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">(Intercept)</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.25</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;0.27</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trt</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.12</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.06&nbsp;&ndash;&nbsp;19.85</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.952</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.13</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;1.96</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.089</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline [3]</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.38</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;10.78</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.640</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.39</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.14&nbsp;&ndash;&nbsp;40.48</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.527</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline [4]</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">10.66</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.28&nbsp;&ndash;&nbsp;410.27</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.292</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">32.49</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.21&nbsp;&ndash;&nbsp;872.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.032</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">161</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">215</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">R<sup>2</sup></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">1.000</td>
 </tr>
 
 </table>
@@ -5497,7 +5513,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt4  |death within fup                           |         0.4164473|  0.1021170| 1.6983302|      0.7171769| 0.2219159|   145|    142|     3|      7|PANCOVID |Baricitinib |
 |trt5  |new MV within 28d                          |         0.8630304|  0.2668136| 2.7342153|      0.5804555| 0.7996690|   138|    130|     6|      7|PANCOVID |Baricitinib |
 |trt6  |new MV or death within 28d                 |         0.6132898|  0.2290263| 1.5627647|      0.4830565| 0.3114742|   140|    136|     8|     13|PANCOVID |Baricitinib |
-|trt7  |clinical status at day 28                  |         0.5660118|  0.3507051| 0.9075525|      0.2421931| 0.0187762|   140|    136|    NA|     NA|PANCOVID |Baricitinib |
+|trt7  |clinical status at day 28                  |         0.5708269|  0.3594016| 0.9012863|      0.2342265| 0.0166791|   145|    142|    NA|     NA|PANCOVID |Baricitinib |
 |trt8  |discharge within 28 days                   |         1.3210084|  0.9681911| 1.8023953|      0.1585341| 0.0790782|   145|    142|    93|     72|PANCOVID |Baricitinib |
 |trt9  |discharge within 28 days, death=comp.event |         1.2612342|  0.9754959| 1.6306698|      0.1310739| 0.0770000|   145|    142|    93|     72|PANCOVID |Baricitinib |
 |trt10 |discharge within 28 days, death=hypo.event |         1.3901249|  1.0185580| 1.8972383|      0.1586793| 0.0379083|   145|    142|    93|     72|PANCOVID |Baricitinib |
@@ -5780,8 +5796,8 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt2  |No oxygen_firth                                      |         1.5003070| 0.0417655|   243.891502|      1.5823848| 0.8177485|              1|                 40|         0|            30|PANCOVID |Baricitinib |
 |trt3  |low-flow oxygen                                      |         0.1731803| 0.0087166|     1.154727|      1.1274769| 0.1199048|              1|                 99|         5|           102|PANCOVID |Baricitinib |
 |trt4  |high-flow oxygen / NIV_firth                         |         1.9100247| 0.0062494|  1197.790813|      2.4951044| 0.7951504|              0|                  1|         1|             4|PANCOVID |Baricitinib |
-|trt5  |70 years and above                                   |         0.3086067| 0.0425681|     1.517489|      0.8639586| 0.1735722|              2|                 63|         6|            52|PANCOVID |Baricitinib |
-|trt6  |below 70 years_firth                                 |         1.1213635| 0.0065563|   179.855287|      1.4661394| 0.9524669|              0|                 77|         0|            84|PANCOVID |Baricitinib |
+|trt5  |70 years and above                                   |         0.7412002| 0.0803986|     6.747092|      1.0577503| 0.7770745|              2|                 34|         2|            27|PANCOVID |Baricitinib |
+|trt6  |below 70 years_firth                                 |         0.1336728| 0.0010069|     1.293105|      1.3699564| 0.0888291|              0|                106|         4|           109|PANCOVID |Baricitinib |
 |trt7  |No comorbidity                                       |         0.1568725| 0.0018455|     6.506385|      1.8924981| 0.3276933|              1|                 37|         1|            25|PANCOVID |Baricitinib |
 |trt8  |One comorbidity_firth                                |         0.3019481| 0.0230217|     2.659656|      1.0374992| 0.2779638|              1|                 45|         2|            36|PANCOVID |Baricitinib |
 |trt9  |Multiple comorbidities_firth                         |         0.1874210| 0.0011875|     2.939034|      1.3998641| 0.2578515|              0|                 58|         3|            75|PANCOVID |Baricitinib |

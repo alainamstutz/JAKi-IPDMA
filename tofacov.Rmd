@@ -1182,27 +1182,28 @@ mort.28.age.firth <- df %>%
       , data=.)
 summary(mort.28.age.firth)
 
-# effect by subgroup
+# effect by subgroup // adapted to cut-off 65, see deft plot!
 df <- df %>% 
-  mutate(age_70 = case_when(age < 70 ~ 0,
-                            age > 69 ~ 1))
-table(df$age_70, useNA = "always")
+  mutate(age_70 = case_when(age < 65 ~ 0,
+                            age > 64 ~ 1))
 
-mort.28.age.a70 <- df %>%
+mort.28.age.a70.firth <- df %>%
   filter(age_70 == 1) %>% # 70 and above
   logistf(mort_28 ~ trt
      # + age
       + clinstatus_baseline
       , data=.)
-summary(mort.28.age.a70)
+summary(mort.28.age.a70.firth)
+tab_model(mort.28.age.a70.firth)
 
-mort.28.age.b70 <- df %>% 
+mort.28.age.b70.firth <- df %>% 
   filter(age_70 == 0) %>% # below 70
   logistf(mort_28 ~ trt
       # + age 
       + clinstatus_baseline 
       , data=.)
-summary(mort.28.age.b70)
+summary(mort.28.age.b70.firth)
+tab_model(mort.28.age.b70.firth)
 ```
 
 # Subgroup analysis: Comorbidities on primary endpoint
@@ -1846,12 +1847,12 @@ result_list[[4]] <- extract_subgroup_results(mort.28.vent.rs.3, "low-flow oxygen
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,2], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,2,1], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,1]) 
-result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above_firth",
+result_list[[7]] <- extract_subgroup_results(mort.28.age.a70.firth, "70 years and above_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,2],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,2],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,1],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,1])
-result_list[[8]] <- extract_subgroup_results(mort.28.age.b70, "below 70 years_firth",
+result_list[[8]] <- extract_subgroup_results(mort.28.age.b70.firth, "below 70 years_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,3,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,1], 

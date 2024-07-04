@@ -342,18 +342,30 @@ df <- df %>%
 
 ## Imputation according to protocol: If there was daily data for the ordinal score available but with missing data for single days, then we carried last observed value forward unless for day 28, whereby we first considered data from the window (+/-3 days)
 df <- df %>%
-  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28) & !is.na(mort_28) & progression_d <29 & !is.na(clinstatus_fup) ~ clinstatus_fup,
+  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28) & 
+                                         !is.na(mort_28) & progression_d <29 & !is.na(clinstatus_fup) ~ clinstatus_fup,
                                      TRUE ~ clinstatus_28)) # take last value from progression score during follow-up
+
 df$clinstatus_baseline_n <- as.numeric(df$clinstatus_baseline)
 df <- df %>%
   mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28_imp) & !is.na(mort_28) ~ clinstatus_baseline_n,
                                      TRUE ~ clinstatus_28_imp)) # take from baseline score
+df <- df %>%
+  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28_imp) & !is.na(withdraw_d) ~ clinstatus_baseline_n,
+                                     TRUE ~ clinstatus_28_imp)) # take from baseline score
+df <- df %>%
+  mutate(clinstatus_28_imp = case_when(is.na(clinstatus_28_imp) & !is.na(withdrawi_d) ~ clinstatus_baseline_n,
+                                     TRUE ~ clinstatus_28_imp)) # take from baseline score
+
 df$clinstatus_28 <- factor(df$clinstatus_28, levels = 1:6)
 df$clinstatus_28_imp <- factor(df$clinstatus_28_imp, levels = 1:6)
 # table(df$clinstatus_28, useNA = "always")
 # table(df$clinstatus_28_imp, useNA = "always")
 # table(df$clinstatus_28_imp, df$discharge_reached, useNA = "always") # correct
 # table(df$clinstatus_28_imp, df$mort_28, useNA = "always") # correct
+
+
+
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28
 # table(df$discharge_reached, useNA = "always") # this is already within 28 days
@@ -1341,11 +1353,11 @@ mort.28.age <- df %>%
       , family = "binomial", data=.)
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
-# effect by subgroup
+# effect by subgroup // adapted to cut-off 73, see deft plot!
 df <- df %>% 
-  mutate(age_70 = case_when(age < 70 ~ 0,
-                            age > 69 ~ 1))
-# table(df$age_70, df$mort_28, useNA = "always") # no-one below age 70 died!
+  mutate(age_70 = case_when(age < 75 ~ 0,
+                            age > 74 ~ 1))
+
 mort.28.age.a70 <- df %>% 
   filter(age_70 == 1) %>% # 70 and above
   glm(mort_28 ~ trt

@@ -52,7 +52,7 @@ df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
 df_ruxcovid <- readRDS("trt_effects_ruxcovid_07052024.RData") ### UPDATE !
 df_ruxcovid <- df_ruxcovid %>% ### UPDATE !
   rename(n_int = n_intervention,
-         n_cont = n_control) 
+         n_cont = n_control)
 df_ruxcovid <- df_ruxcovid %>% ### UPDATE !
   mutate(e_int = c(9, 9, 9, 9, 12, 21, NA, 260, 260, 260, 260, 27, NA, 9),
          e_cont = c(3, 3, 3, 3, 5, 8, NA, 135, 135, 135, 135, 21, NA, 3))
@@ -64,7 +64,9 @@ df_pancovid <- readRDS("trt_effects_pancovid.RData")
 
 ```r
 ### Create a list of all data frames / trials
-list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_ruxcovid, df_pancovid) # add all trials
+list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, 
+                df_ruxcovid, 
+                df_pancovid) # add all trials
 
 ## Mortality at day 28
 outcomes <- "death at day 28"
@@ -384,7 +386,7 @@ kable(df_clin28, format = "markdown", table.attr = 'class="table"') %>%
 |trt73 |clinical status at day 28 |         0.7987406| 0.7117768| 0.8961529|      0.0587555| 0.0001310|  4136|   3994|    NA|     NA|RECOVERY      |Baricitinib |
 |trt74 |clinical status at day 28 |         0.8436558| 0.4665473| 1.5175791|      0.2999809| 0.5708920|   137|    145|    NA|     NA|TACTIC-R      |Baricitinib |
 |trt63 |clinical status at day 28 |         1.1528359| 0.5359331| 2.6404373|      0.4025796| 0.7238755|   287|    145|    NA|     NA|RUXCOVID      |Ruxolitinib |
-|trt75 |clinical status at day 28 |         0.5660118| 0.3507051| 0.9075525|      0.2421931| 0.0187762|   140|    136|    NA|     NA|PANCOVID      |Baricitinib |
+|trt75 |clinical status at day 28 |         0.5708269| 0.3594016| 0.9012863|      0.2342265| 0.0166791|   145|    142|    NA|     NA|PANCOVID      |Baricitinib |
 
 ```r
 kable(df_ttdischarge, format = "markdown", table.attr = 'class="table"') %>%
@@ -2362,25 +2364,25 @@ summary(clin28)
 ## TOFACOV       0.5090 [0.0861; 3.0089]        0.3
 ## COVINIB       0.3212 [0.0565; 1.8266]        0.3
 ## COV-BARRIER   0.8487 [0.6655; 1.0823]       14.6
-## RECOVERY      0.7987 [0.7119; 0.8962]       65.3
+## RECOVERY      0.7987 [0.7119; 0.8962]       65.1
 ## TACTIC-R      0.8437 [0.4686; 1.5188]        2.5
 ## RUXCOVID      1.1528 [0.5237; 2.5377]        1.4
-## PANCOVID      0.5660 [0.3521; 0.9099]        3.8
+## PANCOVID      0.5708 [0.3607; 0.9034]        4.1
 ## 
 ## Number of studies: k = 10
-## Number of observations: o = 12391
+## Number of observations: o = 12402
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.7934 [0.7291; 0.8633] -6.20  0.0002
-## Prediction interval              [0.7111; 0.8852]              
+## Random effects model (HK) 0.7929 [0.7286; 0.8629] -6.21  0.0002
+## Prediction interval              [0.7108; 0.8845]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1052]; tau = 0 [0.0000; 0.3243]
+##  tau^2 = 0 [0.0000; 0.1034]; tau = 0 [0.0000; 0.3215]
 ##  I^2 = 0.0% [0.0%; 62.4%]; H = 1.00 [1.00; 1.63]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  5.56    9  0.7827
+##  5.59    9  0.7797
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -3478,7 +3480,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |death within fup                           |         0.7774449| 0.6460937| 0.9354997|      0.0818105| 0.0132007|            700|               6264|       788|          6009|two-stage |
 |new MV or death within 28d                 |         0.8119202| 0.7363671| 0.8952253|      0.0431771| 0.0009397|           1021|               6199|      1113|          5952|two-stage |
 |new MV within 28d                          |         0.8996797| 0.7136961| 1.1341291|      0.1004255| 0.3232391|            323|               5363|       328|          5040|two-stage |
-|clinical status at day 28                  |         0.7933730| 0.7291393| 0.8632653|      0.0373222| 0.0001585|           6334|               6334|      6057|          6057|two-stage |
+|clinical status at day 28                  |         0.7929382| 0.7286483| 0.8629006|      0.0373776| 0.0001575|           6339|               6339|      6063|          6063|two-stage |
 |discharge within 28 days, death=comp.event |         1.1017572| 1.0515857| 1.1543224|      0.0206030| 0.0011146|           5087|               6335|      4699|          6060|two-stage |
 |discharge within 28 days, death=hypo.event |         1.1350594| 1.0811205| 1.1916894|      0.0215224| 0.0002330|           5087|               6335|      4699|          6060|two-stage |
 |discharge within 28 days, death=censored   |         1.1198491| 1.0631547| 1.1795669|      0.0229663| 0.0008148|           5087|               6335|      4699|          6060|two-stage |
@@ -3652,7 +3654,7 @@ ggplot(sens_result_df, aes(x = variable, y = hazard_odds_ratio)) +
                aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
                arrow = arrow(length = unit(0.3, "cm")), color = "black")+
   geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
-  labs(title = "All endpoints, two-stage approach",
+  labs(title = "Sens endpoints, two-stage approach",
        x = "Endpoints",
        y = "aOR / aHR / aIRR") +
   theme_minimal() +
@@ -4272,10 +4274,10 @@ kable(df_sg_age_mort28, format = "markdown", table.attr = 'class="table"') %>%
 |trt71 |below 70 years           |         0.4610049| 0.2980637|   0.7029898|      0.2183732| 0.0003912|             43|                598|        76|           616|COV-BARRIER   |Baricitinib |
 |trt3  |70 years and above       |         0.9118120| 0.3128627|   2.6071685|      0.5359718| 0.8632406|              9|                 31|        12|            38|Bari-SolidAct |Baricitinib |
 |trt4  |below 70 years           |         0.6336362| 0.2045538|   1.8358261|      0.5489705| 0.4058853|              6|                106|         9|           102|Bari-SolidAct |Baricitinib |
-|trt31 |70 years and above_firth |         0.5555556| 0.0025702| 118.9958301|      2.1499335| 0.7854220|              0|                  4|         0|             2|COVINIB       |Baricitinib |
-|trt41 |below 70 years_firth     |         0.1924344| 0.0013769|   2.4589299|      1.4599915| 0.2232569|              0|                 49|         2|            52|COVINIB       |Baricitinib |
-|trt32 |70 years and above_firth |         0.6800000| 0.0035112| 131.6116714|      2.0488160| 0.8510803|              0|                 12|         0|            10|TOFACOV       |Tofacitinib |
-|trt42 |below 70 years_firth     |         3.0012688| 0.1548825| 443.0235976|      1.4562141| 0.4745683|              1|                 46|         0|            48|TOFACOV       |Tofacitinib |
+|trt31 |70 years and above_firth |         0.2401700| 0.0016108|   4.6025170|      1.5279557| 0.3478313|              0|                 11|         1|             8|COVINIB       |Baricitinib |
+|trt41 |below 70 years_firth     |         0.3451466| 0.0023392|   6.6124982|      1.4833067| 0.4883942|              0|                 42|         1|            46|COVINIB       |Baricitinib |
+|trt32 |70 years and above_firth |         2.9152473| 0.1384519| 459.3753293|      1.4917610| 0.5008116|              1|                 17|         0|            17|TOFACOV       |Tofacitinib |
+|trt42 |below 70 years_firth     |         1.1152983| 0.0057878| 218.9597870|      1.6659710| 0.9575470|              0|                 41|         0|            41|TOFACOV       |Tofacitinib |
 |trt2  |70 years and above_firth |         3.5454545| 0.1547877| 562.4644435|      1.7327236| 0.4360413|              1|                  6|         0|             6|Ghazaeian     |Tofacitinib |
 |trt33 |below 70 years_firth     |         0.5699856| 0.0947452|   2.7368400|      0.8206782| 0.4855442|              2|                 40|         4|            45|Ghazaeian     |Tofacitinib |
 |trt62 |70 years and above       |         0.9413563| 0.7691387|   1.1522282|      0.1030750| 0.5576692|            289|                985|       277|           904|RECOVERY      |Baricitinib |
@@ -4284,8 +4286,8 @@ kable(df_sg_age_mort28, format = "markdown", table.attr = 'class="table"') %>%
 |trt63 |below 70 years           |         0.7340426| 0.2258070|   2.2735076|      0.5785174| 0.5930306|              6|                 96|         8|           107|TACTIC-R      |Baricitinib |
 |trt51 |70 years and above       |         1.3828988| 0.2710617|  10.2534520|      0.8805727| 0.7127622|              5|                 46|         2|            23|RUXCOVID      |Ruxolitinib |
 |trt64 |below 70 years           |         2.0881534| 0.3040500|  41.1362112|      1.1246855| 0.5126904|              4|                236|         1|           119|RUXCOVID      |Ruxolitinib |
-|trt52 |70 years and above       |         0.3086067| 0.0425681|   1.5174887|      0.8639586| 0.1735722|              2|                 63|         6|            52|PANCOVID      |Baricitinib |
-|trt65 |below 70 years_firth     |         1.1213635| 0.0065563| 179.8552865|      1.4661394| 0.9524669|              0|                 77|         0|            84|PANCOVID      |Baricitinib |
+|trt52 |70 years and above       |         0.7412002| 0.0803986|   6.7470924|      1.0577503| 0.7770745|              2|                 34|         2|            27|PANCOVID      |Baricitinib |
+|trt65 |below 70 years_firth     |         0.1336728| 0.0010069|   1.2931050|      1.3699564| 0.0888291|              0|                106|         4|           109|PANCOVID      |Baricitinib |
 
 ```r
 kable(df_sg_comorb_mort28, format = "markdown", table.attr = 'class="table"') %>%
@@ -5299,6 +5301,25 @@ df_sg_age_mort28$inverse_variance <- 1 / df_sg_age_mort28$standard_error^2
 df_sg_age_mort28$variable <- gsub("_firth$", "", df_sg_age_mort28$variable)
 df_sg_age_mort28 <- df_sg_age_mort28[order(df_sg_age_mort28$trial), ]
 
+# modify labels because for 4 trials (COVINIB, PANCOVID, RUXCOVID, TOFACOV) we used a different threshold.
+df_sg_age_mort28 <- df_sg_age_mort28 %>% 
+  mutate(trial = case_when(trial == "COVINIB" ~ "COVINIB*",
+                           trial == "PANCOVID" ~ "PANCOVID*",
+                           trial == "RUXCOVID" ~ "RUXCOVID*",
+                           trial == "TOFACOV" ~ "TOFACOV*",
+                           TRUE ~ trial),
+         variable = case_when(trial == "COVINIB*" & variable == "70 years and above" ~ "65 years and above",
+                              trial == "COVINIB*" & variable == "below 70 years" ~ "below 65 years",
+                              trial == "PANCOVID*" & variable == "70 years and above" ~ "75 years and above",
+                              trial == "PANCOVID*" & variable == "below 70 years" ~ "below 75 years",
+                              trial == "RUXCOVID*" & variable == "70 years and above" ~ "60 years and above",
+                              trial == "RUXCOVID*" & variable == "below 70 years" ~ "below 60 years",
+                              trial == "TOFACOV*" & variable == "70 years and above" ~ "65 years and above",
+                              trial == "TOFACOV*" & variable == "below 70 years" ~ "below 65 years",
+                              TRUE ~ variable)
+         )
+  
+
 mort28.age <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = variable,
@@ -5324,20 +5345,20 @@ summary(mort28.age)
 ## below 70 years     0.6336 [0.2161;   1.8583] Bari-SolidAct
 ## 70 years and above 0.6487 [0.3824;   1.1005]   COV-BARRIER
 ## below 70 years     0.4610 [0.3005;   0.7073]   COV-BARRIER
-## 70 years and above 0.5556 [0.0082;  37.5625]       COVINIB
-## below 70 years     0.1924 [0.0110;   3.3653]       COVINIB
+## 65 years and above 0.2402 [0.0120;   4.7986]      COVINIB*
+## below 65 years     0.3451 [0.0189;   6.3182]      COVINIB*
 ## 70 years and above 3.5455 [0.1188; 105.8203]     Ghazaeian
 ## below 70 years     0.5700 [0.1141;   2.8473]     Ghazaeian
-## 70 years and above 0.3086 [0.0568;   1.6781]      PANCOVID
-## below 70 years     1.1214 [0.0634;  19.8484]      PANCOVID
+## 75 years and above 0.7412 [0.0932;   5.8924]     PANCOVID*
+## below 75 years     0.1337 [0.0091;   1.9595]     PANCOVID*
 ## 70 years and above 0.9414 [0.7692;   1.1521]      RECOVERY
 ## below 70 years     0.7614 [0.6289;   0.9218]      RECOVERY
-## 70 years and above 1.3829 [0.2462;   7.7685]      RUXCOVID
-## below 70 years     2.0882 [0.2304;  18.9276]      RUXCOVID
+## 60 years and above 1.3829 [0.2462;   7.7685]     RUXCOVID*
+## below 60 years     2.0882 [0.2304;  18.9276]     RUXCOVID*
 ## 70 years and above 1.1695 [0.3822;   3.5787]      TACTIC-R
 ## below 70 years     0.7340 [0.2362;   2.2812]      TACTIC-R
-## 70 years and above 0.6800 [0.0123;  37.7107]       TOFACOV
-## below 70 years     3.0013 [0.1729;  52.0999]       TOFACOV
+## 65 years and above 2.9152 [0.1566;  54.2581]      TOFACOV*
+## below 65 years     1.1153 [0.0426;  29.2057]      TOFACOV*
 ## 
 ## Number of studies: k = 20
 ## Number of observations: o = 1431
@@ -5386,27 +5407,27 @@ summary(age.above70.mort28)
 ## ACTT-2        0.6904 [0.2639;   1.8060]        3.4
 ## COV-BARRIER   0.6487 [0.3824;   1.1005]       11.3
 ## Bari-SolidAct 0.9118 [0.3189;   2.6069]        2.9
-## COVINIB       0.5556 [0.0082;  37.5625]        0.2
-## TOFACOV       0.6800 [0.0123;  37.7107]        0.2
+## COVINIB       0.2402 [0.0120;   4.7986]        0.4
+## TOFACOV       2.9152 [0.1566;  54.2581]        0.4
 ## Ghazaeian     3.5455 [0.1188; 105.8203]        0.3
 ## RECOVERY      0.9414 [0.7692;   1.1521]       77.2
 ## TACTIC-R      1.1695 [0.3822;   3.5787]        2.5
 ## RUXCOVID      1.3829 [0.2462;   7.7685]        1.1
-## PANCOVID      0.3086 [0.0568;   1.6781]        1.1
+## PANCOVID      0.7412 [0.0932;   5.8924]        0.7
 ## 
 ## Number of studies: k = 10
-## Number of observations: o = 742
+## Number of observations: o = 740
 ## 
 ##                         OR           95%-CI     z p-value
-## Common effect model 0.8918 [0.7468; 1.0649] -1.27  0.2058
+## Common effect model 0.9020 [0.7553; 1.0772] -1.14  0.2548
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0013 [0.0000; 0.1771]; tau = 0.0359 [0.0000; 0.4209]
+##  tau^2 = 0 [0.0000; 0.2170]; tau = 0 [0.0000; 0.4658]
 ##  I^2 = 0.0% [0.0%; 62.4%]; H = 1.00 [1.00; 1.63]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.62    9  0.8657
+##  4.43    9  0.8807
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -5443,27 +5464,27 @@ summary(age.below70.mort28)
 ## ACTT-2        0.6762 [0.3346;  1.3666]        5.4
 ## COV-BARRIER   0.4610 [0.3005;  0.7073]       14.6
 ## Bari-SolidAct 0.6336 [0.2161;  1.8583]        2.3
-## COVINIB       0.1924 [0.0110;  3.3653]        0.3
-## TOFACOV       3.0013 [0.1729; 52.0999]        0.3
+## COVINIB       0.3451 [0.0189;  6.3182]        0.3
+## TOFACOV       1.1153 [0.0426; 29.2057]        0.3
 ## Ghazaeian     0.5700 [0.1141;  2.8473]        1.0
 ## RECOVERY      0.7614 [0.6289;  0.9218]       73.1
 ## TACTIC-R      0.7340 [0.2362;  2.2812]        2.1
 ## RUXCOVID      2.0882 [0.2304; 18.9276]        0.5
-## PANCOVID      1.1214 [0.0634; 19.8484]        0.3
+## PANCOVID      0.1337 [0.0091;  1.9595]        0.4
 ## 
 ## Number of studies: k = 10
-## Number of observations: o = 689
+## Number of observations: o = 691
 ## 
 ##                         OR           95%-CI     z  p-value
-## Common effect model 0.7023 [0.5964; 0.8270] -4.24 < 0.0001
+## Common effect model 0.6958 [0.5909; 0.8194] -4.35 < 0.0001
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0275 [0.0000; 0.4350]; tau = 0.1659 [0.0000; 0.6596]
+##  tau^2 = 0.0300 [0.0000; 0.3114]; tau = 0.1731 [0.0000; 0.5580]
 ##  I^2 = 0.0% [0.0%; 62.4%]; H = 1.00 [1.00; 1.63]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  7.34    9  0.6018
+##  7.22    9  0.6145
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -7230,8 +7251,8 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |Mechanical ventilation or ECMO                      |  0.6886242| 0.4543353|  1.0437300|      0.2121775|             72|                239|        91|           234|two-stage |
 |No ventilation at baseline                          |  0.8477962| 0.7153364|  1.0047836|      0.0866788|            325|               4456|       347|          4316|two-stage |
 |Ventilation at baseline                             |  0.6752787| 0.5673755|  0.8037029|      0.0888303|            342|               1703|       417|          1600|two-stage |
-|70 years of age or older                            |  0.8917759| 0.7467769|  1.0649289|      0.0905366|            366|               1420|       376|          1318|two-stage |
-|Below 70 years of age                               |  0.7023219| 0.5964225|  0.8270245|      0.0833906|            301|               4739|       388|          4598|two-stage |
+|70 years of age or older                            |  0.9020237| 0.7553459|  1.0771843|      0.0905450|            367|               1403|       373|          1306|two-stage |
+|Below 70 years of age                               |  0.6958272| 0.5908875|  0.8194038|      0.0834075|            300|               4756|       391|          4610|two-stage |
 |No comorbidity                                      |  0.5898937| 0.4669158|  0.7452618|      0.1192845|            149|               2632|       219|          2590|two-stage |
 |One comorbidity                                     |  0.8710405| 0.7027450|  1.0796399|      0.1095400|            229|               1876|       234|          1792|two-stage |
 |Multiple comorbidities                              |  0.7565476| 0.6170682|  0.9275543|      0.1039743|            279|               1603|       305|          1489|two-stage |

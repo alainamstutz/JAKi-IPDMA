@@ -2835,95 +2835,6 @@ Discussion points
 # Subgroup analysis: Age on primary endpoint
 
 ```r
-mort.28.age <- df %>% 
-  glm(mort_28 ~ trt*age
-      #+ age 
-      + clinstatus_baseline
-      , family = "binomial", data=.)
-summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-```
-
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 107 (3 missing obs. deleted) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> mort_28 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> Generalized linear model </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Family </td>
-   <td style="text-align:right;"> binomial </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Link </td>
-   <td style="text-align:right;"> logit </td>
-  </tr>
-</tbody>
-</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> exp(Est.) </th>
-   <th style="text-align:right;"> 2.5% </th>
-   <th style="text-align:right;"> 97.5% </th>
-   <th style="text-align:right;"> z val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.11 </td>
-   <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 1.32 </td>
-   <td style="text-align:right;"> 1.16 </td>
-   <td style="text-align:right;"> 0.25 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 56795517.35 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:age </td>
-   <td style="text-align:right;"> 0.88 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.00 </td>
-   <td style="text-align:right;"> 1.00 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: MLE</td></tr></tfoot>
-</table>
-
-```r
 # Firth
 mort.28.age.firth <- df %>%
   logistf(mort_28 ~ trt*age
@@ -2959,88 +2870,214 @@ summary(mort.28.age.firth)
 ```
 
 ```r
-# effect by subgroup
+# effect by subgroup // adapted to cut-off 65, see deft plot!
 df <- df %>% 
-  mutate(age_70 = case_when(age < 70 ~ 0,
-                            age > 69 ~ 1))
-table(df$age_70, useNA = "always")
-```
+  mutate(age_70 = case_when(age < 65 ~ 0,
+                            age > 64 ~ 1))
+# only two events in control in the young ones.. => in subgroup of young ones, point estimate should be on side of JAKi. 
+# BUT, # RANDOM CUT-OFF!!! If you set cut-off to 60 years, then the two events are in the control group of the OLD ones 
+# and the point estimates reverses of course for old/young! However, the p-int. using linear age linear is fine.
 
-```
-## 
-##    0    1 <NA> 
-##  104    6    0
-```
-
-```r
-table(df$age_70, df$mort_28, useNA = "always")
-```
-
-```
-##       
-##         0  1 <NA>
-##   0    99  2    3
-##   1     6  0    0
-##   <NA>  0  0    0
-```
-
-```r
-mort.28.age.a70 <- df %>%
+## above 70y
+# firth
+mort.28.age.a70.firth <- df %>%
   filter(age_70 == 1) %>% # 70 and above
   logistf(mort_28 ~ trt
      # + age
-     # + clinstatus_baseline
+     + clinstatus_baseline_n
       , data=.)
-summary(mort.28.age.a70)
+summary(mort.28.age.a70.firth)
 ```
 
 ```
-## logistf(formula = mort_28 ~ trt, data = .)
+## logistf(formula = mort_28 ~ trt + clinstatus_baseline_n, data = .)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                   coef se(coef) lower 0.95 upper 0.95      Chisq         p
-## (Intercept) -1.6094379 1.549193  -6.536132  0.8993577 1.45551583 0.2276449
-## trt         -0.5877867 2.149934  -5.963790  4.7790885 0.07412559 0.7854220
-##             method
-## (Intercept)      2
-## trt              2
+##                              coef se(coef) lower 0.95 upper 0.95        Chisq
+## (Intercept)           -0.01412542 4.777152 -15.173713   8.987196 7.680065e-06
+## trt                   -1.42640818 1.527956  -6.431018   1.526603 8.813534e-01
+## clinstatus_baseline_n -0.51049909 1.698304  -3.803166   4.653427 7.342351e-02
+##                               p method
+## (Intercept)           0.9977888      2
+## trt                   0.3478313      2
+## clinstatus_baseline_n 0.7864158      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=0.07412559 on 1 df, p=0.785422, n=6
-## Wald test = 3.251804 on 1 df, p = 0.07134491
+## Likelihood ratio test=1.027985 on 2 df, p=0.5981028, n=19
+## Wald test = 8.184445 on 2 df, p = 0.01670207
 ```
 
 ```r
-mort.28.age.b70 <- df %>% 
+tab_model(mort.28.age.a70.firth)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">&nbsp;</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">mort 28</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">Predictors</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">Odds Ratios</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">CI</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">p</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">(Intercept)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;11486.42</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.998</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trt</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.24</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01&nbsp;&ndash;&nbsp;4.80</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.348</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline n</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.60</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02&nbsp;&ndash;&nbsp;16.75</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.786</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">19</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">R<sup>2</sup></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">-0.017</td>
+</tr>
+
+</table>
+
+```r
+## below 70y
+# firth
+mort.28.age.b70.firth <- df %>%
   filter(age_70 == 0) %>% # below 70
   logistf(mort_28 ~ trt
-      # + age 
-      + clinstatus_baseline
+     # + age
+     + clinstatus_baseline_n
       , data=.)
-summary(mort.28.age.b70)
+summary(mort.28.age.b70.firth)
 ```
 
 ```
-## logistf(formula = mort_28 ~ trt + clinstatus_baseline, data = .)
+## logistf(formula = mort_28 ~ trt + clinstatus_baseline_n, data = .)
 ## 
 ## Model fitted by Penalized ML
 ## Coefficients:
-##                           coef se(coef) lower 0.95 upper 0.95      Chisq
-## (Intercept)          -3.670978 1.352053  -8.515088 -1.6889700 23.1776817
-## trt                  -1.648000 1.459991  -6.587894  0.8997262  1.4833132
-## clinstatus_baseline3  1.108377 1.467236  -1.455338  6.0533395  0.6129674
-##                                 p method
-## (Intercept)          1.477016e-06      2
-## trt                  2.232569e-01      2
-## clinstatus_baseline3 4.336727e-01      2
+##                             coef se(coef) lower 0.95 upper 0.95    Chisq
+## (Intercept)           -4.9855762 4.147393 -19.716131   2.355174 1.647005
+## trt                   -1.0637859 1.483307  -6.057957   1.888962 0.480062
+## clinstatus_baseline_n  0.6695748 1.488419  -2.291325   5.667547 0.181130
+##                               p method
+## (Intercept)           0.1993670      2
+## trt                   0.4883942      2
+## clinstatus_baseline_n 0.6704040      2
 ## 
 ## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
 ## 
-## Likelihood ratio test=1.99277 on 2 df, p=0.3692118, n=101
-## Wald test = 32.19699 on 2 df, p = 1.019793e-07
+## Likelihood ratio test=0.63103 on 2 df, p=0.7294131, n=88
+## Wald test = 28.77096 on 2 df, p = 5.655415e-07
 ```
+
+```r
+tab_model(mort.28.age.b70.firth)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">&nbsp;</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">mort 28</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">Predictors</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">Odds Ratios</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">CI</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">p</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">(Intercept)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.01</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;23.18</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.199</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trt</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.35</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02&nbsp;&ndash;&nbsp;6.32</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.488</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">clinstatus baseline n</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.95</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.11&nbsp;&ndash;&nbsp;36.12</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.670</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">88</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">R<sup>2</sup></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">-0.001</td>
+</tr>
+
+</table>
+# discussion:
+In summary:
+
+The summ() function uses standard errors from the model, assuming the model is correctly specified and the usual asymptotic properties hold.
+
+The robres() function uses robust standard errors, which can adjust for certain types of model misspecifications but may differ significantly when there is small sample size or sparse data.
+
+The confint() function uses profile likelihood to derive confidence intervals, which can be more accurate in small sample situations or with sparse data.
+
+### Firth Regression
+Firth logistic regression, also known as penalized likelihood logistic regression, is designed to reduce bias in maximum likelihood estimates, especially in cases of small sample sizes or sparse data. It addresses the issue of separation, where standard logistic regression might fail due to perfect prediction in some categories.
+
+#### Key Features:
+1. **Bias Reduction**: By adding a penalty to the likelihood, Firth regression reduces the bias of the coefficient estimates.
+2. **Handles Separation**: It provides reliable estimates even in cases of complete or quasi-complete separation (where a standard logistic regression might not converge).
+3. **Improved Confidence Intervals**: The method often yields more accurate confidence intervals in the context of sparse data.
+
+#### Steps and Calculations:
+1. **Model Fitting**: The `logistf()` function from the `logistf` package fits the Firth logistic regression model.
+2. **Coefficient Estimates**: These are obtained with reduced bias compared to standard MLE.
+3. **Confidence Intervals**: `confint()` calculates profile likelihood confidence intervals, which are generally more reliable in sparse data contexts.
+4. **Standard Errors and p-values**: These are derived similarly to standard logistic regression but are typically more reliable due to bias reduction.
+
+### Comparison and Recommendation
+**1. Standard Logistic Regression (`summ()`)**:
+   - **Pros**: Simple and widely used.
+   - **Cons**: Not reliable with sparse data or small sample sizes.
+
+**2. Robust Standard Errors (`robres()`)**:
+   - **Pros**: Adjusts for certain violations of assumptions (e.g., heteroscedasticity).
+   - **Cons**: May still be unreliable with extremely sparse data.
+
+**3. Profile Likelihood (`confint()`)**:
+   - **Pros**: Better handling of small samples and sparse data than standard methods.
+   - **Cons**: Still relies on the initial model fit, which can be problematic with extreme sparsity.
+
+**4. Firth Logistic Regression**:
+   - **Pros**: Specifically designed for sparse data and small samples. Reduces bias and handles separation issues effectively.
+   - **Cons**: More computationally intensive and less familiar to some practitioners.
+
+### What Should Be Used?
+Given your situation with very sparse data (only two events in one treatment group), **Firth logistic regression** is generally the best option. It provides more reliable estimates and confidence intervals by directly addressing the issues caused by sparsity and small sample sizes. The bias reduction and robust handling of separation make it superior to the standard and robust methods in this context.
+Therefore, I recommend using Firth logistic regression (`logistf()`) for your analysis. Here's why:
+- **Bias Reduction**: More accurate estimates in the presence of sparse data.
+- **Confidence Intervals**: Profile likelihood intervals from Firth regression are more reliable in your context.
+- **Handling Separation**: Provides estimates where standard logistic regression might fail or give infinite estimates.
+
+Your code snippet using Firth regression is correctly implemented and should provide the most reliable results for your analysis.
+
+
 
 # Subgroup analysis: Comorbidities on primary endpoint
 
@@ -4958,12 +4995,12 @@ result_list[[4]] <- extract_subgroup_results(mort.28.vent.rs.3, "low-flow oxygen
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,2], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,2,1], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,1]) 
-result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above_firth",
+result_list[[7]] <- extract_subgroup_results(mort.28.age.a70.firth, "70 years and above_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,2],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,2],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,1],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,1])
-result_list[[8]] <- extract_subgroup_results(mort.28.age.b70, "below 70 years_firth",
+result_list[[8]] <- extract_subgroup_results(mort.28.age.b70.firth, "below 70 years_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,3,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,1], 
@@ -5053,8 +5090,8 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt   |None or low-flow oxygen_firth  |         0.1706455| 0.0012210|  2.182257e+00|      1.4796585| 0.1882367|              0|                 53|         2|            54|COVINIB |Baricitinib |
 |trt1  |No oxygen_firth                |         1.4516881| 0.0050949|  3.369693e+02|      1.7562814| 0.8724571|              0|                 16|         0|            19|COVINIB |Baricitinib |
 |trt2  |low-flow oxygen_firth          |         0.1826966| 0.0013043|  2.354803e+00|      1.4673121| 0.2091351|              0|                 37|         2|            35|COVINIB |Baricitinib |
-|trt3  |70 years and above_firth       |         0.5555556| 0.0025702|  1.189958e+02|      2.1499335| 0.7854220|              0|                  4|         0|             2|COVINIB |Baricitinib |
-|trt4  |below 70 years_firth           |         0.1924344| 0.0013769|  2.458930e+00|      1.4599915| 0.2232569|              0|                 49|         2|            52|COVINIB |Baricitinib |
+|trt3  |70 years and above_firth       |         0.2401700| 0.0016108|  4.602517e+00|      1.5279557| 0.3478313|              0|                 11|         1|             8|COVINIB |Baricitinib |
+|trt4  |below 70 years_firth           |         0.3451466| 0.0023392|  6.612498e+00|      1.4833067| 0.4883942|              0|                 42|         1|            46|COVINIB |Baricitinib |
 |trt5  |No comorbidity_firth           |         0.0726380| 0.0000024|  3.707308e+00|      1.8702986| 0.2226213|              0|                 17|         1|            19|COVINIB |Baricitinib |
 |trt6  |One comorbidity_firth          |         0.8351792| 0.0035622|  6.863845e+02|      1.4982055| 0.9239355|              0|                 21|         0|            19|COVINIB |Baricitinib |
 |trt7  |Multiple comorbidities_firth   |         0.3560667| 0.0022367|  7.373511e+00|      1.4211978| 0.5163665|              0|                 14|         1|            15|COVINIB |Baricitinib |

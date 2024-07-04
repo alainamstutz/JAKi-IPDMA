@@ -1237,22 +1237,6 @@ Discussion points
 
 # Subgroup analysis: Age on primary endpoint
 ```{r warning=FALSE}
-# glm
-mort.28.age <- df %>% 
-  glm(mort_28 ~ trt*age
-      #+ age 
-      + clinstatus_baseline
-      , family = "binomial", data=.)
-summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-trt_coef <- coef(mort.28.age)[grep("^trt:", names(coef(mort.28.age)))]
-log_odds_ratio <- exp(trt_coef)
-ci <- exp(confint(mort.28.age)[grep("^trt:", names(coef(mort.28.age))), ])
-se <- summary(mort.28.age)$coefficients[grep("^trt:", names(coef(mort.28.age))), "Std. Error"]
-p_value <- summary(mort.28.age)$coefficients[grep("^trt:", names(coef(mort.28.age))), "Pr(>|z|)"]
-print(log_odds_ratio)
-print(ci)
-print(p_value)
-
 # Firth
 mort.28.age.firth <- df %>%
   logistf(mort_28 ~ trt*age
@@ -1260,27 +1244,14 @@ mort.28.age.firth <- df %>%
       + clinstatus_baseline
       , data=.)
 summary(mort.28.age.firth)
-trt_coef <- coef(mort.28.age.firth)[grep("^trt:", names(coef(mort.28.age.firth)))]
-log_odds_ratio <- exp(trt_coef)
-ci <- exp(confint(mort.28.age.firth)[grep("^trt:", names(coef(mort.28.age.firth))), ])
-se <- sqrt(diag(vcov(mort.28.age.firth)))[grep("^trt:", names(coef(mort.28.age.firth)))]
-p_value <- mort.28.age.firth$prob[grep("^trt:", names(coef(mort.28.age.firth)))]
-print(log_odds_ratio)
-print(ci)
-print(p_value)
 
-
-
-### effect by subgroup
+# effect by subgroup // adapted to cut-off 65, see deft plot!
 df <- df %>% 
-  mutate(age_70 = case_when(age < 70 ~ 0,
-                            age > 69 ~ 1))
-df <- df %>% 
-  mutate(age_70 = case_when(age < 60 ~ 0,
-                            age > 59 ~ 1))
-# table(df$age_70, useNA = "always")
-table(df$age_70, df$mort_28, useNA = "always")
-table(df$mort_28, df$trt, df$age_70, useNA = "always") # only two events in control in the young ones.. => in subgroup of young ones, point estimate should be on side of JAKi. BUT, RANDOM CUT-OFF!!! If you set cut-off to 60 years, then the two events are in the control group of the OLD ones and the point estimates reverses of course for old/young! However, the p-int. using linear age linear is fine.
+  mutate(age_70 = case_when(age < 65 ~ 0,
+                            age > 64 ~ 1))
+# only two events in control in the young ones.. => in subgroup of young ones, point estimate should be on side of JAKi. 
+# BUT, # RANDOM CUT-OFF!!! If you set cut-off to 60 years, then the two events are in the control group of the OLD ones 
+# and the point estimates reverses of course for old/young! However, the p-int. using linear age linear is fine.
 
 ## above 70y
 # firth
@@ -1291,32 +1262,7 @@ mort.28.age.a70.firth <- df %>%
      + clinstatus_baseline_n
       , data=.)
 summary(mort.28.age.a70.firth)
-trt_coef <- coef(mort.28.age.a70.firth)[grep("^trt", names(coef(mort.28.age.a70.firth)))]
-hazard_odds_ratio <- exp(trt_coef)
-ci <- exp(confint(mort.28.age.a70.firth)[grep("^trt", names(coef(mort.28.age.a70.firth))), ])
-se <- sqrt(diag(vcov(mort.28.age.a70.firth)))[grep("^trt", names(coef(mort.28.age.a70.firth)))]
-p_value <- mort.28.age.a70.firth$prob[grep("^trt", names(coef(mort.28.age.a70.firth)))]
-print(hazard_odds_ratio)
-print(ci)
-print(p_value)
-
-# glm
-mort.28.age.a70 <- df %>%
-  filter(age_70 == 1) %>% # 70 and above
-  glm(mort_28 ~ trt
-     # + age
-     + clinstatus_baseline_n
-      , data=.)
-summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-trt_coef <- coef(mort.28.age.a70)["trt"]
-hazard_odds_ratio <- exp(trt_coef)
-ci <- exp(confint(mort.28.age.a70)["trt", ])
-se <- summary(mort.28.age.a70)$coefficients["trt", "Std. Error"]
-# p_value <- summary(mort.28.age.a70)$coefficients["trt", "Pr(>|z|)"]
-# print(hazard_odds_ratio)
-# print(ci)
-# print(p_value)
-
+tab_model(mort.28.age.a70.firth)
 
 ## below 70y
 # firth
@@ -1327,32 +1273,7 @@ mort.28.age.b70.firth <- df %>%
      + clinstatus_baseline_n
       , data=.)
 summary(mort.28.age.b70.firth)
-trt_coef <- coef(mort.28.age.b70.firth)[grep("^trt", names(coef(mort.28.age.b70.firth)))]
-hazard_odds_ratio <- exp(trt_coef)
-ci <- exp(confint(mort.28.age.b70.firth)[grep("^trt", names(coef(mort.28.age.b70.firth))), ])
-se <- sqrt(diag(vcov(mort.28.age.b70.firth)))[grep("^trt", names(coef(mort.28.age.b70.firth)))]
-p_value <- mort.28.age.b70.firth$prob[grep("^trt", names(coef(mort.28.age.b70.firth)))]
-print(hazard_odds_ratio)
-print(ci)
-print(p_value)
-
-# glm
-mort.28.age.b70 <- df %>%
-  filter(age_70 == 0) %>% # below 70
-  glm(mort_28 ~ trt
-     # + age
-     + clinstatus_baseline_n
-      , data=.)
-summ(mort.28.age.b70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-trt_coef <- coef(mort.28.age.b70)["trt"]
-hazard_odds_ratio <- exp(trt_coef)
-# ci <- exp(confint(mort.28.age.b70)["trt", ])
-# se <- summary(mort.28.age.b70)$coefficients["trt", "Std. Error"]
-# p_value <- summary(mort.28.age.b70)$coefficients["trt", "Pr(>|z|)"]
-# print(hazard_odds_ratio)
-# print(ci)
-# print(p_value)
-
+tab_model(mort.28.age.b70.firth)
 ```
 # discussion:
 In summary:

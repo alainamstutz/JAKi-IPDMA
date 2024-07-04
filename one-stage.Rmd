@@ -593,8 +593,9 @@ tab_model(mort60)
 
 # (iii) Time to death within max. follow-up time
 ```{r warning=FALSE}
-# table(df_tot$death_reached, df_tot$death_time, useNA = "always")
-# table(df_tot$death_reached, df_tot$mort_60, useNA = "always") # 1 death after day 60 in Bari-Solidact
+table(df_tot$death_reached, df_tot$death_time, useNA = "always")
+table(df_tot$death_reached, df_tot$mort_60, useNA = "always")
+table(df_tot$trial, df_tot$death_time, useNA = "always")
 
 # df_tot %>%
 #   drop_na(death_time) %>%
@@ -614,17 +615,17 @@ df_tot <- df_tot %>%
                                 TRUE ~ c(death_time)))
 
 ## time to death, by group. Kaplan-Meier estimate of conditional survival probability.
-# km.ttdeath.check <- with(df_tot, Surv(death_time, death_reached))
-# head(km.ttdeath.check, 100)
-km.ttdeath_trt <- survfit(Surv(death_time, death_reached) ~ trt, data=df_tot)
-# summary(km.ttdeath_trt, times = 28)
-ttdeath_28d_tbl <- km.ttdeath_trt %>% 
+km.ttdeath.check <- with(df_tot, Surv(death_time_60, death_reached_60))
+head(km.ttdeath.check, 100)
+km.ttdeath_trt <- survfit(Surv(death_time_60, death_reached_60) ~ trt, data=df_tot)
+summary(km.ttdeath_trt, times = 60)
+ttdeath_60d_tbl <- km.ttdeath_trt %>% 
   tbl_survfit(
-    times = 28,
-    label_header = "**28-d survival (95% CI)**"
+    times = 60,
+    label_header = "**60-d survival (95% CI)**"
   )
 # Nicely formatted table
-kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
+kable(ttdeath_60d_tbl, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 autoplot(km.ttdeath_trt)
@@ -644,7 +645,7 @@ autoplot(km.ttdeath_trial)
 # Assessing proportional hazards // check the KM curve: OK
 
 # Cox proportional hazards model adhering to main model "r cent trt, s intercept, s and cent age, r clinstatus"
-ttdeath <- coxme(Surv(death_time, death_reached) ~ trt_centered_n
+ttdeath <- coxme(Surv(death_time_60, death_reached_60) ~ trt_centered_n
                   + trial_f
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
@@ -2419,14 +2420,13 @@ ul <- c(0.87)
 1000*(acr-(ul*acr/(1-acr+(ul*acr))))
 ```
 
-
 # Exploratory: Explore treatment heterogeneity using causal trees
 ```{r, fig.width=16, fig.height=8}
 library(causalweight)
 library(aggTrees)
 
 df_ctree <- df_tot %>% 
-  select(mort_28_dimp, trt
+  dplyr::select(mort_28_dimp, trt
          , "age"
          , "sex"
          , "clinstatus_baseline"
