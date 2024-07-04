@@ -1414,7 +1414,7 @@ boot.ci(risk.results,
         index = 4) # create CI for fourth statistic (rr) returned by boot()
 ```
 
-## f) Construct unadjusted parametric cumulative incidence (risk) curves, based on pooled log reg, INCL. 95% CIs using bootstrapping
+## f) Construct unadjusted parametric cumulative incidence (risk) curves, based on pooled log reg, including 95% CIs using bootstrapping
 ```{r warning=FALSE}
 # need to do this by group individually // see hands-on 1
 
@@ -1431,13 +1431,14 @@ risk.boot.0 <- function(data, indices) {
 
   # Subset person-time data to individuals selected into the bootstrapped sample
   d <- left_join(boot.ids, df_long, by = "id_pat")
-
+  
   # Fit pooled logistic model to estimate discrete hazards
   pool.boot <- glm(formula = mort_28_n==1 ~ trt + time + timesqr
                                     + I(trt*time) +
                                     I(trt*timesqr),
                 family = binomial(link = 'logit'),
-                data = d)
+                data = d,
+                weights = d$w_a)
 
   # Create a dataset to store results
   # Include all time points under each treatment level
@@ -1501,7 +1502,8 @@ risk.boot.1 <- function(data, indices) {
                                     I(trt*time) +
                                     I(trt*timesqr),
                 family = binomial(link = 'logit'),
-                data = d)
+                data = d,
+                weights = d$w_a)
 
   # Create a dataset to store results
   # Include all time points under each treatment level
@@ -1602,7 +1604,224 @@ plot.plr.ci
 
 ```
 
-## g) Getting HR from pooled log reg to compare (First, from the pooled log reg. Second, from coxph long format. Third, from coxph wide format)
+## g) Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) using IPW, including 95% CIs, using bootstrapping
+```{r warning=FALSE}
+# need to do this by group individually
+
+# Create input list of ids 
+df_long_ids <- data.frame(id_pat = unique(df_long$id_pat))
+
+### No JAKi group ###
+
+# Create a function to obtain risk in no JAKi group at each time t from each bootstrap sample
+risk.boot.0 <- function(data, indices) {
+  # Select individuals into each bootstrapped sample
+  ids <- data$id_pat
+  boot.ids <- data.frame(id_pat = ids[indices])
+
+  # Subset person-time data to individuals selected into the bootstrapped sample
+  d <- left_join(boot.ids, df_long, by = "id_pat")
+
+  ### IPW ###
+  ipw.denom <- speedglm(trt==1 ~ time + timesqr + age 
+                     + as.factor(clinicalstatus_baseline),
+          family=binomial(link="logit"),
+          data=d)
+  #  Estimate probabilities of being treated
+  d$ipw.denom <- predict(ipw.denom, d, type="response")
+  # Estimate nonstabilized inverse probability weights ###
+  d$w_a <- ifelse(d$trt==1,
+                              1/d$ipw.denom,
+                              1/(1-d$ipw.denom))
+  ### IPW ###
+
+  # Fit pooled logistic model to estimate discrete hazards
+  pool.boot <- glm(formula = mort_28_n==1 ~ trt + time + timesqr
+                                    + I(trt*time) +
+                                    I(trt*timesqr),
+                family = binomial(link = 'logit'),
+                data = d,
+                weights = d$w_a)
+
+  # Create a dataset to store results
+  # Include all time points under each treatment level
+  trt0 <- data.frame(cbind(seq(0, K-1),0,(seq(0, K-1))^2))
+  trt1 <- data.frame(cbind(seq(0, K-1),1,(seq(0, K-1))^2))
+
+  # Set column names
+  colnames(trt0) <- c("time", "trt", "timesqr")
+  colnames(trt1) <- c("time", "trt", "timesqr")
+
+  # Extract predicted values from pooled logistic regression model
+  # Predicted values correspond to discrete-time hazards
+  trt0$p.event0 <- predict(pool.boot, trt0, type="response")
+  trt1$p.event1 <- predict(pool.boot, trt1, type="response")
+
+  # Convert from discrete-time hazards to survival probabilities
+  # S(t) = cumulative product of (1 - h(t))
+  trt0$surv0 <- cumprod(1 - trt0$p.event0)
+  trt1$surv1 <- cumprod(1 - trt1$p.event1)
+
+  # Convert from survival to risks
+  # Risk = 1 - S(t)
+  trt0$risk0 <- 1 - trt0$surv0
+  trt1$risk1 <- 1 - trt1$surv1
+
+  # Merge data from two groups and format
+  graph <- merge(trt0, trt1, by=c("time", "timesqr"))
+  graph <- graph[order(graph$time),]
+  return(graph$risk0) # return only control group risk
+}
+
+# Run bootstrap samples (ideally 500-1000)...
+set.seed(1234)
+risk.results.0 <- boot(data = df_long_ids,
+                       statistic = risk.boot.0,
+                       R=500)
+
+# Combine relevant bootstrapped results into a dataframe
+risk.boot.results.0 <- data.frame(cbind(risk0 = risk.results.0$t0, # Combines the initial risk estimates (risk0) 
+                                        t(risk.results.0$t))) # with the transpose of the bootstrapped results (t(risk.results.0$t))
+
+# Format bootstrapped results for plotting
+risk.boot.graph.0 <- data.frame(cbind(time = seq(0, K-1), mean.0 = risk.boot.results.0$risk0), # Creates a data frame with time points and mean risk estimates; to include the mean risk estimate for the no JAKi group at each time point in the final formatted data frame risk.boot.graph.0
+                                ll.0 = (apply((risk.boot.results.0)[,-1], 1, quantile, probs=0.025)), # Applies the quantile function to each row (indicated by 1) of risk.boot.results.0 (excluding the first column) and computes the 2.5th percentile for each row
+                                ul.0 = (apply((risk.boot.results.0)[,-1], 1, quantile, probs=0.975)))
+
+
+### JAKi group ###
+
+# Create a function to obtain risk in JAKi group at each time t from each bootstrap sample
+risk.boot.1 <- function(data, indices) {
+  # Select individuals into each bootstrapped sample
+  ids <- data$id_pat
+  boot.ids <- data.frame(id_pat = ids[indices])
+
+  # Subset person-time data to individuals selected into the bootstrapped sample
+  d <- left_join(boot.ids, df_long, by = "id_pat")
+
+### IPW ###
+  ipw.denom <- speedglm(trt==1 ~ time + timesqr + age 
+                     + as.factor(clinicalstatus_baseline),
+          family=binomial(link="logit"),
+          data=d)
+  #  Estimate probabilities of being treated
+  d$ipw.denom <- predict(ipw.denom, d, type="response")
+  # Estimate nonstabilized inverse probability weights ###
+  d$w_a <- ifelse(d$trt==1,
+                              1/d$ipw.denom,
+                              1/(1-d$ipw.denom))
+  ### IPW ###  
+  
+  
+  # Fit pooled logistic model to estimate discrete hazards
+  pool.boot <- glm(formula = mort_28_n==1 ~ trt + time + timesqr +
+                                    I(trt*time) +
+                                    I(trt*timesqr),
+                family = binomial(link = 'logit'),
+                data = d,
+                weights = d$w_a)
+
+  # Create a dataset to store results
+  # Include all time points under each treatment level
+  trt0 <- data.frame(cbind(seq(0, K-1),0,(seq(0, K-1))^2))
+  trt1 <- data.frame(cbind(seq(0, K-1),1,(seq(0, K-1))^2))
+
+  # Set column names
+  colnames(trt0) <- c("time", "trt", "timesqr")
+  colnames(trt1) <- c("time", "trt", "timesqr")
+
+  # Extract predicted values from pooled logistic regression model
+  # Predicted values correspond to discrete-time hazards
+  trt0$p.event0 <- predict(pool.boot, trt0, type="response")
+  trt1$p.event1 <- predict(pool.boot, trt1, type="response")
+
+  # Convert from discrete-time hazards to survival probabilities
+  # S(t) = cumulative product of (1 - h(t))
+  trt0$surv0 <- cumprod(1 - trt0$p.event0)
+  trt1$surv1 <- cumprod(1 - trt1$p.event1)
+
+  # Convert from survival to risks
+  # Risk = 1 - S(t)
+  trt0$risk0 <- 1 - trt0$surv0
+  trt1$risk1 <- 1 - trt1$surv1
+
+  # Merge data from two groups and format
+  graph <- merge(trt0, trt1, by=c("time", "timesqr"))
+  graph <- graph[order(graph$time),]
+  return(graph$risk1)
+}
+
+# Run bootstrap samples (ideally 500-1000)...
+set.seed(1234)
+risk.results.1 <- boot(data = df_long_ids,
+                       statistic = risk.boot.1,
+                       R=500)
+
+
+# Combine relevant bootstrapped results into a dataframe
+risk.boot.results.1 <- data.frame(cbind(risk1 = risk.results.1$t0,
+                                        t(risk.results.1$t)))
+# Format bootstrapped results for plotting
+risk.boot.graph.1 <- data.frame(cbind(time = seq(0, K-1), mean.1 = risk.boot.results.1$risk1),
+                                ll.1 = (apply((risk.boot.results.1)[,-1], 1, quantile, probs=0.025)),
+                                ul.1 = (apply((risk.boot.results.1)[,-1], 1, quantile, probs=0.975)))
+
+
+# Prepare data
+risk.boot.graph.pred <- merge(risk.boot.graph.0, risk.boot.graph.1, by= "time")
+
+# Edit data frame to reflect that risks are estimated at the END of each interval
+risk.boot.graph.pred$time_0 <- risk.boot.graph.pred$time + 1
+zero <- data.frame(cbind(0,0,0,0,0,0,0,0))
+zero <- setNames(zero,names(risk.boot.graph.pred))
+risk.boot.graph <- rbind(zero, risk.boot.graph.pred)
+
+# Create plot
+plot.plr.ci <- ggplot(risk.boot.graph,
+                      aes(x=time_0)) + # set x and y axes
+  geom_line(aes(y = mean.1, # create line for JAKi group
+                color = "JAKi"),
+                size = 1.5) +
+  geom_ribbon(aes(ymin = ll.1, ymax = ul.1, fill = "JAKi"), alpha = 0.4) +
+  geom_line(aes(y = mean.0, # create line for no JAKi group
+                color = "No JAKi"),
+                size = 1.5) +
+  geom_ribbon(aes(ymin = ll.0, ymax = ul.0, fill = "No JAKi"), alpha=0.4) +
+  xlab("Days") + # label x axis
+  scale_x_continuous(limits = c(0, 28), # format x axis
+                     breaks=c(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28)) +
+  ylab("Cumulative Incidence (%)") + # label y axis
+  scale_y_continuous(limits=c(0, 0.20), # format y axis
+                     breaks=c(0, 0.05, 0.10, 0.15, 0.20),
+                     labels=c("0.0%", "5.0%",
+                              "10.0%", "15.0%", "20.0%")) +
+  theme_minimal()+ # set plot theme elements
+  theme(axis.text = element_text(size=14), legend.position = c(0.2, 0.8),
+        axis.line = element_line(colour = "black"),
+        legend.title = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank())+
+  font("xlab",size=14)+
+  font("ylab",size=14)+
+  font("legend.text",size=10)+
+  scale_color_manual(values=c("#E7B800", # set colors
+                              "#2E9FDF"),
+                     breaks=c('No JAKi',
+                              'JAKi')) +
+  scale_fill_manual(values=c("#E7B800", # set colors
+                              "#2E9FDF"),
+                     breaks=c('No JAKi',
+                              'JAKi'))
+
+# Plot
+plot.plr.ci
+
+```
+
+## g) Getting unadjusted/adjusted HR from pooled log reg to compare (First, from the pooled log reg. Second, from coxph long format. Third, from coxph wide format)
 ```{r warning=FALSE}
 ## FIRST
 # Pooled logistic model // without product terms with time
@@ -1847,7 +2066,7 @@ boot.ci(risk.results,
 
 ```
 
-## i) Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg with Standardization, INCL. 95% CIs using bootstrapping
+## i) Construct parametric cumulative incidence (risk) curves, based on pooled log reg with Standardization??, INCL. 95% CIs using bootstrapping
 ```{r warning=FALSE}
 # need to do this by group individually
 
@@ -1856,7 +2075,7 @@ boot.ci(risk.results,
 # Create input list of ids (eligible persons)
 df_long_ids <- data.frame(id_pat = unique(df_long$id_pat))
 
-# Create a function to obtain risk in no vaccine group at each time t from each bootstrap sample
+# Create a function to obtain risk in no JAKi group at each time t from each bootstrap sample
 std.boot.0 <- function(data, indices) {
   # Select individuals into each bootstrapped sample
   ids <- data$id_pat
@@ -2033,7 +2252,7 @@ std.boot.graph <- rbind(zero, std.boot.graph.pred)
 #                 color = "JAKi"),
 #                 size = 1.5) +
 #   geom_ribbon(aes(ymin = ll.1, ymax = ul.1, fill = "JAKi"), alpha = 0.4) +
-#   geom_line(aes(y = mean.0, # create line for no vaccine group
+#   geom_line(aes(y = mean.0, # create line for no JAKi group
 #                 color = "No JAKi"),
 #                 size = 1.5) +
 #   geom_ribbon(aes(ymin = ll.0, ymax = ul.0, fill = "No JAKi"), alpha=0.4) +

@@ -1237,12 +1237,22 @@ Discussion points
 
 # Subgroup analysis: Age on primary endpoint
 ```{r warning=FALSE}
+# glm
 mort.28.age <- df %>% 
   glm(mort_28 ~ trt*age
       #+ age 
       + clinstatus_baseline
       , family = "binomial", data=.)
 summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+trt_coef <- coef(mort.28.age)[grep("^trt:", names(coef(mort.28.age)))]
+log_odds_ratio <- exp(trt_coef)
+ci <- exp(confint(mort.28.age)[grep("^trt:", names(coef(mort.28.age))), ])
+se <- summary(mort.28.age)$coefficients[grep("^trt:", names(coef(mort.28.age))), "Std. Error"]
+p_value <- summary(mort.28.age)$coefficients[grep("^trt:", names(coef(mort.28.age))), "Pr(>|z|)"]
+print(log_odds_ratio)
+print(ci)
+print(p_value)
+
 # Firth
 mort.28.age.firth <- df %>%
   logistf(mort_28 ~ trt*age
@@ -1250,30 +1260,150 @@ mort.28.age.firth <- df %>%
       + clinstatus_baseline
       , data=.)
 summary(mort.28.age.firth)
+trt_coef <- coef(mort.28.age.firth)[grep("^trt:", names(coef(mort.28.age.firth)))]
+log_odds_ratio <- exp(trt_coef)
+ci <- exp(confint(mort.28.age.firth)[grep("^trt:", names(coef(mort.28.age.firth))), ])
+se <- sqrt(diag(vcov(mort.28.age.firth)))[grep("^trt:", names(coef(mort.28.age.firth)))]
+p_value <- mort.28.age.firth$prob[grep("^trt:", names(coef(mort.28.age.firth)))]
+print(log_odds_ratio)
+print(ci)
+print(p_value)
 
-# effect by subgroup
+
+
+### effect by subgroup
 df <- df %>% 
   mutate(age_70 = case_when(age < 70 ~ 0,
                             age > 69 ~ 1))
-table(df$age_70, useNA = "always")
+df <- df %>% 
+  mutate(age_70 = case_when(age < 60 ~ 0,
+                            age > 59 ~ 1))
+# table(df$age_70, useNA = "always")
 table(df$age_70, df$mort_28, useNA = "always")
+table(df$mort_28, df$trt, df$age_70, useNA = "always") # only two events in control in the young ones.. => in subgroup of young ones, point estimate should be on side of JAKi. BUT, RANDOM CUT-OFF!!! If you set cut-off to 60 years, then the two events are in the control group of the OLD ones and the point estimates reverses of course for old/young! However, the p-int. using linear age linear is fine.
 
-mort.28.age.a70 <- df %>%
+## above 70y
+# firth
+mort.28.age.a70.firth <- df %>%
   filter(age_70 == 1) %>% # 70 and above
   logistf(mort_28 ~ trt
      # + age
-     # + clinstatus_baseline
+     + clinstatus_baseline_n
       , data=.)
-summary(mort.28.age.a70)
+summary(mort.28.age.a70.firth)
+trt_coef <- coef(mort.28.age.a70.firth)[grep("^trt", names(coef(mort.28.age.a70.firth)))]
+hazard_odds_ratio <- exp(trt_coef)
+ci <- exp(confint(mort.28.age.a70.firth)[grep("^trt", names(coef(mort.28.age.a70.firth))), ])
+se <- sqrt(diag(vcov(mort.28.age.a70.firth)))[grep("^trt", names(coef(mort.28.age.a70.firth)))]
+p_value <- mort.28.age.a70.firth$prob[grep("^trt", names(coef(mort.28.age.a70.firth)))]
+print(hazard_odds_ratio)
+print(ci)
+print(p_value)
 
-mort.28.age.b70 <- df %>% 
+# glm
+mort.28.age.a70 <- df %>%
+  filter(age_70 == 1) %>% # 70 and above
+  glm(mort_28 ~ trt
+     # + age
+     + clinstatus_baseline_n
+      , data=.)
+summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+trt_coef <- coef(mort.28.age.a70)["trt"]
+hazard_odds_ratio <- exp(trt_coef)
+ci <- exp(confint(mort.28.age.a70)["trt", ])
+se <- summary(mort.28.age.a70)$coefficients["trt", "Std. Error"]
+# p_value <- summary(mort.28.age.a70)$coefficients["trt", "Pr(>|z|)"]
+# print(hazard_odds_ratio)
+# print(ci)
+# print(p_value)
+
+
+## below 70y
+# firth
+mort.28.age.b70.firth <- df %>%
   filter(age_70 == 0) %>% # below 70
   logistf(mort_28 ~ trt
-      # + age 
-      + clinstatus_baseline
+     # + age
+     + clinstatus_baseline_n
       , data=.)
-summary(mort.28.age.b70)
+summary(mort.28.age.b70.firth)
+trt_coef <- coef(mort.28.age.b70.firth)[grep("^trt", names(coef(mort.28.age.b70.firth)))]
+hazard_odds_ratio <- exp(trt_coef)
+ci <- exp(confint(mort.28.age.b70.firth)[grep("^trt", names(coef(mort.28.age.b70.firth))), ])
+se <- sqrt(diag(vcov(mort.28.age.b70.firth)))[grep("^trt", names(coef(mort.28.age.b70.firth)))]
+p_value <- mort.28.age.b70.firth$prob[grep("^trt", names(coef(mort.28.age.b70.firth)))]
+print(hazard_odds_ratio)
+print(ci)
+print(p_value)
+
+# glm
+mort.28.age.b70 <- df %>%
+  filter(age_70 == 0) %>% # below 70
+  glm(mort_28 ~ trt
+     # + age
+     + clinstatus_baseline_n
+      , data=.)
+summ(mort.28.age.b70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+trt_coef <- coef(mort.28.age.b70)["trt"]
+hazard_odds_ratio <- exp(trt_coef)
+# ci <- exp(confint(mort.28.age.b70)["trt", ])
+# se <- summary(mort.28.age.b70)$coefficients["trt", "Std. Error"]
+# p_value <- summary(mort.28.age.b70)$coefficients["trt", "Pr(>|z|)"]
+# print(hazard_odds_ratio)
+# print(ci)
+# print(p_value)
+
 ```
+# discussion:
+In summary:
+
+The summ() function uses standard errors from the model, assuming the model is correctly specified and the usual asymptotic properties hold.
+
+The robres() function uses robust standard errors, which can adjust for certain types of model misspecifications but may differ significantly when there is small sample size or sparse data.
+
+The confint() function uses profile likelihood to derive confidence intervals, which can be more accurate in small sample situations or with sparse data.
+
+### Firth Regression
+Firth logistic regression, also known as penalized likelihood logistic regression, is designed to reduce bias in maximum likelihood estimates, especially in cases of small sample sizes or sparse data. It addresses the issue of separation, where standard logistic regression might fail due to perfect prediction in some categories.
+
+#### Key Features:
+1. **Bias Reduction**: By adding a penalty to the likelihood, Firth regression reduces the bias of the coefficient estimates.
+2. **Handles Separation**: It provides reliable estimates even in cases of complete or quasi-complete separation (where a standard logistic regression might not converge).
+3. **Improved Confidence Intervals**: The method often yields more accurate confidence intervals in the context of sparse data.
+
+#### Steps and Calculations:
+1. **Model Fitting**: The `logistf()` function from the `logistf` package fits the Firth logistic regression model.
+2. **Coefficient Estimates**: These are obtained with reduced bias compared to standard MLE.
+3. **Confidence Intervals**: `confint()` calculates profile likelihood confidence intervals, which are generally more reliable in sparse data contexts.
+4. **Standard Errors and p-values**: These are derived similarly to standard logistic regression but are typically more reliable due to bias reduction.
+
+### Comparison and Recommendation
+**1. Standard Logistic Regression (`summ()`)**:
+   - **Pros**: Simple and widely used.
+   - **Cons**: Not reliable with sparse data or small sample sizes.
+
+**2. Robust Standard Errors (`robres()`)**:
+   - **Pros**: Adjusts for certain violations of assumptions (e.g., heteroscedasticity).
+   - **Cons**: May still be unreliable with extremely sparse data.
+
+**3. Profile Likelihood (`confint()`)**:
+   - **Pros**: Better handling of small samples and sparse data than standard methods.
+   - **Cons**: Still relies on the initial model fit, which can be problematic with extreme sparsity.
+
+**4. Firth Logistic Regression**:
+   - **Pros**: Specifically designed for sparse data and small samples. Reduces bias and handles separation issues effectively.
+   - **Cons**: More computationally intensive and less familiar to some practitioners.
+
+### What Should Be Used?
+Given your situation with very sparse data (only two events in one treatment group), **Firth logistic regression** is generally the best option. It provides more reliable estimates and confidence intervals by directly addressing the issues caused by sparsity and small sample sizes. The bias reduction and robust handling of separation make it superior to the standard and robust methods in this context.
+Therefore, I recommend using Firth logistic regression (`logistf()`) for your analysis. Here's why:
+- **Bias Reduction**: More accurate estimates in the presence of sparse data.
+- **Confidence Intervals**: Profile likelihood intervals from Firth regression are more reliable in your context.
+- **Handling Separation**: Provides estimates where standard logistic regression might fail or give infinite estimates.
+
+Your code snippet using Firth regression is correctly implemented and should provide the most reliable results for your analysis.
+
+
 
 # Subgroup analysis: Comorbidities on primary endpoint
 ```{r warning=FALSE}
@@ -1908,12 +2038,12 @@ result_list[[4]] <- extract_subgroup_results(mort.28.vent.rs.3, "low-flow oxygen
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,2], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,2,1], 
 #                                              addmargins(table(df$clinstatus_baseline, df$mort_28, df$trt))[5,3,1]) 
-result_list[[7]] <- extract_subgroup_results(mort.28.age.a70, "70 years and above_firth",
+result_list[[7]] <- extract_subgroup_results(mort.28.age.a70.firth, "70 years and above_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,2],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,2],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,2,1],
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[2,3,1])
-result_list[[8]] <- extract_subgroup_results(mort.28.age.b70, "below 70 years_firth",
+result_list[[8]] <- extract_subgroup_results(mort.28.age.b70.firth, "below 70 years_firth",
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,3,2], 
                                              addmargins(table(df$age_70, df$mort_28, df$trt))[1,2,1], 

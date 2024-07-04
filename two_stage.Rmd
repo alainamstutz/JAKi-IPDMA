@@ -1844,7 +1844,7 @@ Discussion points
 
 # Plot all treatment effect estimates across endpoints
 ```{r}
-str(result_df)
+# str(result_df)
 
 # Order
 result_df$variable <- factor(result_df$variable, 
@@ -1867,7 +1867,6 @@ result_df$variable <- factor(result_df$variable,
                                         "death at day 28_dimp",
                                         "death at day 28"))
 
-
 # Plotting
 result_df$truncated <- ifelse(result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
 ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
@@ -1875,15 +1874,14 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
   geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
   geom_segment(data = subset(result_df, truncated),
                aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
-               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
+               arrow = arrow(length = unit(0.3, "cm")), color = "black")+
   geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
   labs(title = "All endpoints, two-stage approach",
        x = "Endpoints",
        y = "aOR / aHR") +
   theme_minimal() +
-  scale_y_continuous(limits = c(0.5, 1.3), breaks = seq(0.5, 1.3, 0.5)) + # log scale
+  scale_y_log10() +
   coord_flip()
-  
 
 ```
 
@@ -1926,19 +1924,19 @@ main_result_df$variable <- factor(main_result_df$variable,
                                         "All-cause mortality at day 60",
                                         "All-cause mortality at day 28"))
 # Plotting
-main_result_df$truncated <- ifelse(main_result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
+main_result_df$truncated <- ifelse(main_result_df$ci_upper > 2.0, TRUE, FALSE)
 ggplot(main_result_df, aes(x = variable, y = hazard_odds_ratio)) +
   geom_point() +
   geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
   geom_segment(data = subset(main_result_df, truncated),
                aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
-               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
+               arrow = arrow(length = unit(0.3, "cm")), color = "black")+
   geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
   labs(title = "All endpoints, two-stage approach",
        x = "Endpoints",
        y = "aOR / aHR") +
   theme_minimal() +
-  scale_y_continuous(limits = c(0.5, 1.3), breaks = seq(0.5, 1.3, 0.1)) +
+  scale_y_log10() +
   coord_flip()
 ```
 
@@ -1946,78 +1944,55 @@ ggplot(main_result_df, aes(x = variable, y = hazard_odds_ratio)) +
 ```{r, fig.width=8, fig.height=3}
 # Filter
 sens_result_df <- result_df %>% 
-  filter(variable %in% c("AEs grade 3,4 within 28 days",
+  filter(variable %in% c("Any AE grade 3,4 within 28 days",
+                         "AEs grade 3,4 within 28 days",
+                         "discharge within 28 days, death=comp.event",
                          "sustained discharge within 28 days",
-                         "new MV within 28d"
+                         "new MV or death within 28d",
+                         "new MV within 28d",
                          # "death at day 28_mi",
+                         "death at day 28"
                          ))
 # Rename
 sens_result_df <- sens_result_df %>% 
-  mutate(variable = case_when(variable == "AEs grade 3,4 within 28 days" ~ "AEs grade 3,4 or SAE within 28 days*",
+  mutate(variable = case_when(variable == "Any AE grade 3,4 within 28 days" ~ "Any AE grade 3,4 or SAE within 28 days*",
+                              variable == "AEs grade 3,4 within 28 days" ~ "AEs grade 3,4 or SAE within 28 days$",
+                              variable == "discharge within 28 days, death=comp.event" ~ "Days until discharge within 28 days*",
                               variable == "sustained discharge within 28 days" ~ "Days until sustained discharge within 28 days",
+                              variable == "new MV or death within 28d" ~ "New mechanical ventilation or death at day 28*",
                               variable == "new MV within 28d" ~ "New mechanical ventilation, among survivors, at day 28",
                               # variable == "death at day 28_mi" ~ "All-cause mortality at day 28, incl. multiple imputation"
+                              variable == "death at day 28" ~ "All-cause mortality at day 28*"
                               ))
 # Order
 sens_result_df$variable <- factor(sens_result_df$variable, 
-                             levels = c("AEs grade 3,4 or SAE within 28 days*",
+                             levels = c("Any AE grade 3,4 or SAE within 28 days*",
+                                        "AEs grade 3,4 or SAE within 28 days$",
+                                        "Days until discharge within 28 days*",
                                         "Days until sustained discharge within 28 days",
-                                        "New mechanical ventilation, among survivors, at day 28"
+                                        "New mechanical ventilation or death at day 28*",
+                                        "New mechanical ventilation, among survivors, at day 28",
                                         # "All-cause mortality at day 28, incl. multiple imputation"
+                                        "All-cause mortality at day 28*"
                                         ))
+
 # Plotting
-sens_result_df$truncated <- ifelse(sens_result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
+sens_result_df$truncated <- ifelse(sens_result_df$ci_upper > 2.0, TRUE, FALSE)
 ggplot(sens_result_df, aes(x = variable, y = hazard_odds_ratio)) +
   geom_point() +
   geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
   geom_segment(data = subset(sens_result_df, truncated),
                aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
-               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
+               arrow = arrow(length = unit(0.3, "cm")), color = "black")+
   geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
-  labs(title = "Sensitivity analysis: Alternative endpoint definitions",
+  labs(title = "Sens endpoints, two-stage approach",
        x = "Endpoints",
        y = "aOR / aHR / aIRR") +
   theme_minimal() +
-  scale_y_continuous(limits = c(0.5, 1.3), breaks = seq(0.5, 1.3, 0.1)) +
+  scale_y_log10() +
   coord_flip()
 ```
 
-# Plot sensitivity treatment effect estimates across endpoints, to contrast against above
-```{r, fig.width=8, fig.height=3}
-# Filter
-main_red_result_df <- result_df %>% 
-  filter(variable %in% c("Any AE grade 3,4 within 28 days",
-                         "discharge within 28 days, death=comp.event",
-                         "new MV or death within 28d",
-                         "death at day 28"))
-# Rename
-main_red_result_df <- main_red_result_df %>% 
-  mutate(variable = case_when(variable == "Any AE grade 3,4 within 28 days" ~ "Any AE grade 3,4 or SAE within 28 days",
-                              variable == "discharge within 28 days, death=comp.event" ~ "Days until discharge within 28 days",
-                              variable == "new MV or death within 28d" ~ "New mechanical ventilation or death at day 28",
-                              variable == "death at day 28" ~ "All-cause mortality at day 28",))
-# Order
-main_red_result_df$variable <- factor(main_red_result_df$variable, 
-                             levels = c("Any AE grade 3,4 or SAE within 28 days",
-                                        "Days until discharge within 28 days",
-                                        "New mechanical ventilation or death at day 28",
-                                        "All-cause mortality at day 28"))
-# Plotting
-main_red_result_df$truncated <- ifelse(main_red_result_df$ci_upper > 2.0, TRUE, FALSE)  # Truncate at upper CI 2.0, and add arrow for those
-ggplot(main_red_result_df, aes(x = variable, y = hazard_odds_ratio)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = ci_lower, ymax = pmin(ci_upper, 2.0)), width = 0.5) +
-  geom_segment(data = subset(main_red_result_df, truncated),
-               aes(x = variable, xend = variable, y = pmin(ci_upper, 2.0), yend = pmin(ci_upper, 2.0) + 0.1),
-               arrow = arrow(length = unit(0.3, "cm")), color = "black") +
-  geom_hline(yintercept = 1, linetype = "dotted", color = "red", size = 0.5) +
-  labs(title = "To contrast alternative endpoint definitions",
-       x = "Endpoints",
-       y = "aOR / aHR") +
-  theme_minimal() +
-  scale_y_continuous(limits = c(0.5, 1.3), breaks = seq(0.5, 1.3, 0.1)) +
-  coord_flip()
-```
 
 
 # TREATMENT-COVARIATE INTERACTIONS
@@ -3827,7 +3802,11 @@ saveRDS(subgroup_df_ae, file = "subgroup_effects_safety_two-stage.RData")
 ```
 
 # Forestplot subgroup - on primary endpoint
-```{r, fig.width=15, fig.height=8}
+```{r, fig.width=15, fig.height=13}
+# first take out ventilation from subgroup_df 
+subgroup_df <- subgroup_df %>% 
+  filter(!variable %in% c("No ventilation at baseline", "Ventilation at baseline"))
+
 # take the effect estimates from subgroup_df... 
 subgroup_df$inverse_variance <- 1 / subgroup_df$standard_error^2
 events_i <- subgroup_df$n_intervention
@@ -3835,10 +3814,10 @@ tot_i <- subgroup_df$n_intervention_tot
 events_c <- subgroup_df$n_control
 tot_c <- subgroup_df$n_control_tot
 
-# ...and add p-interaction from interaction_df
+# ...and add p-interaction from interaction_df (except for venilation and the other sens-analyses & safety endpoint)
 interaction_df_fp <- interaction_df %>% 
   select(variable, p_value) %>% 
-  filter(!variable %in% c("comorbidity count", "any comorbidity", "comorbidity_noimmuno", "vaccination on AEs"))
+  filter(!variable %in% c("ventilation", "comorbidity count", "any comorbidity", "comorbidity_noimmuno", "vaccination on AEs"))
 empty_row <- data.frame(
   variable = "",
   p_value = "")
@@ -3850,15 +3829,12 @@ second_part <- interaction_df_fp[6:nrow(interaction_df_fp), ]
 interaction_df_fp <- rbind(first_part, empty_row, second_part)
 first_part <- interaction_df_fp[1:7, ]
 second_part <- interaction_df_fp[8:nrow(interaction_df_fp), ]
-interaction_df_fp <- rbind(first_part, empty_row, second_part)
-first_part <- interaction_df_fp[1:9, ]
-second_part <- interaction_df_fp[10:nrow(interaction_df_fp), ]
 interaction_df_fp <- rbind(first_part, empty_row, empty_row, empty_row, second_part)
-first_part <- interaction_df_fp[1:13, ]
-second_part <- interaction_df_fp[14:nrow(interaction_df_fp), ]
+first_part <- interaction_df_fp[1:11, ]
+second_part <- interaction_df_fp[12:nrow(interaction_df_fp), ]
 interaction_df_fp <- rbind(first_part, empty_row, empty_row, empty_row, second_part)
-first_part <- interaction_df_fp[1:17, ]
-second_part <- interaction_df_fp[18:nrow(interaction_df_fp), ]
+first_part <- interaction_df_fp[1:15, ]
+second_part <- interaction_df_fp[16:nrow(interaction_df_fp), ]
 interaction_df_fp <- rbind(first_part, empty_row, empty_row, second_part)
 interaction_df_fp <- rbind(interaction_df_fp, empty_row)
 p_int <- interaction_df_fp$p_value
@@ -3870,7 +3846,7 @@ mort_28_ci_lower <- result_df$ci_lower[1]
 mort_28_ci_upper <- result_df$ci_upper[1]
 
 # ...and ICEMAN assessments
-iceman <- c("not assessed", "", "", "", "not assessed", "", "moderate credibility", "", "low credibility", "", "", "", "not assessed", "", "", "", "not assessed", "", "", "not assessed", "")
+iceman <- c("not assessed", "", "", "", "moderate credibility", "", "low credibility", "", "", "", "not assessed", "", "", "", "not assessed", "", "", "not assessed", "")
 
 # build forestplot
 base_data <- tibble(mean = subgroup_df$odds_ratio,
@@ -3898,18 +3874,9 @@ header <- tibble(subgroup = c("Subgroup"),
                  summary = TRUE)
 mort28_fp <- bind_rows(header,base_data,summary)
 
-## main forestplot
-mort28_fp_main <- mort28_fp %>% 
-  filter(subgroup %in% c("Subgroup", "No ventilation at baseline", "Ventilation at baseline", 
-                         "70 years of age or older", 
-                         "Below 70 years of age", "No comorbidity", "One comorbidity", "Multiple comorbidities",
-                         "Immunocompromised", "No Dexamethasone, no Tocilizumab", 
-                         "Dexamethasone, but no Tocilizumab",
-                         "Dexamethasone and Tocilizumab", "Tocilizumab, but no Dexamethasone", 
-                         "Overall treatment effect"))
 font <- "sans"
 
-mort28_fp_main %>%
+mort28_fp %>%
   forestplot(labeltext = c(subgroup, tot_i, events_i, tot_c, events_c, p_int, iceman),
              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
                               ticks = gpar(cex=0.88),
@@ -3920,10 +3887,12 @@ mort28_fp_main %>%
              graph.pos = 6,
              clip = c(0.1, 2),
              hrzl_lines = list("2" = gpar(lty = 2),
-                               "4" = gpar(lty = 2),
                                "6" = gpar(lty = 2),
-                               "10" = gpar(lty = 2),
-                               "14" = gpar(lty = 2)),
+                               "8" = gpar(lty = 2),
+                               "12" = gpar(lty = 2),
+                               "16" = gpar(lty = 2),
+                               "19" = gpar(lty = 2),                               
+                               "21" = gpar(lty = 2)),
              xlog = T,
              # xticks = c(1),
              psize = sqrt(subgroup_df$inverse_variance),
@@ -3939,6 +3908,48 @@ mort28_fp_main %>%
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
              )
 
+
+# ## main forestplot
+# mort28_fp_main <- mort28_fp %>% 
+#   filter(subgroup %in% c("Subgroup", "No ventilation at baseline", "Ventilation at baseline", 
+#                          "70 years of age or older", 
+#                          "Below 70 years of age", "No comorbidity", "One comorbidity", "Multiple comorbidities",
+#                          "Immunocompromised", "No Dexamethasone, no Tocilizumab", 
+#                          "Dexamethasone, but no Tocilizumab",
+#                          "Dexamethasone and Tocilizumab", "Tocilizumab, but no Dexamethasone", 
+#                          "Overall treatment effect"))
+# font <- "sans"
+# 
+# mort28_fp_main %>%
+#   forestplot(labeltext = c(subgroup, tot_i, events_i, tot_c, events_c, p_int, iceman),
+#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+#                               ticks = gpar(cex=0.88),
+#                               summary = gpar(cex=1),
+#                               xlab = gpar(cex=0.88)),
+#              # title = "Treatment effect on mortality at day 28 by subgroup",
+#              is.summary = summary,
+#              graph.pos = 6,
+#              clip = c(0.1, 2),
+#              hrzl_lines = list("2" = gpar(lty = 2),
+#                                "4" = gpar(lty = 2),
+#                                "6" = gpar(lty = 2),
+#                                "10" = gpar(lty = 2),
+#                                "14" = gpar(lty = 2)),
+#              xlog = T,
+#              # xticks = c(1),
+#              psize = sqrt(subgroup_df$inverse_variance),
+#              lty.ci = c(1),
+#              col = fpColors(box = "maroon4",
+#                             line = "maroon1",
+#                             summary = "magenta4",
+#                             hrz_lines = "gray63"),
+#              vertices = TRUE,
+#              xlab = "              Favours JAKi < > Favours No JAKi",
+#              zero = 1,
+#              grid = structure(c(0.71), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
+#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+#              )
+
 ```
 * The p-values for the interaction were obtained using a two-stage IPDMA approach, i.e. solely based on within-trial interactions ("deft"): 
 First, to produce a treatment-covariate interaction estimate and its variance, a binomial regression was fitted in each trial separately, adjusted (where appropriate) for respiratory support and age, including the treatment and the treatment-covariate interaction, using restricted maximum likelihood estimation (with Firth penalisation correction in case of sparse data). 
@@ -3948,48 +3959,48 @@ For continuous covariates (age, symptom duration, and CRP), a cut-off was chosen
 
 # Forestplot additional subgroups - on primary endpoint
 ```{r, fig.width=14, fig.height=6}
-mort28_fp_additional <- mort28_fp %>% 
-  filter(subgroup %in% c("Subgroup", "No oxygen", "Low-flow oxygen", 
-                         "High-flow or non-invasive ventilation", "Mechanical ventilation or ECMO", 
-                         "Enrolment more than 10 days after symptom onset", 
-                         "Enrolment between 5 and 10 days after symptom onset", 
-                         "Enrolment 5 days or earlier after symptom onset",
-                         "C-reactive protein 75mg/L or more", "C-reactive protein less than 75mg/L"
-                         # "Overall treatment effect"
-                         ))
-font <- "sans"
-
-mort28_fp_additional %>%
-  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
-             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
-                              ticks = gpar(cex=0.88),
-                              summary = gpar(cex=1),
-                              xlab = gpar(cex=0.88)),
-             is.summary = summary,
-             graph.pos = 6,
-             clip = c(0.1, 2),
-             hrzl_lines = list("2" = gpar(lty = 2),
-                               "6" = gpar(lty = 2),
-                               "9" = gpar(lty = 2),
-                               "11" = gpar(lty = 2)),
-             xlog = FALSE,
-             xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
-             psize = sqrt(subgroup_df$inverse_variance),
-             lty.ci = c(1),
-             col = fpColors(box = "maroon4",
-                            line = "maroon1",
-                            summary = "magenta4",
-                            hrz_lines = "gray63"),
-             vertices = TRUE,
-             xlab = "                             Favours JAKi <-> Favours No JAKi",
-             zero = 1,
-             # grid = structure(c(0.71), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
-             graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-             )
+# mort28_fp_additional <- mort28_fp %>% 
+#   filter(subgroup %in% c("Subgroup", "No oxygen", "Low-flow oxygen", 
+#                          "High-flow or non-invasive ventilation", "Mechanical ventilation or ECMO", 
+#                          "Enrolment more than 10 days after symptom onset", 
+#                          "Enrolment between 5 and 10 days after symptom onset", 
+#                          "Enrolment 5 days or earlier after symptom onset",
+#                          "C-reactive protein 75mg/L or more", "C-reactive protein less than 75mg/L"
+#                          # "Overall treatment effect"
+#                          ))
+# font <- "sans"
+# 
+# mort28_fp_additional %>%
+#   forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+#              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+#                               ticks = gpar(cex=0.88),
+#                               summary = gpar(cex=1),
+#                               xlab = gpar(cex=0.88)),
+#              is.summary = summary,
+#              graph.pos = 6,
+#              clip = c(0.1, 2),
+#              hrzl_lines = list("2" = gpar(lty = 2),
+#                                "6" = gpar(lty = 2),
+#                                "9" = gpar(lty = 2),
+#                                "11" = gpar(lty = 2)),
+#              xlog = FALSE,
+#              xticks = c(0,0.25,0.5,0.75,1,1.25,1.5),
+#              psize = sqrt(subgroup_df$inverse_variance),
+#              lty.ci = c(1),
+#              col = fpColors(box = "maroon4",
+#                             line = "maroon1",
+#                             summary = "magenta4",
+#                             hrz_lines = "gray63"),
+#              vertices = TRUE,
+#              xlab = "                             Favours JAKi <-> Favours No JAKi",
+#              zero = 1,
+#              # grid = structure(c(0.71), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
+#              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+#              )
 ```
 
 # Forestplot subgroup - on safety endpoint
-```{r, fig.width=14, fig.height=3}
+```{r, fig.width=14, fig.height=4}
 # take the effect estimates from subgroup_df... 
 subgroup_df_ae$inverse_variance <- 1 / subgroup_df_ae$standard_error^2
 events_i <- subgroup_df_ae$n_intervention
@@ -4012,6 +4023,9 @@ ae_28_OR <- result_df$hazard_odds_ratio[17]
 ae_28_ci_lower <- result_df$ci_lower[17]
 ae_28_ci_upper <- result_df$ci_upper[17]
 
+# ...and ICEMAN assessments
+iceman <- c("not assessed", "")
+
 # build forestplot
 base_data <- tibble(mean = subgroup_df_ae$odds_ratio,
                     lower = subgroup_df_ae$ci_lower,
@@ -4021,7 +4035,8 @@ base_data <- tibble(mean = subgroup_df_ae$odds_ratio,
                     tot_i = as.character(tot_i),
                     events_c = as.character(events_c),
                     tot_c = as.character(tot_c),
-                    p_int = as.character(p_int))
+                    p_int = as.character(p_int),
+                    iceman = as.character(iceman))
 summary <- tibble(mean  = ae_28_OR,
                   lower = ae_28_ci_lower,
                   upper = ae_28_ci_upper,
@@ -4033,6 +4048,7 @@ header <- tibble(subgroup = c("Subgroup"),
                  events_c = c("Events cont."),
                  tot_c = c("No. cont."),
                  p_int = c("p-int*"),
+                 iceman = c("ICEMAN\ncredibility assessment"),
                  summary = TRUE)
 ae28_fp <- bind_rows(header,base_data,summary)
 
@@ -4043,7 +4059,7 @@ ae28_fp_red <- ae28_fp %>%
 font <- "sans"
 
 ae28_fp_red %>%
-  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int),
+  forestplot(labeltext = c(subgroup, events_i, tot_i, events_c, tot_c, p_int, iceman),
              txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
                               ticks = gpar(cex=0.88),
                               summary = gpar(cex=1),
@@ -4053,8 +4069,9 @@ ae28_fp_red %>%
              clip = c(0.1, 2),
              hrzl_lines = list("2" = gpar(lty = 2),
                                "4" = gpar(lty = 2)),
-             xlog = FALSE,
-             xticks = c(0.5,0.75,1,1.25,1.5),
+             xlog = TRUE,
+             # xticks = c(1),
+             xlim = c(0.5, 1), 
              psize = sqrt(subgroup_df_ae$inverse_variance),
              lty.ci = c(1),
              col = fpColors(box = "maroon4",
@@ -4064,7 +4081,6 @@ ae28_fp_red %>%
              vertices = TRUE,
              xlab = "  Less adverse events with JAKi <-> More adverse events with JAKi",
              zero = 1,
-             # grid = structure(c(0.95), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
              )
 
