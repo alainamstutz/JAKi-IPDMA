@@ -50,8 +50,17 @@ replace crp_trunc = 3 if crp_trunc < 3 & crp_trunc != .
 centile age, centile(1 5 95 99)
 
 * truncated
-mfpi, with(trt) fp1(age_trunc) fp2(age_trunc) linear(age_trunc) select(0.05) flex(3) gendiff(age_truncdiff): logistic mort_28 age clinstatus_baseline
-metacurve_i, by(trial) fixpowers(1) with(trt) generate(age_truncmean) function(test_age_trunc) genwt(wtage_trunc_m28) adjust(clinstatus_baseline) random: logistic mort_28 age_trunc
+mfpi, with(trt) linear(age_trunc) flex(2) select(0.05) gendiff(age_truncdiff): logistic mort_28 age clinstatus_baseline
+mfpi_plot age_trunc
+
+mfpi, with(trt) fp1(age_trunc) flex(2) select(0.05) gendiff(age_truncdiff): logistic mort_28 age clinstatus_baseline
+mfpi_plot age_trunc
+
+mfpi, with(trt) fp2(age_trunc) fp1(age_trunc) linear(age_trunc) flex(2) select(0.05) gendiff(age_truncdiff): logistic mort_28 age clinstatus_baseline
+mfpi_plot age_trunc
+
+mfpi, with(trt) fp2(age_trunc) fp1(age_trunc) linear(age_trunc) flex(2) select(0.05) gendiff(age_truncdiff): logistic mort_28 age clinstatus_baseline
+metacurve_i, by(trial) with(trt) fixpowers(3) generate(age_truncmean) function(test_age_trunc) genwt(wtage_trunc_m28) adjust(clinstatus_baseline) random: logistic mort_28 age_trunc
 
 * transform to OR
 gen age_truncmean_or = exp(age_truncmean)
