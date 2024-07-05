@@ -1897,7 +1897,9 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 df <- df %>% 
   mutate(age_70 = case_when(age < 70 ~ 0,
                             age > 69 ~ 1))
-# table(df$age_70, useNA = "always")
+
+# addmargins(table(df$age_70, df$mort_28, df$trt, useNA = "always"))
+
 mort.28.age.a70 <- df %>% 
   filter(age_70 == 1) %>% # 70 and above
   glm(mort_28 ~ trt
