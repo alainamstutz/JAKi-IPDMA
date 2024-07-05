@@ -2152,7 +2152,7 @@ tab_model(new.mv28)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 3</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.99</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;15986978231217910099010667395112548035795005799325734792803633655468787695133554500500075755601920.00</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.00&nbsp;&ndash;&nbsp;15986978266423513522376808489747507728634219834248018314882562044964491591500555337711374248706048.00</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.000</td>
 </tr>
 <tr>
@@ -4766,7 +4766,7 @@ table(df_long$clinstatus_baseline, useNA = "always")
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 100
+R <- 500
 
 # need to do this by group individually
 
@@ -4981,8 +4981,6 @@ plot.plr.ci <- ggplot(risk.boot.graph,
 # Plot
 plot.plr.ci
 ```
-
-![](one-stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
 
 # TREATMENT-COVARIATE INTERACTIONS
@@ -6042,7 +6040,7 @@ summary(comorb.count.mort28)
 ## trial_fPANCOVID             -6.250052   2.002248  -3.122  0.00180 ** 
 ## trial_fRECOVERY             -6.426507   0.217884 -29.495  < 2e-16 ***
 ## trial_fTACTIC-R             -7.047072   1.347222  -5.231 1.69e-07 ***
-## trial_fTOFACOV              -6.023700   2.737649  -2.200  0.02778 *  
+## trial_fTOFACOV              -6.023701   2.737649  -2.200  0.02778 *  
 ## age_cent_trial_1             0.078646   0.018980   4.144 3.42e-05 ***
 ## age_cent_trial_2             0.048775   0.010782   4.524 6.07e-06 ***
 ## age_cent_trial_3             0.020386   0.025329   0.805  0.42091    
@@ -8314,16 +8312,16 @@ Similarly, ordinal covariates (detailed respiratory support, comorbidities) were
 
 ```r
 ## see cochrane handbook: https://handbook-5-1.cochrane.org/chapter_12/12_5_4_3_computing_absolute_risk_reduction_or_nnt_from_an_odds.htm
+## https://training.cochrane.org/handbook/current/chapter-14#section-14-1-5-2
 
 # All-cause mortality at day 28, no. (%)
 # intervention: 667/6159 (10.8)
 # control: 764/5916 (12.9)
 # aOR 0.71 (0.58 to 0.87), p = 0.004
 
-### binary outcome
-# assumed comparator risk (ACR) based on control group of the IPDMA dataset /
+# assumed comparator risk (ACR) based on control group of the IPDMA dataset
 acr <- 764/5916
-
+# acr <- 0.02 # CDC mortality rate
 # corresponding intervention risk per 1000
 or <- c(0.71)
 
@@ -8369,6 +8367,243 @@ ul <- c(0.87)
 
 ```
 ## [1] 14.86994
+```
+
+```r
+# New MV death by day 28, no. (%)
+# aOR 0.81 (0.74-0.90)
+# assumed comparator risk (ACR) based on control group of the IPDMA dataset
+acr <- 1113/5952
+# corresponding intervention risk per 1000
+or <- c(0.81)
+
+1000*(or*acr/(1-acr+(or*acr)))
+```
+
+```
+## [1] 157.0465
+```
+
+```r
+# number fewer per 1000
+1000*(acr-(or*acr/(1-acr+(or*acr))))
+```
+
+```
+## [1] 29.94949
+```
+
+```r
+# NNT
+1/(acr-(or*acr/(1-acr+(or*acr))))
+```
+
+```
+## [1] 33.38955
+```
+
+```r
+# 95% CI for number fewer per 1000
+ll <- c(0.74)
+1000*(acr-(ll*acr/(1-acr+(ll*acr))))
+```
+
+```
+## [1] 41.54739
+```
+
+```r
+ul <- c(0.90)
+1000*(acr-(ul*acr/(1-acr+(ul*acr))))
+```
+
+```
+## [1] 15.49255
+```
+
+```r
+# AEs by day 28, no. (%)
+# aOR 0.95 (0.84-1.07)
+# assumed comparator risk (ACR) based on control group of the IPDMA dataset
+acr <- 697/5210
+# corresponding intervention risk per 1000
+or <- c(0.95)
+
+1000*(or*acr/(1-acr+(or*acr)))
+```
+
+```
+## [1] 127.948
+```
+
+```r
+# number fewer per 1000
+1000*(acr-(or*acr/(1-acr+(or*acr))))
+```
+
+```
+## [1] 5.833208
+```
+
+```r
+# NNT
+1/(acr-(or*acr/(1-acr+(or*acr))))
+```
+
+```
+## [1] 171.4323
+```
+
+```r
+# 95% CI for number fewer per 1000
+ll <- c(0.84)
+1000*(acr-(ll*acr/(1-acr+(ll*acr))))
+```
+
+```
+## [1] 18.94696
+```
+
+```r
+ul <- c(1.07)
+1000*(acr-(ul*acr/(1-acr+(ul*acr))))
+```
+
+```
+## [1] -8.036605
+```
+
+```r
+# Time to death within 60d
+# aHR 0.78 (0.65 to 0.94),
+# p = 0.013
+df_tot %>%
+  filter(trt == 1) %>% 
+  filter(death_reached_60 == 1) %>%
+  summarise(median = median(death_time_60),
+            IQR = IQR(death_time_60),
+            Q1 = quantile(death_time_60, probs = 0.25),
+            Q3 = quantile(death_time_60, probs = 0.75))
+```
+
+```
+## # A tibble: 1 × 4
+##   median   IQR    Q1    Q3
+##    <dbl> <dbl> <dbl> <dbl>
+## 1     12    13     6    19
+```
+
+```r
+### time-to-event outcome
+# median time to event in control, in days / and HR with ll and ul
+median.c <- 11
+hr <- c(0.78)
+ll <- c(0.65)
+ul <- c(0.94)
+# corresponding median time to event in intervention
+m.i <- median.c/hr
+m.i
+```
+
+```
+## [1] 14.10256
+```
+
+```r
+# difference
+m.i-median.c
+```
+
+```
+## [1] 3.102564
+```
+
+```r
+#ll
+m.i_ll <- median.c/ll
+m.i_ll-median.c
+```
+
+```
+## [1] 5.923077
+```
+
+```r
+#ul
+m.i_ul <- median.c/ul
+m.i_ul+median.c
+```
+
+```
+## [1] 22.70213
+```
+
+```r
+# Time to discharge within 28d
+# aHR 1.10 (1.05 to 1.15)
+df_tot %>%
+  filter(trt == 0) %>% 
+  # filter(discharge_reached == 1) %>% 
+  summarise(median = median(discharge_time),
+            IQR = IQR(discharge_time),
+            Q1 = quantile(discharge_time, probs = 0.25),
+            Q3 = quantile(discharge_time, probs = 0.75))
+```
+
+```
+## # A tibble: 1 × 4
+##   median   IQR    Q1    Q3
+##    <dbl> <dbl> <dbl> <dbl>
+## 1      8    10     5    15
+```
+
+```r
+### time-to-event outcome
+# median time to event in control, in days / and HR with ll and ul
+median.c <- 8
+hr <- c(1.10)
+ll <- c(1.05)
+ul <- c(1.15)
+# corresponding median time to event in intervention
+m.i <- median.c/hr
+m.i
+```
+
+```
+## [1] 7.272727
+```
+
+```r
+# difference
+m.i-median.c
+```
+
+```
+## [1] -0.7272727
+```
+
+```r
+#ll
+m.i_ll <- median.c/ll
+m.i_ll
+```
+
+```
+## [1] 7.619048
+```
+
+```r
+#ul
+m.i_ul <- median.c/ul
+m.i_ul
+```
+
+```
+## [1] 6.956522
+```
+
+```r
+# addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))
 ```
 
 # Exploratory: Explore treatment heterogeneity using causal trees

@@ -1324,11 +1324,11 @@ table(df_long$clinstatus_baseline, useNA = "always")
 ```
 
 # Cumulative incidence curves and pooled logistic regression for time to death // data preparation
-```{r, warning=FALSE, messag=FALSE}
+```{r, warning=FALSE, messag=FALSE, eval=F}
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 100
+R <- 500
 
 # need to do this by group individually
 
@@ -2391,16 +2391,16 @@ Similarly, ordinal covariates (detailed respiratory support, comorbidities) were
 # Absolute Effect Estimates
 ```{r}
 ## see cochrane handbook: https://handbook-5-1.cochrane.org/chapter_12/12_5_4_3_computing_absolute_risk_reduction_or_nnt_from_an_odds.htm
+## https://training.cochrane.org/handbook/current/chapter-14#section-14-1-5-2
 
 # All-cause mortality at day 28, no. (%)
 # intervention: 667/6159 (10.8)
 # control: 764/5916 (12.9)
 # aOR 0.71 (0.58 to 0.87), p = 0.004
 
-### binary outcome
-# assumed comparator risk (ACR) based on control group of the IPDMA dataset /
+# assumed comparator risk (ACR) based on control group of the IPDMA dataset
 acr <- 764/5916
-
+# acr <- 0.02 # CDC mortality rate
 # corresponding intervention risk per 1000
 or <- c(0.71)
 
@@ -2418,6 +2418,114 @@ ll <- c(0.58)
 
 ul <- c(0.87)
 1000*(acr-(ul*acr/(1-acr+(ul*acr))))
+
+
+# New MV death by day 28, no. (%)
+# aOR 0.81 (0.74-0.90)
+# assumed comparator risk (ACR) based on control group of the IPDMA dataset
+acr <- 1113/5952
+# corresponding intervention risk per 1000
+or <- c(0.81)
+
+1000*(or*acr/(1-acr+(or*acr)))
+
+# number fewer per 1000
+1000*(acr-(or*acr/(1-acr+(or*acr))))
+
+# NNT
+1/(acr-(or*acr/(1-acr+(or*acr))))
+
+# 95% CI for number fewer per 1000
+ll <- c(0.74)
+1000*(acr-(ll*acr/(1-acr+(ll*acr))))
+
+ul <- c(0.90)
+1000*(acr-(ul*acr/(1-acr+(ul*acr))))
+
+
+# AEs by day 28, no. (%)
+# aOR 0.95 (0.84-1.07)
+# assumed comparator risk (ACR) based on control group of the IPDMA dataset
+acr <- 697/5210
+# corresponding intervention risk per 1000
+or <- c(0.95)
+
+1000*(or*acr/(1-acr+(or*acr)))
+
+# number fewer per 1000
+1000*(acr-(or*acr/(1-acr+(or*acr))))
+
+# NNT
+1/(acr-(or*acr/(1-acr+(or*acr))))
+
+# 95% CI for number fewer per 1000
+ll <- c(0.84)
+1000*(acr-(ll*acr/(1-acr+(ll*acr))))
+
+ul <- c(1.07)
+1000*(acr-(ul*acr/(1-acr+(ul*acr))))
+
+
+# Time to death within 60d
+# aHR 0.78 (0.65 to 0.94),
+# p = 0.013
+df_tot %>%
+  filter(trt == 1) %>% 
+  filter(death_reached_60 == 1) %>%
+  summarise(median = median(death_time_60),
+            IQR = IQR(death_time_60),
+            Q1 = quantile(death_time_60, probs = 0.25),
+            Q3 = quantile(death_time_60, probs = 0.75))
+
+### time-to-event outcome
+# median time to event in control, in days / and HR with ll and ul
+median.c <- 11
+hr <- c(0.78)
+ll <- c(0.65)
+ul <- c(0.94)
+# corresponding median time to event in intervention
+m.i <- median.c/hr
+m.i
+# difference
+m.i-median.c
+#ll
+m.i_ll <- median.c/ll
+m.i_ll-median.c
+#ul
+m.i_ul <- median.c/ul
+m.i_ul+median.c
+
+
+# Time to discharge within 28d
+# aHR 1.10 (1.05 to 1.15)
+df_tot %>%
+  filter(trt == 0) %>% 
+  # filter(discharge_reached == 1) %>% 
+  summarise(median = median(discharge_time),
+            IQR = IQR(discharge_time),
+            Q1 = quantile(discharge_time, probs = 0.25),
+            Q3 = quantile(discharge_time, probs = 0.75))
+
+### time-to-event outcome
+# median time to event in control, in days / and HR with ll and ul
+median.c <- 8
+hr <- c(1.10)
+ll <- c(1.05)
+ul <- c(1.15)
+# corresponding median time to event in intervention
+m.i <- median.c/hr
+m.i
+# difference
+m.i-median.c
+#ll
+m.i_ll <- median.c/ll
+m.i_ll
+#ul
+m.i_ul <- median.c/ul
+m.i_ul
+
+# addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))
+
 ```
 
 # Exploratory: Explore treatment heterogeneity using causal trees

@@ -1873,7 +1873,9 @@ Discussion points:
 # (i.vii) Primary outcome: Multiple imputation
 
 ```r
-# ## Mortality at day 28: multiple imputation
+## Mortality at day 28: multiple imputation
+
+##### ONLY WORKS IF NEW MI ESTIMATES
 # outcomes <- "death at day 28_mi"
 # outcomes.firth <- "death at day 28_mi_firth"
 # df_mort28_mi <- data.frame()
@@ -1882,60 +1884,108 @@ Discussion points:
 #   df_mort28_mi <- rbind(df_mort28_mi, selected_rows)
 # }
 # # Save
-# saveRDS(df_mort28_mi, file = "trt_effects_mi.RData") # collected on 7.5.24: Bari, ACTT2, RECOVERY, COV-BARRIER, TACTIC-R
+# saveRDS(df_mort28_mi, file = "trt_effects_mi.RData") # collected on 7.5.24: Bari-Solidact, ACTT2, RECOVERY, COV-BARRIER, TACTIC-R
+##### ONLY WORKS IF NEW MI ESTIMATES
 
-
-### UPDATE on 14.5.24
-# df_mort28_mi <- readRDS("trt_effects_mi.RData")
+##### ONLY RUN IF NEW MI ESTIMATES
+# ## UPDATE on 14.5.24
+# df_mort28_mi <- readRDS("trt_effects_mi.RData") # use the one above
 # df_pancovid_mi <- readRDS("trt_effects_pancovid.RData")
-# df_pancovid_mi <- df_pancovid_mi %>%
+# df_pancovid_mi <- df_pancovid_mi %>% # add PANCOVID
 #   filter(variable == "death at day 28_mi")
 # df_ruxcovid_mi <- readRDS("trt_effects_ruxcovid.RData")
-# df_ruxcovid_mi <- df_ruxcovid_mi %>%
-#   filter(variable == "death at day 28_mi") %>% 
-#   mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib",
-#                           TRUE ~ JAKi))
+# df_ruxcovid_mi <- df_ruxcovid_mi %>% # add RUXCOVID
+#   filter(variable == "death at day 28_mi")
+# # %>%
+# #   mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib", ## shoud be fine now, double-check
+# #                           TRUE ~ JAKi))
 # df_mort28_mi <- rbind(df_mort28_mi, df_ruxcovid_mi, df_pancovid_mi)
 # Save
 # saveRDS(df_mort28_mi, file = "trt_effects_mi_14052024.RData") # updated on 14.5.24: incl. PANCOVID and RUXCOVID
+##### ONLY RUN IF NEW MI ESTIMATES
 
-# # LOAD
-# df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
-# # no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
-# df_mort28_mi_add <- df_mort28_dimp %>% 
-#   filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
-# df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
-# 
-# mort28.mi <- metagen(TE = log(hazard_odds_ratio),
-#                       seTE = standard_error,
-#                       studlab = trial,
-#                       data = df_mort28_mi_ext,
-#                       n.e = n_int + n_cont,
-#                       # n.c = n_control,
-#                       sm = "OR",
-#                       fixed = F,
-#                       random = T,
-#                       prediction = T,
-#                       method.tau = "ML", # same results with ML (-> see one-stage!)
-#                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-#                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-#                       title = "Average treatment effect, multiple imputation - mortality 28 days",
-#                       # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-#                       # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
-#                       )
-# summary(mort28.mi)
-# forest.meta(mort28.mi,
-#             # hetstat = T,
-#             # rightcols = c("w.random"),
-#             leftcols = c("studlab", "TE", "seTE", "n.e"),
-#             leftlabs = c("Trial", "log(OR)", "Standard Error", "Sample Size"),
-#             text.random = "Average treatment effect (random effects model)",
-#             title = "Average treatment effect, multiple imputation - mortality 28 days", # get the title into the figure
-#             xlim = c(0.15,5),
-#             sortvar = +TE,
-#             # xlab = "Average treatment effect (95% CI)"
-#             )
+# LOAD
+df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
+## adapt dataframe to include the event columns
+df_mort28_add_events <- df_mort28_dimp %>%
+  filter(trial %in% c("Bari-SolidAct", "ACTT-2", "COV-BARRIER", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID")) %>% 
+  select(trial, n_int, n_cont, e_int, e_cont)
+df_mort28_mi <- left_join(df_mort28_mi, df_mort28_add_events, by = join_by(trial == trial)) 
+df_mort28_mi <- df_mort28_mi %>% 
+  select(!n_intervention) %>% 
+  select(!n_control)
+
+# no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
+df_mort28_mi_add <- df_mort28_dimp %>%
+  filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
+df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
+
+mort28.mi <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_mi_ext,
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      method.tau = "ML",
+                      method.random.ci = "HK"
+                      )
+summary(mort28.mi)
 ```
+
+```
+##                   OR            95%-CI %W(random)
+## Bari-SolidAct 0.6486 [0.3031;  1.3877]        6.3
+## ACTT-2        0.7344 [0.4147;  1.3007]       10.4
+## COV-BARRIER   0.5106 [0.3645;  0.7152]       22.9
+## RECOVERY      0.8118 [0.7040;  0.9361]       48.3
+## TACTIC-R      1.0507 [0.4769;  2.3152]        5.9
+## RUXCOVID      1.3425 [0.3504;  5.1438]        2.2
+## PANCOVID      0.2840 [0.0500;  1.6133]        1.3
+## Ghazaeian     0.7909 [0.1654;  3.7807]        1.6
+## TOFACOV       2.5366 [0.1928; 33.3748]        0.6
+## COVINIB       0.1822 [0.0127;  2.6082]        0.6
+## 
+## Number of studies: k = 10
+## Number of observations: o = 12402
+## 
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.7198 [0.5791; 0.8948] -3.42  0.0077
+## Prediction interval              [0.4926; 1.0518]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0165 [0.0000; 0.6869]; tau = 0.1285 [0.0000; 0.8288]
+##  I^2 = 17.2% [0.0%; 58.3%]; H = 1.10 [1.00; 1.55]
+## 
+## Test of heterogeneity:
+##      Q d.f. p-value
+##  10.87    9  0.2846
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 9)
+## - Prediction interval based on t-distribution (df = 8)
+```
+
+```r
+forest(mort28.mi, 
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            text.random = "Average treatment effect",
+            sortvar = +TE,
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 
 # (ii) Mortality at day 60
 
@@ -3377,11 +3427,11 @@ result_list[[2]] <- extract_trt_results(mort28.dimp, "death at day 28_dimp",
                                         addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[3,1])
-# result_list[[3]] <- extract_trt_results(mort28.mi, "death at day 28_mi",
-#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], 
-#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
-#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
-#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[3]] <- extract_trt_results(mort28.mi, "death at day 28_mi",
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,2],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 result_list[[4]] <- extract_trt_results(mort28.agg, "death at day 28_agg",
                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], # CAVE: counts are without non-IPD!
                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
@@ -3475,6 +3525,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
 |death at day 28                            |         0.7085112| 0.5758061| 0.8718006|      0.0916801| 0.0044947|            667|               6159|       764|          5916|two-stage |
 |death at day 28_dimp                       |         0.7115181| 0.5779297| 0.8759855|      0.0919249| 0.0049014|            667|               6339|       764|          6063|two-stage |
+|death at day 28_mi                         |         0.7198414| 0.5790670| 0.8948388|      0.0961970| 0.0076618|            667|               6159|       764|          5916|two-stage |
 |death at day 28_agg                        |         0.6714559| 0.5525446| 0.8159576|      0.0914467| 0.0005650|            667|               6159|       764|          5916|two-stage |
 |death at day 60                            |         0.7688075| 0.6703457| 0.8817317|      0.0605825| 0.0018781|            700|               6148|       788|          5898|two-stage |
 |death within fup                           |         0.7774449| 0.6460937| 0.9354997|      0.0818105| 0.0132007|            700|               6264|       788|          6009|two-stage |
@@ -3519,7 +3570,7 @@ result_df$variable <- factor(result_df$variable,
                                         "death within fup",
                                         "death at day 60",
                                         "death at day 28_agg", # CAVE: counts are without non-IPD!
-                                        # "death at day 28_mi",
+                                        "death at day 28_mi",
                                         "death at day 28_dimp",
                                         "death at day 28"))
 
@@ -3619,8 +3670,8 @@ sens_result_df <- result_df %>%
                          "sustained discharge within 28 days",
                          "new MV or death within 28d",
                          "new MV within 28d",
-                         # "death at day 28_mi",
-                         "death at day 28"
+                         "death at day 28",
+                         "death at day 28_mi"
                          ))
 # Rename
 sens_result_df <- sens_result_df %>% 
@@ -3630,8 +3681,8 @@ sens_result_df <- sens_result_df %>%
                               variable == "sustained discharge within 28 days" ~ "Days until sustained discharge within 28 days",
                               variable == "new MV or death within 28d" ~ "New mechanical ventilation or death at day 28*",
                               variable == "new MV within 28d" ~ "New mechanical ventilation, among survivors, at day 28",
-                              # variable == "death at day 28_mi" ~ "All-cause mortality at day 28, incl. multiple imputation"
-                              variable == "death at day 28" ~ "All-cause mortality at day 28*"
+                              variable == "death at day 28" ~ "All-cause mortality at day 28*",
+                              variable == "death at day 28_mi" ~ "All-cause mortality at day 28, incl. multiple imputation"
                               ))
 # Order
 sens_result_df$variable <- factor(sens_result_df$variable, 
@@ -3641,8 +3692,8 @@ sens_result_df$variable <- factor(sens_result_df$variable,
                                         "Days until sustained discharge within 28 days",
                                         "New mechanical ventilation or death at day 28*",
                                         "New mechanical ventilation, among survivors, at day 28",
-                                        # "All-cause mortality at day 28, incl. multiple imputation"
-                                        "All-cause mortality at day 28*"
+                                        "All-cause mortality at day 28*",
+                                        "All-cause mortality at day 28, incl. multiple imputation"
                                         ))
 
 # Plotting

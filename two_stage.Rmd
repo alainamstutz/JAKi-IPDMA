@@ -910,6 +910,15 @@ Discussion points:
 
 # LOAD
 df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
+## adapt dataframe to include the event columns
+df_mort28_add_events <- df_mort28_dimp %>%
+  filter(trial %in% c("Bari-SolidAct", "ACTT-2", "COV-BARRIER", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID")) %>% 
+  dplyr::select(trial, n_int, n_cont, e_int, e_cont)
+df_mort28_mi <- left_join(df_mort28_mi, df_mort28_add_events, by = join_by(trial == trial)) 
+df_mort28_mi <- df_mort28_mi %>% 
+  dplyr::select(!n_intervention) %>% 
+  dplyr::select(!n_control)
+
 # no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
 df_mort28_mi_add <- df_mort28_dimp %>%
   filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
@@ -1748,11 +1757,11 @@ result_list[[2]] <- extract_trt_results(mort28.dimp, "death at day 28_dimp",
                                         addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[3,2],
                                         addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$mort_28_dimp, df_tot$trt))[3,1])
-# result_list[[3]] <- extract_trt_results(mort28.mi, "death at day 28_mi",
-#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], 
-#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
-#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
-#                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
+result_list[[3]] <- extract_trt_results(mort28.mi, "death at day 28_mi",
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,2],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[2,1],
+                                        addmargins(table(df_tot$mort_28, df_tot$trt))[3,1])
 result_list[[4]] <- extract_trt_results(mort28.agg, "death at day 28_agg",
                                         addmargins(table(df_tot$mort_28, df_tot$trt))[2,2], # CAVE: counts are without non-IPD!
                                         addmargins(table(df_tot$mort_28, df_tot$trt))[3,2],
@@ -1865,7 +1874,7 @@ result_df$variable <- factor(result_df$variable,
                                         "death within fup",
                                         "death at day 60",
                                         "death at day 28_agg", # CAVE: counts are without non-IPD!
-                                        # "death at day 28_mi",
+                                        "death at day 28_mi",
                                         "death at day 28_dimp",
                                         "death at day 28"))
 
@@ -1952,8 +1961,8 @@ sens_result_df <- result_df %>%
                          "sustained discharge within 28 days",
                          "new MV or death within 28d",
                          "new MV within 28d",
-                         # "death at day 28_mi",
-                         "death at day 28"
+                         "death at day 28",
+                         "death at day 28_mi"
                          ))
 # Rename
 sens_result_df <- sens_result_df %>% 
@@ -1963,8 +1972,8 @@ sens_result_df <- sens_result_df %>%
                               variable == "sustained discharge within 28 days" ~ "Days until sustained discharge within 28 days",
                               variable == "new MV or death within 28d" ~ "New mechanical ventilation or death at day 28*",
                               variable == "new MV within 28d" ~ "New mechanical ventilation, among survivors, at day 28",
-                              # variable == "death at day 28_mi" ~ "All-cause mortality at day 28, incl. multiple imputation"
-                              variable == "death at day 28" ~ "All-cause mortality at day 28*"
+                              variable == "death at day 28" ~ "All-cause mortality at day 28*",
+                              variable == "death at day 28_mi" ~ "All-cause mortality at day 28, incl. multiple imputation"
                               ))
 # Order
 sens_result_df$variable <- factor(sens_result_df$variable, 
@@ -1974,8 +1983,8 @@ sens_result_df$variable <- factor(sens_result_df$variable,
                                         "Days until sustained discharge within 28 days",
                                         "New mechanical ventilation or death at day 28*",
                                         "New mechanical ventilation, among survivors, at day 28",
-                                        # "All-cause mortality at day 28, incl. multiple imputation"
-                                        "All-cause mortality at day 28*"
+                                        "All-cause mortality at day 28*",
+                                        "All-cause mortality at day 28, incl. multiple imputation"
                                         ))
 
 # Plotting
