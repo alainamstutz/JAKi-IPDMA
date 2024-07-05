@@ -47,14 +47,7 @@ df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
-df_ruxcovid <- readRDS("trt_effects_ruxcovid_07052024.RData") ### UPDATE !
-df_ruxcovid <- df_ruxcovid %>% ### UPDATE !
-  rename(n_int = n_intervention,
-         n_cont = n_control)
-df_ruxcovid <- df_ruxcovid %>% ### UPDATE !
-  mutate(e_int = c(9, 9, 9, 9, 12, 21, NA, 260, 260, 260, 260, 27, NA, 9),
-         e_cont = c(3, 3, 3, 3, 5, 8, NA, 135, 135, 135, 135, 21, NA, 3))
-
+df_ruxcovid <- readRDS("trt_effects_ruxcovid_05072024.RData")
 df_pancovid <- readRDS("trt_effects_pancovid.RData")
 
 ```
@@ -782,7 +775,7 @@ mort28.agg.jaki.mreg
 
 ```
 
-# (i.iv) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs // except 1: all low-risk
+# (i.iv) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs // all low risk!
 ```{r warning=FALSE, fig.width=11, fig.height=8}
 # # meta-regression by RoB
 # mort28.agg.rob <- update.meta(mort28.agg,
@@ -2017,17 +2010,7 @@ df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
-df_int_ruxcovid <- readRDS("int_effects_ruxcovid_07052024.RData")
-
-# UPDATE ONCE DATA AVAILABLE!!!
-row_to_duplicate <- df_int_ruxcovid[df_int_ruxcovid$variable == "comorbidity", ]
-# Create a new row by copying the identified row
-new_row <- row_to_duplicate
-# Modify the "variable" column for the new row
-new_row$variable <- "comorbidity_noimmuno"
-# Append the new row to the original data frame
-df_int_ruxcovid <- rbind(df_int_ruxcovid, new_row)
-  
+df_int_ruxcovid <- readRDS("int_effects_ruxcovid_05072024.RData")
 df_int_pancovid <- readRDS("int_effects_pancovid.RData")
 
 ```
@@ -2199,7 +2182,7 @@ df_subgroup_tofacov <- readRDS("subgroup_effects_tofacov.RData")
 df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
 df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
 df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
-df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_07052024.RData")
+df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_05072024.RData")
 df_subgroup_pancovid <- readRDS("subgroup_effects_pancovid.RData")
 
 ```
@@ -2635,21 +2618,18 @@ for (df in list_subgroup_df) {
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # str(df_rs_mort28)
 ## "Ghazaeian" do only have events in 1 subgroup ? -> see deft: do not include! "(insufficient data)"
+df_rs_mort28 <- df_rs_mort28[order(df_rs_mort28$trial), ]
 rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_rs_mort28,
-                      # n.e = n_int + n_cont,
-                      # n.c = n_control,
                       sm = "OR",
-                      fixed = F, # the true interaction is assumed the same in all trials 
-                      random = T, # the true interactions are assumed random across trials
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
-                      # exclude = trial %in% c("Ghazaeian") # incl in plot but exclude from analysis
+                      fixed = F, 
+                      random = T, 
+                      method.tau = "ML", 
+                      method.random.ci = "HK",
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
+                      exclude = trial %in% c("Ghazaeian", "COVINIB", "TOFACOV", "Bari-SolidAct") # incl in plot but exclude from analysis
                       )
 summary(rs.mort28)
 forest.meta(rs.mort28,
@@ -2659,9 +2639,8 @@ forest.meta(rs.mort28,
             # text.common = "Average interaction effect (common effect model)*",
             # text.random = "Average interaction effect (random effect model)*",
             text.random = "",
-            title = "Treatment-covariate interaction on primary endpoint: Respiratory support",
-            # xlab = "more resp support: greater effect <-> less resp support: greater effect",
-            xlab.pos = 0.7,
+            xlab = "more resp support: greater effect < > less resp support: greater effect",
+            xlab.pos = 0.0,
             fs.xlab = 11
             )
 
@@ -2669,12 +2648,56 @@ forest.meta(rs.mort28,
 
 # Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Descriptive by trial
 ```{r warning=FALSE, fig.width=10, fig.height=11}
-# Calculate the inverse variance
-df_sg_rs_mort28$inverse_variance <- 1 / df_sg_rs_mort28$standard_error^2
+df_sg_rs_mort28$inverse_variance <- 1 / df_sg_rs_mort28$standard_error^2 # Calculate the inverse variance
+df_sg_rs_mort28$variable <- gsub("_firth$", "", df_sg_rs_mort28$variable) # remove firth
+df_sg_rs_mort28 <- df_sg_rs_mort28[order(df_sg_rs_mort28$trial), ] # order to have the two forestplots for the deft plot in the same order
+
+# add the proportions in each treatment group
+df_sg_rs_mort28 <- df_sg_rs_mort28 %>%
+  mutate(prop_int = paste0(round(n_intervention / n_intervention_tot * 100), "%")) %>% 
+  mutate(prop_cont = paste0(round(n_control / n_control_tot * 100), "%"))
+
+# Open a pdf file
+# pdf("./fp_sg_rs.pdf", width=10, height=15)
+
+mort28.rs <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = variable,
+                      data = df_sg_rs_mort28,
+                      n.e = n_intervention_tot,
+                      n.c = n_control_tot,
+                      sm = "OR",
+                      fixed = F,
+                      random = F,
+                      prediction = F,
+                      subgroup = trial,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      )
+summary(mort28.rs)
+forest.meta(mort28.rs,
+            rightcols = c("effect"),
+            rightlabs = c("aOR"),
+            leftcols = c("studlab", "n_intervention_tot", "n_intervention", "prop_int", "n_control_tot", "n_control", "prop_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "Prop.\nJAKi", "no JAKi", "Events\nno JAKi", "Prop.\nno JAKi"),
+            text.random = "",
+            # xlim = c(0.10,5),
+            # label.left = "Favours JAKi",  
+            # label.right = "Favours No JAKi",
+            overall.hetstat = F,
+            test.subgroup = F,
+            overall = F,
+            hetstat = F
+            )
+
+# dev.off()
 
 ```
+Discussion: Which trials label as "insufficient data"?
 
-# Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Pooled across trials
+
+
+# Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Pooled across trials // Descriptive
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # No oxygen
 rs.no.ox.mort28 <- metagen(TE = log(hazard_odds_ratio),
@@ -2750,25 +2773,20 @@ forest.meta(rs.ecmo.mort28,
 ```{r warning=FALSE, fig.width=11, fig.height=4}
 # str(df_vb_mort28)
 ## "TOFACOV", "COVINIB", "Ghazaeian" and "Bari-SolidAct" do only have 1 of 2 subgroups -> see deft: do not include! "(insufficient data)"
+df_vb_mort28 <- df_vb_mort28[order(df_vb_mort28$trial), ]
 vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
                       data = df_vb_mort28,
-                      # n.e = n_int + n_cont,
-                      # n.c = n_control,
                       sm = "OR",
-                      fixed = F, # the true interaction is assumed the same in all trials 
-                      random = T, # the true interactions are assumed random across trials
-                      method.tau = "ML", # same results with ML (-> see one-stage!)
-                      hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
-                      adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
-                      title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
-                      subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
-                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      fixed = F, 
+                      random = T, 
+                      method.tau = "ML", 
+                      method.random.ci = "HK",
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
+                      exclude = trial %in% c("Ghazaeian", "COVINIB", "TOFACOV", "Bari-SolidAct") # incl in plot but exclude from analysis
                       )
 summary(vb.mort28)
-# Open a pdf file
-# pdf("vb_mort28.pdf", width=11, height=4)
 forest.meta(vb.mort28,
             hetstat = F,
             leftcols = c("studlab"),
@@ -2776,12 +2794,10 @@ forest.meta(vb.mort28,
             # text.common = "Average interaction effect (common effect model)*",
             # text.random = "Average interaction effect (random effect model)*",
             text.random = "",
-            title = "Treatment-covariate interaction on primary endpoint: Ventilation requirement",
-            # xlab = "ventilated: greater effect <-> not ventilated: greater effect",
-            xlab.pos = 0.7,
+            xlab = "more resp support: greater effect < > less resp support: greater effect",
+            xlab.pos = 0.0,
             fs.xlab = 11
             )
-# dev.off()
 
 ```
 
@@ -2789,10 +2805,9 @@ forest.meta(vb.mort28,
 ```{r warning=FALSE, fig.width=13, fig.height=10}
 # Calculate the inverse variance
 df_sg_vb_mort28$inverse_variance <- 1 / df_sg_vb_mort28$standard_error^2
-
 ```
 
-# Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint: Pooled across trials
+# Subgroups: Ventilation requirement (proxy for disease severity) on primary endpoint: Pooled across trials // Descriptive
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # No ventilation
 no.vent.mort28 <- metagen(TE = log(hazard_odds_ratio),
@@ -2846,7 +2861,6 @@ age.mort28 <- metagen(TE = log(log_odds_ratio),
                       # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(age.mort28)
-age.mort28$pval.random
 forest.meta(age.mort28,
             hetstat = F,
             leftcols = c("studlab"),
@@ -2862,7 +2876,7 @@ forest.meta(age.mort28,
 ```
 
 # Subgroups: Age on primary endpoint: Descriptive
-```{r warning=FALSE, fig.width=9, fig.height=9}
+```{r warning=FALSE, fig.width=10, fig.height=10}
 df_sg_age_mort28$inverse_variance <- 1 / df_sg_age_mort28$standard_error^2
 df_sg_age_mort28$variable <- gsub("_firth$", "", df_sg_age_mort28$variable)
 df_sg_age_mort28 <- df_sg_age_mort28[order(df_sg_age_mort28$trial), ]
@@ -2878,20 +2892,27 @@ df_sg_age_mort28 <- df_sg_age_mort28 %>%
                               trial == "COVINIB*" & variable == "below 70 years" ~ "below 65 years",
                               trial == "PANCOVID*" & variable == "70 years and above" ~ "75 years and above",
                               trial == "PANCOVID*" & variable == "below 70 years" ~ "below 75 years",
-                              trial == "RUXCOVID*" & variable == "70 years and above" ~ "60 years and above",
-                              trial == "RUXCOVID*" & variable == "below 70 years" ~ "below 60 years",
+                              trial == "RUXCOVID*" & variable == "70 years and above" ~ "65 years and above",
+                              trial == "RUXCOVID*" & variable == "below 70 years" ~ "below 65 years",
                               trial == "TOFACOV*" & variable == "70 years and above" ~ "65 years and above",
                               trial == "TOFACOV*" & variable == "below 70 years" ~ "below 65 years",
                               TRUE ~ variable)
          )
-  
+
+# add the proportions in each treatment group
+df_sg_age_mort28 <- df_sg_age_mort28 %>%
+  mutate(prop_int = paste0(round(n_intervention / n_intervention_tot * 100), "%")) %>% 
+  mutate(prop_cont = paste0(round(n_control / n_control_tot * 100), "%"))
+
+# Open a pdf file
+pdf("./fp_sg_age.pdf", width=10, height=10)
 
 mort28.age <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = variable,
                       data = df_sg_age_mort28,
-                      n.e = n_intervention,
-                      n.c = n_control,
+                      n.e = n_intervention_tot,
+                      n.c = n_control_tot,
                       sm = "OR",
                       fixed = F,
                       random = F,
@@ -2901,12 +2922,11 @@ mort28.age <- metagen(TE = log(hazard_odds_ratio),
                       method.random.ci = "HK",
                       )
 summary(mort28.age)
-
 forest.meta(mort28.age,
-            rightcols = c("effect", "ci"),
-            rightlabs = c("aOR", "95%-CI"),
-            leftcols = c("studlab"),
-            leftlabs = c("Trial"),
+            rightcols = c("effect"),
+            rightlabs = c("aOR"),
+            leftcols = c("studlab", "n_intervention_tot", "n_intervention", "prop_int", "n_control_tot", "n_control", "prop_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "Prop.\nJAKi", "no JAKi", "Events\nno JAKi", "Prop.\nno JAKi"),
             text.random = "",
             # xlim = c(0.10,5),
             # label.left = "Favours JAKi",  
@@ -2917,9 +2937,10 @@ forest.meta(mort28.age,
             hetstat = F
             )
 
+dev.off()
 ```
 
-# Subgroups: Age on primary endpoint: Pooled across trials
+# Subgroups: Age on primary endpoint: Pooled across trials // only descriptive purpose for overall forestplot!
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # Age 70 years or older
 age.above70.mort28 <- metagen(TE = log(hazard_odds_ratio),
@@ -2947,7 +2968,8 @@ age.below70.mort28 <- metagen(TE = log(hazard_odds_ratio),
                       n.c = n_control,
                       sm = "OR",
                       fixed = T, # the true subgroup effect is assumed the same in all trials
-                      random = F)
+                      random = F,
+                      exclude = trial %in% c("RUXCOVID", "COVINIB")) # incl in plot but exclude from analysis)
 summary(age.below70.mort28)
 forest.meta(age.below70.mort28,
             hetstat = F,
@@ -3219,7 +3241,7 @@ df_sg_comed_mort28$inverse_variance <- 1 / df_sg_comed_mort28$standard_error^2
 
 ```
 
-# Subgroups: Comedication on primary endpoint: Pooled across trials
+# Subgroups: Comedication on primary endpoint: Pooled across trials // Descriptive
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # No comedication
 no.comed.mort28 <- metagen(TE = log(hazard_odds_ratio),
@@ -3328,7 +3350,7 @@ df_sg_vacc_ae28$inverse_variance <- 1 / df_sg_vacc_ae28$standard_error^2
 
 ```
 
-# Subgroups: Vaccination on AEs: Pooled across trials
+# Subgroups: Vaccination on AEs: Pooled across trials // Descriptive
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # Vaccinated
 vacc.yes.ae28 <- metagen(TE = log(hazard_odds_ratio),
@@ -3406,7 +3428,7 @@ df_sg_symp_mort28$inverse_variance <- 1 / df_sg_symp_mort28$standard_error^2
 
 ```
 
-# Subgroups: Symptom onset on primary endpoint: Pooled across trials
+# Subgroups: Symptom onset on primary endpoint: Pooled across trials // Descriptive
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # Enrolment more than 10 days after symptom onset
 sympdur.m10.mort28 <- metagen(TE = log(hazard_odds_ratio),
@@ -3500,7 +3522,7 @@ df_sg_crp_mort28$inverse_variance <- 1 / df_sg_crp_mort28$standard_error^2
 
 ```
 
-# Subgroups: CRP on primary endpoint: Pooled across trials
+# Subgroups: CRP on primary endpoint: Pooled across trials // Descriptive
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # CRP above 75
 crp.above75.mort28 <- metagen(TE = log(hazard_odds_ratio),
@@ -3600,7 +3622,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 saveRDS(interaction_df, file = "int_effects_two-stage.RData")
 ```
 
-# Collect all subgroup effect estimates for forestplot
+# Collect all subgroup effect estimates for forestplot // only descriptive purpose
 ```{r message=FALSE, warning=FALSE}
 # Empty data frame to store the results
 subgroup_df <- data.frame(

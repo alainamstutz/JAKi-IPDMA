@@ -1502,8 +1502,8 @@ exp(confint(mort.28.age))
 
 # effect by subgroup
 df <- df %>%
-  mutate(age_70 = case_when(age < 70 ~ 0,
-                            age > 69 ~ 1))
+  mutate(age_70 = case_when(age < 65 ~ 0,
+                            age > 64 ~ 1))
 table(df$age_70, useNA = "always")
 mort.28.age.a70 <- df %>%
   filter(age_70 == 1) %>% # 70 and above
@@ -1512,7 +1512,6 @@ mort.28.age.a70 <- df %>%
       + clinstatus_baseline
       , family = "binomial", data=.)
 exp(coef(mort.28.age.a70))
-exp(confint(mort.28.age.a70))
 
 mort.28.age.b70 <- df %>%
   filter(age_70 == 0) %>% # below 70
@@ -1755,11 +1754,15 @@ result_df <- data.frame(
   ci_lower = numeric(),
   ci_upper = numeric(),
   standard_error = numeric(),
-  p_value = numeric()
+  p_value = numeric(),
+  n_int = numeric(),
+  n_cont = numeric(),
+  e_int = numeric(),
+  e_cont = numeric()
 )
 
 # Function to extract treatment results from different model types (glm, clm, coxph and crr)
-extract_trt_results <- function(model, variable_name, n_int, n_cont) {
+extract_trt_results <- function(model, variable_name, n_int, n_cont, e_int, e_cont) {
   if (inherits(model, "glm") || inherits(model, "clm")) {
     trt_coef <- coef(model)["trt"]
     hazard_odds_ratio <- exp(trt_coef)
@@ -1799,8 +1802,10 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
     ci_upper = ci[2],
     standard_error = se,
     p_value = p_value,
-    n_intervention = n_int,
-    n_control = n_cont
+    n_int = n_int,
+    n_cont = n_cont,
+    e_int = e_int,
+    e_cont = e_cont
   )
   return(result)
 }
@@ -1809,31 +1814,67 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont) {
 result_list <- list()
 
 result_list[[1]] <- extract_trt_results(mort.28, "death at day 28",
-                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+                                        addmargins(table(df$mort_28, df$trt))[3,2], 
+                                        addmargins(table(df$mort_28, df$trt))[3,1],
+                                        addmargins(table(df$mort_28, df$trt))[2,2], 
+                                        addmargins(table(df$mort_28, df$trt))[2,1])
 result_list[[2]] <- extract_trt_results(mort.28.dimp, "death at day 28_dimp",
-                                        addmargins(table(df$mort_28_dimp, df$trt))[3,2], addmargins(table(df$mort_28_dimp, df$trt))[3,1]) # adj: age, clinstatus
+                                        addmargins(table(df$mort_28_dimp, df$trt))[3,2], 
+                                        addmargins(table(df$mort_28_dimp, df$trt))[3,1],
+                                        addmargins(table(df$mort_28_dimp, df$trt))[2,2], 
+                                        addmargins(table(df$mort_28_dimp, df$trt))[2,1]) 
 #result_list[[3]] <- extract_trt_results(mort.28.mi, "death at day 28_mi",
-#                                         addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
+#                                        addmargins(table(df$mort_28, df$trt))[3,2], 
+#                                        addmargins(table(df$mort_28, df$trt))[3,1],
+#                                        addmargins(table(df$mort_28, df$trt))[2,2], 
+#                                        addmargins(table(df$mort_28, df$trt))[2,1])
 #result_list[[4]] <- extract_trt_results(mort.28.ame, "death at day 28_marginal",
 #                                        addmargins(table(df$mort_28, df$trt))[3,2], addmargins(table(df$mort_28, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[5]] <- extract_trt_results(mort.60, "death at day 60",
-                                        addmargins(table(df$mort_60, df$trt))[3,2], addmargins(table(df$mort_60, df$trt))[3,1]) # adj: age, clinstatus
+                                        addmargins(table(df$mort_60, df$trt))[3,2], 
+                                        addmargins(table(df$mort_60, df$trt))[3,1],
+                                        addmargins(table(df$mort_60, df$trt))[2,2], 
+                                        addmargins(table(df$mort_60, df$trt))[2,1])
 result_list[[6]] <- extract_trt_results(ttdeath, "death within fup",
-                                        addmargins(table(df$death_reached, df$trt))[3,2], addmargins(table(df$death_reached, df$trt))[3,1]) # adj: age, clinstatus
+                                        addmargins(table(df$death_reached, df$trt))[3,2], 
+                                        addmargins(table(df$death_reached, df$trt))[3,1],
+                                        addmargins(table(df$death_reached, df$trt))[2,2], 
+                                        addmargins(table(df$death_reached, df$trt))[2,1]) 
 result_list[[7]] <- extract_trt_results(new.mv.28, "new MV within 28d",
-                                        addmargins(table(df$new_mv_28, df$trt))[3,2], addmargins(table(df$new_mv_28, df$trt))[3,1]) # adj: age, clinstatus
+                                        addmargins(table(df$new_mv_28, df$trt))[3,2], 
+                                        addmargins(table(df$new_mv_28, df$trt))[3,1],
+                                        addmargins(table(df$new_mv_28, df$trt))[2,2], 
+                                        addmargins(table(df$new_mv_28, df$trt))[2,1]) 
 result_list[[8]] <- extract_trt_results(new.mvd.28, "new MV or death within 28d",
-                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], addmargins(table(df$new_mvd_28, df$trt))[3,1]) # adj: age, clinstatus
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,2], 
+                                        addmargins(table(df$new_mvd_28, df$trt))[3,1],
+                                        addmargins(table(df$new_mvd_28, df$trt))[2,2], 
+                                        addmargins(table(df$new_mvd_28, df$trt))[2,1])
 result_list[[9]] <- extract_trt_results(clin.28, "clinical status at day 28",
-                                        addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], addmargins(table(df$clinstatus_28_imp, df$trt))[7,1]) # adj: age, clinstatus
+                                        addmargins(table(df$clinstatus_28_imp, df$trt))[7,2], 
+                                        addmargins(table(df$clinstatus_28_imp, df$trt))[7,1],
+                                        NA,
+                                        NA) 
 result_list[[10]] <- extract_trt_results(ttdischarge, "discharge within 28 days",
-                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
+                                         addmargins(table(df$discharge_reached, df$trt))[3,2], 
+                                         addmargins(table(df$discharge_reached, df$trt))[3,1],
+                                         addmargins(table(df$discharge_reached, df$trt))[2,2],
+                                         addmargins(table(df$discharge_reached, df$trt))[2,1])
 result_list[[11]] <- extract_trt_results(ttdischarge.comp, "discharge within 28 days, death=comp.event",
-                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age
+                                         addmargins(table(df$discharge_reached, df$trt))[3,2], 
+                                         addmargins(table(df$discharge_reached, df$trt))[3,1],
+                                         addmargins(table(df$discharge_reached, df$trt))[2,2],
+                                         addmargins(table(df$discharge_reached, df$trt))[2,1])
 result_list[[12]] <- extract_trt_results(ttdischarge.sens, "discharge within 28 days, death=hypo.event",
-                                         addmargins(table(df$discharge_reached, df$trt))[3,2], addmargins(table(df$discharge_reached, df$trt))[3,1]) # adj: age, clinstatus
+                                         addmargins(table(df$discharge_reached, df$trt))[3,2], 
+                                         addmargins(table(df$discharge_reached, df$trt))[3,1],
+                                         addmargins(table(df$discharge_reached, df$trt))[2,2],
+                                         addmargins(table(df$discharge_reached, df$trt))[2,1])
 result_list[[13]] <- extract_trt_results(ttdischarge.sus, "sustained discharge within 28 days",
-                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], addmargins(table(df$discharge_reached_sus, df$trt))[3,1]) # adj: age, clinstatus
+                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,2], 
+                                         addmargins(table(df$discharge_reached_sus, df$trt))[3,1],
+                                         addmargins(table(df$discharge_reached_sus, df$trt))[2,2], 
+                                         addmargins(table(df$discharge_reached_sus, df$trt))[2,1]) 
 #result_list[[14]] <- extract_trt_results(vir.clear.5, "viral clearance until day 5",
 #                                         addmargins(table(df$vir_clear_5, df$trt))[3,2], addmargins(table(df$vir_clear_5, df$trt))[3,1]) # adj: age, clinstatus
 #result_list[[15]] <- extract_trt_results(vir.clear.10, "viral clearance until day 10",
@@ -1841,9 +1882,15 @@ result_list[[13]] <- extract_trt_results(ttdischarge.sus, "sustained discharge w
 #result_list[[16]] <- extract_trt_results(vir.clear.15, "viral clearance until day 15",
 #                                         addmargins(table(df$vir_clear_15, df$trt))[3,2], addmargins(table(df$vir_clear_15, df$trt))[3,1]) # adj: age, clinstatus
 result_list[[17]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days",
-                                         addmargins(table(df$ae_28, df$trt))[3,2], addmargins(table(df$ae_28, df$trt))[3,1]) # adj: age, clinstatus
+                                         addmargins(table(df$ae_28, df$trt))[3,2], 
+                                         addmargins(table(df$ae_28, df$trt))[3,1],
+                                         addmargins(table(df$ae_28, df$trt))[2,2], 
+                                         addmargins(table(df$ae_28, df$trt))[2,1]) 
 result_list[[18]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
-                                         addmargins(table(df$ae_28_sev, df$trt))[9,2], addmargins(table(df$ae_28_sev, df$trt))[9,1]) # adj: age, clinstatus
+                                         addmargins(table(df$ae_28_sev, df$trt))[9,2], 
+                                         addmargins(table(df$ae_28_sev, df$trt))[9,1],
+                                         NA,
+                                         NA)
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -1871,7 +1918,7 @@ result_ame <- data.frame(
 result_df <- rbind(result_df, result_ame)
 
 # Save
-saveRDS(result_df, file = "trt_effects_ruxcovid_07052024.RData")
+saveRDS(result_df, file = "trt_effects_ruxcovid_05072024.RData")
 
 
 
@@ -1924,11 +1971,12 @@ result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstat
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
 result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
 result_list[[6]] <- extract_interaction(mort.28.comorb.any.firth, "comorbidity_any_firth") # adj: age, clinstatus
-result_list[[7]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
-# result_list[[8]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # vacc not available
-result_list[[9]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
-result_list[[10]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
-# result_list[[11]] <- extract_interaction(mort.28.var, "variant") # variant not available
+result_list[[7]] <- extract_interaction(mort.28.comorb, "comorbidity_noimmuno") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+# result_list[[9]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # vacc not available
+result_list[[10]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
+result_list[[11]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
+# result_list[[12]] <- extract_interaction(mort.28.var, "variant") # variant not available
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -1942,7 +1990,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-saveRDS(interaction_df, file = "int_effects_ruxcovid_07052024.RData")
+saveRDS(interaction_df, file = "int_effects_ruxcovid_05072024.RData")
 
 
 #######
@@ -2106,5 +2154,5 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-saveRDS(subgroup_df, file = "subgroup_effects_ruxcovid_07052024.RData")
+saveRDS(subgroup_df, file = "subgroup_effects_ruxcovid_05072024.RData")
 

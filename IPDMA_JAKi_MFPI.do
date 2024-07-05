@@ -46,7 +46,7 @@ replace crp_trunc = 3 if crp_trunc < 3 & crp_trunc != .
 ******************************************************************************************
 * MFPI for age, outcome mortality day 28 (binary)
 
-* 5th and 95th percentile // Take out Spinner since for those we only have age as a categorical variable, does not converge otherwise
+* 5th and 95th percentile
 centile age, centile(1 5 95 99)
 
 * truncated
