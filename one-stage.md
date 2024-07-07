@@ -1455,29 +1455,24 @@ table(df_tot$death_reached, df_tot$death_time, useNA = "always")
 ```
 ##       
 ##           0    1    2    3    4    5    6    7    8    9   10   11   12   13
-##   0      22   38   35   28   40   37   34   34   24    7   17   12    9   12
+##   0      22   43   37   13   15   14   14   13    7    1    6    5    4    4
 ##   1       2   16   54   58   86   84   92   76   73   75   55   69   59   62
-##   <NA>    0   17   16    6    4    3    2    0    0    0    0    0    0    1
-##       
-##          14   15   16   17   18   19   20   21   22   23   24   25   26   27
-##   0      38   12   10    5    4    4    6   20   10    4    8   38   93  164
-##   1      64   52   59   47   34   41   42   43   38   24   29   24   23   20
-##   <NA>    0    2    0    0    0    0    0    0    0    1    2    0    0    0
-##       
-##          28   29   30   31   32   33   34   35   36   37   38   39   40   41
-##   0    9356   40   21   15    4    6    2    4    1    0    2    0    0    3
-##   1      18    3    7    6    0    3    5    5    4    4    2    2    2    1
-##   <NA>   75    0    0    0    0    0    0    0    0    0    0    0    0    0
-##       
-##          42   43   44   45   46   47   48   49   50   51   53   54   55   57
-##   0       2    1    1    1    1    0    1    0    1    2    1    1    4    1
-##   1       0    3    1    0    0    1    0    3    1    1    1    0    0    1
 ##   <NA>    0    0    0    0    0    0    0    0    0    0    0    0    0    0
 ##       
-##          59   60 <NA>
-##   0       0  129    0
-##   1       1    0    0
-##   <NA>    0    0    0
+##          14   15   16   17   18   19   20   21   22   23   24   25   26   27
+##   0      34   13   10    4    2    0    5   17    9    4    6   35   75  120
+##   1      64   52   59   47   34   41   42   43   38   24   29   24   23   20
+##   <NA>    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+##       
+##          28   29   30   31   33   34   35   36   37   38   39   40   41   43
+##   0    7890    1    0    1    1    0    0    0    0    0    0    0    0    0
+##   1      18    3    7    6    3    5    5    4    4    2    2    2    1    3
+##   <NA>    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+##       
+##          44   47   49   50   51   53   55   57   59   60 <NA>
+##   0       0    0    0    0    0    0    1    0    0 2068    0
+##   1       1    1    3    1    1    1    0    1    1    0    0
+##   <NA>    0    0    0    0    0    0    0    0    0    0    0
 ```
 
 ```r
@@ -1487,9 +1482,9 @@ table(df_tot$death_reached, df_tot$mort_60, useNA = "always")
 ```
 ##       
 ##            0     1  <NA>
-##   0    10146     0   219
+##   0    10146     0   348
 ##   1        0  1476     0
-##   <NA>     0     0   129
+##   <NA>     0     0     0
 ```
 
 ```r
@@ -1501,62 +1496,62 @@ table(df_tot$trial, df_tot$death_time, useNA = "always")
 ##                    0    1    2    3    4    5    6    7    8    9   10   11
 ##   ACTT2           13    7    7    3    3    8    5    1    3    0    6    3
 ##   Bari-Solidact    6    4    0    1    4    2    2    1    4    2    2    1
-##   COV-BARRIER      0   12   19    7   12    6   17   24   19   12   12   19
+##   COV-BARRIER      0   12   19    7   12    6   17   24   18   12   12   19
 ##   COVINIB          0    0    0    0    0    0    0    0    0    0    0    0
-##   Ghazaeian        0    1    3    1    5    0    1    0    0    1    1    1
-##   PANCOVID         0    6    0    0    1    2    4    1    0    0    0    0
+##   Ghazaeian        0    1    1    0    1    0    1    0    0    1    1    1
+##   PANCOVID         0    5    0    0    1    1    3    1    0    0    0    0
 ##   RECOVERY         0   24   63   57   76   78   71   59   53   59   39   48
-##   TACTIC-R         5   17   13   23   29   28   28   24   18    8   12    9
+##   TACTIC-R         5    6    1    3    4    3    7    3    2    2    1    2
 ##   TOFACOV          0    0    0    0    0    0    0    0    0    0    0    0
 ##   <NA>             0    0    0    0    0    0    0    0    0    0    0    0
 ##                
 ##                   12   13   14   15   16   17   18   19   20   21   22   23
 ##   ACTT2            3    1   33    5    8    4    2    3    8   19   10    3
 ##   Bari-Solidact    2    1    2    3    1    3    1    1    3    4    0    0
-##   COV-BARRIER      8   12   17    9   18   10   12   10   11    4    9    9
+##   COV-BARRIER      8   12   16    9   18   10   11    9   11    4    9    9
 ##   COVINIB          0    0    0    0    0    0    0    0    0    3    0    0
 ##   Ghazaeian        0    0    0    0    0    0    0    0    0    0    0    0
-##   PANCOVID         1    0    0    0    1    1    0    0    2    1    0    1
+##   PANCOVID         1    0    0    0    1    1    0    0    1    0    0    0
 ##   RECOVERY        48   51   45   44   40   32   22   28   24   30   27   16
-##   TACTIC-R         6   10    5    5    1    2    1    3    0    2    2    0
+##   TACTIC-R         1    1    2    4    1    1    0    0    0    0    1    0
 ##   TOFACOV          0    0    0    0    0    0    0    0    0    0    0    0
 ##   <NA>             0    0    0    0    0    0    0    0    0    0    0    0
 ##                
-##                   24   25   26   27   28   29   30   31   32   33   34   35
+##                   24   25   26   27   28   29   30   31   33   34   35   36
 ##   ACTT2            4   35   76  122  638    0    0    0    0    0    0    0
-##   Bari-Solidact    0    0    0    0  224    1    2    0    0    0    2    1
-##   COV-BARRIER      6    9    6    3 1260   12    6    6    1    3    4    4
+##   Bari-Solidact    0    0    0    0    1    1    2    0    0    2    1    1
+##   COV-BARRIER      6    9    6    3   30    3    4    5    2    3    4    2
 ##   COVINIB          0    1    0    0    1    0    0    0    0    0    0    0
-##   Ghazaeian        0    0    0    0   83    0    0    0    0    0    0    0
-##   PANCOVID         3    4   18   44   94   30   18   13    2    4    1    4
-##   RECOVERY        24   13   14   15 7028    0    0    0    0    0    0    0
-##   TACTIC-R         2    0    1    0    6    0    2    2    1    2    0    0
+##   Ghazaeian        0    0    0    0   90    0    0    0    0    0    0    0
+##   PANCOVID         1    1    1    0    1    0    0    0    0    0    0    1
+##   RECOVERY        24   13   14   15 7030    0    0    0    0    0    0    0
+##   TACTIC-R         0    0    0    0    2    0    1    2    2    0    0    0
 ##   TOFACOV          0    0    1    0  115    0    0    0    0    0    0    0
 ##   <NA>             0    0    0    0    0    0    0    0    0    0    0    0
 ##                
-##                   36   37   38   39   40   41   42   43   44   45   46   47
+##                   37   38   39   40   41   43   44   47   49   50   51   53
 ##   ACTT2            0    0    0    0    0    0    0    0    0    0    0    0
-##   Bari-Solidact    1    1    1    0    0    0    0    0    0    0    0    0
-##   COV-BARRIER      2    2    1    2    1    0    0    3    1    0    0    1
+##   Bari-Solidact    1    1    0    0    0    0    0    0    0    0    0    0
+##   COV-BARRIER      2    1    2    1    0    3    1    1    3    0    1    1
 ##   COVINIB          0    0    0    0    0    0    0    0    0    0    0    0
 ##   Ghazaeian        0    0    0    0    0    0    0    0    0    0    0    0
-##   PANCOVID         2    0    1    0    0    3    1    0    0    1    0    0
-##   RECOVERY         0    0    0    0    0    0    0    0    0    0    1    0
-##   TACTIC-R         0    1    1    0    1    1    1    1    1    0    0    0
+##   PANCOVID         0    0    0    0    0    0    0    0    0    0    0    0
+##   RECOVERY         0    0    0    0    0    0    0    0    0    0    0    0
+##   TACTIC-R         1    0    0    1    1    0    0    0    0    1    0    0
 ##   TOFACOV          0    0    0    0    0    0    0    0    0    0    0    0
 ##   <NA>             0    0    0    0    0    0    0    0    0    0    0    0
 ##                
-##                   48   49   50   51   53   54   55   57   59   60 <NA>
-##   ACTT2            0    0    0    0    0    0    0    0    0    0    0
-##   Bari-Solidact    0    0    0    0    0    0    1    1    0    4    0
-##   COV-BARRIER      0    3    0    1    1    0    0    0    0    0    0
-##   COVINIB          0    0    0    0    0    0    0    0    0  105    0
-##   Ghazaeian        0    0    0    0    0    0    0    0    0    0    0
-##   PANCOVID         1    0    1    2    0    1    3    1    1   13    0
-##   RECOVERY         0    0    0    0    0    0    0    0    0    1    0
-##   TACTIC-R         0    0    1    0    1    0    0    0    0    6    0
-##   TOFACOV          0    0    0    0    0    0    0    0    0    0    0
-##   <NA>             0    0    0    0    0    0    0    0    0    0    0
+##                   55   57   59   60 <NA>
+##   ACTT2            0    0    0    0    0
+##   Bari-Solidact    1    1    0  227    0
+##   COV-BARRIER      0    0    0 1249    0
+##   COVINIB          0    0    0  105    0
+##   Ghazaeian        0    0    0    0    0
+##   PANCOVID         0    0    1  266    0
+##   RECOVERY         0    0    0    0    0
+##   TACTIC-R         0    0    0  221    0
+##   TOFACOV          0    0    0    0    0
+##   <NA>             0    0    0    0    0
 ```
 
 ```r
@@ -1583,12 +1578,12 @@ head(km.ttdeath.check, 100)
 ```
 
 ```
-##   [1]  6  28+ 30  28+ 28+ 28+ 28+ 11  28+  4+ 19  28+ 28+  0  28+ 28+ 28+ 28+
-##  [19] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+  4  10  28+ 28+ 28+
-##  [37] 28+ 28+  8   0+  0+ 28+ 28+ 17  28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+
-##  [55] 14  28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+
-##  [73] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 60+ 28+ 20  28+ 28+ 28+ 28+ 28+
-##  [91] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+
+##   [1]  6  60+ 30  60+ 60+ 60+ 60+ 11  60+  4+ 19  60+ 60+  0  60+ 60+ 60+ 60+
+##  [19] 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+  4  10  60+ 60+ 60+
+##  [37] 60+ 60+  8   0+  0+ 60+ 60+ 17  60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+
+##  [55] 14  60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+
+##  [73] 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 20  60+ 60+ 60+ 60+ 60+
+##  [91] 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+ 60+
 ```
 
 ```r
@@ -1600,18 +1595,17 @@ summary(km.ttdeath_trt, times = 60)
 ## Call: survfit(formula = Surv(death_time_60, death_reached_60) ~ trt, 
 ##     data = df_tot)
 ## 
-## 129 observations deleted due to missingness 
 ##                 trt=0 
 ##         time       n.risk      n.event     survival      std.err lower 95% CI 
-##      60.0000      65.0000     785.0000       0.6713       0.0359       0.6046 
+##     6.00e+01     1.01e+03     7.85e+02     8.49e-01     5.92e-03     8.38e-01 
 ## upper 95% CI 
-##       0.7455 
+##     8.61e-01 
 ## 
 ##                 trt=1 
 ##         time       n.risk      n.event     survival      std.err lower 95% CI 
-##      60.0000      64.0000     691.0000       0.6174       0.0399       0.5440 
+##     6.00e+01     1.05e+03     6.91e+02     8.62e-01     6.08e-03     8.51e-01 
 ## upper 95% CI 
-##       0.7008
+##     8.74e-01
 ```
 
 ```r
@@ -1630,8 +1624,8 @@ kable(ttdeath_60d_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |**Characteristic**    |**60-d survival (95% CI)** |
 |:---------------------|:--------------------------|
 |Trial treatment group |NA                         |
-|0                     |67% (60%, 75%)             |
-|1                     |62% (54%, 70%)             |
+|0                     |85% (84%, 86%)             |
+|1                     |86% (85%, 87%)             |
 
 ```r
 autoplot(km.ttdeath_trt)
@@ -1688,61 +1682,61 @@ tab_model(ttdeath)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">Trial treatment group</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.78</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.65&nbsp;&ndash;&nbsp;0.94</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.009</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.67&nbsp;&ndash;&nbsp;0.91</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Bari-Solidact</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">12.69</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.69&nbsp;&ndash;&nbsp;234.69</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.088</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">9.95</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.54&nbsp;&ndash;&nbsp;184.88</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.123</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COV-BARRIER</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">4.37</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.14&nbsp;&ndash;&nbsp;16.79</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.032</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.87</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.74&nbsp;&ndash;&nbsp;11.06</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.126</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: COVINIB</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.09</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.02&nbsp;&ndash;&nbsp;69.93</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.967</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">5.09</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.07&nbsp;&ndash;&nbsp;366.04</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.456</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: Ghazaeian</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">57.29</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.11&nbsp;&ndash;&nbsp;2951.87</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.044</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">54.20</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.91&nbsp;&ndash;&nbsp;3221.64</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.055</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: PANCOVID</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">7.37</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.32&nbsp;&ndash;&nbsp;172.51</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.214</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">8.42</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.35&nbsp;&ndash;&nbsp;200.41</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.188</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: RECOVERY</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.66</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.05&nbsp;&ndash;&nbsp;12.76</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.042</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">3.54</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.01&nbsp;&ndash;&nbsp;12.39</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.048</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TACTIC-R</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">17.49</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.77&nbsp;&ndash;&nbsp;172.41</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.014</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">8.46</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.15&nbsp;&ndash;&nbsp;62.42</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.036</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">trial f: TOFACOV</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">4.93</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.06&nbsp;&ndash;&nbsp;425.15</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.483</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.05&nbsp;&ndash;&nbsp;473.66</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.493</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 1</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.08</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.05&nbsp;&ndash;&nbsp;1.11</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.05&nbsp;&ndash;&nbsp;1.10</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
@@ -1754,8 +1748,8 @@ tab_model(ttdeath)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 3</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.03</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.08</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.247</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.98&nbsp;&ndash;&nbsp;1.07</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.273</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 4</td>
@@ -1766,8 +1760,8 @@ tab_model(ttdeath)
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 5</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.12</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;1.32</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.163</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.95&nbsp;&ndash;&nbsp;1.33</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.169</td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 6</td>
@@ -1783,15 +1777,15 @@ tab_model(ttdeath)
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 8</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.04</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.01&nbsp;&ndash;&nbsp;1.06</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.003</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.08</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.05&nbsp;&ndash;&nbsp;1.11</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">age cent trial 9</td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.11</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.02&nbsp;&ndash;&nbsp;1.21</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.015</strong></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">1.03&nbsp;&ndash;&nbsp;1.21</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.010</strong></td>
 </tr>
 
 <tr>
@@ -1799,7 +1793,7 @@ tab_model(ttdeath)
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">9</td>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
-<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11834</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">11963</td>
 </tr>
 
 </table>
@@ -4407,7 +4401,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |:----------------|:------------------------------------------|-----------------:|---------:|---------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|
 |trt_centered_n   |death at day 28                            |         0.6949719| 0.5532796| 0.8729510|      0.1163327| 0.0017603|            658|               5877|       761|          5774|one-stage |
 |trt_centered_n1  |death at day 60                            |         0.7513189| 0.6148563| 0.9180683|      0.1022680| 0.0051765|            691|               5866|       785|          5756|one-stage |
-|trt_centered_n2  |death within fup                           |         0.7839141| 0.6532988| 0.9406435|             NA|        NA|            691|               5977|       785|          5864|one-stage |
+|trt_centered_n2  |death within fup                           |         0.7835167| 0.6745436| 0.9100945|             NA|        NA|            691|               6052|       785|          5918|one-stage |
 |trt_centered_n3  |new MV or death within 28d                 |         0.8086119| 0.7290693| 0.8968329|      0.0528328| 0.0000580|           1000|               5917|      1105|          5810|one-stage |
 |trt_centered_n4  |new MV within 28d                          |         0.8923321| 0.7317947| 1.0880875|      0.1011949| 0.2602852|            311|               5090|       323|          4901|one-stage |
 |trt_centered_n5  |clinical status at day 28                  |         0.8009900| 0.7299842| 0.8789025|      0.0473608| 0.0000028|           6052|               6052|      5918|          5918|one-stage |
@@ -4640,92 +4634,81 @@ df_tot_long$timesqr <- df_tot_long$time^2
 # table(df_tot_long$clinstatus_baseline, useNA = "always")
 # table(df_tot_long$death_reached, useNA = "always")
 
-# person-day format
+# long person-day format
 # mort_60 == 1 only at day of death, before 0. 
 # CAVE: keep mort_60 = NA as NA
-# censor == 1 where mort_60 == NA (within 60d) and LTFU/withdrawal
 # mort_60_n only NA on the day of a censored individual
 # treat/trt not time-updated, keep only time-fixed, since we will not assess any per-protocol effects
 # censor at max trial follow-up in each trial
+# death_time incorporates already the censoring!! I.e. those censored for withdrawal/LTFU have lower death_time than 28/60 but NA in mort_60
+# take death_time_60, which is capped at day 60 (see time to death section above)
 
 df_long <- df_tot_long %>% 
-  mutate(mort_60_n = case_when(mort_60 == "1" & time == death_time ~ 1, # mark the deaths at the correct time point (cave: missing)
-                               mort_60 %in% c("1","0") & time <= death_time ~ 0, # refill previous to deaths with 0
-                               mort_60 == "0" ~ 0)) # refill all alive with 0
-df_long <- df_long %>% 
-  filter((is.na(mort_60_n) & is.na(mort_60)) | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "0" & mort_60_n == "0") | (mort_60 == "1" & mort_60_n == "0")) # remove mort_60_n == NA (but only when not also NA in mort_60, since these are the true missing; check 80504)
+  filter(time <= death_time_60)
 
-df_long <- df_long %>% # mark the censored ones (part of death_time, but mort_60/mort_60_n == NA) // censor 1 day after LTFU/withdrawal!
-  mutate(censor = case_when(is.na(mort_60) & is.na(mort_60_n) 
-                               & death_time <= 60 
-                               & time == death_time + 1 ~ 1, # mark the censored at the correct time point (cave: missing)
-                            is.na(mort_60) & is.na(mort_60_n) 
-                               & death_time <= 60 
-                               & time <= death_time + 1 ~ 0, # refill previous to censored with 0
-                            mort_60 %in% c("1", "0") & mort_60_n %in% c(1, 0)
-                               ~ 0, # refill the known ones
-                            ))
-
-df_long <- df_long %>% 
-  filter(!is.na(censor)) # drop all censor == NA (after censoring event)
-
-df_long <- df_long %>% # refill the mort_60_na == NA with 0 for the days before censoring
-  mutate(mort_60_n = case_when(is.na(mort_60_n) & censor == 0 ~ 0,
+df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
+  mutate(mort_60_n = case_when(mort_60 == 1 & time == death_time_60 ~ 1))
+df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
+  mutate(mort_60_n = case_when(time < death_time_60 ~ 0, 
+                               TRUE ~ mort_60_n))  
+df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
+  mutate(mort_60_n = case_when(is.na(mort_60) & time == death_time_60 ~ NA, 
                                TRUE ~ mort_60_n))
-
-# df_long %>%
-#   dplyr::select(id_pat, trial, trt, time, censor, mort_60, mort_60_n, death_reached, death_time, death_time_60, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
-#   # filter(id_pat == "80804") %>%
-#   # filter(id_pat == "80504") %>%
-#   # filter(is.na(mort_60_n)) %>%
-#   # filter(is.na(censor)) %>%
-#   # filter(mort_60_n == 0 & mort_60 == "1") %>%
-#   filter(trial == "Bari-Solidact") %>%
-#   View()
-
-# table(df_long$trial, df_long$death_time_60)
-df_long <- df_long %>% # mark the censored ones due to last trial follow-up
-  mutate(censor2 = case_when(trial %in% c("ACTT2", "COVINIB", "Ghazaeian", "RECOVERY", "TOFACOV") &
+df_long <- df_long %>% # remove observations after max fup date in the 4 trials that only followed up for 28d max
+  mutate(censor = case_when(trial %in% c("ACTT2", "Ghazaeian", "RECOVERY", "TOFACOV") &
                                time > 28 ~ 1,
-                             TRUE ~ 0))
+                             TRUE ~ 0))       
 df_long <- df_long %>% 
-  filter(censor2 == 0) # drop all censored
+  filter(censor == 0) # drop all censored         
 
-table(df_long$mort_60, df_long$mort_60_n, useNA = "always") # 347 censored, 1476 deaths
-```
+# 
+# 
+# 
+# df_long <- df_long %>% # if mort_60 == NA (i.e. LTFU/withdrew) before day 60, then replace mort_60_n with NA at last fup
+#   mutate(mort_60_n = case_when(is.na(mort_60)
+#                                & time == death_time_60 ~ NA,
+#                              TRUE ~ mort_60_n))
+# 
+# 
+# 
+# 
+# df_long <- df_long %>% 
+#   filter((is.na(mort_60_n) & is.na(mort_60)) | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "0" & mort_60_n == "0") | (mort_60 == "1" & mort_60_n == "0")) # remove mort_60_n == NA (but only when not also NA in mort_60, since these are the true missing; check 80504)
+# 
+# df_long <- df_long %>% # mark the censored ones (part of death_time, but mort_60/mort_60_n == NA) // censor 1 day after LTFU/withdrawal!
+#   mutate(censor = case_when(is.na(mort_60) & is.na(mort_60_n) 
+#                                & death_time <= 60 
+#                                & time == death_time + 1 ~ 1, # mark the censored at the correct time point (cave: missing)
+#                             is.na(mort_60) & is.na(mort_60_n) 
+#                                & death_time <= 60 
+#                                & time <= death_time + 1 ~ 0, # refill previous to censored with 0
+#                             mort_60 %in% c("1", "0") & mort_60_n %in% c(1, 0)
+#                                ~ 0, # refill the known ones
+#                             ))
+# 
+# 
+# 
+# df_long <- df_long %>% # refill the mort_60_na == NA with 0 for the days before censoring
+#   mutate(mort_60_n = case_when(is.na(mort_60_n) & censor == 0 ~ 0,
+#                                TRUE ~ mort_60_n))
+# 
+# # df_long %>%
+# #   dplyr::select(id_pat, trial, trt, time, censor, mort_60, mort_60_n, death_reached, death_time, death_time_60, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
+# #   # filter(id_pat == "80804") %>%
+# #   # filter(id_pat == "80504") %>%
+# #   # filter(is.na(mort_60_n)) %>%
+# #   # filter(is.na(censor)) %>%
+# #   # filter(mort_60_n == 0 & mort_60 == "1") %>%
+# #   filter(trial == "Bari-Solidact") %>%
+# #   View()
+# 
+# 
 
-```
-##       
-##             0      1   <NA>
-##   0    355242      0      0
-##   1     19238   1476      0
-##   <NA>   5087      0    272
-```
 
-```r
-table(df_long$censor, useNA = "always") # 347 censored
-```
 
-```
-## 
-##      0      1   <NA> 
-## 381043    272      0
-```
-
-```r
-table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
-```
-
-```
-## 
-##     0     1  <NA> 
-## 10146  1476   348
-```
-
-```r
-df_long <- df_long %>%
-  mutate(time = time-1) %>%
-  mutate(timesqr = time * time)
+# df_long <- df_long %>%
+#   mutate(time = time-1) %>%
+#   mutate(timesqr = time * time)
 
 table(df_long$clinstatus_baseline, useNA = "always")
 ```
@@ -4733,7 +4716,7 @@ table(df_long$clinstatus_baseline, useNA = "always")
 ```
 ## 
 ##      1      2      3      4      5      6   <NA> 
-##      0  33781 243353  90234  13926      0     21
+##      0  34663 244577  89816  13850      0     14
 ```
 
 ```r
@@ -4747,7 +4730,7 @@ table(df_long$clinstatus_baseline_n, useNA = "always")
 ```
 ## 
 ##      2      3      4      5   <NA> 
-##  33781 243353  90234  13947      0
+##  34663 244577  89816  13864      0
 ```
 
 ```r
@@ -4757,7 +4740,61 @@ table(df_long$clinstatus_baseline, useNA = "always")
 ```
 ## 
 ##      2      3      4      5   <NA> 
-##  33781 243353  90234  13947      0
+##  34663 244577  89816  13864      0
+```
+
+```r
+table(df_long$time, useNA = "always")
+```
+
+```
+## 
+##     0     1     2     3     4     5     6     7     8     9    10    11    12 
+## 11970 11946 11887 11796 11725 11624 11526 11420 11331 11251 11175 11114 11040 
+##    13    14    15    16    17    18    19    20    21    22    23    24    25 
+## 10977 10911 10813 10748 10679 10628 10592 10551 10504 10444 10397 10369 10334 
+##    26    27    28    29    30    31    32    33    34    35    36    37    38 
+## 10275 10177 10037  2129  2125  2118  2111  2111  2107  2102  2097  2093  2089 
+##    39    40    41    42    43    44    45    46    47    48    49    50    51 
+##  2087  2085  2083  2082  2082  2079  2078  2078  2078  2077  2077  2074  2073 
+##    52    53    54    55    56    57    58    59  <NA> 
+##  2072  2072  2071  2071  2070  2070  2069  2069     0
+```
+
+```r
+df_long %>%
+  dplyr::select(id_pat, trial, trt, time, death_time, death_time_60, mort_28, mort_60, mort_60_n, death_reached, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
+  # filter(id_pat == "80804") %>%
+  # filter(id_pat == "80504") %>%
+  # filter(mort_60 == 1) %>%
+  # filter(is.na(mort_60)) %>%
+  # filter(time == "-1") %>%
+  filter(trial == "RECOVERY") %>%
+  View()
+
+table(df_long$mort_60, df_long$mort_60_n, useNA = "always") # 347 censored, 1476 deaths
+```
+
+```
+##       
+##             0      1   <NA>
+##   0    349040      0   8079
+##   1     19238   1476      0
+##   <NA>   4740      0    347
+```
+
+```r
+table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
+```
+
+```
+## 
+##     0     1  <NA> 
+## 10146  1476   348
+```
+
+```r
+# check Ghazaeian and PANCOVID and // ACTT2 has a few with death_time_60 == 0 and mort_60 == NA but is fine
 ```
 
 # Cumulative incidence curves and pooled logistic regression for time to death // data preparation
@@ -4766,7 +4803,7 @@ table(df_long$clinstatus_baseline, useNA = "always")
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 500
+R <- 50
 
 # need to do this by group individually
 
@@ -4940,47 +4977,54 @@ zero <- setNames(zero,names(risk.boot.graph.pred))
 risk.boot.graph <- rbind(zero, risk.boot.graph.pred)
 
 
+### PLOT
+# Define the intersection point
+intersect_x <- 28  # Example x-coordinate
+intersect_y <- 0.108 # Example y-coordinate 10.8, but CAVE: RUXCOVID is out
+intersect_y2 <- 0.134 # Example y-coordinate 12.9,but CAVE: RUXCOVID is out
 
-# Create plot
-plot.plr.ci <- ggplot(risk.boot.graph,
-                      aes(x=time_0)) + # set x and y axes
-  geom_line(aes(y = mean.1, # create line for JAKi group
-                color = "JAKi"),
-                size = 1.5) +
-  geom_ribbon(aes(ymin = ll.1, ymax = ul.1, fill = "JAKi"), alpha = 0.4) +
-  geom_line(aes(y = mean.0, # create line for no JAKi group
-                color = "No JAKi"),
-                size = 1.5) +
-  geom_ribbon(aes(ymin = ll.0, ymax = ul.0, fill = "No JAKi"), alpha=0.4) +
-  xlab("Days") + # label x axis
-  scale_x_continuous(limits = c(0, 60), # format x axis
-                     breaks=c(0,5,10,15,20,25,30,35,40,45,50,55,60)) +
-  ylab("Cumulative Incidence (%)") + # label y axis
-  scale_y_continuous(limits=c(0, 0.20), # format y axis
-                     breaks=c(0, 0.05, 0.10, 0.15, 0.20),
-                     labels=c("0.0%", "5.0%",
-                              "10.0%", "15.0%", "20.0%")) +
-  theme_minimal()+ # set plot theme elements
-  theme(axis.text = element_text(size=14), legend.position = c(0.2, 0.8),
+plot.plr.ci <- ggplot(risk.boot.graph, aes(x = time_0)) +
+  geom_line(aes(y = mean.1, color = ""), size = 1.5) + # Line for JAKi group
+  geom_ribbon(aes(ymin = ll.1, ymax = ul.1, fill = "JAKi"), alpha = 0.4) + # Ribbon for JAKi group
+  geom_line(aes(y = mean.0, color = ""), size = 1.5) + # Line for No JAKi group
+  geom_ribbon(aes(ymin = ll.0, ymax = ul.0, fill = "No JAKi"), alpha = 0.4) + # Ribbon for No JAKi group
+  xlab("Days") + # X-axis label
+  scale_x_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5)) + # X-axis scale
+  ylab("Cumulative Incidence (%)") + # Y-axis label
+  scale_y_continuous(limits = c(0, 0.20), breaks = seq(0, 0.20, by = 0.05), 
+                     labels = scales::percent_format(accuracy = 1)) + # Y-axis scale
+  theme_minimal() + # Minimal theme
+  theme(axis.text = element_text(size = 14), 
+        legend.position = c(0.2, 0.8),
         axis.line = element_line(colour = "black"),
         legend.title = element_blank(),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_blank())+
-  font("xlab",size=14)+
-  font("ylab",size=14)+
-  font("legend.text",size=10)+
-  scale_color_manual(values=c("#FFB6C1", "#87CEFA"),
-                     breaks=c('No JAKi',
-                              'JAKi')) +
-  scale_fill_manual(values=c("#FFB6C1", "#87CEFA"),
-                     breaks=c('No JAKi',
-                              'JAKi'))
+        panel.grid.major.y = element_blank()) + # Custom theme settings
+  font("xlab", size = 14) + # Custom font for xlab
+  font("ylab", size = 14) + # Custom font for ylab
+  font("legend.text", size = 10) + # Custom font for legend text
+  scale_color_manual(values = c("#FFB6C1", "#87CEFA"), breaks = c('No JAKi', 'JAKi')) + # Custom colors
+  scale_fill_manual(values = c("#FFB6C1", "#87CEFA"), breaks = c('No JAKi', 'JAKi')) + # Custom fill colors
+  geom_segment(aes(x = 0, y = intersect_y, xend = intersect_x, yend = intersect_y), 
+               linetype = "dotted", color = "grey", size = 0.5) + # first Horizontal line stopping at intersection
+  geom_segment(aes(x = intersect_x, y = 0, xend = intersect_x, yend = intersect_y), 
+               linetype = "dotted", color = "grey", size = 0.5) + # first Vertical line stopping at intersection
+  geom_segment(aes(x = 0, y = intersect_y2, xend = intersect_x, yend = intersect_y2), 
+               linetype = "dotted", color = "grey", size = 0.5) + # second Horizontal line stopping at intersection
+  geom_segment(aes(x = intersect_x, y = 0, xend = intersect_x, yend = intersect_y2), 
+               linetype = "dotted", color = "grey", size = 0.5) + # second Vertical line stopping at intersection
+  annotate("text", x = intersect_x, y = intersect_y, label = bquote(bold(.(scales::percent_format(accuracy = 1)(intersect_y)))), 
+           hjust = 0.5, vjust = -0.5, size = 4, color = "black") + # Annotation for the intersection point
+  annotate("text", x = intersect_x, y = intersect_y2, label = bquote(bold(.(scales::percent_format(accuracy = 1)(intersect_y2)))), 
+           hjust = 0.5, vjust = -0.5, size = 4, color = "black") # Annotation for the intersection point
 
-# Plot
-plot.plr.ci
+# Display the plot
+print(plot.plr.ci)
 ```
+
+![](one-stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
 
 # TREATMENT-COVARIATE INTERACTIONS
@@ -6040,7 +6084,7 @@ summary(comorb.count.mort28)
 ## trial_fPANCOVID             -6.250052   2.002248  -3.122  0.00180 ** 
 ## trial_fRECOVERY             -6.426507   0.217884 -29.495  < 2e-16 ***
 ## trial_fTACTIC-R             -7.047072   1.347222  -5.231 1.69e-07 ***
-## trial_fTOFACOV              -6.023701   2.737649  -2.200  0.02778 *  
+## trial_fTOFACOV              -6.023700   2.737649  -2.200  0.02778 *  
 ## age_cent_trial_1             0.078646   0.018980   4.144 3.42e-05 ***
 ## age_cent_trial_2             0.048775   0.010782   4.524 6.07e-06 ***
 ## age_cent_trial_3             0.020386   0.025329   0.805  0.42091    

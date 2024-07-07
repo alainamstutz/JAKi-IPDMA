@@ -746,16 +746,24 @@ df$mort_60 <- df$mort_28
 
 
 # (iii) Time to death within max. follow-up time
-df$death_reached <- df$mort_28 # do not bother about missings in mort_28 // and no deaths after day 28 anymore
+df <- df %>% # do not bother about missings in mort_28 // and no deaths after day 28 anymore
+  mutate(death_reached = case_when(mort_28 == 1 ~ 1,
+                                   TRUE ~ 0))
+
 df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
   mutate(death_time = case_when(death_time >=0 ~ c(death_time), # time to death, if no time to death, then...
                                 discharge_time >=0 & (is.na(withdrawn_time) | withdrawn_time >28) ~ 28, # maxfup for all discharged and not withdrawn
                                 withdrawn_time >=0 ~ c(withdrawn_time), # time to withdrawal for those withdrawn (and not discharged before)
                                 is.na(death_time) & is.na(withdrawn_time) & is.na(discharge_time) ~ 28 # max fup for the remaining ones not withdrawn, not discharged, not dead (n=164)
                                 ))
-# table(df$death_reached, df$death_time)
-df <- df %>% # Max fup time in RECOVERY was +/- 28 days, but there are some later follow-up timepoints in dataset => restrict to 60d, according to protocol
-  mutate(death_time = case_when(death_time>60 ~ 60,
+
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct, death_reached has no NA, but mort_60 does
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time, useNA = "always") # correct
+
+df <- df %>% # Max fup time in RECOVERY was +/- 28 days, but there are some later follow-up timepoints in dataset => restrict to 28
+  mutate(death_time = case_when(death_time>28 ~ 28,
                                 TRUE ~ death_time))
 
 
@@ -1457,17 +1465,19 @@ mort.28.prop.test$conf.int
 # P-Value
 mort.28.prop.test$p.value
 
+# needs complete case model
+df_mort28_comp <- df %>% filter(!is.na(mort_28))
+
 # Covariate-Adjusted Analysis
 # Fit the `glm` object
-# Same as Complete case analysis, substantive model // but don't use piping, otherwise problem in margins::margins
-df_mort28_comp <- df %>% filter(!is.na(mort_28))
+# Don't use piping, otherwise problem with margins::margins
 mort.28.cov.adj <-
   glm(formula = mort_28 ~ trt + age + clinstatus_baseline,
       data = df_mort28_comp,
       family = binomial(link = "logit")
       )
-# Print a summary of the `glm` object
 summary(mort.28.cov.adj)
+
 # Predict Pr{Y = 1 | Z = 1, X} // equals: E(Y|Z=1,X)
 pr_y1_z1 <-
   predict(
@@ -1479,6 +1489,7 @@ pr_y1_z1 <-
       ),
     type = "response"
   )
+
 # Predict Pr{Y = 1 | Z = 0, X} // equals: E(Y|Z=0,X)
 pr_y1_z0 <-
   predict(
@@ -1494,8 +1505,9 @@ pr_y1_z0 <-
 # Estimate RD
 adj_mean = mean(pr_y1_z1) - mean(pr_y1_z0)
 print(adj_mean)
-# Standard Error RD
-# The variance/standard error can be calculted as 1/n times the sample variance of:
+
+# Standard Error for RD, using robust standard error (another option would be bootstrapping)
+# The variance/standard error can be calculated as 1/n times the sample variance of:
 # Z/P(Z=1)*[Y-E(Y|Z=1,X)] + E(Y|Z=1,X) - ((1-Z)/(1-P(1=Z))*[Y-E(Y|Z=0,X)] + E(Y|Z=0,X))
 p_arm = mean(df_mort28_comp$trt==1)
 adj_se = sqrt(
@@ -1503,11 +1515,9 @@ adj_se = sqrt(
       ((df_mort28_comp$trt==0)/(1-p_arm) * (df_mort28_comp$mort_28-pr_y1_z0) + pr_y1_z0))/
     nrow(df_mort28_comp))
 print(adj_se)
+
 # Confidence Interval
 c(adj_mean-qnorm(0.975)*adj_se, adj_mean+qnorm(0.975)*adj_se)
-
-# Or, we can obtain the standard error of the estimate two ways. The first way is using the margins::margins() command, using the robust standard errors from sandwich::vcovHC // The second way to obtain these would be the bias corrected and accelerated (BCa) non-parametric bootstrap
-# You’ll see that we now have a standard error, p-value under the hypothesis that the marginal effect is 0, and a 95% Confidence Interval for the estimate. 
 
 library(sandwich)
 library(margins)
@@ -1516,13 +1526,13 @@ mort.28.cov.adj.ame <-
     model = mort.28.cov.adj,
     # Specify treatment variable
     variables = "trt",
-    # Convert to outcome scale, not link scale
+    # Convert to outcome scale, not log link 
     type = "response",
     # Obtain robust standard errors
     vcov = sandwich::vcovHC(x = mort.28.cov.adj, type = "HC3")
   )
 summary(object = mort.28.cov.adj.ame, level = 0.95)
-mort.28.ame <- summary(object = mort.28.cov.adj.ame, level = 0.95)
+mort.28.ame <- summary(object = mort.28.cov.adj.ame, level = 0.95) # should yield the same result as above done manually
 ```
 
 # (ii) Mortality at day 60

@@ -905,7 +905,9 @@ Discussion points:
 df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
 ## adapt dataframe to include the event columns
 df_mort28_add_events <- df_mort28_dimp %>%
-  filter(trial %in% c("Bari-SolidAct", "ACTT-2", "COV-BARRIER", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID")) %>% 
+  filter(trial %in% c("Bari-SolidAct", "ACTT-2", "COV-BARRIER", "RECOVERY", "TACTIC-R", 
+                      "RUXCOVID", 
+                      "PANCOVID")) %>% 
   dplyr::select(trial, n_int, n_cont, e_int, e_cont)
 df_mort28_mi <- left_join(df_mort28_mi, df_mort28_add_events, by = join_by(trial == trial)) 
 df_mort28_mi <- df_mort28_mi %>% 

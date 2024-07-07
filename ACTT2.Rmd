@@ -410,6 +410,11 @@ df <- df %>% # no missing and those that were discharged and afterwards died hav
 
 # max follow-up time in ACTT2 was 28 days => no restriction of time window to 60 days.
 
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct, death_reached has no NA, but mort_60 does
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time, useNA = "always") # correct
+
 
 # (iv) New mechanical ventilation among survivors within 28 days.
 df <- df %>% # see View below

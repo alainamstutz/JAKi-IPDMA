@@ -295,20 +295,28 @@ df <- df %>% # same 12 that have no outcome data and withdrew or were withdrawn 
 df$death_reached <- df$death_yn # do not bother about missings in mort_28
 df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
   mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
-                                discharge_d >=0 & (is.na(withdraw_d) | withdraw_d >28) & (is.na(withdrawi_d) | withdrawi_d >28) ~ 28, # 28d for all those who were discharged alive and not withdrawn before, then...
+                                discharge_d >=0 & (is.na(withdraw_d) | withdraw_d >28) & (is.na(withdrawi_d) | withdrawi_d >28) ~ 90, # max fup for all those who were discharged alive and not withdrawn before, then...
                                 discharge_d >= withdraw_d ~ c(discharge_d), # time to discharge if this was greater than time to withdrawal
                                 discharge_d >= withdrawi_d ~ c(discharge_d), # see above
                                 maxfup_d >=0 & is.na(withdraw_d) & is.na(withdrawi_d) ~ c(maxfup_d), # max fup for the remaining ones not withdrawn
                                 withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal for those withdrawn (and not discharged before)
                                 withdrawi_d >=0 ~ c(withdrawi_d))) # time to investigator withdrawal for those inv-withdrawn (and not discharged before)
-# table(df$death_reached, df$death_time) # ignores the missing
-# table(df$mort_60, df$death_time) # excludes the missing
-df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+table(df$death_reached, df$death_time, useNA = "always") # ignores the missing
+table(df$mort_60, df$death_time, useNA = "always") # excludes the missing
+
+df <- df %>% # Max fup time in Bari-Solidact was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
   mutate(death_reached = case_when(death_time>60 ~ 0,
                                 TRUE ~ death_reached))
-df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+df <- df %>% # Max fup time in Bari-Solidact was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
   mutate(death_time = case_when(death_time>60 ~ 60,
                                 TRUE ~ death_time))
+
+# table(df$mort_28, useNA = "always") # correct
+# table(df$mort_60, useNA = "always") # correct
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct, death_reached has no NA, but mort_60 does
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time, useNA = "always") # correct
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.

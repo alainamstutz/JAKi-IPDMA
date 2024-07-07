@@ -241,15 +241,17 @@ df$death_d <- as.numeric(df$death_date - df$randdate)
 df$withdraw_d <- as.numeric(df$withdrawal_date - df$randdate)
 df$discharge_d <- as.numeric(df$`Hospital days`)
 
-# (i) Primary outcome: Mortality at day 28 // We have withdrawals, but still discharge/death/clinstatus data at day 28
+# (i) Primary outcome: Mortality at day 28 // We have withdrawals, but still discharge/death/clinstatus data at day 28 => ignore withdrawals
 df <- df %>%
   mutate(mort_28 = case_when(death_d <29 ~ 1,
                              death == "no" ~ 0
                              )) 
-# df %>% 
-#   filter(is.na(mort_28)) %>% 
+# df %>%
+#   # filter(is.na(mort_28)) %>%
+#   select(id_pat, mort_28, death_d, withdraw_d, mort_60, death_time) %>% 
 #   View()
 # table(df$mort_28, useNA = "always")
+
 df$mort_28_dimp <- df$mort_28
 
 
@@ -260,10 +262,11 @@ df$mort_60 <- df$mort_28 # max fup time was 28 days; thus mort_60 imputed from m
 # (iii) Time to death within max. follow-up time
 df$death_reached <- df$mort_28
 df <- df %>% # no missing and those that were discharged were discharged alive
-  mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
-                                withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal, then...
-                                TRUE ~ 28)) # time to death censoring data // All happened within 14 days. And without change until 28d follow-up (those discharged were still alive and not hospitalized)
-# max follow-up time in ACTT2 was 28 days => no restriction of time window to 60 days.
+  mutate(death_time = case_when(!is.na(death_d) ~ death_d,
+                                TRUE ~ 28)) # ignore withdrawals!
+
+# max follow-up time in Ghazaeian was 28 days => no restriction of time window to 60 days needed.
+
 
 # (iv) New mechanical ventilation among survivors within 28 days.
 df <- df %>% # all those intubated also then died

@@ -820,18 +820,30 @@ df <- df %>% # 10 early withdrawals (before day 60) and no info later / 8 early 
 
 
 # (iii) Time to death within max. follow-up time (90 days)
-df <- df %>% # first, death_d, then withdraw_d, then discharge_d, then max follow-up
+df <- df %>% # first, death_d, then withdraw_d, then LTFU, then max follow-up => use discharge_d for LTFU
   mutate(death_time = case_when(!is.na(death_d) ~ death_d, 
-                                !is.na(withdraw_d) ~ withdraw_d, 
-                                !is.na(discharge_d) ~ discharge_d))
-# table(df$death_reached, df$death_time) # ignores the missing
-# table(df$mort_60, df$death_time) # excludes the missing
+                                !is.na(withdraw_d) ~ withdraw_d,
+                                is.na(mort_60) & is.na(death_d) & is.na(withdraw_d) ~ discharge_d,
+                                TRUE ~ 90))
+
 df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
   mutate(death_reached = case_when(death_time>60 ~ 0,
                                 TRUE ~ death_reached))
 df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
   mutate(death_time = case_when(death_time>60 ~ 60,
                                 TRUE ~ death_time))
+
+# table(df$mort_28, useNA = "always") # correct
+# table(df$mort_60, useNA = "always") # correct
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct, death_reached has no NA, but mort_60 does
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time) # excludes the missing
+# df %>%
+#   select(id_pat, mort_28, mort_60, death_time, death_reached, trt, randdate, ltfu, discharge_reached, discharge_date, discharge_d, death_reached, death_date, death_d, withdraw_date, withdraw_d, lastvisit, lastvisit_status, lastvisit_status_other, lastvisit_status_date, treat_stop_status, sae_outcome, sae_outcome_date, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28, clinstatus_90, PARTIC_ICU, PARTIC_ICU1, PARTIC_ICU2, PARTIC_ICU3, PARTIC_ICU4, PARTIC_ICU5, PARTIC_ICU6, PARTIC_ICU7, PARTIC_ICU8, PARTIC_ICU9, PARTIC_ICU10, icu_10_df2, icu_11_df2, icu_12_df2, icu_13_df2, icu_14_df2, PARTUP_READMIT) %>%
+#   filter(is.na(mort_60)) %>%
+#   View()
+
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. TACTIC included across all clinstatus.

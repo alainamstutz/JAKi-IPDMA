@@ -322,20 +322,59 @@ df <- df %>% # same 12 that have no outcome data and withdrew or were withdrawn 
 df$death_reached <- df$death_yn # do not bother about missings in mort_28
 df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
   mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
-                                discharge_d >=0 & (is.na(withdraw_d) | withdraw_d >28) & (is.na(withdrawi_d) | withdrawi_d >28) ~ 28, # 28d for all those who were discharged alive and not withdrawn before, then...
+                                discharge_d >=0 & (is.na(withdraw_d) | withdraw_d >28) & (is.na(withdrawi_d) | withdrawi_d >28) ~ 90, # max fup for all those who were discharged alive and not withdrawn before, then...
                                 discharge_d >= withdraw_d ~ c(discharge_d), # time to discharge if this was greater than time to withdrawal
                                 discharge_d >= withdrawi_d ~ c(discharge_d), # see above
                                 maxfup_d >=0 & is.na(withdraw_d) & is.na(withdrawi_d) ~ c(maxfup_d), # max fup for the remaining ones not withdrawn
                                 withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal for those withdrawn (and not discharged before)
                                 withdrawi_d >=0 ~ c(withdrawi_d))) # time to investigator withdrawal for those inv-withdrawn (and not discharged before)
-# table(df$death_reached, df$death_time) # ignores the missing
-# table(df$mort_60, df$death_time) # excludes the missing
-df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+table(df$death_reached, df$death_time, useNA = "always") # ignores the missing
+```
+
+```
+##       
+##          0   1   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
+##   0      5   4   1   1   0   0   1   1   0   0   0   0   0   0   0   0   0   1
+##   1      1   0   0   3   2   2   0   3   2   2   1   2   1   2   3   1   3   0
+##   <NA>   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+##       
+##         19  20  21  28  29  30  34  35  36  37  38  55  57  68  88  90 <NA>
+##   0      0   1   0   0   0   0   0   0   0   0   0   1   0   0   1 225    0
+##   1      1   2   4   1   1   2   2   1   1   1   1   0   1   1   0   0    0
+##   <NA>   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0    0
+```
+
+```r
+table(df$mort_60, df$death_time, useNA = "always") # excludes the missing
+```
+
+```
+##       
+##          0   1   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
+##   0      0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   1
+##   1      1   0   0   3   2   2   0   3   2   2   1   2   1   2   3   1   3   0
+##   <NA>   5   4   1   0   0   0   1   1   0   0   0   0   0   0   0   0   0   0
+##       
+##         19  20  21  28  29  30  34  35  36  37  38  55  57  68  88  90 <NA>
+##   0      0   1   0   0   0   0   0   0   0   0   0   1   0   1   1 225    0
+##   1      1   2   4   1   1   2   2   1   1   1   1   0   1   0   0   0    0
+##   <NA>   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0    0
+```
+
+```r
+df <- df %>% # Max fup time in Bari-Solidact was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
   mutate(death_reached = case_when(death_time>60 ~ 0,
                                 TRUE ~ death_reached))
-df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
+df <- df %>% # Max fup time in Bari-Solidact was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
   mutate(death_time = case_when(death_time>60 ~ 60,
                                 TRUE ~ death_time))
+
+# table(df$mort_28, useNA = "always") # correct
+# table(df$mort_60, useNA = "always") # correct
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct, death_reached has no NA, but mort_60 does
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time, useNA = "always") # correct
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. Bari-Solidact only included clinstatus 4 and 5.
@@ -856,7 +895,7 @@ Table: By completeness (only mort_28)
 |                                  |NA         |12 (  4.2)            |12 (100.0)            |0 (  0.0)             |       |        |        |
 |death_reached (%)                 |0          |243 ( 84.1)           |12 (100.0)            |231 ( 83.4)           |0.256  |        |0.0     |
 |                                  |1          |46 ( 15.9)            |0 (  0.0)             |46 ( 16.6)            |       |        |        |
-|death_time (median [IQR])         |           |28.00 [28.00, 28.00]  |1.00 [0.00, 1.50]     |28.00 [28.00, 28.00]  |<0.001 |nonnorm |0.0     |
+|death_time (median [IQR])         |           |60.00 [60.00, 60.00]  |1.00 [0.00, 1.50]     |60.00 [60.00, 60.00]  |<0.001 |nonnorm |0.0     |
 |new_mv_28 (%)                     |0          |174 ( 60.2)           |0 (  0.0)             |174 ( 62.8)           |<0.001 |        |27.0    |
 |                                  |1          |37 ( 12.8)            |1 (  8.3)             |36 ( 13.0)            |       |        |        |
 |                                  |NA         |78 ( 27.0)            |11 ( 91.7)            |67 ( 24.2)            |       |        |        |
@@ -2071,13 +2110,13 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 |**Characteristic**    |**HR** |**95% CI** |**p-value** |
 |:---------------------|:------|:----------|:-----------|
-|Trial treatment group |0.74   |0.41, 1.33 |0.3         |
+|Trial treatment group |0.84   |0.47, 1.50 |0.5         |
 |Age (years)           |1.08   |1.05, 1.11 |<0.001      |
 |clinstatus_baseline   |NA     |NA         |NA          |
 |1                     |NA     |NA         |NA          |
 |2                     |NA     |NA         |NA          |
 |3                     |NA     |NA         |NA          |
-|4                     |0.51   |0.26, 1.02 |0.056       |
+|4                     |0.49   |0.25, 0.97 |0.041       |
 |5                     |NA     |NA         |NA          |
 |6                     |NA     |NA         |NA          |
 
@@ -6181,7 +6220,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt1  |death at day 28_dimp                       |         0.6403796|  0.2947749| 1.3584352|      0.3871741| 0.2496719|   145|    144|    15|     21|Bari-SolidAct |Baricitinib |
 |trt2  |death at day 28_marginal                   |        -0.0411176| -0.1169964| 0.0347612|      0.0387144| 0.2882015|   137|    140|    15|     21|Bari-SolidAct |Baricitinib |
 |trt3  |death at day 60                            |         0.9170453|  0.4614448| 1.8145475|      0.3476107| 0.8032644|   137|    140|    22|     24|Bari-SolidAct |Baricitinib |
-|trt4  |death within fup                           |         0.7425758|  0.4131667| 1.3346160|      0.2991248| 0.3197345|   145|    144|    22|     24|Bari-SolidAct |Baricitinib |
+|trt4  |death within fup                           |         0.8356348|  0.4670056| 1.4952398|      0.2968678| 0.5452716|   145|    144|    22|     24|Bari-SolidAct |Baricitinib |
 |trt5  |new MV within 28d                          |         1.5355491|  0.7522041| 3.2077287|      0.3676045| 0.2433273|   107|    104|    22|     15|Bari-SolidAct |Baricitinib |
 |trt6  |new MV or death within 28d                 |         1.0501251|  0.6083616| 1.8136644|      0.2779433| 0.8603186|   138|    140|    37|     36|Bari-SolidAct |Baricitinib |
 |trt7  |clinical status at day 28                  |         0.9450541|  0.5773149| 1.5470316|      0.2510000| 0.8218613|   145|    144|    NA|     NA|Bari-SolidAct |Baricitinib |

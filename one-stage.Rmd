@@ -1254,64 +1254,81 @@ df_tot_long$timesqr <- df_tot_long$time^2
 # table(df_tot_long$clinstatus_baseline, useNA = "always")
 # table(df_tot_long$death_reached, useNA = "always")
 
-# person-day format
+# long person-day format
 # mort_60 == 1 only at day of death, before 0. 
 # CAVE: keep mort_60 = NA as NA
-# censor == 1 where mort_60 == NA (within 60d) and LTFU/withdrawal
 # mort_60_n only NA on the day of a censored individual
 # treat/trt not time-updated, keep only time-fixed, since we will not assess any per-protocol effects
 # censor at max trial follow-up in each trial
+# death_time incorporates already the censoring!! I.e. those censored for withdrawal/LTFU have lower death_time than 28/60 but NA in mort_60
+# take death_time_60, which is capped at day 60 (see time to death section above)
 
 df_long <- df_tot_long %>% 
-  mutate(mort_60_n = case_when(mort_60 == "1" & time == death_time ~ 1, # mark the deaths at the correct time point (cave: missing)
-                               mort_60 %in% c("1","0") & time <= death_time ~ 0, # refill previous to deaths with 0
-                               mort_60 == "0" ~ 0)) # refill all alive with 0
-df_long <- df_long %>% 
-  filter((is.na(mort_60_n) & is.na(mort_60)) | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "0" & mort_60_n == "0") | (mort_60 == "1" & mort_60_n == "0")) # remove mort_60_n == NA (but only when not also NA in mort_60, since these are the true missing; check 80504)
+  filter(time <= death_time_60)
 
-df_long <- df_long %>% # mark the censored ones (part of death_time, but mort_60/mort_60_n == NA) // censor 1 day after LTFU/withdrawal!
-  mutate(censor = case_when(is.na(mort_60) & is.na(mort_60_n) 
-                               & death_time <= 60 
-                               & time == death_time + 1 ~ 1, # mark the censored at the correct time point (cave: missing)
-                            is.na(mort_60) & is.na(mort_60_n) 
-                               & death_time <= 60 
-                               & time <= death_time + 1 ~ 0, # refill previous to censored with 0
-                            mort_60 %in% c("1", "0") & mort_60_n %in% c(1, 0)
-                               ~ 0, # refill the known ones
-                            ))
-
-df_long <- df_long %>% 
-  filter(!is.na(censor)) # drop all censor == NA (after censoring event)
-
-df_long <- df_long %>% # refill the mort_60_na == NA with 0 for the days before censoring
-  mutate(mort_60_n = case_when(is.na(mort_60_n) & censor == 0 ~ 0,
+df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
+  mutate(mort_60_n = case_when(mort_60 == 1 & time == death_time_60 ~ 1))
+df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
+  mutate(mort_60_n = case_when(time < death_time_60 ~ 0, 
+                               TRUE ~ mort_60_n))  
+df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
+  mutate(mort_60_n = case_when(is.na(mort_60) & time == death_time_60 ~ NA, 
                                TRUE ~ mort_60_n))
-
-# df_long %>%
-#   dplyr::select(id_pat, trial, trt, time, censor, mort_60, mort_60_n, death_reached, death_time, death_time_60, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
-#   # filter(id_pat == "80804") %>%
-#   # filter(id_pat == "80504") %>%
-#   # filter(is.na(mort_60_n)) %>%
-#   # filter(is.na(censor)) %>%
-#   # filter(mort_60_n == 0 & mort_60 == "1") %>%
-#   filter(trial == "Bari-Solidact") %>%
-#   View()
-
-# table(df_long$trial, df_long$death_time_60)
-df_long <- df_long %>% # mark the censored ones due to last trial follow-up
-  mutate(censor2 = case_when(trial %in% c("ACTT2", "COVINIB", "Ghazaeian", "RECOVERY", "TOFACOV") &
+df_long <- df_long %>% # remove observations after max fup date in the 4 trials that only followed up for 28d max
+  mutate(censor = case_when(trial %in% c("ACTT2", "Ghazaeian", "RECOVERY", "TOFACOV") &
                                time > 28 ~ 1,
-                             TRUE ~ 0))
+                             TRUE ~ 0))       
 df_long <- df_long %>% 
-  filter(censor2 == 0) # drop all censored
+  filter(censor == 0) # drop all censored         
 
-table(df_long$mort_60, df_long$mort_60_n, useNA = "always") # 347 censored, 1476 deaths
-table(df_long$censor, useNA = "always") # 347 censored
-table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
+# 
+# 
+# 
+# df_long <- df_long %>% # if mort_60 == NA (i.e. LTFU/withdrew) before day 60, then replace mort_60_n with NA at last fup
+#   mutate(mort_60_n = case_when(is.na(mort_60)
+#                                & time == death_time_60 ~ NA,
+#                              TRUE ~ mort_60_n))
+# 
+# 
+# 
+# 
+# df_long <- df_long %>% 
+#   filter((is.na(mort_60_n) & is.na(mort_60)) | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "0" & mort_60_n == "0") | (mort_60 == "1" & mort_60_n == "0")) # remove mort_60_n == NA (but only when not also NA in mort_60, since these are the true missing; check 80504)
+# 
+# df_long <- df_long %>% # mark the censored ones (part of death_time, but mort_60/mort_60_n == NA) // censor 1 day after LTFU/withdrawal!
+#   mutate(censor = case_when(is.na(mort_60) & is.na(mort_60_n) 
+#                                & death_time <= 60 
+#                                & time == death_time + 1 ~ 1, # mark the censored at the correct time point (cave: missing)
+#                             is.na(mort_60) & is.na(mort_60_n) 
+#                                & death_time <= 60 
+#                                & time <= death_time + 1 ~ 0, # refill previous to censored with 0
+#                             mort_60 %in% c("1", "0") & mort_60_n %in% c(1, 0)
+#                                ~ 0, # refill the known ones
+#                             ))
+# 
+# 
+# 
+# df_long <- df_long %>% # refill the mort_60_na == NA with 0 for the days before censoring
+#   mutate(mort_60_n = case_when(is.na(mort_60_n) & censor == 0 ~ 0,
+#                                TRUE ~ mort_60_n))
+# 
+# # df_long %>%
+# #   dplyr::select(id_pat, trial, trt, time, censor, mort_60, mort_60_n, death_reached, death_time, death_time_60, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
+# #   # filter(id_pat == "80804") %>%
+# #   # filter(id_pat == "80504") %>%
+# #   # filter(is.na(mort_60_n)) %>%
+# #   # filter(is.na(censor)) %>%
+# #   # filter(mort_60_n == 0 & mort_60 == "1") %>%
+# #   filter(trial == "Bari-Solidact") %>%
+# #   View()
+# 
+# 
 
-df_long <- df_long %>%
-  mutate(time = time-1) %>%
-  mutate(timesqr = time * time)
+
+
+# df_long <- df_long %>%
+#   mutate(time = time-1) %>%
+#   mutate(timesqr = time * time)
 
 table(df_long$clinstatus_baseline, useNA = "always")
 df_long <- df_long %>%
@@ -1320,15 +1337,30 @@ df_long <- df_long %>%
 df_long$clinstatus_baseline_n <- as.numeric(df_long$clinstatus_baseline)
 table(df_long$clinstatus_baseline_n, useNA = "always")
 table(df_long$clinstatus_baseline, useNA = "always")
+table(df_long$time, useNA = "always")
 
+df_long %>%
+  dplyr::select(id_pat, trial, trt, time, death_time, death_time_60, mort_28, mort_60, mort_60_n, death_reached, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
+  # filter(id_pat == "80804") %>%
+  # filter(id_pat == "80504") %>%
+  # filter(mort_60 == 1) %>%
+  # filter(is.na(mort_60)) %>%
+  # filter(time == "-1") %>%
+  filter(trial == "RECOVERY") %>%
+  View()
+
+table(df_long$mort_60, df_long$mort_60_n, useNA = "always") # 347 censored, 1476 deaths
+table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
+
+# check Ghazaeian and PANCOVID and // ACTT2 has a few with death_time_60 == 0 and mort_60 == NA but is fine
 ```
 
 # Cumulative incidence curves and pooled logistic regression for time to death // data preparation
-```{r, warning=FALSE, messag=FALSE, eval=F}
+```{r, warning=FALSE, messag=FALSE}
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 500
+R <- 50
 
 # need to do this by group individually
 
@@ -1502,46 +1534,51 @@ zero <- setNames(zero,names(risk.boot.graph.pred))
 risk.boot.graph <- rbind(zero, risk.boot.graph.pred)
 
 
+### PLOT
+# Define the intersection point
+intersect_x <- 28  # Example x-coordinate
+intersect_y <- 0.108 # Example y-coordinate 10.8, but CAVE: RUXCOVID is out
+intersect_y2 <- 0.134 # Example y-coordinate 12.9,but CAVE: RUXCOVID is out
 
-# Create plot
-plot.plr.ci <- ggplot(risk.boot.graph,
-                      aes(x=time_0)) + # set x and y axes
-  geom_line(aes(y = mean.1, # create line for JAKi group
-                color = "JAKi"),
-                size = 1.5) +
-  geom_ribbon(aes(ymin = ll.1, ymax = ul.1, fill = "JAKi"), alpha = 0.4) +
-  geom_line(aes(y = mean.0, # create line for no JAKi group
-                color = "No JAKi"),
-                size = 1.5) +
-  geom_ribbon(aes(ymin = ll.0, ymax = ul.0, fill = "No JAKi"), alpha=0.4) +
-  xlab("Days") + # label x axis
-  scale_x_continuous(limits = c(0, 60), # format x axis
-                     breaks=c(0,5,10,15,20,25,30,35,40,45,50,55,60)) +
-  ylab("Cumulative Incidence (%)") + # label y axis
-  scale_y_continuous(limits=c(0, 0.20), # format y axis
-                     breaks=c(0, 0.05, 0.10, 0.15, 0.20),
-                     labels=c("0.0%", "5.0%",
-                              "10.0%", "15.0%", "20.0%")) +
-  theme_minimal()+ # set plot theme elements
-  theme(axis.text = element_text(size=14), legend.position = c(0.2, 0.8),
+plot.plr.ci <- ggplot(risk.boot.graph, aes(x = time_0)) +
+  geom_line(aes(y = mean.1, color = ""), size = 1.5) + # Line for JAKi group
+  geom_ribbon(aes(ymin = ll.1, ymax = ul.1, fill = "JAKi"), alpha = 0.4) + # Ribbon for JAKi group
+  geom_line(aes(y = mean.0, color = ""), size = 1.5) + # Line for No JAKi group
+  geom_ribbon(aes(ymin = ll.0, ymax = ul.0, fill = "No JAKi"), alpha = 0.4) + # Ribbon for No JAKi group
+  xlab("Days") + # X-axis label
+  scale_x_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5)) + # X-axis scale
+  ylab("Cumulative Incidence (%)") + # Y-axis label
+  scale_y_continuous(limits = c(0, 0.20), breaks = seq(0, 0.20, by = 0.05), 
+                     labels = scales::percent_format(accuracy = 1)) + # Y-axis scale
+  theme_minimal() + # Minimal theme
+  theme(axis.text = element_text(size = 14), 
+        legend.position = c(0.2, 0.8),
         axis.line = element_line(colour = "black"),
         legend.title = element_blank(),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_blank())+
-  font("xlab",size=14)+
-  font("ylab",size=14)+
-  font("legend.text",size=10)+
-  scale_color_manual(values=c("#FFB6C1", "#87CEFA"),
-                     breaks=c('No JAKi',
-                              'JAKi')) +
-  scale_fill_manual(values=c("#FFB6C1", "#87CEFA"),
-                     breaks=c('No JAKi',
-                              'JAKi'))
+        panel.grid.major.y = element_blank()) + # Custom theme settings
+  font("xlab", size = 14) + # Custom font for xlab
+  font("ylab", size = 14) + # Custom font for ylab
+  font("legend.text", size = 10) + # Custom font for legend text
+  scale_color_manual(values = c("#FFB6C1", "#87CEFA"), breaks = c('No JAKi', 'JAKi')) + # Custom colors
+  scale_fill_manual(values = c("#FFB6C1", "#87CEFA"), breaks = c('No JAKi', 'JAKi')) + # Custom fill colors
+  geom_segment(aes(x = 0, y = intersect_y, xend = intersect_x, yend = intersect_y), 
+               linetype = "dotted", color = "grey", size = 0.5) + # first Horizontal line stopping at intersection
+  geom_segment(aes(x = intersect_x, y = 0, xend = intersect_x, yend = intersect_y), 
+               linetype = "dotted", color = "grey", size = 0.5) + # first Vertical line stopping at intersection
+  geom_segment(aes(x = 0, y = intersect_y2, xend = intersect_x, yend = intersect_y2), 
+               linetype = "dotted", color = "grey", size = 0.5) + # second Horizontal line stopping at intersection
+  geom_segment(aes(x = intersect_x, y = 0, xend = intersect_x, yend = intersect_y2), 
+               linetype = "dotted", color = "grey", size = 0.5) + # second Vertical line stopping at intersection
+  annotate("text", x = intersect_x, y = intersect_y, label = bquote(bold(.(scales::percent_format(accuracy = 1)(intersect_y)))), 
+           hjust = 0.5, vjust = -0.5, size = 4, color = "black") + # Annotation for the intersection point
+  annotate("text", x = intersect_x, y = intersect_y2, label = bquote(bold(.(scales::percent_format(accuracy = 1)(intersect_y2)))), 
+           hjust = 0.5, vjust = -0.5, size = 4, color = "black") # Annotation for the intersection point
 
-# Plot
-plot.plr.ci
+# Display the plot
+print(plot.plr.ci)
 
 ```
 
@@ -2467,11 +2504,11 @@ ul <- c(1.07)
 
 
 # Time to death within 60d
-# aHR 0.78 (0.65 to 0.94),
+# aHR 0.78 (0.67 to 0.91)
 # p = 0.013
 df_tot %>%
-  filter(trt == 1) %>% 
-  filter(death_reached_60 == 1) %>%
+  filter(trt == 0) %>% 
+  # filter(death_reached_60 == 1) %>%
   summarise(median = median(death_time_60),
             IQR = IQR(death_time_60),
             Q1 = quantile(death_time_60, probs = 0.25),
@@ -2481,8 +2518,8 @@ df_tot %>%
 # median time to event in control, in days / and HR with ll and ul
 median.c <- 11
 hr <- c(0.78)
-ll <- c(0.65)
-ul <- c(0.94)
+ll <- c(0.67)
+ul <- c(0.91)
 # corresponding median time to event in intervention
 m.i <- median.c/hr
 m.i

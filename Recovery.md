@@ -793,16 +793,24 @@ df$mort_60 <- df$mort_28
 
 
 # (iii) Time to death within max. follow-up time
-df$death_reached <- df$mort_28 # do not bother about missings in mort_28 // and no deaths after day 28 anymore
+df <- df %>% # do not bother about missings in mort_28 // and no deaths after day 28 anymore
+  mutate(death_reached = case_when(mort_28 == 1 ~ 1,
+                                   TRUE ~ 0))
+
 df <- df %>% # 2 are left without any time to event data => impute max. follow-up time
   mutate(death_time = case_when(death_time >=0 ~ c(death_time), # time to death, if no time to death, then...
                                 discharge_time >=0 & (is.na(withdrawn_time) | withdrawn_time >28) ~ 28, # maxfup for all discharged and not withdrawn
                                 withdrawn_time >=0 ~ c(withdrawn_time), # time to withdrawal for those withdrawn (and not discharged before)
                                 is.na(death_time) & is.na(withdrawn_time) & is.na(discharge_time) ~ 28 # max fup for the remaining ones not withdrawn, not discharged, not dead (n=164)
                                 ))
-# table(df$death_reached, df$death_time)
-df <- df %>% # Max fup time in RECOVERY was +/- 28 days, but there are some later follow-up timepoints in dataset => restrict to 60d, according to protocol
-  mutate(death_time = case_when(death_time>60 ~ 60,
+
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct, death_reached has no NA, but mort_60 does
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time, useNA = "always") # correct
+
+df <- df %>% # Max fup time in RECOVERY was +/- 28 days, but there are some later follow-up timepoints in dataset => restrict to 28
+  mutate(death_time = case_when(death_time>28 ~ 28,
                                 TRUE ~ death_time))
 
 
@@ -1336,9 +1344,8 @@ Table: By completeness (only mort_28)
 |mort_60 (%)                       |0                         |6943 ( 85.4)          |0 (  0.0)              |6943 ( 86.8)          |<0.001 |        |1.6     |
 |                                  |1                         |1058 ( 13.0)          |0 (  0.0)              |1058 ( 13.2)          |       |        |        |
 |                                  |NA                        |129 (  1.6)           |129 (100.0)            |0 (  0.0)             |       |        |        |
-|death_reached (%)                 |0                         |6943 ( 85.4)          |0 (  0.0)              |6943 ( 86.8)          |<0.001 |        |1.6     |
+|death_reached (%)                 |0                         |7072 ( 87.0)          |129 (100.0)            |6943 ( 86.8)          |<0.001 |        |0.0     |
 |                                  |1                         |1058 ( 13.0)          |0 (  0.0)              |1058 ( 13.2)          |       |        |        |
-|                                  |NA                        |129 (  1.6)           |129 (100.0)            |0 (  0.0)             |       |        |        |
 |death_time (median [IQR])         |                          |28.00 [28.00, 28.00]  |28.00 [2.00, 28.00]    |28.00 [28.00, 28.00]  |<0.001 |nonnorm |0.0     |
 |new_mv_28 (%)                     |0                         |6487 ( 79.8)          |0 (  0.0)              |6487 ( 81.1)          |<0.001 |        |16.1    |
 |                                  |1                         |332 (  4.1)           |28 ( 21.7)             |304 (  3.8)           |       |        |        |
@@ -2369,7 +2376,7 @@ kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |:------------------|:--------------------------|
 |trt                |NA                         |
 |0                  |86% (85%, 87%)             |
-|1                  |87% (86%, 88%)             |
+|1                  |88% (87%, 89%)             |
 
 ```r
 # autoplot(km.ttdeath_trt)
@@ -2403,12 +2410,12 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 |**Characteristic**  |**HR** |**95% CI** |**p-value** |
 |:-------------------|:------|:----------|:-----------|
-|trt                 |0.85   |0.76, 0.96 |0.010       |
+|trt                 |0.84   |0.75, 0.95 |0.006       |
 |age                 |1.07   |1.07, 1.08 |<0.001      |
 |clinstatus_baseline |NA     |NA         |NA          |
 |1                   |NA     |NA         |NA          |
-|2                   |0.08   |0.06, 0.13 |<0.001      |
-|3                   |0.15   |0.12, 0.20 |<0.001      |
+|2                   |0.09   |0.06, 0.13 |<0.001      |
+|3                   |0.16   |0.12, 0.20 |<0.001      |
 |4                   |0.46   |0.36, 0.58 |<0.001      |
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
@@ -4273,7 +4280,9 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 df <- df %>% 
   mutate(age_70 = case_when(age < 70 ~ 0,
                             age > 69 ~ 1))
-# table(df$age_70, useNA = "always")
+
+# addmargins(table(df$age_70, df$mort_28, df$trt, useNA = "always"))
+
 mort.28.age.a70 <- df %>% 
   filter(age_70 == 1) %>% # 70 and above
   glm(mort_28 ~ trt
@@ -7190,7 +7199,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt1  |death at day 28_dimp                       |         0.8030429|  0.6968020|  0.9252111|      0.0723122| 0.0024187|  4136|   3994|   513|    545|RECOVERY |Baricitinib |
 |trt2  |death at day 28_marginal                   |        -0.0199695| -0.0335891| -0.0063500|      0.0069489| 0.0040560|  4061|   3940|   513|    545|RECOVERY |Baricitinib |
 |trt3  |death at day 60                            |         0.8109044|  0.7032412|  0.9347835|      0.0725913| 0.0038835|  4061|   3940|   513|    545|RECOVERY |Baricitinib |
-|trt4  |death within fup                           |         0.8531458|  0.7561615|  0.9625693|      0.0615703| 0.0098924|  4061|   3940|   513|    545|RECOVERY |Baricitinib |
+|trt4  |death within fup                           |         0.8442946|  0.7483075|  0.9525941|      0.0615763| 0.0059835|  4136|   3994|   513|    545|RECOVERY |Baricitinib |
 |trt5  |new MV within 28d                          |         0.8228684|  0.6570718|  1.0296929|      0.1145031| 0.0886331|  3481|   3338|   158|    174|RECOVERY |Baricitinib |
 |trt6  |new MV or death within 28d                 |         0.8153498|  0.7199695|  0.9231650|      0.0634090| 0.0012847|  4077|   3952|   671|    719|RECOVERY |Baricitinib |
 |trt7  |clinical status at day 28                  |         0.7987406|  0.7117768|  0.8961529|      0.0587555| 0.0001310|  4136|   3994|    NA|     NA|RECOVERY |Baricitinib |

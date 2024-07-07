@@ -420,7 +420,7 @@ df_ttd <- df_ttd %>% # identify deaths using the censoring variable
   mutate(mort_60 = case_when(CNSR == 0 ~ 1,
                              disco_60 == 0 ~ 0))
 df <- left_join(df, df_ttd[, c("mort_60", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
-addmargins(table(df$mort_60, df$trt, df$subtrial, useNA = "always"))
+addmargins(table(df$mort_60, df$trt, df$subtrial, useNA = "always")) # correct
 
 
 # (iii) Time to death within max. follow-up time (systematically until 60 days!)
@@ -432,11 +432,25 @@ df_ttd <- df_ttd %>% # use censoring variable to identify deaths within 28 days,
                              CNSR == 1 ~ 0))
 df_ttd$death_time <- df_ttd$AVAL
 df <- left_join(df, df_ttd[, c("death_reached", "death_time", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge to main df
-# table(df$death_time, df$death_reached, useNA = "always") 
-# Cap at 60 days, since this was max. systematic follow-up, no deaths recorded afterwards anymore
+
+table(df$death_time, df$death_reached, useNA = "always") 
+# Cap at 60 days, since this was max. systematic follow-up, no deaths recorded afterwards anymore. And replace death_time with max follow-up if not withdrawn or died (i.e. not mort_60 == NA or mort_60 == 1)
 df <- df %>% 
   mutate(death_time = case_when(death_time >60 ~ 60,
+                                mort_60 == 0 & death_time <60 ~ 60,
                                 TRUE ~ c(death_time)))
+
+# table(df$mort_28, useNA = "always") # correct
+# table(df$mort_60, useNA = "always") # correct
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct, death_reached has no NA, but mort_60 does
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# df %>% 
+#   select(id_pat, trt, death_time, death_reached, mort_60, mort_28) %>% 
+#   filter(death_time == 28) %>% 
+#   View()
+
+
 
 # (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days
 # table(df_tte_set$PARAM)
@@ -1073,7 +1087,7 @@ print(plot_clinstat_cont)
 # Pooled logistic regression to get adjusted cumulative incidence curves for time to death
 
 ## a) Adapt long format dataframe for primary endpoint (mortality within 28 days) as time to event outcome
-```{r warning=FALSE}
+```{r warning=FALSE, eval=F}
 
 K <- 28 # set time point of assessment -> might change to 60 days!
 
@@ -1142,7 +1156,7 @@ df_long$clinicalstatus_baseline_n <- as.numeric(df_long$clinicalstatus_baseline)
 ```
 
 ## b) Nonparametric Kaplan-Meier estimator to construct cumulative incidence (risk) curves for the primary outcome
-```{r warning=FALSE}
+```{r warning=FALSE, eval=F}
 # Obtain Kaplan-Meier estimates
 
 # Load required packages
@@ -1184,7 +1198,7 @@ plot
 
 ```
 ## c) Nonparametric KM estimator to compute 28-day risks, risk difference, and risk ratio
-```{r warning=FALSE}
+```{r warning=FALSE, eval=F}
 # Review KM survival estimates
 summary(fit.km)
 summary(fit.km, times = K)
@@ -1219,9 +1233,8 @@ round(rr, 2)
 
 ```
 
-
 ## d) Unadjusted parametric pooled logistic regression (mortality at day 28) and construct parametric cumulative incidence (risk) curves (without 95% CI)
-```{r warning=FALSE}
+```{r warning=FALSE, eval=F}
 # Fit pooled logistic model to estimate discrete hazards
 
 # Include product terms between time and treatment
@@ -1305,7 +1318,7 @@ plot.plr
 ```
 
 ## e) Unadjusted parametric pooled logistic regression (mortality at day 28) and bootstrap the 95% CI
-```{r warning=FALSE}
+```{r warning=FALSE, eval=F}
 if (!require("boot")) install.packages("boot")
 library(boot)
 
@@ -1415,7 +1428,7 @@ boot.ci(risk.results,
 ```
 
 ## f) Construct unadjusted parametric cumulative incidence (risk) curves, based on pooled log reg, including 95% CIs using bootstrapping
-```{r warning=FALSE}
+```{r warning=FALSE, eval=F}
 # need to do this by group individually // see hands-on 1
 
 # Create input list of ids 
@@ -1605,8 +1618,10 @@ plot.plr.ci
 ```
 
 ## g) Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) using IPW, including 95% CIs, using bootstrapping
-```{r warning=FALSE}
+```{r warning=FALSE, eval=F}
 # need to do this by group individually
+if (!require("speedglm")) install.packages("speedglm")
+library(speedglm)
 
 # Create input list of ids 
 df_long_ids <- data.frame(id_pat = unique(df_long$id_pat))
@@ -1821,8 +1836,8 @@ plot.plr.ci
 
 ```
 
-## g) Getting unadjusted/adjusted HR from pooled log reg to compare (First, from the pooled log reg. Second, from coxph long format. Third, from coxph wide format)
-```{r warning=FALSE}
+## h) Getting unadjusted/adjusted HR from pooled log reg to compare (First, from the pooled log reg. Second, from coxph long format. Third, from coxph wide format)
+```{r warning=FALSE, eval=F}
 ## FIRST
 # Pooled logistic model // without product terms with time
 fit.pool2 <- glm(formula = mort_28_n==1 ~ trt + time + timesqr,
@@ -1885,8 +1900,8 @@ round(exp(summary(fit.cox2)$coef["trt","coef"]), 2)
 
 ```
 
-## h) Adjusted parametric pooled logistic regression (mortality at day 28), using Standardization, and bootstrap the 95% CI
-```{r warning=FALSE}
+## i) Adjusted parametric pooled logistic regression (mortality at day 28), using Standardization, and bootstrap the 95% CI
+```{r warning=FALSE, eval=F}
 ### Standardization ###
 # Load required packages
 if (!require("speedglm")) install.packages("speedglm")
@@ -2066,8 +2081,8 @@ boot.ci(risk.results,
 
 ```
 
-## i) Construct parametric cumulative incidence (risk) curves, based on pooled log reg with Standardization??, INCL. 95% CIs using bootstrapping
-```{r warning=FALSE}
+## j) Construct parametric cumulative incidence (risk) curves, based on pooled log reg with Standardization??, INCL. 95% CIs using bootstrapping
+```{r warning=FALSE, eval=F}
 # need to do this by group individually
 
 ### No JAKi group ###
@@ -2289,8 +2304,8 @@ std.boot.graph <- rbind(zero, std.boot.graph.pred)
 
 ```
 
-## j) Censoring due to LTFU/withdrawal, using IPCW
-```{r warning=FALSE}
+## k) Censoring due to LTFU/withdrawal, using IPCW
+```{r warning=FALSE, eval=F}
 ### Fit a pooled logistic model for the denominator of the inverse probability weights for censoring due to loss to follow-up ###
 
 # Disable printing results in scientific notation

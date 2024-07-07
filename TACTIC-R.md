@@ -852,18 +852,30 @@ df <- df %>% # 10 early withdrawals (before day 60) and no info later / 8 early 
 
 
 # (iii) Time to death within max. follow-up time (90 days)
-df <- df %>% # first, death_d, then withdraw_d, then discharge_d, then max follow-up
+df <- df %>% # first, death_d, then withdraw_d, then LTFU, then max follow-up => use discharge_d for LTFU
   mutate(death_time = case_when(!is.na(death_d) ~ death_d, 
-                                !is.na(withdraw_d) ~ withdraw_d, 
-                                !is.na(discharge_d) ~ discharge_d))
-# table(df$death_reached, df$death_time) # ignores the missing
-# table(df$mort_60, df$death_time) # excludes the missing
+                                !is.na(withdraw_d) ~ withdraw_d,
+                                is.na(mort_60) & is.na(death_d) & is.na(withdraw_d) ~ discharge_d,
+                                TRUE ~ 90))
+
 df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
   mutate(death_reached = case_when(death_time>60 ~ 0,
                                 TRUE ~ death_reached))
 df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
   mutate(death_time = case_when(death_time>60 ~ 60,
                                 TRUE ~ death_time))
+
+# table(df$mort_28, useNA = "always") # correct
+# table(df$mort_60, useNA = "always") # correct
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct, death_reached has no NA, but mort_60 does
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time) # excludes the missing
+# df %>%
+#   select(id_pat, mort_28, mort_60, death_time, death_reached, trt, randdate, ltfu, discharge_reached, discharge_date, discharge_d, death_reached, death_date, death_d, withdraw_date, withdraw_d, lastvisit, lastvisit_status, lastvisit_status_other, lastvisit_status_date, treat_stop_status, sae_outcome, sae_outcome_date, clinstatus_baseline, clinstatus_1, clinstatus_2, clinstatus_3, clinstatus_4, clinstatus_5, clinstatus_6, clinstatus_7, clinstatus_8, clinstatus_9, clinstatus_10, clinstatus_11, clinstatus_12, clinstatus_13, clinstatus_dis, clinstatus_28, clinstatus_90, PARTIC_ICU, PARTIC_ICU1, PARTIC_ICU2, PARTIC_ICU3, PARTIC_ICU4, PARTIC_ICU5, PARTIC_ICU6, PARTIC_ICU7, PARTIC_ICU8, PARTIC_ICU9, PARTIC_ICU10, icu_10_df2, icu_11_df2, icu_12_df2, icu_13_df2, icu_14_df2, PARTUP_READMIT) %>%
+#   filter(is.na(mort_60)) %>%
+#   View()
+
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. TACTIC included across all clinstatus.
@@ -1473,7 +1485,7 @@ Table: By completeness (only mort_28)
 |                                  |NA                     |18 (  6.4)             |14 (100.0)            |4 (  1.5)              |       |        |        |
 |death_reached (%)                 |0                      |240 ( 85.1)            |14 (100.0)            |226 ( 84.3)            |0.222  |        |0.0     |
 |                                  |1                      |42 ( 14.9)             |0 (  0.0)             |42 ( 15.7)             |       |        |        |
-|death_time (median [IQR])         |                       |6.00 [4.00, 11.00]     |3.50 [0.25, 5.75]     |7.00 [4.00, 11.25]     |0.004  |nonnorm |0.0     |
+|death_time (median [IQR])         |                       |60.00 [60.00, 60.00]   |3.50 [0.25, 5.75]     |60.00 [60.00, 60.00]   |<0.001 |nonnorm |0.0     |
 |new_mv_28 (%)                     |0                      |232 ( 82.3)            |14 (100.0)            |218 ( 81.3)            |0.204  |        |13.1    |
 |                                  |1                      |13 (  4.6)             |0 (  0.0)             |13 (  4.9)             |       |        |        |
 |                                  |NA                     |37 ( 13.1)             |0 (  0.0)             |37 ( 13.8)             |       |        |        |
@@ -2710,8 +2722,8 @@ kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |**Characteristic** |**28-d survival (95% CI)** |
 |:------------------|:--------------------------|
 |trt                |NA                         |
-|0                  |65% (51%, 82%)             |
-|1                  |69% (55%, 87%)             |
+|0                  |88% (82%, 93%)             |
+|1                  |86% (81%, 92%)             |
 
 ```r
 # autoplot(km.ttdeath_trt)
@@ -2745,13 +2757,13 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 |**Characteristic**  |**HR**     |**95% CI** |**p-value** |
 |:-------------------|:----------|:----------|:-----------|
-|trt                 |1.28       |0.69, 2.37 |0.4         |
-|age                 |1.06       |1.03, 1.09 |<0.001      |
+|trt                 |1.07       |0.58, 1.97 |0.8         |
+|age                 |1.10       |1.06, 1.13 |<0.001      |
 |clinstatus_baseline |NA         |NA         |NA          |
 |1                   |NA         |NA         |NA          |
-|2                   |22,491,751 |0.00, Inf  |>0.9        |
-|3                   |14,172,358 |0.00, Inf  |>0.9        |
-|4                   |52,441,243 |0.00, Inf  |>0.9        |
+|2                   |4,412,720  |0.00, Inf  |>0.9        |
+|3                   |7,706,691  |0.00, Inf  |>0.9        |
+|4                   |32,200,714 |0.00, Inf  |>0.9        |
 |5                   |NA         |NA         |NA          |
 |6                   |NA         |NA         |NA          |
 
@@ -7097,7 +7109,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt1  |death at day 28_dimp                       |         0.8966336|  0.3978406| 2.0105465|      0.4104700| 0.7903837|   137|    145|    18|     17|TACTIC-R |Baricitinib |
 |trt2  |death at day 28_marginal                   |        -0.0182545| -0.0965741| 0.0600651|      0.0399597| 0.6477979|   130|    138|    18|     17|TACTIC-R |Baricitinib |
 |trt3  |death at day 60                            |         0.9558738|  0.4457384| 2.0451423|      0.3863856| 0.9070195|   129|    135|    23|     19|TACTIC-R |Baricitinib |
-|trt4  |death within fup                           |         1.2770886|  0.6881608| 2.3700206|      0.3154730| 0.4381686|   137|    145|    23|     19|TACTIC-R |Baricitinib |
+|trt4  |death within fup                           |         1.0670214|  0.5777646| 1.9705856|      0.3129954| 0.8358078|   137|    145|    23|     19|TACTIC-R |Baricitinib |
 |trt5  |new MV within 28d                          |         0.8582744|  0.2657998| 2.6916586|      0.5779994| 0.7914605|   119|    126|     6|      7|TACTIC-R |Baricitinib |
 |trt6  |new MV or death within 28d                 |         0.8713662|  0.4379743| 1.7223634|      0.3476931| 0.6920911|   137|    145|    24|     24|TACTIC-R |Baricitinib |
 |trt7  |clinical status at day 28                  |         0.8436558|  0.4665473| 1.5175791|      0.2999809| 0.5708920|   137|    145|    NA|     NA|TACTIC-R |Baricitinib |

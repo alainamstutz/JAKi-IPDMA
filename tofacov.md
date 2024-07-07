@@ -211,7 +211,13 @@ df$death_reached <- df$mort_28
 df <- df %>% # no missing and those that were discharged and afterwards have correct time to event data
   mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
                                 TRUE ~ 28)) # time to death censoring data (there were no withdrawals/LTFU)
-# max follow-up time in ACTT2 was 28 days => no restriction of time window to 60 days.
+# max follow-up time in TOFACOV was 28 days => no restriction of time window to 60 days.
+
+# table(df$mort_28, useNA = "always") # correct
+# table(df$mort_60, useNA = "always") # correct
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct
+# table(df$death_reached, df$death_time, useNA = "always") # correct
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. TOFACOV only included clinstatus 2 and 3.

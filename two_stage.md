@@ -271,16 +271,16 @@ kable(df_ttdeath, format = "markdown", table.attr = 'class="table"') %>%
 
 |      |variable               | hazard_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value| n_int| n_cont| e_int| e_cont|trial         |JAKi        |
 |:-----|:----------------------|-----------------:|---------:|-------------:|--------------:|---------:|-----:|------:|-----:|------:|:-------------|:-----------|
-|trt4  |death within fup       |         0.7425758| 0.4131667|  1.334616e+00|      0.2991248| 0.3197345|   145|    144|    22|     24|Bari-SolidAct |Baricitinib |
+|trt4  |death within fup       |         0.8356348| 0.4670056|  1.495240e+00|      0.2968678| 0.5452716|   145|    144|    22|     24|Bari-SolidAct |Baricitinib |
 |trt41 |death within fup       |         0.7409249| 0.4415164|  1.243373e+00|      0.2641294| 0.2562656|   515|    518|    24|     37|ACTT-2        |Baricitinib |
-|trt42 |death within fup       |         0.8379501| 0.1873973|  3.746907e+00|      0.7641607| 0.8170346|    46|     51|     3|      4|Ghazaeian     |Tofacitinib |
+|trt42 |death within fup       |         0.8132523| 0.1819296|  3.635359e+00|      0.7640047| 0.7867247|    46|     51|     3|      4|Ghazaeian     |Tofacitinib |
 |trt3  |death within fup_firth |         3.0000000| 1.1735588| 1.309377e+190|      2.3094011| 0.4694594|    58|     58|     1|      0|TOFACOV       |Tofacitinib |
 |trt31 |death within fup_firth |         0.1747878| 1.0012703|  8.430047e+00|      1.9410119| 0.1859877|    55|     55|     0|      2|COVINIB       |Baricitinib |
-|trt43 |death within fup       |         0.5946650| 0.4611551|  7.668277e-01|      0.1297288| 0.0000616|   815|    811|   102|    147|COV-BARRIER   |Baricitinib |
-|trt44 |death within fup       |         0.8531458| 0.7561615|  9.625693e-01|      0.0615703| 0.0098924|  4061|   3940|   513|    545|RECOVERY      |Baricitinib |
-|trt45 |death within fup       |         1.2770886| 0.6881608|  2.370021e+00|      0.3154730| 0.4381686|   137|    145|    23|     19|TACTIC-R      |Baricitinib |
+|trt43 |death within fup       |         0.6130530| 0.4760130|  7.895456e-01|      0.1290872| 0.0001503|   815|    811|   102|    147|COV-BARRIER   |Baricitinib |
+|trt44 |death within fup       |         0.8442946| 0.7483075|  9.525941e-01|      0.0615763| 0.0059835|  4136|   3994|   513|    545|RECOVERY      |Baricitinib |
+|trt45 |death within fup       |         1.0670214| 0.5777646|  1.970586e+00|      0.3129954| 0.8358078|   137|    145|    23|     19|TACTIC-R      |Baricitinib |
 |trt32 |death within fup       |         1.4335664| 0.3854712|  5.331430e+00|      0.6701420| 0.5909594|   287|    145|     9|      3|RUXCOVID      |Ruxolitinib |
-|trt46 |death within fup       |         0.4164473| 0.1021170|  1.698330e+00|      0.7171769| 0.2219159|   145|    142|     3|      7|PANCOVID      |Baricitinib |
+|trt46 |death within fup       |         0.3776779| 0.0929692|  1.534278e+00|      0.7152037| 0.1733718|   145|    142|     3|      7|PANCOVID      |Baricitinib |
 
 ```r
 kable(df_mort28_ame, format = "markdown", table.attr = 'class="table"') %>%
@@ -1899,7 +1899,9 @@ Discussion points:
 df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
 ## adapt dataframe to include the event columns
 df_mort28_add_events <- df_mort28_dimp %>%
-  filter(trial %in% c("Bari-SolidAct", "ACTT-2", "COV-BARRIER", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID")) %>% 
+  filter(trial %in% c("Bari-SolidAct", "ACTT-2", "COV-BARRIER", "RECOVERY", "TACTIC-R", 
+                      "RUXCOVID", 
+                      "PANCOVID")) %>% 
   dplyr::select(trial, n_int, n_cont, e_int, e_cont)
 df_mort28_mi <- left_join(df_mort28_mi, df_mort28_add_events, by = join_by(trial == trial)) 
 df_mort28_mi <- df_mort28_mi %>% 
@@ -2105,31 +2107,31 @@ summary(ttdeath)
 
 ```
 ##                   HR             95%-CI %W(random)
-## Bari-SolidAct 0.7426 [0.4132;   1.3346]        7.8
-## ACTT-2        0.7409 [0.4415;   1.2434]        9.6
-## Ghazaeian     0.8380 [0.1874;   3.7469]        1.3
-## TOFACOV       3.0000 [0.0325; 277.2599]        0.2
-## COVINIB       0.1748 [0.0039;   7.8470]        0.2
-## COV-BARRIER   0.5947 [0.4612;   0.7668]       25.9
-## RECOVERY      0.8531 [0.7562;   0.9626]       44.7
-## TACTIC-R      1.2771 [0.6882;   2.3700]        7.1
-## RUXCOVID      1.4336 [0.3855;   5.3314]        1.7
-## PANCOVID      0.4164 [0.1021;   1.6983]        1.5
+## Bari-SolidAct 0.8356 [0.4670;   1.4952]        5.9
+## ACTT-2        0.7409 [0.4415;   1.2434]        7.3
+## Ghazaeian     0.8133 [0.1819;   3.6354]        0.9
+## TOFACOV       3.0000 [0.0325; 277.2599]        0.1
+## COVINIB       0.1748 [0.0039;   7.8470]        0.1
+## COV-BARRIER   0.6131 [0.4760;   0.7895]       24.0
+## RECOVERY      0.8443 [0.7483;   0.9526]       53.9
+## TACTIC-R      1.0670 [0.5778;   1.9706]        5.3
+## RUXCOVID      1.4336 [0.3855;   5.3314]        1.2
+## PANCOVID      0.3777 [0.0930;   1.5343]        1.1
 ## 
 ## Number of studies: k = 10
-## Number of observations: o = 12273
+## Number of observations: o = 12402
 ## 
 ##                               HR           95%-CI     t p-value
-## Random effects model (HK) 0.7774 [0.6461; 0.9355] -3.08  0.0132
-## Prediction interval              [0.5514; 1.0962]              
+## Random effects model (HK) 0.7808 [0.6734; 0.9053] -3.78  0.0043
+## Prediction interval              [0.6054; 1.0070]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0142 [0.0000; 0.3073]; tau = 0.1190 [0.0000; 0.5543]
-##  I^2 = 19.5% [0.0%; 60.1%]; H = 1.11 [1.00; 1.58]
+##  tau^2 = 0.0066 [0.0000; 0.2365]; tau = 0.0811 [0.0000; 0.4863]
+##  I^2 = 0.0% [0.0%; 62.4%]; H = 1.00 [1.00; 1.63]
 ## 
 ## Test of heterogeneity:
-##      Q d.f. p-value
-##  11.18    9  0.2633
+##     Q d.f. p-value
+##  8.77    9  0.4587
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -3519,7 +3521,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |death at day 28_mi                         |         0.7198414| 0.5790670| 0.8948388|      0.0961970| 0.0076618|            667|               6159|       764|          5916|two-stage |
 |death at day 28_agg                        |         0.6714559| 0.5525446| 0.8159576|      0.0914467| 0.0005650|            667|               6159|       764|          5916|two-stage |
 |death at day 60                            |         0.7688075| 0.6703457| 0.8817317|      0.0605825| 0.0018781|            700|               6148|       788|          5898|two-stage |
-|death within fup                           |         0.7774449| 0.6460937| 0.9354997|      0.0818105| 0.0132007|            700|               6264|       788|          6009|two-stage |
+|death within fup                           |         0.7808233| 0.6734426| 0.9053258|      0.0654004| 0.0043293|            700|               6264|       788|          6009|two-stage |
 |new MV or death within 28d                 |         0.8119202| 0.7363671| 0.8952253|      0.0431771| 0.0009397|           1021|               6199|      1113|          5952|two-stage |
 |new MV within 28d                          |         0.8996797| 0.7136961| 1.1341291|      0.1004255| 0.3232391|            323|               5363|       328|          5040|two-stage |
 |clinical status at day 28                  |         0.7929382| 0.7286483| 0.8629006|      0.0373776| 0.0001575|           6339|               6339|      6063|          6063|two-stage |

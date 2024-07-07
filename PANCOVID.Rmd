@@ -275,21 +275,25 @@ df <- df %>%
 #   View()
 addmargins(table(df$mort_60, df$trt, useNA = "always")) 
 
-
-# (iii) Time to death within max. follow-up time
-df <- df %>% # first, death_d, then withdraw_d, then withdrawi_d, then discharge_d, then max follow-up
+# (iii) Time to death within max. follow-up time == 60 days
+df <- df %>% # first, death_d, then withdraw_d, then withdrawi_d, then max follow-up
   mutate(death_time = case_when(!is.na(death_d) ~ death_d, 
                                 !is.na(withdraw_d) ~ withdraw_d, 
                                 !is.na(withdrawi_d) ~ withdrawi_d, 
-                                !is.na(discharge_d) ~ discharge_d))
-# table(df$death_reached, df$death_time) # ignores the missing
-# table(df$mort_60, df$death_time) # excludes the missing
-df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
-  mutate(death_reached = case_when(death_time>60 ~ 0,
-                                TRUE ~ death_reached))
-df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
-  mutate(death_time = case_when(death_time>60 ~ 60,
-                                TRUE ~ death_time))
+                                TRUE ~ 60))
+
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time, useNA = "always") # correct
+
+# max fup time in PANCOVID was 60, so no need to restrict down to 60
+
+# df %>% # only left with the withdrawals (10 by participants, 1 by investigator)
+#   select(id_pat, trt, randdate, mort_28, mort_60, death_reached, death_time, death_d, discharge_d, discharge_reached, withdraw_d, withdrawi_d,  Ventilatory_Support_Progression, progression_d, Date_Progression, Progression, Type_Ventilation) %>%
+#   # filter(is.na(mort_28)) %>%
+#   View()
+
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. PANCOVID included across clinstatus 2-4.

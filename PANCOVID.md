@@ -324,20 +324,25 @@ addmargins(table(df$mort_60, df$trt, useNA = "always"))
 ```
 
 ```r
-# (iii) Time to death within max. follow-up time
-df <- df %>% # first, death_d, then withdraw_d, then withdrawi_d, then discharge_d, then max follow-up
+# (iii) Time to death within max. follow-up time == 60 days
+df <- df %>% # first, death_d, then withdraw_d, then withdrawi_d, then max follow-up
   mutate(death_time = case_when(!is.na(death_d) ~ death_d, 
                                 !is.na(withdraw_d) ~ withdraw_d, 
                                 !is.na(withdrawi_d) ~ withdrawi_d, 
-                                !is.na(discharge_d) ~ discharge_d))
-# table(df$death_reached, df$death_time) # ignores the missing
-# table(df$mort_60, df$death_time) # excludes the missing
-df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
-  mutate(death_reached = case_when(death_time>60 ~ 0,
-                                TRUE ~ death_reached))
-df <- df %>% # Max fup time in TACTIC-R was +/- 90 days, but we restrict it across studies to 60 days, according to protocol
-  mutate(death_time = case_when(death_time>60 ~ 60,
-                                TRUE ~ death_time))
+                                TRUE ~ 60))
+
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time, useNA = "always") # correct
+
+# max fup time in PANCOVID was 60, so no need to restrict down to 60
+
+# df %>% # only left with the withdrawals (10 by participants, 1 by investigator)
+#   select(id_pat, trt, randdate, mort_28, mort_60, death_reached, death_time, death_d, discharge_d, discharge_reached, withdraw_d, withdrawi_d,  Ventilatory_Support_Progression, progression_d, Date_Progression, Progression, Type_Ventilation) %>%
+#   # filter(is.na(mort_28)) %>%
+#   View()
+
 
 
 # (iv) New mechanical ventilation among survivors within 28 days. PANCOVID included across clinstatus 2-4.
@@ -871,7 +876,7 @@ Table: By completeness (only mort_28)
 |                                  |NA     |11 (  3.8)            |11 (100.0)            |0 (  0.0)             |       |        |        |
 |death_reached (%)                 |0      |277 ( 96.5)           |11 (100.0)            |266 ( 96.4)           |1.000  |        |0.0     |
 |                                  |1      |10 (  3.5)            |0 (  0.0)             |10 (  3.6)            |       |        |        |
-|death_time (median [IQR])         |       |28.00 [27.00, 30.00]  |4.00 [1.00, 6.00]     |28.00 [27.00, 30.00]  |<0.001 |nonnorm |0.0     |
+|death_time (median [IQR])         |       |60.00 [60.00, 60.00]  |4.00 [1.00, 6.00]     |60.00 [60.00, 60.00]  |<0.001 |nonnorm |0.0     |
 |new_mv_28 (%)                     |0      |255 ( 88.9)           |0 (  0.0)             |255 ( 92.4)           |<0.001 |        |6.6     |
 |                                  |1      |13 (  4.5)            |0 (  0.0)             |13 (  4.7)            |       |        |        |
 |                                  |NA     |19 (  6.6)            |11 (100.0)            |8 (  2.9)             |       |        |        |
@@ -1880,7 +1885,7 @@ kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |:------------------|:--------------------------|
 |trt                |NA                         |
 |0                  |96% (92%, 99%)             |
-|1                  |98% (96%, 100%)            |
+|1                  |99% (97%, 100%)            |
 
 ```r
 # autoplot(km.ttdeath_trt)
@@ -1914,12 +1919,12 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 |**Characteristic**  |**HR** |**95% CI** |**p-value** |
 |:-------------------|:------|:----------|:-----------|
-|trt                 |0.42   |0.10, 1.70 |0.2         |
-|age                 |1.13   |1.03, 1.24 |0.007       |
+|trt                 |0.38   |0.09, 1.53 |0.2         |
+|age                 |1.13   |1.03, 1.23 |0.007       |
 |clinstatus_baseline |NA     |NA         |NA          |
 |1                   |NA     |NA         |NA          |
-|2                   |0.12   |0.01, 1.44 |0.094       |
-|3                   |0.10   |0.01, 0.94 |0.044       |
+|2                   |0.15   |0.01, 1.80 |0.14        |
+|3                   |0.14   |0.02, 1.17 |0.070       |
 |4                   |NA     |NA         |NA          |
 |5                   |NA     |NA         |NA          |
 |6                   |NA     |NA         |NA          |
@@ -5510,7 +5515,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt1  |death at day 28_dimp                       |         0.2835650|  0.0373289| 1.4327528|      0.8873556| 0.1555195|   145|    142|     2|      6|PANCOVID |Baricitinib |
 |trt2  |death at day 28_marginal                   |        -0.0310762| -0.0754655| 0.0133132|      0.0226480| 0.1700214|   140|    136|     2|      6|PANCOVID |Baricitinib |
 |trt3  |death at day 60                            |         0.3737420|  0.0742696| 1.4936543|      0.7400535| 0.1835546|   140|    136|     3|      7|PANCOVID |Baricitinib |
-|trt4  |death within fup                           |         0.4164473|  0.1021170| 1.6983302|      0.7171769| 0.2219159|   145|    142|     3|      7|PANCOVID |Baricitinib |
+|trt4  |death within fup                           |         0.3776779|  0.0929692| 1.5342782|      0.7152037| 0.1733718|   145|    142|     3|      7|PANCOVID |Baricitinib |
 |trt5  |new MV within 28d                          |         0.8630304|  0.2668136| 2.7342153|      0.5804555| 0.7996690|   138|    130|     6|      7|PANCOVID |Baricitinib |
 |trt6  |new MV or death within 28d                 |         0.6132898|  0.2290263| 1.5627647|      0.4830565| 0.3114742|   140|    136|     8|     13|PANCOVID |Baricitinib |
 |trt7  |clinical status at day 28                  |         0.5708269|  0.3594016| 0.9012863|      0.2342265| 0.0166791|   145|    142|    NA|     NA|PANCOVID |Baricitinib |

@@ -277,15 +277,17 @@ df$death_d <- as.numeric(df$death_date - df$randdate)
 df$withdraw_d <- as.numeric(df$withdrawal_date - df$randdate)
 df$discharge_d <- as.numeric(df$`Hospital days`)
 
-# (i) Primary outcome: Mortality at day 28 // We have withdrawals, but still discharge/death/clinstatus data at day 28
+# (i) Primary outcome: Mortality at day 28 // We have withdrawals, but still discharge/death/clinstatus data at day 28 => ignore withdrawals
 df <- df %>%
   mutate(mort_28 = case_when(death_d <29 ~ 1,
                              death == "no" ~ 0
                              )) 
-# df %>% 
-#   filter(is.na(mort_28)) %>% 
+# df %>%
+#   # filter(is.na(mort_28)) %>%
+#   select(id_pat, mort_28, death_d, withdraw_d, mort_60, death_time) %>% 
 #   View()
 # table(df$mort_28, useNA = "always")
+
 df$mort_28_dimp <- df$mort_28
 
 
@@ -296,10 +298,11 @@ df$mort_60 <- df$mort_28 # max fup time was 28 days; thus mort_60 imputed from m
 # (iii) Time to death within max. follow-up time
 df$death_reached <- df$mort_28
 df <- df %>% # no missing and those that were discharged were discharged alive
-  mutate(death_time = case_when(death_d >=0 ~ c(death_d), # time to death, if no time to death, then...
-                                withdraw_d >=0 ~ c(withdraw_d), # time to withdrawal, then...
-                                TRUE ~ 28)) # time to death censoring data // All happened within 14 days. And without change until 28d follow-up (those discharged were still alive and not hospitalized)
-# max follow-up time in ACTT2 was 28 days => no restriction of time window to 60 days.
+  mutate(death_time = case_when(!is.na(death_d) ~ death_d,
+                                TRUE ~ 28)) # ignore withdrawals!
+
+# max follow-up time in Ghazaeian was 28 days => no restriction of time window to 60 days needed.
+
 
 # (iv) New mechanical ventilation among survivors within 28 days.
 df <- df %>% # all those intubated also then died
@@ -633,7 +636,7 @@ Table: By completeness (only crp)
 |                                  |1              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
 |death_reached (%)                 |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |0.0     |
 |                                  |1              |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
-|death_time (median [IQR])         |               |28.00 [28.00, 28.00] |16.00 [10.00, 22.00] |28.00 [28.00, 28.00] |0.158 |nonnorm |0.0     |
+|death_time (median [IQR])         |               |28.00 [28.00, 28.00] |28.00 [28.00, 28.00] |28.00 [28.00, 28.00] |0.692 |nonnorm |0.0     |
 |new_mv_28 (%)                     |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |7.2     |
 |                                  |NA             |7 (  7.2)            |0 (  0.0)            |7 (  7.4)            |      |        |        |
 |new_mvd_28 (%)                    |0              |90 ( 92.8)           |2 (100.0)            |88 ( 92.6)           |1.000 |        |0.0     |
@@ -1523,10 +1526,10 @@ head(km.ttdeath.check, 100)
 ```
 
 ```
-##  [1] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+  4+  4+
-## [20] 28+ 28+  3+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+  2  11  28+ 28+ 28+ 28+ 28+ 28+
-## [39] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 10  28+ 28+ 28+ 28+  2+  2+ 28+
-## [58] 28+ 28+  4+  1   4+ 28+ 28+ 28+  9  28+ 28+  6  28+ 28+ 28+  4  28+ 28+ 28+
+##  [1] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+
+## [20] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+  2  11  28+ 28+ 28+ 28+ 28+ 28+
+## [39] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 10  28+ 28+ 28+ 28+ 28+ 28+ 28+
+## [58] 28+ 28+ 28+  1  28+ 28+ 28+ 28+  9  28+ 28+  6  28+ 28+ 28+  4  28+ 28+ 28+
 ## [77] 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+ 28+
 ## [96] 28+ 28+
 ```
@@ -1555,8 +1558,8 @@ kable(ttdeath_28d_tbl, format = "markdown", table.attr = 'class="table"') %>%
 |**Characteristic** |**28-d survival (95% CI)** |
 |:------------------|:--------------------------|
 |trt                |NA                         |
-|0                  |92% (84%, 100%)            |
-|1                  |93% (86%, 100%)            |
+|0                  |92% (85%, 100%)            |
+|1                  |93% (87%, 100%)            |
 
 ```r
 # KM curves
@@ -1602,7 +1605,7 @@ kable(ttdeath_reg_tbl, format = "markdown", table.attr = 'class="table"') %>%
 
 |**Characteristic**  |**HR** |**95% CI** |**p-value** |
 |:-------------------|:------|:----------|:-----------|
-|trt                 |0.84   |0.19, 3.75 |0.8         |
+|trt                 |0.81   |0.18, 3.64 |0.8         |
 |age                 |1.03   |0.98, 1.07 |0.3         |
 |clinstatus_baseline |NA     |NA         |NA          |
 |1                   |NA     |NA         |NA          |
@@ -4517,7 +4520,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt1  |death at day 28_dimp                       |         0.7908805|  0.1472786|   3.8263828|      0.7982351| 0.7688275|    46|     51|     3|      4|Ghazaeian |Tofacitinib |
 |trt2  |death at day 28_marginal                   |        -0.0154566| -0.1229478|   0.0920345|      0.0548434| 0.7780722|    46|     51|     3|      4|Ghazaeian |Tofacitinib |
 |trt3  |death at day 60                            |         0.7908805|  0.1472786|   3.8263828|      0.7982351| 0.7688275|    46|     51|     3|      4|Ghazaeian |Tofacitinib |
-|trt4  |death within fup                           |         0.8379501|  0.1873973|   3.7469068|      0.7641607| 0.8170346|    46|     51|     3|      4|Ghazaeian |Tofacitinib |
+|trt4  |death within fup                           |         0.8132523|  0.1819296|   3.6353587|      0.7640047| 0.7867247|    46|     51|     3|      4|Ghazaeian |Tofacitinib |
 |trt5  |new MV or death within 28d                 |         0.7908805|  0.1472786|   3.8263828|      0.7982351| 0.7688275|    46|     51|     3|      4|Ghazaeian |Tofacitinib |
 |trt6  |clinical status at day 28                  |         0.8256311|  0.1539462|   3.9888785|      0.7975917| 0.8101502|    46|     51|    NA|     NA|Ghazaeian |Tofacitinib |
 |trt7  |discharge within 28 days                   |         0.7381029|  0.4797810|   1.1355096|      0.2197763| 0.1670538|    46|     51|    43|     47|Ghazaeian |Tofacitinib |

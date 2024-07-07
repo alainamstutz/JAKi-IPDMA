@@ -234,6 +234,14 @@ df <- df %>% # no missing and those that were discharged and afterwards have cor
                                 TRUE ~ 60)) # time to max FUP: 60
 # table(df$death_reached, df$death_time)
 
+# table(df$mort_28, useNA = "always") # correct
+# table(df$mort_60, useNA = "always") # correct
+# table(df$mort_60, df$mort_28, useNA = "always") # correct
+# table(df$mort_60, df$death_reached, useNA = "always") # correct, death_reached has no NA, but mort_60 does
+# table(df$death_reached, df$death_time, useNA = "always") # correct
+# table(df$mort_60, df$death_time, useNA = "always") # correct
+
+
 # (iv) New mechanical ventilation among survivors within 28 days.
 df <- df %>% 
   mutate(new_mv_28 = case_when((Clinstatus_baseline == 2 | Clinstatus_baseline == 3 | Clinstatus_baseline == 4) 
@@ -546,7 +554,7 @@ df_imp <- df_core %>%
          # "comorb_smoker", "immunosupp", "comorb_autoimm", "comorb_cancer", "comorb_kidney", "any_comorb",
          # "comorb_count", 
          # "comorb_any", 
-         ,"comorb_cat" # derived from above, contains most information, and needed as interaction term
+         ,"comorb_cat" # rived from above, contains most information, and needed as interaction term
          ,"crp"
          # ,"vl_baseline"
          # , "sero" , "variant" # very little info
