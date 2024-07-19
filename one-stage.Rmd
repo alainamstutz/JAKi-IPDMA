@@ -1278,81 +1278,37 @@ df_long <- df_long %>% # remove observations after max fup date in the 4 trials 
   mutate(censor = case_when(trial %in% c("ACTT2", "Ghazaeian", "RECOVERY", "TOFACOV") &
                                time > 28 ~ 1,
                              TRUE ~ 0))       
-df_long <- df_long %>% 
-  filter(censor == 0) # drop all censored         
+df_long <- df_long %>% # drop all censored        
+  filter(censor == 0)  
 
-# 
-# 
-# 
-# df_long <- df_long %>% # if mort_60 == NA (i.e. LTFU/withdrew) before day 60, then replace mort_60_n with NA at last fup
-#   mutate(mort_60_n = case_when(is.na(mort_60)
-#                                & time == death_time_60 ~ NA,
-#                              TRUE ~ mort_60_n))
-# 
-# 
-# 
-# 
-# df_long <- df_long %>% 
-#   filter((is.na(mort_60_n) & is.na(mort_60)) | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "0" & mort_60_n == "0") | (mort_60 == "1" & mort_60_n == "0")) # remove mort_60_n == NA (but only when not also NA in mort_60, since these are the true missing; check 80504)
-# 
-# df_long <- df_long %>% # mark the censored ones (part of death_time, but mort_60/mort_60_n == NA) // censor 1 day after LTFU/withdrawal!
-#   mutate(censor = case_when(is.na(mort_60) & is.na(mort_60_n) 
-#                                & death_time <= 60 
-#                                & time == death_time + 1 ~ 1, # mark the censored at the correct time point (cave: missing)
-#                             is.na(mort_60) & is.na(mort_60_n) 
-#                                & death_time <= 60 
-#                                & time <= death_time + 1 ~ 0, # refill previous to censored with 0
-#                             mort_60 %in% c("1", "0") & mort_60_n %in% c(1, 0)
-#                                ~ 0, # refill the known ones
-#                             ))
-# 
-# 
-# 
-# df_long <- df_long %>% # refill the mort_60_na == NA with 0 for the days before censoring
-#   mutate(mort_60_n = case_when(is.na(mort_60_n) & censor == 0 ~ 0,
-#                                TRUE ~ mort_60_n))
-# 
-# # df_long %>%
-# #   dplyr::select(id_pat, trial, trt, time, censor, mort_60, mort_60_n, death_reached, death_time, death_time_60, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
-# #   # filter(id_pat == "80804") %>%
-# #   # filter(id_pat == "80504") %>%
-# #   # filter(is.na(mort_60_n)) %>%
-# #   # filter(is.na(censor)) %>%
-# #   # filter(mort_60_n == 0 & mort_60 == "1") %>%
-# #   filter(trial == "Bari-Solidact") %>%
-# #   View()
-# 
-# 
+df_long <- df_long %>% # create censoring indicator
+  mutate(censor = case_when(is.na(mort_60_n) ~ 1,
+                            TRUE ~ 0)) 
 
 
-
-# df_long <- df_long %>%
-#   mutate(time = time-1) %>%
-#   mutate(timesqr = time * time)
-
-table(df_long$clinstatus_baseline, useNA = "always")
+# table(df_long$clinstatus_baseline, useNA = "always")
 df_long <- df_long %>%
     mutate(clinstatus_baseline = case_when(is.na(clinstatus_baseline) ~ "5", # only for 21, see rules in Notes
                                              TRUE ~ clinstatus_baseline))
 df_long$clinstatus_baseline_n <- as.numeric(df_long$clinstatus_baseline)
-table(df_long$clinstatus_baseline_n, useNA = "always")
-table(df_long$clinstatus_baseline, useNA = "always")
-table(df_long$time, useNA = "always")
+# table(df_long$clinstatus_baseline_n, useNA = "always")
+# table(df_long$clinstatus_baseline, useNA = "always")
+# table(df_long$time, useNA = "always")
 
-df_long %>%
-  dplyr::select(id_pat, trial, trt, time, death_time, death_time_60, mort_28, mort_60, mort_60_n, death_reached, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
-  # filter(id_pat == "80804") %>%
-  # filter(id_pat == "80504") %>%
-  # filter(mort_60 == 1) %>%
-  # filter(is.na(mort_60)) %>%
-  # filter(time == "-1") %>%
-  filter(trial == "RECOVERY") %>%
-  View()
+# df_long %>%
+#   dplyr::select(id_pat, trial, trt, time, death_time, death_time_60, mort_28, mort_60, mort_60_n, censor, death_reached, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
+#   # filter(id_pat == "80804") %>%
+#   # filter(id_pat == "80504") %>%
+#   # filter(mort_60 == 1) %>%
+#   # filter(is.na(mort_60)) %>%
+#   # filter(time == "-1") %>%
+#   filter(trial == "RECOVERY") %>%
+#   View()
 
-table(df_long$mort_60, df_long$mort_60_n, useNA = "always") # 347 censored, 1476 deaths
-table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
+# table(df_long$mort_60, df_long$mort_60_n, useNA = "always") # 347 censored, 1476 deaths
+# table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
 
-# check Ghazaeian and PANCOVID and // ACTT2 has a few with death_time_60 == 0 and mort_60 == NA but is fine
+
 ```
 
 # Cumulative incidence curves and pooled logistic regression for time to death // data preparation
@@ -1360,7 +1316,7 @@ table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 50
+R <- 30
 
 # need to do this by group individually
 
@@ -1378,26 +1334,58 @@ risk.boot.0 <- function(data, indices) {
   # Subset person-time data to individuals selected into the bootstrapped sample
   d <- left_join(boot.ids, df_long, by = "id_pat")
 
-  ### IPW ###
-  ipw.denom <- speedglm(trt==1 ~ time + timesqr + age 
+  ### IPW Treatment ###
+  iptw.denom <- speedglm(trt==1 ~ time + timesqr + age
                      + as.factor(clinstatus_baseline),
           family=binomial(link="logit"),
           data=d)
   #  Estimate probabilities of being treated
-  d$ipw.denom <- predict(ipw.denom, d, type="response")
+  d$iptw.denom <- predict(iptw.denom, d, type="response")
   # Estimate nonstabilized inverse probability weights ###
-  d$w_a <- ifelse(d$trt==1,
-                              1/d$ipw.denom,
-                              1/(1-d$ipw.denom))
-  ### IPW ###
+  d$w_trt <- ifelse(d$trt==1, 1/d$iptw.denom, 1/(1-d$iptw.denom))
+  
+  ### IPW Censoring ###
+  # Weights for censoring due to loss to follow-up, withdrawal, but NOT for administrative censoring (end of follow-up) // DENOMINATOR
+  ipcw.denom <- speedglm(censor == 0 ~ time + timesqr # Follow-up time modeled using linear and quadratic terms
+                   + as.factor(trt)
+                   + as.factor(clinstatus_baseline) 
+                   + age 
+                   + as.factor(sex),
+                   family=binomial(link="logit"),
+                   data=d)
+  d$ipcw.denom <- predict(ipcw.denom, d, type="response")
+  
+  # Weights for censoring due to loss to follow-up, withdrawal, but NOT for administrative censoring (end of follow-up) // NUMERATOR
+  ipcw.num <- speedglm(censor == 0 ~ time + timesqr # Follow-up time modeled using linear and quadratic terms
+                   + as.factor(trt), # treatment variable 
+                 family = binomial(link="logit"),
+                 data=d)
+  d$ipcw.num <- predict(ipcw.num, d, type="response")
 
-  # Fit pooled logistic model to estimate discrete hazards
-  pool.boot <- glm(formula = mort_60_n==1 ~ trt + time + timesqr
+  # Take the cumulative product at each time point
+  d <- d %>% arrange(id_pat, time)
+  d <- d %>%
+    group_by(id_pat) %>% 
+    mutate(sw_cens = cumprod(ipcw.num)/cumprod(ipcw.denom)) %>%
+    ungroup() %>%
+    mutate(sw_cens = ifelse(is.na(censor), 1, sw_cens)) # set NA to 1
+  
+  # Multiply inverse probability of treatment weights times inverse probability of censoring weights
+  d$w_tot <- d$w_trt * d$sw_cens
+
+  # # Truncate the weights at the 99th percentile
+  # threshold_99 <- quantile(d$w_tot, 0.99)
+  # d$w_tot_99 <- d$w_tot
+  # d$w_tot_99[d$w_tot_99 > threshold_99] <- threshold_99
+
+  
+  #### Fit pooled logistic model to estimate discrete hazards
+  pool.boot <- speedglm(formula = mort_60_n==1 ~ trt + time + timesqr
                                     + I(trt*time) +
                                     I(trt*timesqr),
                 family = binomial(link = 'logit'),
                 data = d,
-                weights = d$w_a)
+                weights = d$sw_cens)
 
   # Create a dataset to store results
   # Include all time points under each treatment level
@@ -1426,10 +1414,10 @@ risk.boot.0 <- function(data, indices) {
   # Merge data from two groups and format
   graph <- merge(trt0, trt1, by=c("time", "timesqr"))
   graph <- graph[order(graph$time),]
-  return(graph$risk0) # return only control group risk
+  return(graph$risk0) # return only control group risk # extract both group estimates in one. 
 }
 
-# Run bootstrap samples (ideally 500-1000)...
+# Run bootstrap samples
 set.seed(1234)
 risk.results.0 <- boot(data = df_long_ids,
                        statistic = risk.boot.0,
@@ -1456,27 +1444,56 @@ risk.boot.1 <- function(data, indices) {
   # Subset person-time data to individuals selected into the bootstrapped sample
   d <- left_join(boot.ids, df_long, by = "id_pat")
 
-### IPW ###
-  ipw.denom <- speedglm(trt==1 ~ time + timesqr + age 
+  ### IPW Treatment ###
+  iptw.denom <- speedglm(trt==1 ~ time + timesqr + age
                      + as.factor(clinstatus_baseline),
           family=binomial(link="logit"),
           data=d)
   #  Estimate probabilities of being treated
-  d$ipw.denom <- predict(ipw.denom, d, type="response")
+  d$iptw.denom <- predict(iptw.denom, d, type="response")
   # Estimate nonstabilized inverse probability weights ###
-  d$w_a <- ifelse(d$trt==1,
-                              1/d$ipw.denom,
-                              1/(1-d$ipw.denom))
-  ### IPW ###  
+  d$w_trt <- ifelse(d$trt==1, 1/d$iptw.denom, 1/(1-d$iptw.denom))
   
+  ### IPW Censoring ###
+  # Weights for censoring due to loss to follow-up, withdrawal, or administrative censoring (end of follow-up) // DENOMINATOR
+  ipcw.denom <- speedglm(censor == 0 ~ time + timesqr # Follow-up time modeled using linear and quadratic terms
+                   + as.factor(trt)
+                   + as.factor(clinstatus_baseline) 
+                   + age 
+                   + as.factor(sex),
+                   family=binomial(link="logit"),
+                   data=d)
+  d$ipcw.denom <- predict(ipcw.denom, d, type="response")
+  # Weights for censoring due to loss to follow-up, withdrawal, or administrative censoring (end of follow-up) // NUMERATOR
+  ipcw.num <- speedglm(censor == 0 ~ time + timesqr # Follow-up time modeled using linear and quadratic terms
+                   + as.factor(trt), # treatment variable 
+                 family = binomial(link="logit"),
+                 data=d)
+  d$ipcw.num <- predict(ipcw.num, d, type="response")
+  # Take the cumulative product at each time point
+  d <- d %>% arrange(id_pat, time)
+  d <- d %>%
+  group_by(id_pat) %>% 
+  mutate(sw_cens = cumprod(ipcw.num)/cumprod(ipcw.denom)) %>%
+  ungroup() %>%
+  mutate(sw_cens = ifelse(is.na(censor), 1, sw_cens)) # set NA to 1
   
-  # Fit pooled logistic model to estimate discrete hazards
-  pool.boot <- glm(formula = mort_60_n==1 ~ trt + time + timesqr +
+  # Multiply inverse probability of treatment weights times inverse probability of censoring weights
+  d$w_tot <- d$w_trt * d$w_cens
+   
+  # # Truncate the weights at the 99th percentile
+  # threshold_99 <- quantile(d$w_tot, 0.99)
+  # d$w_tot_99 <- d$w_tot
+  # d$w_tot_99[d$w_tot_99 > threshold_99] <- threshold_99
+
+  
+  ### Fit pooled logistic model to estimate discrete hazards
+  pool.boot <- speedglm(formula = mort_60_n==1 ~ trt + time + timesqr + age + ...
                                     I(trt*time) +
                                     I(trt*timesqr),
                 family = binomial(link = 'logit'),
                 data = d,
-                weights = d$w_a)
+                weights = d$w_tot)
 
   # Create a dataset to store results
   # Include all time points under each treatment level
@@ -1484,8 +1501,8 @@ risk.boot.1 <- function(data, indices) {
   trt1 <- data.frame(cbind(seq(0, K-1),1,(seq(0, K-1))^2))
 
   # Set column names
-  colnames(trt0) <- c("time", "trt", "timesqr")
-  colnames(trt1) <- c("time", "trt", "timesqr")
+  colnames(trt0) <- c("time", "trt", "timesqr") # if adjusted in pooled log reg: use entire dataset
+  colnames(trt1) <- c("time", "trt", "timesqr") # 
 
   # Extract predicted values from pooled logistic regression model
   # Predicted values correspond to discrete-time hazards
@@ -1533,12 +1550,20 @@ zero <- data.frame(cbind(0,0,0,0,0,0,0,0))
 zero <- setNames(zero,names(risk.boot.graph.pred))
 risk.boot.graph <- rbind(zero, risk.boot.graph.pred)
 
+# df_long %>%
+#   dplyr::select(id_pat, trial, trt, time, death_time_60, mort_60_n, censor, sex, clinstatus_baseline, iptw.denom,w_trt, ipcw.denom, ipcw.num, w_cens, w_tot, w_tot_99) %>%
+#   # filter(id_pat == "80804") %>%
+#   filter(trial == "RECOVERY") %>%
+#   View()
+# summary(df_long$w_tot_99)
+# sd(df_long$w_tot_99)
+
 
 ### PLOT
 # Define the intersection point
 intersect_x <- 28  # Example x-coordinate
-intersect_y <- 0.108 # Example y-coordinate 10.8, but CAVE: RUXCOVID is out
-intersect_y2 <- 0.134 # Example y-coordinate 12.9,but CAVE: RUXCOVID is out
+intersect_y <- 0.112 # Example y-coordinate 10.8, but CAVE: RUXCOVID is out
+intersect_y2 <- 0.132 # Example y-coordinate 12.9,but CAVE: RUXCOVID is out
 
 plot.plr.ci <- ggplot(risk.boot.graph, aes(x = time_0)) +
   geom_line(aes(y = mean.1, color = ""), size = 1.5) + # Line for JAKi group
