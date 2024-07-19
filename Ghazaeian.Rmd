@@ -227,6 +227,13 @@ df %>%
 # Viremia
 # Variant
 # Serology
+
+
+# At risk for AEs with JAKi
+df <- df %>%
+  mutate(at_risk = case_when(age>=65 | comorb_cvd==1 | comorb_smoker==1 ~ 1, # at risk
+                             TRUE ~ 0)) # not at risk
+
 ```
 Discussion points BASELINE data:
 1. 4 received Actemra (Tocilizumab) 2-4 days after randomization
@@ -351,7 +358,7 @@ df <- df %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
          any_comorb, comorb_cat, comorb_any, comorb_count,
-         crp, 
+         crp, at_risk,
          # sero, vl_baseline, variant,
          mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
@@ -1290,6 +1297,61 @@ Discussion points
 Discussion points
 1. Vaccination data not available
 
+# POST HOC Subgroup analysis: At risk on adverse events
+```{r warning=FALSE}
+# table(df$ae_28, df$at_risk, df$trt, useNA = "always") # only 1 AE in intervention arm in not at risk group
+ae.28.atrisk.firth <- df %>%
+  logistf(ae_28 ~ trt*at_risk
+      + age
+      + clinstatus_baseline
+      , data=.)
+summary(ae.28.atrisk.firth)
+
+# effect by subgroup
+ae.28.atrisk.0.firth <- df %>% 
+  filter(at_risk == 0) %>% # not at risk
+  logistf(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , data=.)
+summary(ae.28.atrisk.0.firth)
+
+# ae.28.atrisk.1.firth <- df %>% 
+#   filter(at_risk == 1) %>% # at risk
+#   logistf(ae_28 ~ trt
+#       + age 
+#       + clinstatus_baseline 
+#       , data=.)
+# summary(ae.28.atrisk.1.firth)
+
+```
+
+# POST HOC Subgroup analysis: Concomitant COVID-19 treatment on adverse events
+```{r warning=FALSE}
+# 4 comorbidity categories as numeric/continuous, i.e., linear interaction
+# table(df$comed_cat, df$ae_28, df$trt, useNA = "always") # only cat 2
+# 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
+# 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
+# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
+ae.28.comed.firth <- df %>%
+  logistf(ae_28 ~ trt*comed_cat 
+      + age 
+      + clinstatus_baseline 
+      , data=.)
+summary(ae.28.comed.firth)
+
+# effect by subgroup
+ae.28.comed.2.firth <- df %>% 
+  filter(comed_cat == 2) %>% # Dexamethasone but no Tocilizumab
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summary(ae.28.comed.2.firth)
+
+```
+
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 ```{r warning=FALSE}
 # table(df$sympdur, df$mort_28, useNA = "always")
@@ -1602,6 +1664,8 @@ result_list[[8]] <- extract_interaction(mort.28.comed.firth, "comedication_firth
 result_list[[10]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 result_list[[11]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
 # result_list[[12]] <- extract_interaction(mort.28.var, "variant") # not available
+result_list[[13]] <- extract_interaction(ae.28.atrisk.firth, "at risk on AEs_firth") # adj: age, clinstatus
+result_list[[14]] <- extract_interaction(ae.28.comed.firth, "comedication on AEs_firth") # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -1775,6 +1839,27 @@ result_list[[21]] <- extract_subgroup_results(mort.28.crp.b75, "CRP below 75",
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,1])
+result_list[[22]] <- extract_subgroup_results(ae.28.atrisk.0.firth, "Not at risk_firth",
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,1],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,1])
+# result_list[[23]] <- extract_subgroup_results(ae.28.atrisk.1.firth, "At risk_firth",
+#                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,2],
+#                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,2],
+#                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,1],
+#                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,1])
+# result_list[[24]] <- extract_subgroup_results(ae.28.comed.1.firth, "No Dexa, no Tocilizumab_AE_firth",
+#                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,2],
+#                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,2],
+#                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,1],
+#                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,1])
+result_list[[25]] <- extract_subgroup_results(ae.28.comed.2.firth, "Dexa, but no Tocilizumab_AE_firth",
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,1],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,1])
+
 
 # Filter out NULL results and bind the results into a single data frame
 subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
