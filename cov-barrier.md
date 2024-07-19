@@ -323,6 +323,11 @@ df <- left_join(df, df_viremia[, c("vl_baseline", "USUBJID")], by = join_by(USUB
 # Vaccination // not available
 # Variant // not available
 # Serology // not available
+
+# At risk for AEs with JAKi
+df <- df %>%
+  mutate(at_risk = case_when(age>=65 | comorb_cvd==1 | comorb_smoker==1 ~ 1, # at risk
+                             TRUE ~ 0)) # not at risk
 ```
 
 # Endpoints
@@ -902,7 +907,7 @@ df <- df %>%
          any_comorb, comorb_cat, comorb_any, comorb_count,
          crp, 
          # sero, variant,
-         vl_baseline, 
+         vl_baseline, at_risk,
          mort_28, mort_28_dimp,
          mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
@@ -1925,15 +1930,7 @@ df_long <- df_long %>% # refill the mort_28_na == NA with 0 for the days before 
 
 # Number of observations at each follow-up day
 table(df_long$clinicalstatus_baseline, useNA="always")
-```
 
-```
-## 
-##     2     3     4     5  <NA> 
-##  4981 25021  8647  1952    14
-```
-
-```r
 df_long <- df_long %>%
   mutate(time = time-1) %>%
   mutate(timesqr = time * time)
@@ -1956,28 +1953,6 @@ library(ggplot2)
 if (!require("survival")) install.packages("survival")
 library(survival)
 if (!require("survminer")) install.packages("survminer")
-```
-
-```
-## Loading required package: survminer
-```
-
-```
-## Loading required package: ggpubr
-```
-
-```
-## 
-## Attaching package: 'survminer'
-```
-
-```
-## The following object is masked from 'package:survival':
-## 
-##     myeloma
-```
-
-```r
 library(survminer)
 
 # class(df_long$clinicalstatus_baseline)
@@ -2009,100 +1984,13 @@ plot <- ggsurvplot(
 # Print the plot
 plot
 ```
-
-![](cov-barrier_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 ## c) Nonparametric KM estimator to compute 28-day risks, risk difference, and risk ratio
 
 ```r
 # Review KM survival estimates
 summary(fit.km)
-```
-
-```
-## Call: survfit(formula = Surv(time, time + 1, mort_28_n) ~ trt, data = df_long, 
-##     conf.type = "log-log")
-## 
-## 98 observations deleted due to missingness 
-##                 trt=0 
-##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
-##     1    809       3    0.996 0.00214        0.989        0.999
-##     2    800       4    0.991 0.00327        0.982        0.996
-##     3    792       3    0.988 0.00391        0.977        0.993
-##     4    789       7    0.979 0.00509        0.966        0.987
-##     5    781       2    0.976 0.00538        0.963        0.985
-##     6    779       7    0.968 0.00627        0.953        0.978
-##     7    769       9    0.956 0.00724        0.940        0.968
-##     8    754       6    0.949 0.00782        0.931        0.962
-##     9    747       7    0.940 0.00844        0.921        0.954
-##    10    739       4    0.935 0.00877        0.915        0.950
-##    11    734       9    0.923 0.00946        0.902        0.940
-##    12    724       3    0.919 0.00967        0.898        0.936
-##    13    720       5    0.913 0.01002        0.891        0.931
-##    14    715       6    0.905 0.01041        0.883        0.924
-##    15    706       1    0.904 0.01047        0.881        0.923
-##    16    701       8    0.894 0.01097        0.870        0.913
-##    17    689       8    0.883 0.01144        0.859        0.904
-##    18    679       7    0.874 0.01183        0.849        0.895
-##    19    671       6    0.866 0.01215        0.841        0.888
-##    20    665       5    0.860 0.01240        0.834        0.882
-##    22    659       4    0.855 0.01260        0.828        0.877
-##    23    652       5    0.848 0.01284        0.821        0.871
-##    24    647       2    0.845 0.01293        0.818        0.869
-##    25    645       5    0.839 0.01316        0.811        0.863
-##    26    639       3    0.835 0.01329        0.807        0.859
-## 
-##                 trt=1 
-##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
-##     3    798       2    0.997 0.00177        0.990        0.999
-##     4    794       1    0.996 0.00217        0.988        0.999
-##     5    790       1    0.995 0.00251        0.987        0.998
-##     6    786       4    0.990 0.00355        0.980        0.995
-##     7    779       4    0.985 0.00435        0.973        0.991
-##     8    770       8    0.975 0.00561        0.961        0.984
-##     9    759       4    0.969 0.00614        0.955        0.979
-##    10    755       4    0.964 0.00662        0.949        0.975
-##    11    748       7    0.955 0.00739        0.938        0.968
-##    12    739       2    0.953 0.00759        0.935        0.966
-##    13    735       5    0.946 0.00807        0.928        0.960
-##    14    728       5    0.940 0.00852        0.921        0.954
-##    15    721       2    0.937 0.00870        0.918        0.952
-##    16    717       4    0.932 0.00903        0.912        0.948
-##    18    711       3    0.928 0.00928        0.907        0.944
-##    19    708       3    0.924 0.00951        0.903        0.941
-##    20    705       4    0.919 0.00981        0.897        0.936
-##    21    700       4    0.914 0.01010        0.891        0.931
-##    22    696       2    0.911 0.01024        0.889        0.929
-##    23    694       3    0.907 0.01044        0.884        0.925
-##    24    690       3    0.903 0.01064        0.880        0.922
-##    25    686       2    0.900 0.01078        0.877        0.920
-##    26    683       2    0.898 0.01090        0.874        0.917
-##    27    680       2    0.895 0.01103        0.871        0.915
-##    28    677       1    0.894 0.01109        0.870        0.914
-```
-
-```r
 summary(fit.km, times = K)
-```
 
-```
-## Call: survfit(formula = Surv(time, time + 1, mort_28_n) ~ trt, data = df_long, 
-##     conf.type = "log-log")
-## 
-## 98 observations deleted due to missingness 
-##                 trt=0 
-##         time       n.risk      n.event     survival      std.err lower 95% CI 
-##      28.0000     636.0000     129.0000       0.8350       0.0133       0.8070 
-## upper 95% CI 
-##       0.8592 
-## 
-##                 trt=1 
-##         time       n.risk      n.event     survival      std.err lower 95% CI 
-##      28.0000     677.0000      82.0000       0.8938       0.0111       0.8699 
-## upper 95% CI 
-##       0.9136
-```
-
-```r
 ### 28-day risk in the No JAKi group ###
 # Risk
 risk0 <- 1 - summary(fit.km, times = K)$surv[1]
@@ -2112,13 +2000,7 @@ risk0.l <- 1 - summary(fit.km, times = K)$upper[1]
 # Print
 risk0.ci <- round(c(risk0, risk0.l, risk0.u), 3)
 risk0.ci
-```
 
-```
-## [1] 0.165 0.141 0.193
-```
-
-```r
 ### 28-day risk in the JAKi group ###
 # Risk
 risk1 <- 1- summary(fit.km, times = K)$surv[2]
@@ -2128,32 +2010,15 @@ risk1.l <- 1- summary(fit.km, times = K)$upper[2]
 # Print
 risk1.ci <- round(c(risk1, risk1.l, risk1.u), 3)
 risk1.ci
-```
 
-```
-## [1] 0.106 0.086 0.130
-```
-
-```r
 ### 28-day risk difference ###
 rd <- risk1 - risk0
 round(rd, 4)
-```
 
-```
-## [1] -0.0588
-```
-
-```r
 ### 28-day risk ratio ###
 rr <- risk1 / risk0
 round(rr, 2)
 ```
-
-```
-## [1] 0.64
-```
-
 
 ## d) Unadjusted parametric pooled logistic regression (mortality at day 28) and construct parametric cumulative incidence (risk) curves (without 95% CI)
 
@@ -2170,41 +2035,7 @@ fit.pool <- glm(formula = mort_28_n==1 ~ trt + time + timesqr +
 
 # Print results
 summary(fit.pool)
-```
 
-```
-## 
-## Call:
-## glm(formula = mort_28_n == 1 ~ trt + time + timesqr + I(trt * 
-##     time) + I(trt * timesqr), family = binomial(link = "logit"), 
-##     data = df_long)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -0.1342  -0.1142  -0.1027  -0.0818   3.5844  
-## 
-## Coefficients:
-##                   Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)      -5.484137   0.265841 -20.629  < 2e-16 ***
-## trt              -1.069307   0.480302  -2.226 0.025993 *  
-## time              0.135041   0.046337   2.914 0.003564 ** 
-## timesqr          -0.005846   0.001760  -3.321 0.000895 ***
-## I(trt * time)     0.073888   0.078798   0.938 0.348407    
-## I(trt * timesqr) -0.001712   0.002886  -0.593 0.553022    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 2639.6  on 40516  degrees of freedom
-## Residual deviance: 2600.7  on 40511  degrees of freedom
-##   (98 observations deleted due to missingness)
-## AIC: 2612.7
-## 
-## Number of Fisher Scoring iterations: 8
-```
-
-```r
 ### Transform estimates to risks at each time point in each group ###
 
 # Create a dataset to store results
@@ -2274,72 +2105,28 @@ plot.plr <- ggplot(graph,
 plot.plr
 ```
 
-![](cov-barrier_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
-
 ## e) Unadjusted parametric pooled logistic regression (mortality at day 28) and bootstrap the 95% CI
 
 ```r
 if (!require("boot")) install.packages("boot")
-```
-
-```
-## Loading required package: boot
-```
-
-```
-## 
-## Attaching package: 'boot'
-```
-
-```
-## The following object is masked from 'package:survival':
-## 
-##     aml
-```
-
-```r
 library(boot)
 
 # 28-day risk in No JAKi group
 risk0.plr <- graph$risk0[which(graph$time==K-1)]
 round(risk0.plr, 3)
-```
 
-```
-## [1] 0.165
-```
-
-```r
 # 28-day risk in JAKi group
 risk1.plr <- graph$risk1[which(graph$time==K-1)]
 round(risk1.plr, 3)
-```
 
-```
-## [1] 0.106
-```
-
-```r
 # 28-day risk difference
 rd.plr <- risk1.plr - risk0.plr
 round(rd.plr, 4)
-```
 
-```
-## [1] -0.0587
-```
-
-```r
 # 28-day risk ratio
 rr.plr <- risk1.plr / risk0.plr
 round(rr.plr, 2)
-```
 
-```
-## [1] 0.64
-```
-
-```r
 ### Obtain percentile-based bootstrapped 95% CIs for each quantity ###
 
 # Create input list of ids (eligible persons)
@@ -2403,106 +2190,30 @@ risk.results <- boot(data = df_long_ids,
 
 # Print point estimates from the original data
 head(risk.results$t0)
-```
 
-```
-## [1]  0.1649373  0.1062770 -0.0586603  0.6443478
-```
-
-```r
 # 95% CI for risk in No JAKi group
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 1) # create CI for first statistic (risk0) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 10 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 1)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   ( 0.1480,  0.1894 )  
-## Calculations and Intervals on Original Scale
-## Warning : Percentile Intervals used Extreme Quantiles
-## Some percentile intervals may be unstable
-```
-
-```r
 # 95% CI for risk in JAKi group
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 2) # create CI for second statistic (risk1) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 10 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 2)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   ( 0.0869,  0.1238 )  
-## Calculations and Intervals on Original Scale
-## Warning : Percentile Intervals used Extreme Quantiles
-## Some percentile intervals may be unstable
-```
-
-```r
 # 95% CI for risk difference
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 3) # create CI for third statistic (rd) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 10 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 3)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   (-0.0696, -0.0392 )  
-## Calculations and Intervals on Original Scale
-## Warning : Percentile Intervals used Extreme Quantiles
-## Some percentile intervals may be unstable
-```
-
-```r
 # 95% CI for risk ratio
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 4) # create CI for fourth statistic (rr) returned by boot()
-```
-
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 10 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 4)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   ( 0.5566,  0.7597 )  
-## Calculations and Intervals on Original Scale
-## Warning : Percentile Intervals used Extreme Quantiles
-## Some percentile intervals may be unstable
 ```
 
 ## f) Construct unadjusted parametric cumulative incidence (risk) curves, based on pooled log reg, including 95% CIs using bootstrapping
@@ -2695,75 +2406,11 @@ plot.plr.ci <- ggplot(risk.boot.graph,
 plot.plr.ci
 ```
 
-![](cov-barrier_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
-
 ## g) Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) using IPW, including 95% CIs, using bootstrapping
 
 ```r
 # need to do this by group individually
 if (!require("speedglm")) install.packages("speedglm")
-```
-
-```
-## Loading required package: speedglm
-```
-
-```
-## Loading required package: Matrix
-```
-
-```
-## 
-## Attaching package: 'Matrix'
-```
-
-```
-## The following objects are masked from 'package:tidyr':
-## 
-##     expand, pack, unpack
-```
-
-```
-## Loading required package: MASS
-```
-
-```
-## 
-## Attaching package: 'MASS'
-```
-
-```
-## The following object is masked from 'package:gtsummary':
-## 
-##     select
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     select
-```
-
-```
-## Loading required package: biglm
-```
-
-```
-## Loading required package: DBI
-```
-
-```
-## 
-## Attaching package: 'speedglm'
-```
-
-```
-## The following object is masked from 'package:boot':
-## 
-##     control
-```
-
-```r
 library(speedglm)
 
 # Create input list of ids 
@@ -2978,9 +2625,7 @@ plot.plr.ci <- ggplot(risk.boot.graph,
 plot.plr.ci
 ```
 
-![](cov-barrier_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
-
-## g) Getting unadjusted/adjusted HR from pooled log reg to compare (First, from the pooled log reg. Second, from coxph long format. Third, from coxph wide format)
+## h) Getting unadjusted/adjusted HR from pooled log reg to compare (First, from the pooled log reg. Second, from coxph long format. Third, from coxph wide format)
 
 ```r
 ## FIRST
@@ -2989,84 +2634,20 @@ fit.pool2 <- glm(formula = mort_28_n==1 ~ trt + time + timesqr,
                  family = binomial(link = 'logit'),
                  data = df_long)
 summary(fit.pool2)
-```
 
-```
-## 
-## Call:
-## glm(formula = mort_28_n == 1 ~ trt + time + timesqr, family = binomial(link = "logit"), 
-##     data = df_long)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -0.1358  -0.1137  -0.1001  -0.0828   3.6072  
-## 
-## Coefficients:
-##              Estimate Std. Error z value Pr(>|z|)    
-## (Intercept) -5.683093   0.227990 -24.927  < 2e-16 ***
-## trt         -0.485314   0.141626  -3.427 0.000611 ***
-## time         0.160018   0.037294   4.291 1.78e-05 ***
-## timesqr     -0.006388   0.001386  -4.608 4.06e-06 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 2639.6  on 40516  degrees of freedom
-## Residual deviance: 2603.0  on 40513  degrees of freedom
-##   (98 observations deleted due to missingness)
-## AIC: 2611
-## 
-## Number of Fisher Scoring iterations: 8
-```
-
-```r
 # Exponentiate coefficient for random assignment
 round(exp(summary(fit.pool2)$coef["trt","Estimate"]), 2)
-```
 
-```
-## [1] 0.62
-```
 
-```r
 # Cox proportional hazards model for comparison
 fit.cox <- coxph(Surv(time, time+1, mort_28_n) ~ trt,
                  data = df_long)
 summary(fit.cox)
-```
 
-```
-## Call:
-## coxph(formula = Surv(time, time + 1, mort_28_n) ~ trt, data = df_long)
-## 
-##   n= 40517, number of events= 211 
-##    (98 observations deleted due to missingness)
-## 
-##        coef exp(coef) se(coef)      z Pr(>|z|)    
-## trt -0.4844    0.6161   0.1412 -3.429 0.000605 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-##     exp(coef) exp(-coef) lower .95 upper .95
-## trt    0.6161      1.623    0.4671    0.8126
-## 
-## Concordance= 0.561  (se = 0.017 )
-## Likelihood ratio test= 12.08  on 1 df,   p=5e-04
-## Wald test            = 11.76  on 1 df,   p=6e-04
-## Score (logrank) test = 11.99  on 1 df,   p=5e-04
-```
-
-```r
 # Exponentiate coefficient for random assignment
 round(exp(summary(fit.cox)$coef["trt","coef"]), 2)
-```
 
-```
-## [1] 0.62
-```
 
-```r
 ## SECOND
 # We can also fit this Cox proportional hazards model using only one line of data per person (i.e., a wide formatted dataset)
 # Then, we need two new variables, surv_time and mort_28_n_any (same as death_time, death_reached as below but only within 28d)
@@ -3078,15 +2659,7 @@ df_long <- df_long %>%
     mort_28_n_any = ifelse(is.na(mort_28_n), NA, max(mort_28_n, na.rm = T))) %>%
   dplyr::ungroup()
 table(df_long$mort_28_n_any[which(df_long$time==0)])
-```
 
-```
-## 
-##    0    1 
-## 1410  211
-```
-
-```r
 # Create surv_time, minimum of time of event, censoring due to LTFU, death, or administrative censoring
 df_long <- df_long %>%
   dplyr::group_by(id_pat) %>%
@@ -3094,90 +2667,29 @@ df_long <- df_long %>%
     surv_time = max(time)) %>%
   dplyr::ungroup()
 summary(df_long$surv_time[which(df_long$time==0)])
-```
 
-```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##    0.00   27.00   27.00   24.06   27.00   27.00
-```
-
-```r
 ## THIRD
 # Fit Cox model with wide formatted data
 fit.cox <- coxph(Surv(surv_time, mort_28_n_any) ~ trt,
                  data = df_long[which(df_long$time==0),])
 summary(fit.cox)
-```
 
-```
-## Call:
-## coxph(formula = Surv(surv_time, mort_28_n_any) ~ trt, data = df_long[which(df_long$time == 
-##     0), ])
-## 
-##   n= 1621, number of events= 211 
-## 
-##        coef exp(coef) se(coef)      z Pr(>|z|)    
-## trt -0.4847    0.6159   0.1412 -3.432    6e-04 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-##     exp(coef) exp(-coef) lower .95 upper .95
-## trt    0.6159      1.624     0.467    0.8123
-## 
-## Concordance= 0.561  (se = 0.017 )
-## Likelihood ratio test= 12.09  on 1 df,   p=5e-04
-## Wald test            = 11.78  on 1 df,   p=6e-04
-## Score (logrank) test = 12.01  on 1 df,   p=5e-04
-```
-
-```r
 # Exponentiate coefficient for random assignment
 round(exp(summary(fit.cox)$coef["trt","coef"]), 2)
-```
 
-```
-## [1] 0.62
-```
 
-```r
 # Fit Cox model with wide formatted data, ORIGINAL data - cave: longer fup time beyond 28 days!
 fit.cox2 <- df %>% 
   coxph(Surv(death_time, death_reached) ~ trt 
         # + age + clinstatus_baseline
         , data =.)
 summary(fit.cox2)
-```
 
-```
-## Call:
-## coxph(formula = Surv(death_time, death_reached) ~ trt, data = .)
-## 
-##   n= 1626, number of events= 249 
-## 
-##        coef exp(coef) se(coef)      z Pr(>|z|)   
-## trt -0.4040    0.6676   0.1289 -3.135  0.00172 **
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-##     exp(coef) exp(-coef) lower .95 upper .95
-## trt    0.6676      1.498    0.5186    0.8595
-## 
-## Concordance= 0.552  (se = 0.016 )
-## Likelihood ratio test= 10  on 1 df,   p=0.002
-## Wald test            = 9.83  on 1 df,   p=0.002
-## Score (logrank) test = 9.96  on 1 df,   p=0.002
-```
-
-```r
 # Exponentiate coefficient for random assignment
 round(exp(summary(fit.cox2)$coef["trt","coef"]), 2)
 ```
 
-```
-## [1] 0.67
-```
-
-## h) Adjusted parametric pooled logistic regression (mortality at day 28), using Standardization, and bootstrap the 95% CI
+## i) Adjusted parametric pooled logistic regression (mortality at day 28), using Standardization, and bootstrap the 95% CI
 
 ```r
 ### Standardization ###
@@ -3185,13 +2697,6 @@ round(exp(summary(fit.cox2)$coef["trt","coef"]), 2)
 if (!require("speedglm")) install.packages("speedglm")
 library(speedglm)
 if (!require("splitstackshape")) install.packages("splitstackshape")
-```
-
-```
-## Loading required package: splitstackshape
-```
-
-```r
 library("splitstackshape")
 
 # Fit pooled logistic regression model with covariates
@@ -3246,43 +2751,16 @@ graph <- rbind(zero, graph.pred)
 # 28-day risk in no JAKi group
 risk0.plr <- graph$risk0[which(graph$time==K-1)]
 risk0.plr
-```
-
-```
-## [1] 0.1654232
-```
-
-```r
 # 28-day risk in JAKi group
 risk1.plr <- graph$risk1[which(graph$time==K-1)]
 risk1.plr
-```
-
-```
-## [1] 0.1061526
-```
-
-```r
 # 28-day risk difference
 rd.plr <- risk1.plr - risk0.plr
 rd.plr
-```
-
-```
-## [1] -0.05927058
-```
-
-```r
 # 28-day risk ratio
 rr.plr <- risk1.plr / risk0.plr
 rr.plr
-```
 
-```
-## [1] 0.6417033
-```
-
-```r
 ### Bootstrapping ###
 
 ### Obtain percentile-based bootstrapped 95% CIs for each quantity ###
@@ -3364,101 +2842,27 @@ risk.results <- boot(data = df_long_ids,
 
 # Print point estimates from the original data
 head(risk.results$t0)
-```
 
-```
-## [1]  0.16542319  0.10615261 -0.05927058  0.64170333
-```
-
-```r
 # 95% CI for risk in no JAKi arm
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 1) # create CI for first statistic (risk0) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 5 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 1)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   ( 0.1909,  0.2294 )  
-## Calculations and Intervals on Original Scale
-## Warning : Percentile Intervals used Extreme Quantiles
-## Some percentile intervals may be unstable
-```
-
-```r
 # 95% CI for risk in JAKi arm
 print(rd)
-```
-
-```
-## [1] -0.05882886
-```
-
-```r
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 2) # create CI for second statistic (risk1) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 5 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 2)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   ( 0.1256,  0.1510 )  
-## Calculations and Intervals on Original Scale
-## Warning : Percentile Intervals used Extreme Quantiles
-## Some percentile intervals may be unstable
-```
-
-```r
 # 95% CI for risk difference
 print(rr)
-```
-
-```
-## [1] 0.643512
-```
-
-```r
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 3) # create CI for third statistic (rd) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 5 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 3)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   (-0.0844, -0.0592 )  
-## Calculations and Intervals on Original Scale
-## Warning : Percentile Intervals used Extreme Quantiles
-## Some percentile intervals may be unstable
-```
-
-```r
 # 95% CI for risk ratio
 boot.ci(risk.results,
         conf = 0.95,
@@ -3466,23 +2870,7 @@ boot.ci(risk.results,
         index = 4) # create CI for fourth statistic (rr) returned by boot()
 ```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 5 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 4)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   ( 0.6319,  0.7185 )  
-## Calculations and Intervals on Original Scale
-## Warning : Percentile Intervals used Extreme Quantiles
-## Some percentile intervals may be unstable
-```
-
-## i) Construct parametric cumulative incidence (risk) curves, based on pooled log reg with Standardization??, INCL. 95% CIs using bootstrapping
+## j) Construct parametric cumulative incidence (risk) curves, based on pooled log reg with Standardization??, INCL. 95% CIs using bootstrapping
 
 ```r
 # need to do this by group individually
@@ -3705,7 +3093,7 @@ std.boot.graph <- rbind(zero, std.boot.graph.pred)
 # plot.plr.std.ci
 ```
 
-## j) Censoring due to LTFU/withdrawal, using IPCW
+## k) Censoring due to LTFU/withdrawal, using IPCW
 
 ```r
 ### Fit a pooled logistic model for the denominator of the inverse probability weights for censoring due to loss to follow-up ###
@@ -3773,22 +3161,9 @@ df_long$sw_c_99[df_long$sw_c_99 > threshold_99] <- threshold_99
 
 ### Check distributions of weights ###
 summary(df_long$sw_c_99)
-```
-
-```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##  0.9310  0.9698  0.9848  0.9871  0.9991  1.1426
-```
-
-```r
 sd(df_long$sw_c_99)
-```
 
-```
-## [1] 0.02623645
-```
 
-```r
 ### Fit weighted pooled logistic regression with final truncated weights ###
 
 # Include product terms between time and treatment
@@ -3839,76 +3214,23 @@ graph <- rbind(zero, graph.pred)
 # 28-day risk in control
 risk0 <- graph$risk0[which(graph$time==K-1)]
 risk0
-```
 
-```
-## [1] 0.1662932
-```
-
-```r
 # 28-day risk in intervention
 risk1 <- graph$risk1[which(graph$time==K-1)]
 risk1
-```
 
-```
-## [1] 0.1081559
-```
-
-```r
 # 28-day risk difference
 rd <- risk1 - risk0
 rd
-```
 
-```
-## [1] -0.0581373
-```
-
-```r
 # 28-day risk ratio
 rr <- risk1 / risk0
 rr
-```
 
-```
-## [1] 0.6503928
-```
 
-```r
+
 ### Bootstrapping ###
 if (!require("data.table")) install.packages("data.table")
-```
-
-```
-## Loading required package: data.table
-```
-
-```
-## 
-## Attaching package: 'data.table'
-```
-
-```
-## The following objects are masked from 'package:lubridate':
-## 
-##     hour, isoweek, mday, minute, month, quarter, second, wday, week,
-##     yday, year
-```
-
-```
-## The following objects are masked from 'package:dplyr':
-## 
-##     between, first, last
-```
-
-```
-## The following object is masked from 'package:purrr':
-## 
-##     transpose
-```
-
-```r
 library(data.table)
 
   # if (!require("tableone")) install.packages("tableone")
@@ -4026,121 +3348,33 @@ risk.results <- boot(data = df_long_ids,
 
 # Print point estimates from the original data
 head(risk.results$t0)
-```
 
-```
-## [1]  0.1662932  0.1081559 -0.0581373  0.6503928
-```
-
-```r
 # 95% CI for risk in CONTROL group
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 1) # create CI for first statistic (risk0) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 100 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 1)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   ( 0.1427,  0.1975 )  
-## Calculations and Intervals on Original Scale
-## Some percentile intervals may be unstable
-```
-
-```r
 # 95% CI for risk in INTERVENTION group
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 2) # create CI for second statistic (risk1) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 100 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 2)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   ( 0.0876,  0.1317 )  
-## Calculations and Intervals on Original Scale
-## Some percentile intervals may be unstable
-```
-
-```r
 # 95% CI for risk difference
 print(rd)
-```
-
-```
-## [1] -0.0581373
-```
-
-```r
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 3) # create CI for third statistic (rd) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 100 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 3)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   (-0.0913, -0.0335 )  
-## Calculations and Intervals on Original Scale
-## Some percentile intervals may be unstable
-```
-
-```r
 # 95% CI for risk ratio
 print(rr)
-```
-
-```
-## [1] 0.6503928
-```
-
-```r
 boot.ci(risk.results,
         conf = 0.95,
         type = "perc",
         index = 4) # create CI for fourth statistic (rr) returned by boot()
-```
 
-```
-## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
-## Based on 100 bootstrap replicates
-## 
-## CALL : 
-## boot.ci(boot.out = risk.results, conf = 0.95, type = "perc", 
-##     index = 4)
-## 
-## Intervals : 
-## Level     Percentile     
-## 95%   ( 0.4998,  0.7826 )  
-## Calculations and Intervals on Original Scale
-## Some percentile intervals may be unstable
-```
-
-```r
 ### Construct parametric risk curves in each treatment group ###
 
 
@@ -4179,8 +3413,6 @@ plot.ipcw <- ggplot(graph,
 # Plot
 plot.ipcw
 ```
-
-![](cov-barrier_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 # Multiple imputation
 
@@ -4614,13 +3846,13 @@ summary(mort.28.cov.adj)
 ## -1.9934  -0.5047  -0.3182  -0.1812   2.8872  
 ## 
 ## Coefficients:
-##                       Estimate Std. Error z value             Pr(>|z|)    
-## (Intercept)          -7.215919   0.653299 -11.045 < 0.0000000000000002 ***
-## trt                  -0.667312   0.171553  -3.890               0.0001 ***
-## age                   0.064325   0.007027   9.154 < 0.0000000000000002 ***
-## clinstatus_baseline3  1.041953   0.476878   2.185               0.0289 *  
-## clinstatus_baseline4  2.413466   0.478513   5.044     0.00000045665786 ***
-## clinstatus_baseline5  3.780535   0.513456   7.363     0.00000000000018 ***
+##                       Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)          -7.215919   0.653299 -11.045  < 2e-16 ***
+## trt                  -0.667312   0.171553  -3.890   0.0001 ***
+## age                   0.064325   0.007027   9.154  < 2e-16 ***
+## clinstatus_baseline3  1.041953   0.476878   2.185   0.0289 *  
+## clinstatus_baseline4  2.413466   0.478513   5.044 4.57e-07 ***
+## clinstatus_baseline5  3.780535   0.513456   7.363 1.80e-13 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
@@ -8371,18 +7603,639 @@ summ(mort.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digit
 
 # Subgroup analysis: Vaccination on adverse events
 
-```r
-# table(df$vacc, df$trt, useNA = "always")
-# ae.28.vacc <- df %>% 
-#   glm(ae_28 ~ trt*vacc
-#       + age 
-#       #+ clinstatus_baseline 
-#       #+ comed_dexa + comed_rdv + comed_toci
-#       , family = "binomial", data=.)
-# summ(ae.28.vacc, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-```
 Discussion points
 1. Vacc not available in COV-BARRIER
+
+# POST HOC Subgroup analysis: At risk on adverse events
+
+```r
+# table(df$ae_28, df$at_risk, df$trt, useNA = "always")
+ae.28.atrisk <- df %>%
+  glm(ae_28 ~ trt*at_risk
+      + age
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+summ(ae.28.atrisk, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 1325 (301 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.24 </td>
+   <td style="text-align:right;"> -5.52 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 0.72 </td>
+   <td style="text-align:right;"> 1.45 </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> 0.91 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> at_risk </td>
+   <td style="text-align:right;"> 0.92 </td>
+   <td style="text-align:right;"> 0.58 </td>
+   <td style="text-align:right;"> 1.46 </td>
+   <td style="text-align:right;"> -0.35 </td>
+   <td style="text-align:right;"> 0.73 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> 2.18 </td>
+   <td style="text-align:right;"> 0.03 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 0.54 </td>
+   <td style="text-align:right;"> 1.23 </td>
+   <td style="text-align:right;"> -0.98 </td>
+   <td style="text-align:right;"> 0.33 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 2.05 </td>
+   <td style="text-align:right;"> 1.31 </td>
+   <td style="text-align:right;"> 3.22 </td>
+   <td style="text-align:right;"> 3.14 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 13.93 </td>
+   <td style="text-align:right;"> 6.46 </td>
+   <td style="text-align:right;"> 30.02 </td>
+   <td style="text-align:right;"> 6.72 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:at_risk </td>
+   <td style="text-align:right;"> 1.21 </td>
+   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> 2.08 </td>
+   <td style="text-align:right;"> 0.69 </td>
+   <td style="text-align:right;"> 0.49 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# effect by subgroup
+ae.28.atrisk.0 <- df %>% 
+  filter(at_risk == 0) %>% # not at risk
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.atrisk.0, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 818 (127 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 0.20 </td>
+   <td style="text-align:right;"> -4.98 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 0.72 </td>
+   <td style="text-align:right;"> 1.45 </td>
+   <td style="text-align:right;"> 0.12 </td>
+   <td style="text-align:right;"> 0.90 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 2.46 </td>
+   <td style="text-align:right;"> 0.01 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 0.88 </td>
+   <td style="text-align:right;"> 0.51 </td>
+   <td style="text-align:right;"> 1.53 </td>
+   <td style="text-align:right;"> -0.45 </td>
+   <td style="text-align:right;"> 0.65 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 2.12 </td>
+   <td style="text-align:right;"> 1.15 </td>
+   <td style="text-align:right;"> 3.90 </td>
+   <td style="text-align:right;"> 2.41 </td>
+   <td style="text-align:right;"> 0.02 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 13.94 </td>
+   <td style="text-align:right;"> 5.39 </td>
+   <td style="text-align:right;"> 36.05 </td>
+   <td style="text-align:right;"> 5.44 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+ae.28.atrisk.1 <- df %>% 
+  filter(at_risk == 1) %>% # at risk
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.atrisk.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 507 (174 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.21 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> -2.18 </td>
+   <td style="text-align:right;"> 0.03 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.25 </td>
+   <td style="text-align:right;"> 0.82 </td>
+   <td style="text-align:right;"> 1.89 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 0.30 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 0.53 </td>
+   <td style="text-align:right;"> 0.60 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 0.73 </td>
+   <td style="text-align:right;"> 0.39 </td>
+   <td style="text-align:right;"> 1.35 </td>
+   <td style="text-align:right;"> -1.00 </td>
+   <td style="text-align:right;"> 0.32 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 1.96 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 3.81 </td>
+   <td style="text-align:right;"> 1.97 </td>
+   <td style="text-align:right;"> 0.05 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 15.01 </td>
+   <td style="text-align:right;"> 3.86 </td>
+   <td style="text-align:right;"> 58.33 </td>
+   <td style="text-align:right;"> 3.91 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+# POST HOC Subgroup analysis: Concomitant COVID-19 treatment on adverse events
+
+```r
+# 4 comorbidity categories as numeric/continuous, i.e., linear interaction
+# table(df$comed_cat, df$ae_28, useNA = "always")
+# 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
+# 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
+# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
+ae.28.comed <- df %>%
+  glm(ae_28 ~ trt*comed_cat 
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 1325 (301 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.19 </td>
+   <td style="text-align:right;"> -4.90 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.71 </td>
+   <td style="text-align:right;"> 0.48 </td>
+   <td style="text-align:right;"> 6.06 </td>
+   <td style="text-align:right;"> 0.83 </td>
+   <td style="text-align:right;"> 0.40 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_cat </td>
+   <td style="text-align:right;"> 1.40 </td>
+   <td style="text-align:right;"> 0.83 </td>
+   <td style="text-align:right;"> 2.35 </td>
+   <td style="text-align:right;"> 1.26 </td>
+   <td style="text-align:right;"> 0.21 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> 3.05 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 0.75 </td>
+   <td style="text-align:right;"> 0.48 </td>
+   <td style="text-align:right;"> 1.15 </td>
+   <td style="text-align:right;"> -1.31 </td>
+   <td style="text-align:right;"> 0.19 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 1.86 </td>
+   <td style="text-align:right;"> 1.15 </td>
+   <td style="text-align:right;"> 3.00 </td>
+   <td style="text-align:right;"> 2.54 </td>
+   <td style="text-align:right;"> 0.01 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 12.70 </td>
+   <td style="text-align:right;"> 5.81 </td>
+   <td style="text-align:right;"> 27.73 </td>
+   <td style="text-align:right;"> 6.38 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
+   <td style="text-align:right;"> 0.79 </td>
+   <td style="text-align:right;"> 0.40 </td>
+   <td style="text-align:right;"> 1.55 </td>
+   <td style="text-align:right;"> -0.69 </td>
+   <td style="text-align:right;"> 0.49 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# effect by subgroup
+ae.28.comed.1 <- df %>% 
+  filter(comed_cat == 1) %>% # without Dexamethasone nor Tocilizumab
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.comed.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 277 (51 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.09 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.35 </td>
+   <td style="text-align:right;"> -3.50 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.36 </td>
+   <td style="text-align:right;"> 0.74 </td>
+   <td style="text-align:right;"> 2.50 </td>
+   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.32 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> 1.13 </td>
+   <td style="text-align:right;"> 0.26 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 0.84 </td>
+   <td style="text-align:right;"> 0.42 </td>
+   <td style="text-align:right;"> 1.68 </td>
+   <td style="text-align:right;"> -0.48 </td>
+   <td style="text-align:right;"> 0.63 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 3.71 </td>
+   <td style="text-align:right;"> 1.46 </td>
+   <td style="text-align:right;"> 9.44 </td>
+   <td style="text-align:right;"> 2.75 </td>
+   <td style="text-align:right;"> 0.01 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 3.26 </td>
+   <td style="text-align:right;"> 0.67 </td>
+   <td style="text-align:right;"> 15.94 </td>
+   <td style="text-align:right;"> 1.46 </td>
+   <td style="text-align:right;"> 0.14 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+ae.28.comed.2 <- df %>% 
+  filter(comed_cat == 2) %>% # Dexamethasone but no Tocilizumab
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 1048 (243 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.13 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.30 </td>
+   <td style="text-align:right;"> -4.68 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 1.06 </td>
+   <td style="text-align:right;"> 0.78 </td>
+   <td style="text-align:right;"> 1.42 </td>
+   <td style="text-align:right;"> 0.36 </td>
+   <td style="text-align:right;"> 0.72 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> 2.82 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 0.67 </td>
+   <td style="text-align:right;"> 0.38 </td>
+   <td style="text-align:right;"> 1.18 </td>
+   <td style="text-align:right;"> -1.38 </td>
+   <td style="text-align:right;"> 0.17 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 1.56 </td>
+   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> 2.85 </td>
+   <td style="text-align:right;"> 1.45 </td>
+   <td style="text-align:right;"> 0.15 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 16.36 </td>
+   <td style="text-align:right;"> 6.16 </td>
+   <td style="text-align:right;"> 43.44 </td>
+   <td style="text-align:right;"> 5.61 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
 
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 
@@ -9398,6 +9251,8 @@ result_list[[8]] <- extract_interaction(mort.28.comed, "comedication") # adj: ag
 result_list[[10]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 result_list[[11]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
 # result_list[[12]] <- extract_interaction(mort.28.var, "variant") # variant not available
+result_list[[13]] <- extract_interaction(ae.28.atrisk, "at risk on AEs") # adj: age, clinstatus
+result_list[[14]] <- extract_interaction(ae.28.comed, "comedication on AEs") # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -9425,6 +9280,8 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:comed_cat             |comedication         |      1.4282252| 0.5549093| 3.877636|      0.4923985| 0.4691455|COV-BARRIER |Baricitinib |
 |trt:sympdur               |symptom duration     |      1.0402961| 0.9725413| 1.111020|      0.0338918| 0.2437633|COV-BARRIER |Baricitinib |
 |trt:crp                   |crp                  |      1.0005119| 0.9972352| 1.003570|      0.0015972| 0.7486330|COV-BARRIER |Baricitinib |
+|trt:at_risk               |at risk on AEs       |      1.2095172| 0.7037829| 2.082667|      0.2765626| 0.4915753|COV-BARRIER |Baricitinib |
+|trt:comed_cat1            |comedication on AEs  |      0.7852309| 0.3945380| 1.548850|      0.3479803| 0.4871794|COV-BARRIER |Baricitinib |
 
 ```r
 # Save
@@ -9579,6 +9436,26 @@ result_list[[19]] <- extract_subgroup_results(mort.28.crp.b75, "CRP below 75",
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,1])
+result_list[[20]] <- extract_subgroup_results(ae.28.atrisk.0, "Not at risk",
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,1],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,1])
+result_list[[21]] <- extract_subgroup_results(ae.28.atrisk.1, "At risk",
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,1],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,1])
+result_list[[22]] <- extract_subgroup_results(ae.28.comed.1, "No Dexa, no Tocilizumab_AE",
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,1],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,1])
+result_list[[23]] <- extract_subgroup_results(ae.28.comed.2, "Dexa, but no Tocilizumab_AE",
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,1],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,1])
 
 # Filter out NULL results and bind the results into a single data frame
 subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -9615,6 +9492,10 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt16 |5 days and less                                |         0.3162069| 0.0844070|   1.0366943|      0.6289219| 0.0671475|              5|                 82|        12|            75|COV-BARRIER |Baricitinib |
 |trt17 |CRP 75 and higher                              |         0.5538630| 0.3339109|   0.9076951|      0.2544456| 0.0202297|             40|                279|        53|           274|COV-BARRIER |Baricitinib |
 |trt18 |CRP below 75                                   |         0.6042953| 0.3450617|   1.0431773|      0.2812340| 0.0732920|             30|                328|        53|           362|COV-BARRIER |Baricitinib |
+|trt19 |Not at risk                                    |         1.0216675| 0.7190005|   1.4522761|      0.1791096| 0.9047355|             94|                420|        83|           398|COV-BARRIER |Baricitinib |
+|trt20 |At risk                                        |         1.2457939| 0.8239951|   1.8900601|      0.2114457| 0.2986267|             77|                263|        60|           244|COV-BARRIER |Baricitinib |
+|trt21 |No Dexa, no Tocilizumab_AE                     |         1.3597013| 0.7401130|   2.5229187|      0.3115837| 0.3240646|             32|                139|        24|           138|COV-BARRIER |Baricitinib |
+|trt22 |Dexa, but no Tocilizumab_AE                    |         1.0563603| 0.7834353|   1.4253375|      0.1525382| 0.7192612|            139|                544|       119|           504|COV-BARRIER |Baricitinib |
 
 ```r
 # Save

@@ -185,6 +185,12 @@ df %>%
 # Viremia
 # Variant
 # Serology
+
+
+# At risk for AEs with JAKi
+df <- df %>%
+  mutate(at_risk = case_when(age>=65 | comorb_cvd==1 | comorb_smoker==1 ~ 1, # at risk
+                             TRUE ~ 0)) # not at risk
 ```
 
 # Endpoints
@@ -323,7 +329,7 @@ df <- df %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
          any_comorb, comorb_cat, comorb_any, comorb_count,
-         crp, 
+         crp, at_risk,
          # sero, vl_baseline, variant,
          mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
@@ -4318,6 +4324,430 @@ summ(ae.28.vacc.0, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 
+# POST HOC Subgroup analysis: At risk on adverse events
+
+```r
+# table(df$ae_28, df$at_risk, df$trt, useNA = "always")
+ae.28.atrisk <- df %>%
+  glm(ae_28 ~ trt*at_risk
+      + age
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+summ(ae.28.atrisk, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 116 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 4.03 </td>
+   <td style="text-align:right;"> 0.16 </td>
+   <td style="text-align:right;"> 101.45 </td>
+   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> 0.40 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.67 </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 2.04 </td>
+   <td style="text-align:right;"> -0.70 </td>
+   <td style="text-align:right;"> 0.48 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> at_risk </td>
+   <td style="text-align:right;"> 0.40 </td>
+   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> 4.30 </td>
+   <td style="text-align:right;"> -0.76 </td>
+   <td style="text-align:right;"> 0.45 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 0.93 </td>
+   <td style="text-align:right;"> 0.87 </td>
+   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> -2.23 </td>
+   <td style="text-align:right;"> 0.03 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 5.78 </td>
+   <td style="text-align:right;"> 1.14 </td>
+   <td style="text-align:right;"> 29.40 </td>
+   <td style="text-align:right;"> 2.11 </td>
+   <td style="text-align:right;"> 0.03 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:at_risk </td>
+   <td style="text-align:right;"> 1.10 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 24.05 </td>
+   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 0.95 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# effect by subgroup
+ae.28.atrisk.0 <- df %>% 
+  filter(at_risk == 0) %>% # not at risk
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.atrisk.0, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 76 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 2.53 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> 76.70 </td>
+   <td style="text-align:right;"> 0.53 </td>
+   <td style="text-align:right;"> 0.59 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.66 </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> 1.97 </td>
+   <td style="text-align:right;"> -0.75 </td>
+   <td style="text-align:right;"> 0.45 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> 0.88 </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> -1.77 </td>
+   <td style="text-align:right;"> 0.08 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 5.04 </td>
+   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 25.58 </td>
+   <td style="text-align:right;"> 1.95 </td>
+   <td style="text-align:right;"> 0.05 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+ae.28.atrisk.1 <- df %>% 
+  filter(at_risk == 1) %>% # at risk
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.atrisk.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 40 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 1.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.52 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 12.30 </td>
+   <td style="text-align:right;"> -0.41 </td>
+   <td style="text-align:right;"> 0.68 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 0.83 </td>
+   <td style="text-align:right;"> 0.67 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> -1.63 </td>
+   <td style="text-align:right;"> 0.10 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 197705259.00 </td>
+   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 1.00 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+# POST HOC Subgroup analysis: Concomitant COVID-19 treatment on adverse events
+
+```r
+# 4 comorbidity categories as numeric/continuous, i.e., linear interaction
+# table(df$comed_cat, df$ae_28, df$trt, useNA = "always")
+# 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
+# 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
+# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
+ae.28.comed.firth <- df %>%
+  logistf(ae_28 ~ trt*comed_cat 
+      + age 
+      + clinstatus_baseline 
+      , data=.)
+summary(ae.28.comed.firth)
+```
+
+```
+## logistf(formula = ae_28 ~ trt * comed_cat + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95  upper 0.95       Chisq
+## (Intercept)           2.83238792 2.31134676  -2.3266037  7.43986621  1.32340226
+## trt                  -2.37981966 3.60513621 -12.6918382  4.25847093  0.46920036
+## comed_cat            -0.30447319 1.09500705  -2.4526978  2.18248513  0.07456591
+## age                  -0.08402119 0.02461794  -0.1382530 -0.03794415 13.93713298
+## clinstatus_baseline3  1.45413599 0.73447825   0.1063357  3.19524083  4.53724724
+## trt:comed_cat         1.07476441 1.85794325  -2.3628360  6.28202471  0.35376013
+##                                 p method
+## (Intercept)          0.2499823625      2
+## trt                  0.4933552708      2
+## comed_cat            0.7848012549      2
+## age                  0.0001890271      2
+## clinstatus_baseline3 0.0331648846      2
+## trt:comed_cat        0.5519922927      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=17.89453 on 5 df, p=0.003081537, n=116
+## Wald test = 35.92651 on 5 df, p = 9.82506e-07
+```
+
+```r
+# effect by subgroup
+ae.28.comed.1.firth <- df %>% 
+  filter(comed_cat == 1) %>% # without Dexamethasone nor Tocilizumab
+  logistf(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , data=.)
+summary(ae.28.comed.1.firth)
+```
+
+```
+## logistf(formula = ae_28 ~ trt + age + clinstatus_baseline, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                            coef  se(coef) lower 0.95 upper 0.95      Chisq
+## (Intercept)           8.3301545 10.526709 -11.908515 37.2326966 0.62627296
+## trt                  -0.5360868  1.776930  -5.636956  4.0959531 0.08050938
+## age                  -0.2556076  0.283923  -1.057154  0.2898991 0.82202934
+## clinstatus_baseline3  5.2003401  4.939125  -4.530152 20.7325218 1.10182183
+##                              p method
+## (Intercept)          0.4287257      2
+## trt                  0.7766083      2
+## age                  0.3645875      2
+## clinstatus_baseline3 0.2938666      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=2.026191 on 3 df, p=0.5669884, n=7
+## Wald test = 2.78757 on 3 df, p = 0.4255502
+```
+
+```r
+ae.28.comed.2 <- df %>% 
+  filter(comed_cat == 2) %>% # Dexamethasone but no Tocilizumab
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 109 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 12.29 </td>
+   <td style="text-align:right;"> 0.64 </td>
+   <td style="text-align:right;"> 238.01 </td>
+   <td style="text-align:right;"> 1.66 </td>
+   <td style="text-align:right;"> 0.10 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 0.28 </td>
+   <td style="text-align:right;"> 2.35 </td>
+   <td style="text-align:right;"> -0.40 </td>
+   <td style="text-align:right;"> 0.69 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 0.91 </td>
+   <td style="text-align:right;"> 0.87 </td>
+   <td style="text-align:right;"> 0.96 </td>
+   <td style="text-align:right;"> -3.39 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 4.31 </td>
+   <td style="text-align:right;"> 0.84 </td>
+   <td style="text-align:right;"> 22.20 </td>
+   <td style="text-align:right;"> 1.75 </td>
+   <td style="text-align:right;"> 0.08 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 
 ```r
@@ -5063,6 +5493,9 @@ result_list[[8]] <- extract_interaction(mort.28.comed.firth, "comedication_firth
 result_list[[9]] <- extract_interaction(ae.28.vacc.firth, "vaccination on AEs_firth")
 result_list[[10]] <- extract_interaction(mort.28.symp.firth, "symptom duration_firth")
 result_list[[11]] <- extract_interaction(mort.28.crp.firth, "crp_firth")
+# result_list[[12]] <- extract_interaction(mort.28.var, "variant") # adapt function to tell which p-int to extract
+result_list[[13]] <- extract_interaction(ae.28.atrisk, "at risk on AEs") # adj: age, clinstatus
+result_list[[14]] <- extract_interaction(ae.28.comed.firth, "comedication on AEs_firth") # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -5090,6 +5523,8 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:vacc                  |vaccination on AEs_firth   |      2.6499354| 0.0097053|  765.212989|      2.3583074| 0.6837461|TOFACOV |Tofacitinib |
 |trt:sympdur               |symptom duration_firth     |      0.8235629| 0.3882541|    3.740741|      0.2589834| 0.6358318|TOFACOV |Tofacitinib |
 |trt:crp                   |crp_firth                  |      0.9892815| 0.4830348|    1.046442|      0.0245673| 0.6953879|TOFACOV |Tofacitinib |
+|trt:at_risk               |at risk on AEs             |      1.0998251| 0.0348928|   34.581506|      1.5739799| 0.9517952|TOFACOV |Tofacitinib |
+|trt:comed_cat1            |comedication on AEs_firth  |      2.9293027| 0.0941528|  534.870524|      1.8579432| 0.5519923|TOFACOV |Tofacitinib |
 
 ```r
 # Save
@@ -5220,15 +5655,15 @@ result_list[[14]] <- extract_subgroup_results(mort.28.comed.2, "Dexa, but no Toc
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$comed_cat, df$mort_28, df$trt))[2,3,1])
 result_list[[15]] <- extract_subgroup_results(ae.28.vacc.1, "vaccinated_firth",
-                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,2],
-                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,2],
-                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,2,1],
-                                             addmargins(table(df$vacc, df$mort_28, df$trt))[2,3,1])
+                                             addmargins(table(df$vacc, df$ae_28, df$trt))[2,2,2],
+                                             addmargins(table(df$vacc, df$ae_28, df$trt))[2,3,2],
+                                             addmargins(table(df$vacc, df$ae_28, df$trt))[2,2,1],
+                                             addmargins(table(df$vacc, df$ae_28, df$trt))[2,3,1])
 result_list[[16]] <- extract_subgroup_results(ae.28.vacc.0, "not vaccinated",
-                                             addmargins(table(df$vacc, df$mort_28, df$trt))[1,2,2],
-                                             addmargins(table(df$vacc, df$mort_28, df$trt))[1,3,2],
-                                             addmargins(table(df$vacc, df$mort_28, df$trt))[1,2,1],
-                                             addmargins(table(df$vacc, df$mort_28, df$trt))[1,3,1])
+                                             addmargins(table(df$vacc, df$ae_28, df$trt))[1,2,2],
+                                             addmargins(table(df$vacc, df$ae_28, df$trt))[1,3,2],
+                                             addmargins(table(df$vacc, df$ae_28, df$trt))[1,2,1],
+                                             addmargins(table(df$vacc, df$ae_28, df$trt))[1,3,1])
 result_list[[17]] <- extract_subgroup_results(mort.28.sympdur.a10, "More than 10 days_firth",
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,2,2],
                                              addmargins(table(df$sympdur_cat, df$mort_28, df$trt))[1,3,2],
@@ -5254,6 +5689,26 @@ result_list[[21]] <- extract_subgroup_results(mort.28.crp.b75, "CRP below 75_fir
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,1])
+result_list[[22]] <- extract_subgroup_results(ae.28.atrisk.0, "Not at risk",
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,1],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,1])
+result_list[[23]] <- extract_subgroup_results(ae.28.atrisk.1, "At risk",
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,1],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,1])
+result_list[[24]] <- extract_subgroup_results(ae.28.comed.1.firth, "No Dexa, no Tocilizumab_AE_firth",
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,1],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,1])
+result_list[[25]] <- extract_subgroup_results(ae.28.comed.2, "Dexa, but no Tocilizumab_AE",
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,1],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,1])
 
 # Filter out NULL results and bind the results into a single data frame
 subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -5269,25 +5724,29 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                       | hazard_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial   |JAKi        |
-|:-----|:------------------------------|-----------------:|---------:|------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------|:-----------|
-|trt   |None or low-flow oxygen_firth  |         2.6388102| 0.1384454| 3.867413e+02|   1.460118e+00| 0.5277118|              1|                 58|         0|            58|TOFACOV |Tofacitinib |
-|trt1  |No oxygen_firth                |         1.3918259| 0.0072404| 2.921471e+02|   1.716586e+00| 0.8722372|              0|                  9|         0|            16|TOFACOV |Tofacitinib |
-|trt2  |low-flow oxygen_firth          |         2.1912808| 0.1141366| 3.226519e+02|   1.456444e+00| 0.6142125|              1|                 49|         0|            42|TOFACOV |Tofacitinib |
-|trt3  |70 years and above_firth       |         2.9152473| 0.1384519| 4.593753e+02|   1.491761e+00| 0.5008116|              1|                 17|         0|            17|TOFACOV |Tofacitinib |
-|trt4  |below 70 years_firth           |         1.1152983| 0.0057878| 2.189598e+02|   1.665971e+00| 0.9575470|              0|                 41|         0|            41|TOFACOV |Tofacitinib |
-|trt5  |No comorbidity_firth           |         1.1018332| 0.0053609| 2.010167e+02|   1.497623e+00| 0.9621649|              0|                 19|         0|            25|TOFACOV |Tofacitinib |
-|trt6  |One comorbidity_firth          |         2.6425798| 0.1102389| 5.027508e+02|   1.407701e+00| 0.5733840|              1|                 22|         0|            24|TOFACOV |Tofacitinib |
-|trt7  |Multiple comorbidities_firth   |         0.3895007| 0.0021761| 6.296948e+01|   1.696853e+00| 0.6320255|              0|                 17|         0|             9|TOFACOV |Tofacitinib |
-|trt8  |No Dexa, no Tocilizumab_firth  |         0.7355841| 0.0027926| 2.958054e+02|   1.954683e+00| 0.8874282|              0|                  4|         0|             3|TOFACOV |Tofacitinib |
-|trt9  |Dexa, but no Tocilizumab_firth |         2.5607746| 0.1263794| 3.896015e+02|   1.317320e+00| 0.5518554|              1|                 54|         0|            55|TOFACOV |Tofacitinib |
-|trt10 |vaccinated_firth               |         1.0074623| 0.0000000| 7.364779e+09|   3.839147e+06| 1.0000000|              0|                  1|         0|             2|TOFACOV |Tofacitinib |
-|trt11 |not vaccinated                 |         0.6777994| 0.2341347| 1.922727e+00|   5.314252e-01| 0.4642826|              1|                 57|         0|            56|TOFACOV |Tofacitinib |
-|trt12 |More than 10 days_firth        |         0.7396999| 0.0039160| 1.386971e+02|   1.817907e+00| 0.8816021|              0|                 14|         0|            14|TOFACOV |Tofacitinib |
-|trt13 |Between 5-10 days_firth        |         2.2140054| 0.1104893| 3.199455e+02|   1.309602e+00| 0.6123815|              1|                 36|         0|            34|TOFACOV |Tofacitinib |
-|trt14 |5 days and less_firth          |         0.9633832| 0.0056439| 1.605331e+02|   1.539062e+00| 0.9844307|              0|                  8|         0|            10|TOFACOV |Tofacitinib |
-|trt15 |CRP 75 and higher_firth        |         1.0000000| 0.0000000| 2.685274e+38|   3.398440e+00| 1.0000000|              0|                  1|         0|             2|TOFACOV |Tofacitinib |
-|trt16 |CRP below 75_firth             |         2.5399995| 0.1307656| 3.735116e+02|   1.315153e+00| 0.5470383|              1|                 57|         0|            55|TOFACOV |Tofacitinib |
+|      |variable                         | hazard_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial   |JAKi        |
+|:-----|:--------------------------------|-----------------:|---------:|------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------|:-----------|
+|trt   |None or low-flow oxygen_firth    |         2.6388102| 0.1384454| 3.867413e+02|   1.460118e+00| 0.5277118|              1|                 58|         0|            58|TOFACOV |Tofacitinib |
+|trt1  |No oxygen_firth                  |         1.3918259| 0.0072404| 2.921471e+02|   1.716586e+00| 0.8722372|              0|                  9|         0|            16|TOFACOV |Tofacitinib |
+|trt2  |low-flow oxygen_firth            |         2.1912808| 0.1141366| 3.226519e+02|   1.456444e+00| 0.6142125|              1|                 49|         0|            42|TOFACOV |Tofacitinib |
+|trt3  |70 years and above_firth         |         2.9152473| 0.1384519| 4.593753e+02|   1.491761e+00| 0.5008116|              1|                 17|         0|            17|TOFACOV |Tofacitinib |
+|trt4  |below 70 years_firth             |         1.1152983| 0.0057878| 2.189598e+02|   1.665971e+00| 0.9575470|              0|                 41|         0|            41|TOFACOV |Tofacitinib |
+|trt5  |No comorbidity_firth             |         1.1018332| 0.0053609| 2.010167e+02|   1.497623e+00| 0.9621649|              0|                 19|         0|            25|TOFACOV |Tofacitinib |
+|trt6  |One comorbidity_firth            |         2.6425798| 0.1102389| 5.027508e+02|   1.407701e+00| 0.5733840|              1|                 22|         0|            24|TOFACOV |Tofacitinib |
+|trt7  |Multiple comorbidities_firth     |         0.3895007| 0.0021761| 6.296948e+01|   1.696853e+00| 0.6320255|              0|                 17|         0|             9|TOFACOV |Tofacitinib |
+|trt8  |No Dexa, no Tocilizumab_firth    |         0.7355841| 0.0027926| 2.958054e+02|   1.954683e+00| 0.8874282|              0|                  4|         0|             3|TOFACOV |Tofacitinib |
+|trt9  |Dexa, but no Tocilizumab_firth   |         2.5607746| 0.1263794| 3.896015e+02|   1.317320e+00| 0.5518554|              1|                 54|         0|            55|TOFACOV |Tofacitinib |
+|trt10 |vaccinated_firth                 |         1.0074623| 0.0000000| 7.364779e+09|   3.839147e+06| 1.0000000|              0|                  1|         0|             2|TOFACOV |Tofacitinib |
+|trt11 |not vaccinated                   |         0.6777994| 0.2341347| 1.922727e+00|   5.314252e-01| 0.4642826|              9|                 57|        13|            56|TOFACOV |Tofacitinib |
+|trt12 |More than 10 days_firth          |         0.7396999| 0.0039160| 1.386971e+02|   1.817907e+00| 0.8816021|              0|                 14|         0|            14|TOFACOV |Tofacitinib |
+|trt13 |Between 5-10 days_firth          |         2.2140054| 0.1104893| 3.199455e+02|   1.309602e+00| 0.6123815|              1|                 36|         0|            34|TOFACOV |Tofacitinib |
+|trt14 |5 days and less_firth            |         0.9633832| 0.0056439| 1.605331e+02|   1.539062e+00| 0.9844307|              0|                  8|         0|            10|TOFACOV |Tofacitinib |
+|trt15 |CRP 75 and higher_firth          |         1.0000000| 0.0000000| 2.685274e+38|   3.398440e+00| 1.0000000|              0|                  1|         0|             2|TOFACOV |Tofacitinib |
+|trt16 |CRP below 75_firth               |         2.5399995| 0.1307656| 3.735116e+02|   1.315153e+00| 0.5470383|              1|                 57|         0|            55|TOFACOV |Tofacitinib |
+|trt17 |Not at risk                      |         0.6561957| 0.2128490| 1.967351e+00|   5.612381e-01| 0.4528602|              8|                 37|        12|            39|TOFACOV |Tofacitinib |
+|trt18 |At risk                          |         0.5175578| 0.0131880| 1.666108e+01|   1.616498e+00| 0.6836812|              1|                 21|         1|            19|TOFACOV |Tofacitinib |
+|trt19 |No Dexa, no Tocilizumab_AE_firth |         0.5850331| 0.0035637| 6.009659e+01|   1.776930e+00| 0.7766083|              0|                  4|         1|             3|TOFACOV |Tofacitinib |
+|trt20 |Dexa, but no Tocilizumab_AE      |         0.8061029| 0.2724618| 2.361720e+00|   5.448572e-01| 0.6924024|              9|                 54|        12|            55|TOFACOV |Tofacitinib |
 
 ```r
 # Save

@@ -707,16 +707,16 @@ df_mort28 <- df_mort28 %>%
                                         trial == "PANCOVID" ~ "10.2020-09.2021",
                                         ))
 df_mort28 <- df_mort28 %>% 
-  mutate(recruitment_period_cat = case_when(trial == "ACTT-2" ~ "mid2020",
-                                            trial == "COV-BARRIER" ~ "mid2020",
-                                            trial == "RECOVERY" ~ "beg2021",
-                                            trial == "TOFACOV" ~ "beg2021",
-                                            trial == "COVINIB" ~ "beg2021",
-                                            trial == "Ghazaeian" ~ "mid2021",
-                                            trial == "Bari-SolidAct" ~ "mid2021",
-                                            trial == "TACTIC-R" ~ "beg2021",
-                                            trial == "RUXCOVID" ~ "mid2020",
-                                            trial == "PANCOVID" ~ "beg2021",
+  mutate(period = case_when(trial == "ACTT-2" ~ "pre-delta",
+                                            trial == "COV-BARRIER" ~ "pre-delta",
+                                            trial == "RECOVERY" ~ "pre-delta/delta",
+                                            trial == "TOFACOV" ~ "pre-delta/delta",
+                                            trial == "COVINIB" ~ "pre-delta/delta",
+                                            trial == "Ghazaeian" ~ "pre-delta/delta",
+                                            trial == "Bari-SolidAct" ~ "delta/omicron",
+                                            trial == "TACTIC-R" ~ "pre-delta/delta",
+                                            trial == "RUXCOVID" ~ "pre-delta",
+                                            trial == "PANCOVID" ~ "pre-delta/delta",
                                         ))
 
 df_mort28 <- df_mort28 %>% 
@@ -840,7 +840,7 @@ row_prevent <- tibble(
   trial = "PRE-VENT*",
   JAKi = "Pacritinib",
   recruitment_period = "06.2020-02.2021",
-  recruitment_period_cat = "mid2020",
+  period = "pre-delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -900,7 +900,7 @@ row_cao <- tibble(
   trial = "CAO*",
   JAKi = "Ruxolitinib",
   recruitment_period = "02.2020",
-  recruitment_period_cat = "beg2020",
+  period = "pre-delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -998,7 +998,7 @@ row_stopcovid <- tibble(
   trial = "STOP-COVID*",
   JAKi = "Tofacitinib",
   recruitment_period = "09.2020-12.2020",
-  recruitment_period_cat = "mid2020",
+  period = "pre-delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -1096,7 +1096,7 @@ row_ruxcoviddevent <- tibble(
   trial = "RUXCOVID-DEVENT*",
   JAKi = "Ruxolitinib",
   recruitment_period = "05.2020-12.2020",
-  recruitment_period_cat = "mid2020",
+  period = "pre-delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -1156,7 +1156,7 @@ row_dastan <- tibble(
   trial = "Dastan*",
   JAKi = "Baricitinib",
   recruitment_period = "03.2022-08.2022",
-  recruitment_period_cat = "beg2022",
+  period = "delta/omicron",
   rob_mort28 = "Some concerns",
   'Data provided' = "non-IPD trials")
 
@@ -1254,7 +1254,7 @@ row_singh <- tibble(
   trial = "Singh*",
   JAKi = "Nezulcitinib",
   recruitment_period = "06.2020-04.2021",
-  recruitment_period_cat = "mid2021",
+  period = "pre-delta/delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -1550,7 +1550,7 @@ total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE),
                sum(df_mort28_agg$n_cont, na.rm = TRUE),
                sum(df_mort28_agg$e_cont, na.rm = TRUE))
 pushViewport(viewport())
-grid.text(label = total_row[1], x = unit(0.318, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[1], x = unit(0.317, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[3], x = unit(0.42, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
@@ -1660,28 +1660,132 @@ mort28.agg.jaki.mreg
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-# (i.iii) Primary outcome: Meta-regression by Recruitment Period, including the non-IPD RCTs
+# (i.iii) Primary outcome: Subgroup by period, including the non-IPD RCTs
 
 ```r
-# meta-regression by recruitment period
-# mort28.agg.rec <- update.meta(mort28.agg, 
-#                                subgroup = recruitment_period_cat)
-# forest.meta(mort28.agg.rec,
-#             leftcols = c("studlab", 
-#                          # "TE", 
-#                          # "seTE", 
-#                          "n.e"),
-#             leftlabs = c("Trial", 
-#                          # "log(OR)", 
-#                          # "Standard Error", 
-#                          "Sample Size"),
-#             sortvar = +TE,
-#             test.subgroup.random = TRUE,
-#             text.random = "Average treatment effect (RE model)",
-#             title = "Average treatment effect - mortality 28 days",
-#             xlim = c(0.03,30),
-#             # xlab = "Average treatment effect (95% CI)"
-#             )
+mort28.agg.period <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_agg,
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      subgroup = period,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      )
+summary(mort28.agg.period)
+```
+
+```
+##                      OR            95%-CI %W(random)          period
+## Bari-SolidAct    0.6573 [0.3068;  1.4084]        5.8   delta/omicron
+## ACTT-2           0.7041 [0.3996;  1.2406]        9.5       pre-delta
+## Ghazaeian        0.7909 [0.1654;  3.7807]        1.5 pre-delta/delta
+## TOFACOV          2.5366 [0.1928; 33.3748]        0.6 pre-delta/delta
+## COVINIB          0.1816 [0.0126;  2.6139]        0.5 pre-delta/delta
+## COV-BARRIER      0.5131 [0.3666;  0.7182]       19.5       pre-delta
+## RECOVERY         0.8109 [0.7034;  0.9349]       37.0 pre-delta/delta
+## TACTIC-R         0.8119 [0.3571;  1.8458]        5.1 pre-delta/delta
+## RUXCOVID         1.4674 [0.3805;  5.6590]        2.0       pre-delta
+## PANCOVID         0.2920 [0.0515;  1.6567]        1.2 pre-delta/delta
+## PRE-VENT*        1.3062 [0.4931;  3.4597]        3.7       pre-delta
+## CAO*             0.1289 [0.0062;  2.6659]        0.4       pre-delta
+## STOP-COVID*      0.4893 [0.1440;  1.6625]        2.4       pre-delta
+## RUXCOVID-DEVENT* 0.4455 [0.2221;  0.8935]        6.8       pre-delta
+## Dastan*          0.1884 [0.0087;  4.0746]        0.4   delta/omicron
+## Singh*           0.4235 [0.1544;  1.1618]        3.5 pre-delta/delta
+## 
+## Number of studies: k = 16
+## Number of observations: o = 13089
+## 
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.6715 [0.5525; 0.8160] -4.36  0.0006
+## Prediction interval              [0.4582; 0.9839]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0.0217 [0.0000; 0.3793]; tau = 0.1474 [0.0000; 0.6158]
+##  I^2 = 13.5% [0.0%; 50.8%]; H = 1.08 [1.00; 1.43]
+## 
+## Test of heterogeneity:
+##      Q d.f. p-value
+##  17.35   15  0.2984
+## 
+## Results for subgroups (random effects model (HK)):
+##                            k     OR            95%-CI   tau^2    tau    Q   I^2
+## period = delta/omicron     2 0.6114 [0.0150; 24.9337]       0      0 0.60  0.0%
+## period = pre-delta         7 0.5822 [0.4172;  0.8126] <0.0001 0.0026 7.02 14.5%
+## period = pre-delta/delta   7 0.7954 [0.6821;  0.9275]       0      0 4.81  0.0%
+## 
+## Test for subgroup differences (random effects model (HK)):
+##                   Q d.f. p-value
+## Between groups 4.81    2  0.0901
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 15)
+## - Prediction interval based on t-distribution (df = 14)
+```
+
+```r
+forest.meta(mort28.agg.period,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            # xlim = c(0.10,5),
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi",
+            overall.hetstat = F,
+            test.subgroup = T
+            )
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
+
+```r
+# Open a pdf file
+pdf("./fp_mort_28_period.pdf", width=13, height=9)
+
+forestplot <- forest(mort28.agg.period,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            # xlim = c(0.15,5),
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            test.subgroup = T,
+            pooled.total = T
+)
+
+summary_row_y <- unit(0.189, "npc")
+total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE), 
+               sum(df_mort28_agg$e_int, na.rm = TRUE), 
+               sum(df_mort28_agg$n_cont, na.rm = TRUE),
+               sum(df_mort28_agg$e_cont, na.rm = TRUE))
+pushViewport(viewport())
+grid.text(label = total_row[1], x = unit(0.316, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.4189, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+popViewport()
+
+dev.off()
+```
+
+```
+## quartz_off_screen 
+##                 2
 ```
 
 # (i.iv) Primary outcome: Meta-regression by RoB, including the non-IPD RCTs // all low risk!
@@ -3722,7 +3826,7 @@ df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
-df_int_ruxcovid <- readRDS("int_effects_ruxcovid_05072024.RData")
+df_int_ruxcovid <- readRDS("int_effects_ruxcovid_19072024.RData")
 df_int_pancovid <- readRDS("int_effects_pancovid.RData")
 ```
 
@@ -3829,6 +3933,28 @@ df_vacc_ae28 <- data.frame()
 for (df in list_int_df) {
   selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
   df_vacc_ae28 <- rbind(df_vacc_ae28, selected_rows)
+}
+
+## At risk on AEs
+outcomes <- "at risk on AEs"
+outcomes.firth <- "at risk on AEs_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_atrisk_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_atrisk_ae28 <- rbind(df_atrisk_ae28, selected_rows)
+}
+
+## Comedication on AEs
+outcomes <- "comedication on AEs"
+outcomes.firth <- "comedication on AEs_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_comed_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_comed_ae28 <- rbind(df_comed_ae28, selected_rows)
 }
 
 ## Symptom duration on Mortality at day 28
@@ -4069,6 +4195,46 @@ kable(df_crp_mort28, format = "markdown", table.attr = 'class="table"') %>%
 |trt:crp8 |crp       |      0.9940109| 0.9731708| 1.015258|      0.0101573| 0.5542488|RUXCOVID      |Ruxolitinib |
 |trt:crp9 |crp       |      0.9743573| 0.9146557| 1.016907|      0.0254621| 0.3076190|PANCOVID      |Baricitinib |
 
+```r
+kable(df_atrisk_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|             |variable             | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:------------|:--------------------|--------------:|---------:|---------:|--------------:|---------:|:-------------|:-----------|
+|trt:at_risk  |at risk on AEs       |      1.2294818| 0.4142531|  3.670119|      0.5552097| 0.7098194|Bari-SolidAct |Baricitinib |
+|trt:at_risk1 |at risk on AEs       |      0.9655355| 0.5540986|  1.681546|      0.2830432| 0.9013852|ACTT-2        |Baricitinib |
+|trt:at_risk2 |at risk on AEs_firth |      0.2005732| 0.0003771| 68.103813|      2.4674534| 0.5373824|Ghazaeian     |Tofacitinib |
+|trt:at_risk3 |at risk on AEs       |      1.0998251| 0.0348928| 34.581506|      1.5739799| 0.9517952|TOFACOV       |Tofacitinib |
+|trt:at_risk4 |at risk on AEs       |      0.5620926| 0.0745475|  4.178634|      1.0180360| 0.5714737|COVINIB       |Baricitinib |
+|trt:at_risk5 |at risk on AEs       |      1.2095172| 0.7037829|  2.082667|      0.2765626| 0.4915753|COV-BARRIER   |Baricitinib |
+|trt:at_risk6 |at risk on AEs       |      0.8407115| 0.5706143|  1.238500|      0.1975548| 0.3797967|RECOVERY      |Baricitinib |
+|trt:at_risk7 |at risk on AEs       |      0.3137477| 0.0590740|  1.515225|      0.8170721| 0.1559916|TACTIC-R      |Baricitinib |
+|trt:at_risk8 |at risk on AEs       |      2.2435276| 0.5829516|  9.394466|      0.7013907| 0.2492933|RUXCOVID      |Ruxolitinib |
+|trt:at_risk9 |at risk on AEs       |      0.9430390| 0.1967419|  4.416148|      0.7841062| 0.9403774|PANCOVID      |Baricitinib |
+
+```r
+kable(df_comed_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|                |variable                  | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial         |JAKi        |
+|:---------------|:-------------------------|--------------:|---------:|------------:|--------------:|---------:|:-------------|:-----------|
+|trt:comed_cat1  |comedication on AEs       |      1.0025515| 0.1168221| 1.055681e+01|      1.1154956| 0.9981773|Bari-SolidAct |Baricitinib |
+|trt:comed_cat11 |comedication on AEs       |      1.2089287| 0.2762678| 5.403130e+00|      0.7522954| 0.8008806|ACTT-2        |Baricitinib |
+|trt:comed_cat12 |comedication on AEs_firth |      1.0038232| 0.0000000| 4.658784e+11|      0.1703626| 1.0000000|Ghazaeian     |Tofacitinib |
+|trt:comed_cat13 |comedication on AEs_firth |      2.9293027| 0.0941528| 5.348705e+02|      1.8579432| 0.5519923|TOFACOV       |Tofacitinib |
+|trt:comed_cat14 |comedication on AEs       |      0.8775139| 0.0501322| 2.584768e+01|      1.4824285| 0.9297648|COVINIB       |Baricitinib |
+|trt:comed_cat15 |comedication on AEs       |      0.7852309| 0.3945380| 1.548850e+00|      0.3479803| 0.4871794|COV-BARRIER   |Baricitinib |
+|trt:comed_cat16 |comedication on AEs       |      1.1014949| 0.7804889| 1.555381e+00|      0.1758209| 0.5824492|RECOVERY      |Baricitinib |
+|trt:comed_cat17 |comedication on AEs       |      3.8768734| 0.4808470| 3.168773e+01|      1.0631619| 0.2024766|TACTIC-R      |Baricitinib |
+|trt:comed_cat18 |comedication on AEs       |      2.6439096| 0.7320758| 1.004275e+01|      0.6638690| 0.1430481|RUXCOVID      |Ruxolitinib |
+|trt:comed_cat19 |comedication on AEs       |      2.7963619| 0.0854931| 9.325435e+01|      1.6068324| 0.5221942|PANCOVID      |Baricitinib |
+
 
 # Load subgroup effects from all trials (on primary endpoint - and vacc.ae)
 
@@ -4081,7 +4247,7 @@ df_subgroup_tofacov <- readRDS("subgroup_effects_tofacov.RData")
 df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
 df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
 df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
-df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_05072024.RData")
+df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_19072024.RData")
 df_subgroup_pancovid <- readRDS("subgroup_effects_pancovid.RData")
 ```
 
@@ -4192,6 +4358,38 @@ for (df in list_subgroup_df) {
   selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
                                  | variable == outcomes2 | variable == outcomes2.firth)
   df_sg_vacc_ae28 <- rbind(df_sg_vacc_ae28, selected_rows)
+}
+
+## At risk on AEs
+outcomes1 <- "Not at risk"
+outcomes1.firth <- "Not at risk_firth"
+outcomes2 <- "At risk"
+outcomes2.firth <- "At risk_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_atrisk_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth)
+  df_sg_atrisk_ae28 <- rbind(df_sg_atrisk_ae28, selected_rows)
+}
+
+## Comedication on AEs
+outcomes1 <- "No Dexa, no Tocilizumab_AE"
+outcomes1.firth <- "No Dexa, no Tocilizumab_AE_firth"
+outcomes2 <- "Dexa, but no Tocilizumab_AE"
+outcomes2.firth <- "Dexa, but no Tocilizumab_AE_firth"
+outcomes3 <- "Dexa and Tocilizumab_AE"
+outcomes3.firth <- "Dexa and Tocilizumab_AE_firth"
+outcomes4 <- "Tocilizumab, but no Dexa_AE"
+outcomes4.firth <- "Tocilizumab, but no Dexa_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_comed_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth)
+  df_sg_comed_ae28 <- rbind(df_sg_comed_ae28, selected_rows)
 }
 
 ## Symptom onset
@@ -4410,16 +4608,16 @@ kable(df_sg_vacc_ae28, format = "markdown", table.attr = 'class="table"') %>%
 
 |       |variable         | hazard_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
 |:------|:----------------|-----------------:|---------:|-------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
-|trt11  |vaccinated       |         1.0153459| 0.3847503|  2.689931e+00|   4.927174e-01| 0.9753421|             11|                 49|         7|            49|Bari-SolidAct |Baricitinib |
-|trt12  |not vaccinated   |         0.7785301| 0.3932854|  1.529344e+00|   3.451862e-01| 0.4682963|              4|                 85|        14|            90|Bari-SolidAct |Baricitinib |
+|trt11  |vaccinated       |         1.0153459| 0.3847503|  2.689931e+00|   4.927174e-01| 0.9753421|             14|                 40|        16|            44|Bari-SolidAct |Baricitinib |
+|trt12  |not vaccinated   |         0.7785301| 0.3932854|  1.529344e+00|   3.451862e-01| 0.4682963|             29|                 87|        28|            77|Bari-SolidAct |Baricitinib |
 |trt111 |vaccinated_firth |         1.0000980| 0.0000000| 2.005975e+204|   2.399885e+00| 1.0000000|              0|                  2|         0|             0|COVINIB       |Baricitinib |
-|trt121 |not vaccinated   |         0.8436332| 0.3258987|  2.160550e+00|   4.783483e-01| 0.7222391|              0|                 51|         2|            54|COVINIB       |Baricitinib |
+|trt121 |not vaccinated   |         0.8436332| 0.3258987|  2.160550e+00|   4.783483e-01| 0.7222391|             11|                 53|        12|            53|COVINIB       |Baricitinib |
 |trt10  |vaccinated_firth |         1.0074623| 0.0000000|  7.364779e+09|   3.839147e+06| 1.0000000|              0|                  1|         0|             2|TOFACOV       |Tofacitinib |
-|trt112 |not vaccinated   |         0.6777994| 0.2341347|  1.922727e+00|   5.314252e-01| 0.4642826|              1|                 57|         0|            56|TOFACOV       |Tofacitinib |
-|trt15  |vaccinated       |         0.8843193| 0.6526309|  1.197942e+00|   1.546928e-01| 0.4267778|            263|               1726|       276|          1637|RECOVERY      |Baricitinib |
-|trt16  |not vaccinated   |         0.9244622| 0.7224957|  1.182727e+00|   1.256030e-01| 0.5317556|            250|               2335|       269|          2303|RECOVERY      |Baricitinib |
-|trt122 |vaccinated       |         1.4750109| 0.2100704|  1.268436e+01|   9.943302e-01| 0.6958847|              0|                 18|         1|            18|PANCOVID      |Baricitinib |
-|trt13  |not vaccinated   |         1.1430250| 0.5257026|  2.514096e+00|   3.959354e-01| 0.7356446|              2|                122|         5|           118|PANCOVID      |Baricitinib |
+|trt112 |not vaccinated   |         0.6777994| 0.2341347|  1.922727e+00|   5.314252e-01| 0.4642826|              9|                 57|        13|            56|TOFACOV       |Tofacitinib |
+|trt15  |vaccinated       |         0.8843193| 0.6526309|  1.197942e+00|   1.546928e-01| 0.4267778|             90|               1468|        91|          1362|RECOVERY      |Baricitinib |
+|trt16  |not vaccinated   |         0.9244622| 0.7224957|  1.182727e+00|   1.256030e-01| 0.5317556|            139|               2091|       139|          2037|RECOVERY      |Baricitinib |
+|trt122 |vaccinated       |         1.4750109| 0.2100704|  1.268436e+01|   9.943302e-01| 0.6958847|              3|                 19|         2|            17|PANCOVID      |Baricitinib |
+|trt13  |not vaccinated   |         1.1430250| 0.5257026|  2.514096e+00|   3.959354e-01| 0.7356446|             16|                124|        14|           119|PANCOVID      |Baricitinib |
 
 ```r
 kable(df_sg_symp_mort28, format = "markdown", table.attr = 'class="table"') %>%
@@ -4489,6 +4687,63 @@ kable(df_sg_crp_mort28, format = "markdown", table.attr = 'class="table"') %>%
 |trt163 |CRP below 75_firth      |         4.4774319| 0.4533582| 5.998628e+02|      1.3565592| 0.2329516|              4|                187|         0|           101|RUXCOVID      |Ruxolitinib |
 |trt174 |CRP 75 and higher_firth |         0.0852210| 0.0005786| 1.070148e+00|      1.4063062| 0.0573738|              0|                 50|         3|            45|PANCOVID      |Baricitinib |
 |trt183 |CRP below 75            |         0.9213102| 0.0894348| 9.279883e+00|      1.1102131| 0.9411518|              2|                 61|         3|            64|PANCOVID      |Baricitinib |
+
+```r
+kable(df_sg_atrisk_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|       |variable          | hazard_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:------|:-----------------|-----------------:|---------:|-----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt19  |Not at risk       |         0.9313914| 0.6578292|   1.3187055|      0.1772541| 0.6884336|            118|                317|       115|           294|ACTT-2        |Baricitinib |
+|trt20  |At risk           |         0.9003117| 0.5833286|   1.3883032|      0.2209306| 0.6345539|             78|                174|        89|           187|ACTT-2        |Baricitinib |
+|trt191 |Not at risk       |         1.0216675| 0.7190005|   1.4522761|      0.1791096| 0.9047355|             94|                420|        83|           398|COV-BARRIER   |Baricitinib |
+|trt201 |At risk           |         1.2457939| 0.8239951|   1.8900601|      0.2114457| 0.2986267|             77|                263|        60|           244|COV-BARRIER   |Baricitinib |
+|trt18  |Not at risk       |         0.7806200| 0.3623424|   1.6647714|      0.3870626| 0.5222621|             25|                 75|        24|            68|Bari-SolidAct |Baricitinib |
+|trt192 |At risk           |         0.9478624| 0.4266395|   2.1030638|      0.4051799| 0.8948628|             19|                 55|        20|            55|Bari-SolidAct |Baricitinib |
+|trt17  |Not at risk       |         0.9038391| 0.2632798|   3.0179659|      0.6113948| 0.8686559|              6|                 38|         7|            42|COVINIB       |Baricitinib |
+|trt181 |At risk           |         0.4843481| 0.0871070|   2.5330444|      0.8438136| 0.3902650|              5|                 17|         5|            11|COVINIB       |Baricitinib |
+|trt171 |Not at risk       |         0.6561957| 0.2128490|   1.9673509|      0.5612381| 0.4528602|              8|                 37|        12|            39|TOFACOV       |Tofacitinib |
+|trt182 |At risk           |         0.5175578| 0.0131880|  16.6610804|      1.6164984| 0.6836812|              1|                 21|         1|            19|TOFACOV       |Tofacitinib |
+|trt14  |Not at risk_firth |         3.6521739| 0.1842096| 554.2079690|      1.4736504| 0.4013868|              1|                 32|         0|            41|Ghazaeian     |Tofacitinib |
+|trt22  |Not at risk       |         0.9777556| 0.7614186|   1.2555060|      0.1274477| 0.8598950|            133|               2295|       133|          2287|RECOVERY      |Baricitinib |
+|trt23  |At risk           |         0.8288704| 0.6159894|   1.1149735|      0.1511587| 0.2143528|             96|               1264|        97|          1112|RECOVERY      |Baricitinib |
+|trt193 |Not at risk       |         2.5760892| 0.7687116|  10.0689264|      0.6387149| 0.1384666|              8|                 65|         4|            79|TACTIC-R      |Baricitinib |
+|trt202 |At risk           |         0.8247433| 0.2989248|   2.2853379|      0.5135367| 0.7075058|             10|                 54|        10|            49|TACTIC-R      |Baricitinib |
+|trt172 |Not at risk       |         0.4240682| 0.1915337|   0.9284717|      0.3993909| 0.0317198|             16|                189|        16|            97|RUXCOVID      |Ruxolitinib |
+|trt183 |At risk           |         1.1562778| 0.3843312|   3.9284333|      0.5813974| 0.8027780|             11|                 84|         5|            42|RUXCOVID      |Ruxolitinib |
+|trt194 |Not at risk       |         1.3360574| 0.3548438|   5.2708749|      0.6735382| 0.6670859|              6|                 50|         5|            49|PANCOVID      |Baricitinib |
+|trt203 |At risk           |         1.0600390| 0.4404118|   2.5841715|      0.4468885| 0.8961943|             13|                 93|        11|            87|PANCOVID      |Baricitinib |
+
+```r
+kable(df_sg_comed_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+
+
+|       |variable                          | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
+|:------|:---------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
+|trt21  |No Dexa, no Tocilizumab_AE        |      9.164330e-01| 0.6965700|  1.2055453|      0.1398572| 0.5326493|            188|                477|       192|           457|ACTT-2        |Baricitinib |
+|trt22  |Dexa, but no Tocilizumab_AE       |      4.928888e-01| 0.0368487|  4.9694556|      1.2040117| 0.5568039|              8|                 14|        12|            24|ACTT-2        |Baricitinib |
+|trt211 |No Dexa, no Tocilizumab_AE        |      1.359701e+00| 0.7401130|  2.5229187|      0.3115837| 0.3240646|             32|                139|        24|           138|COV-BARRIER   |Baricitinib |
+|trt221 |Dexa, but no Tocilizumab_AE       |      1.056360e+00| 0.7834353|  1.4253375|      0.1525382| 0.7192612|            139|                544|       119|           504|COV-BARRIER   |Baricitinib |
+|trt20  |No Dexa, no Tocilizumab_AE        |      5.490797e-01| 0.0386955|  6.9382508|      1.2644230| 0.6354011|              2|                  8|         4|             9|Bari-SolidAct |Baricitinib |
+|trt212 |Dexa, but no Tocilizumab_AE       |      9.557239e-01| 0.5456751|  1.6729367|      0.2851094| 0.8737966|             42|                122|        39|           113|Bari-SolidAct |Baricitinib |
+|trt19  |No Dexa, no Tocilizumab_AE        |      8.244015e-01| 0.2924886|  2.2707095|      0.5175401| 0.7090692|              9|                 44|        11|            48|COVINIB       |Baricitinib |
+|trt201 |Dexa, but no Tocilizumab_AE       |      4.622442e-01| 0.0237634| 13.1726047|      1.4759221| 0.6010899|              2|                 11|         1|             5|COVINIB       |Baricitinib |
+|trt191 |No Dexa, no Tocilizumab_AE_firth  |      5.850331e-01| 0.0035637| 60.0965918|      1.7769302| 0.7766083|              0|                  4|         1|             3|TOFACOV       |Tofacitinib |
+|trt202 |Dexa, but no Tocilizumab_AE       |      8.061029e-01| 0.2724618|  2.3617200|      0.5448572| 0.6924024|              9|                 54|        12|            55|TOFACOV       |Tofacitinib |
+|trt15  |Dexa, but no Tocilizumab_AE_firth |      5.043375e+07| 0.0000000|         NA|   4148.1471061| 0.9965885|              1|                 46|         0|            51|Ghazaeian     |Tofacitinib |
+|trt24  |No Dexa, no Tocilizumab_AE        |      6.107571e-01| 0.2356888|  1.4831933|      0.4628046| 0.2867107|              8|                146|        14|           157|RECOVERY      |Baricitinib |
+|trt25  |Dexa, but no Tocilizumab_AE       |      9.193613e-01| 0.7136172|  1.1843802|      0.1291051| 0.5149035|            130|               2279|       129|          2182|RECOVERY      |Baricitinib |
+|trt213 |No Dexa, no Tocilizumab_AE        |      1.589858e-01| 0.0006961|  3.9368587|      1.9042628| 0.3341959|              1|                 11|         2|            18|TACTIC-R      |Baricitinib |
+|trt222 |Dexa, but no Tocilizumab_AE       |      1.276201e+00| 0.5573211|  2.9814719|      0.4238777| 0.5650391|             15|                103|        12|           105|TACTIC-R      |Baricitinib |
+|trt192 |No Dexa, no Tocilizumab_AE        |      3.641774e-01| 0.1325555|  0.9609916|      0.4985872| 0.0427696|              8|                110|        12|            62|RUXCOVID      |Ruxolitinib |
+|trt203 |Dexa, but no Tocilizumab_AE       |      9.238495e-01| 0.3959037|  2.2848053|      0.4421620| 0.8578328|             19|                163|         9|            77|RUXCOVID      |Ruxolitinib |
+|trt214 |Dexa, but no Tocilizumab_AE       |      1.141285e+00| 0.5457068|  2.4204059|      0.3771301| 0.7260226|             18|                138|        15|           126|PANCOVID      |Baricitinib |
 
 # Reshape dataframes for each subgroup estimate (for overall forestplot only; descriptive purpose)
 
@@ -4751,6 +5006,74 @@ df_sg_vaccno_ae28 <- data.frame()
 for (df in list_subgroup_df) {
   selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
   df_sg_vaccno_ae28 <- rbind(df_sg_vaccno_ae28, selected_rows)
+}
+
+
+## At risk on AEs: Not at risk
+outcomes1 <- "Not at risk"
+outcomes1.firth <- "Not at risk_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_atriskno_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_atriskno_ae28 <- rbind(df_sg_atriskno_ae28, selected_rows)
+}
+
+## At risk on AEs: At risk
+outcomes1 <- "At risk"
+outcomes1.firth <- "At risk_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_atriskyes_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_atriskyes_ae28 <- rbind(df_sg_atriskyes_ae28, selected_rows)
+}
+
+
+## Comedication on AEs: No Dexa, no Tocilizumab
+outcomes1 <- "No Dexa, no Tocilizumab_AE"
+outcomes1.firth <- "No Dexa, no Tocilizumab_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_comed_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_comed_ae28 <- rbind(df_sg_no_comed_ae28, selected_rows)
+}
+
+## Comedication on AEs: Dexa, but no Tocilizumab
+outcomes1 <- "Dexa, but no Tocilizumab_AE"
+outcomes1.firth <- "Dexa, but no Tocilizumab_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_dexa_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_dexa_ae28 <- rbind(df_sg_dexa_ae28, selected_rows)
+}
+
+## Comedication on AEs: Dexa and Tocilizumab
+outcomes1 <- "Dexa and Tocilizumab_AE"
+outcomes1.firth <- "Dexa and Tocilizumab_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_dexa_toci_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_dexa_toci_ae28 <- rbind(df_sg_dexa_toci_ae28, selected_rows)
+}
+
+## Comedication on AEs: Tocilizumab but no Dexa
+outcomes1 <- "Tocilizumab, but no Dexa_AE"
+outcomes1.firth <- "Tocilizumab, but no Dexa_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_toci_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_toci_ae28 <- rbind(df_sg_toci_ae28, selected_rows)
 }
 ```
 
@@ -6494,20 +6817,19 @@ vacc.ae28 <- metagen(TE = log(log_odds_ratio),
                       adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on AEs: vaccination",
                       # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
-                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
-                      )
+                      exclude = trial %in% c("Ghazaeian"))
 summary(vacc.ae28)
 ```
 
 ```
 ## Review:     Treatment-covariate interaction on AEs: vaccination
 ## 
-##                   OR             95%-CI %W(random)
-## Bari-SolidAct 1.4026 [0.4400;   4.4709]        9.7
-## TOFACOV       2.6499 [0.0261; 269.5443]        0.6
-## COVINIB       1.0000 [0.0091; 110.2786]        0.6
-## RECOVERY      0.9484 [0.6420;   1.4009]       86.0
-## PANCOVID      1.3277 [0.1657;  10.6407]        3.0
+##                   OR             95%-CI %W(random) exclude
+## Bari-SolidAct 1.4026 [0.4400;   4.4709]        9.7        
+## TOFACOV       2.6499 [0.0261; 269.5443]        0.6        
+## COVINIB       1.0000 [0.0091; 110.2786]        0.6        
+## RECOVERY      0.9484 [0.6420;   1.4009]       86.0        
+## PANCOVID      1.3277 [0.1657;  10.6407]        3.0        
 ## 
 ## Number of studies: k = 5
 ## 
@@ -6538,7 +6860,7 @@ forest.meta(vacc.ae28,
             # text.random = "Average interaction effect (random effect model)*",
             text.random = "",
             title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
-            xlab = "vaccination: greater effect <-> no vaccination: greater effect",
+            xlab = "vaccination: less AEs <-> no vaccination: less AEs",
             xlab.pos = 0.0,
             fs.xlab = 11
 )
@@ -6565,20 +6887,21 @@ vacc.yes.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       n.c = n_control,
                       sm = "OR",
                       fixed = T, 
-                      random = F)
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
 summary(vacc.yes.ae28)
 ```
 
 ```
-##                   OR             95%-CI %W(common)
-## Bari-SolidAct 1.0153 [0.3866;   2.6670]        8.7
-## COVINIB       1.0001 [0.0091; 110.3643]        0.4
-## TOFACOV       1.0075 [0.0000;      Inf]        0.0
-## RECOVERY      0.8843 [0.6530;   1.1975]       88.7
-## PANCOVID      1.4750 [0.2101;  10.3555]        2.1
+##                   OR             95%-CI %W(common) exclude
+## Bari-SolidAct 1.0153 [0.3866;   2.6670]        8.7        
+## COVINIB       1.0001 [0.0091; 110.3643]        0.4        
+## TOFACOV       1.0075 [0.0000;      Inf]        0.0        
+## RECOVERY      0.8843 [0.6530;   1.1975]       88.7        
+## PANCOVID      1.4750 [0.2101;  10.3555]        2.1        
 ## 
 ## Number of studies: k = 5
-## Number of observations: o = 558
+## Number of observations: o = 216
 ## 
 ##                         OR           95%-CI     z p-value
 ## Common effect model 0.9054 [0.6804; 1.2047] -0.68  0.4951
@@ -6615,20 +6938,21 @@ vacc.no.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       n.c = n_control,
                       sm = "OR",
                       fixed = T, 
-                      random = F)
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
 summary(vacc.no.ae28)
 ```
 
 ```
-##                   OR           95%-CI %W(common)
-## Bari-SolidAct 0.7785 [0.3958; 1.5314]        9.8
-## COVINIB       0.8436 [0.3304; 2.1544]        5.1
-## TOFACOV       0.6778 [0.2392; 1.9207]        4.1
-## RECOVERY      0.9245 [0.7227; 1.1825]       73.6
-## PANCOVID      1.1430 [0.5261; 2.4836]        7.4
+##                   OR           95%-CI %W(common) exclude
+## Bari-SolidAct 0.7785 [0.3958; 1.5314]        9.8        
+## COVINIB       0.8436 [0.3304; 2.1544]        5.1        
+## TOFACOV       0.6778 [0.2392; 1.9207]        4.1        
+## RECOVERY      0.9245 [0.7227; 1.1825]       73.6        
+## PANCOVID      1.1430 [0.5261; 2.4836]        7.4        
 ## 
 ## Number of studies: k = 5
-## Number of observations: o = 547
+## Number of observations: o = 410
 ## 
 ##                         OR           95%-CI     z p-value
 ## Common effect model 0.9076 [0.7347; 1.1211] -0.90  0.3683
@@ -6656,6 +6980,469 @@ forest.meta(vacc.no.ae28,
 ```
 
 ![](two_stage_files/figure-html/unnamed-chunk-60-2.png)<!-- -->
+
+# Interaction: At risk on AEs
+
+```r
+# str(df_atrisk_ae28)
+df_atrisk_ae28 <- df_atrisk_ae28[order(df_atrisk_ae28$trial), ]
+atrisk.ae28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_atrisk_ae28,
+                      sm = "OR",
+                      fixed = F, 
+                      random = T, 
+                      method.tau = "ML", 
+                      method.random.ci = "HK",
+                      exclude = trial %in% c("Ghazaeian"))
+summary(atrisk.ae28)
+```
+
+```
+##                   OR            95%-CI %W(random) exclude
+## ACTT-2        0.9655 [0.5544;  1.6815]       20.5        
+## Bari-SolidAct 1.2295 [0.4141;  3.6502]        5.3        
+## COV-BARRIER   1.2095 [0.7034;  2.0798]       21.5        
+## COVINIB       0.5621 [0.0764;  4.1339]        1.6        
+## Ghazaeian     0.2006 [0.0016; 25.2681]        0.0       *
+## PANCOVID      0.9430 [0.2028;  4.3849]        2.7        
+## RECOVERY      0.8407 [0.5708;  1.2382]       42.0        
+## RUXCOVID      2.2435 [0.5674;  8.8707]        3.3        
+## TACTIC-R      0.3137 [0.0633;  1.5562]        2.5        
+## TOFACOV       1.0998 [0.0503; 24.0490]        0.7        
+## 
+## Number of studies: k = 9
+## 
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.9609 [0.7613; 1.2128] -0.40  0.7029
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.5056]; tau = 0 [0.0000; 0.7111]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  4.97    8  0.7607
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 8)
+```
+
+```r
+forest.meta(atrisk.ae28,
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            # text.common = "Average interaction effect (common effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            xlab = "at risk: less AEs <-> not at risk: less AEs",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-61-1.png)<!-- -->
+
+# Subgroups: At risk on AEs: Descriptive
+
+```r
+# Calculate the inverse variance
+df_sg_atrisk_ae28$inverse_variance <- 1 / df_sg_atrisk_ae28$standard_error^2
+```
+
+# Subgroups: At risk on AEs: Pooled across trials // Descriptive
+
+```r
+# Not at risk
+atrisk.no.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_atriskno_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(atrisk.no.ae28)
+```
+
+```
+##                   OR            95%-CI %W(common) exclude
+## ACTT-2        0.9314 [0.6580;  1.3183]       21.5        
+## COV-BARRIER   1.0217 [0.7192;  1.4513]       21.1        
+## Bari-SolidAct 0.7806 [0.3656;  1.6669]        4.5        
+## COVINIB       0.9038 [0.2727;  2.9958]        1.8        
+## TOFACOV       0.6562 [0.2184;  1.9713]        2.1        
+## Ghazaeian     3.6522 [0.2033; 65.6032]        0.0       *
+## RECOVERY      0.9778 [0.7616;  1.2552]       41.6        
+## TACTIC-R      2.5761 [0.7367;  9.0082]        1.7        
+## RUXCOVID      0.4241 [0.1939;  0.9277]        4.2        
+## PANCOVID      1.3361 [0.3569;  5.0020]        1.5        
+## 
+## Number of studies: k = 9
+## Number of observations: o = 814
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.9432 [0.8028; 1.1080] -0.71  0.4766
+## 
+## Quantifying heterogeneity:
+##  tau^2 < 0.0001 [0.0000; 0.5913]; tau = 0.0025 [0.0000; 0.7690]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  7.69    8  0.4640
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(atrisk.no.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-63-1.png)<!-- -->
+
+```r
+# At risk
+atrisk.yes.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_atriskyes_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(atrisk.yes.ae28)
+```
+
+```
+##                   OR            95%-CI %W(common) exclude
+## ACTT-2        0.9003 [0.5839;  1.3882]       19.3        
+## COV-BARRIER   1.2458 [0.8231;  1.8855]       21.0        
+## Bari-SolidAct 0.9479 [0.4284;  2.0972]        5.7        
+## COVINIB       0.4843 [0.0927;  2.5317]        1.3        
+## TOFACOV       0.5176 [0.0218; 12.3006]        0.4        
+## RECOVERY      0.8289 [0.6163;  1.1147]       41.2        
+## TACTIC-R      0.8247 [0.3014;  2.2565]        3.6        
+## RUXCOVID      1.1563 [0.3700;  3.6137]        2.8        
+## PANCOVID      1.0600 [0.4415;  2.5452]        4.7        
+## 
+## Number of studies: k = 9
+## Number of observations: o = 608
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.9358 [0.7737; 1.1317] -0.68  0.4937
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.0386]; tau = 0 [0.0000; 0.1965]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  3.52    8  0.8975
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(atrisk.yes.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-63-2.png)<!-- -->
+
+# Interaction: Comed on AEs
+
+```r
+# str(df_comed_ae28)
+df_comed_ae28 <- df_comed_ae28[order(df_comed_ae28$trial), ]
+comed.ae28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_comed_ae28,
+                      sm = "OR",
+                      fixed = F, 
+                      random = T, 
+                      method.tau = "ML", 
+                      method.random.ci = "HK",
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      exclude = trial %in% c("Ghazaeian")) # incl in plot but exclude from analysis
+summary(comed.ae28)
+```
+
+```
+##                   OR             95%-CI %W(random) exclude
+## ACTT-2        1.2089 [0.2767;   5.2815]        3.7        
+## Bari-SolidAct 1.0026 [0.1126;   8.9252]        1.7        
+## COV-BARRIER   0.7852 [0.3970;   1.5531]       17.4        
+## COVINIB       0.8775 [0.0480;  16.0361]        1.0        
+## Ghazaeian     1.0038 [0.7189;   1.4017]        0.0       *
+## PANCOVID      2.7964 [0.1199;  65.2126]        0.8        
+## RECOVERY      1.1015 [0.7804;   1.5547]       68.2        
+## RUXCOVID      2.6439 [0.7197;   9.7125]        4.8        
+## TACTIC-R      3.8769 [0.4825;  31.1492]        1.9        
+## TOFACOV       2.9293 [0.0768; 111.7502]        0.6        
+## 
+## Number of studies: k = 9
+## 
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.1234 [0.8685; 1.4530] 1.04  0.3275
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.4938]; tau = 0 [0.0000; 0.7027]
+##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  4.73    8  0.7863
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 8)
+```
+
+```r
+forest.meta(comed.ae28,
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            # text.common = "Average interaction effect (common effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            xlab = "More comed: less AEs <-> Less comed: less AEs",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-64-1.png)<!-- -->
+
+# Subgroups: Comed on AEs: Descriptive
+
+```r
+# Calculate the inverse variance
+df_sg_comed_ae28$inverse_variance <- 1 / df_sg_comed_ae28$standard_error^2
+```
+
+# Subgroups: Comed on AEs: Pooled across trials // Descriptive
+
+```r
+# No comedication
+no.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_comed_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(no.comed.ae28)
+```
+
+```
+##                   OR            95%-CI %W(common) exclude
+## ACTT-2        0.6654 [0.3696;  1.1980]       43.1        
+## COV-BARRIER   0.3813 [0.1530;  0.9503]       17.9        
+## Bari-SolidAct 0.3455 [0.0092; 12.9587]        1.1        
+## COVINIB       0.2037 [0.0142;  2.9320]        2.1        
+## TOFACOV       0.7356 [0.0160; 33.9204]        1.0        
+## RECOVERY      0.7070 [0.3288;  1.5201]       25.4        
+## TACTIC-R      1.4950 [0.2268;  9.8560]        4.2        
+## RUXCOVID      1.4644 [0.2691;  7.9679]        5.2        
+## 
+## Number of studies: k = 8
+## Number of observations: o = 140
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.6390 [0.4344; 0.9401] -2.27  0.0230
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.8321]; tau = 0 [0.0000; 0.9122]
+##  I^2 = 0.0% [0.0%; 67.6%]; H = 1.00 [1.00; 1.76]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  3.84    7  0.7985
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(no.comed.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-66-1.png)<!-- -->
+
+```r
+# Dexa, but no Toci
+dexa.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_dexa_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian")) # incl in plot but exclude from analysis
+summary(dexa.comed.ae28)
+```
+
+```
+##                          OR           95%-CI %W(common) exclude
+## ACTT-2               0.4929 [0.0465; 5.2192]        0.5        
+## COV-BARRIER          1.0564 [0.7834; 1.4245]       31.3        
+## Bari-SolidAct        0.9557 [0.5466; 1.6712]        8.9        
+## COVINIB              0.4622 [0.0256; 8.3402]        0.3        
+## TOFACOV              0.8061 [0.2771; 2.3452]        2.4        
+## Ghazaeian     50433754.1850 [0.0000;    Inf]        0.0       *
+## RECOVERY             0.9194 [0.7138; 1.1841]       43.6        
+## TACTIC-R             1.2762 [0.5560; 2.9290]        4.0        
+## RUXCOVID             0.9238 [0.3884; 2.1977]        3.7        
+## PANCOVID             1.1413 [0.5450; 2.3901]        5.1        
+## 
+## Number of studies: k = 9
+## Number of observations: o = 731
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.9789 [0.8282; 1.1570] -0.25  0.8026
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  1.78    8  0.9871
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+```
+
+```r
+forest.meta(dexa.comed.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-66-2.png)<!-- -->
+
+```r
+# Dexa and Toci
+dexa.toci.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_dexa_toci_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(dexa.toci.comed.ae28)
+```
+
+```
+##              OR             95%-CI %W(common) exclude
+## RECOVERY 0.9759 [0.7141;   1.3336]       98.6        
+## TACTIC-R 1.3018 [0.0219;  77.2590]        0.6        
+## PANCOVID 7.7134 [0.2340; 254.2128]        0.8        
+## 
+## Number of studies: k = 3
+## Number of observations: o = 179
+## 
+##                         OR           95%-CI     z p-value
+## Common effect model 0.9936 [0.7286; 1.3549] -0.04  0.9675
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 47.0348]; tau = 0 [0.0000; 6.8582]
+##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  1.35    2  0.5091
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Restricted maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+```
+
+```r
+forest.meta(dexa.toci.comed.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-66-3.png)<!-- -->
+
+```r
+# No dexa, but toci
+toci.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_toci_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(toci.comed.ae28)
+```
+
+```
+## Number of observations: o = 3
+## 
+##              OR           95%-CI     z p-value
+## RECOVERY 0.4240 [0.0287; 6.2566] -0.62  0.5321
+```
+
+```r
+forest.meta(toci.comed.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+![](two_stage_files/figure-html/unnamed-chunk-66-4.png)<!-- -->
 
 # Interaction: Symptom onset on primary endpoint
 
@@ -6730,7 +7517,7 @@ forest.meta(symp.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-61-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-67-1.png)<!-- -->
 
 # Subgroups: Symptom onset on primary endpoint: Descriptive
 
@@ -6795,7 +7582,7 @@ forest.meta(sympdur.m10.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-63-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-69-1.png)<!-- -->
 
 ```r
 # Enrolment between 5 and 10 days after symptom onset
@@ -6852,7 +7639,7 @@ forest.meta(sympdur.510.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-63-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-69-2.png)<!-- -->
 
 ```r
 # Enrolment less than 5 days after symptom onset
@@ -6909,7 +7696,7 @@ forest.meta(sympdur.5.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-63-3.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-69-3.png)<!-- -->
 
 # Interaction: CRP on primary endpoint
 
@@ -6984,7 +7771,7 @@ forest.meta(crp.mort28,
 )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-64-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-70-1.png)<!-- -->
 
 # Subgroups: CRP on primary endpoint: Descriptive
 
@@ -7050,7 +7837,7 @@ forest.meta(crp.above75.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-66-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-72-1.png)<!-- -->
 
 ```r
 # CRP below 75
@@ -7107,7 +7894,7 @@ forest.meta(crp.below75.mort28,
             sortvar = +TE)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-66-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-72-2.png)<!-- -->
 
 # Collect all interaction effect estimates
 
@@ -7159,6 +7946,8 @@ result_list[[8]] <- extract_interaction(comed.mort28, "comedication")
 result_list[[9]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
 result_list[[10]] <- extract_interaction(symp.mort28, "symptom duration") 
 result_list[[11]] <- extract_interaction(crp.mort28, "crp") 
+result_list[[12]] <- extract_interaction(atrisk.ae28, "at risk on AEs") 
+result_list[[13]] <- extract_interaction(comed.ae28, "comedication on AEs") 
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -7186,6 +7975,8 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |vaccination on AEs   |          1.002|    0.698|    1.439|          0.185|   0.992|two-stage |
 |symptom duration     |          0.998|    0.970|    1.028|          0.013|   0.905|two-stage |
 |crp                  |          1.000|    0.999|    1.001|          0.001|   0.933|two-stage |
+|at risk on AEs       |          0.961|    0.761|    1.213|          0.101|   0.703|two-stage |
+|comedication on AEs  |          1.123|    0.869|    1.453|          0.112|   0.328|two-stage |
 
 ```r
 # Save
@@ -7438,6 +8229,36 @@ result_list[[2]] <- extract_subgroup(vacc.no.ae28, "Unvaccinated",
                                      sum(df_sg_vaccno_ae28$n_intervention_tot),
                                      sum(df_sg_vaccno_ae28$n_control),
                                      sum(df_sg_vaccno_ae28$n_control_tot))
+result_list[[3]] <- extract_subgroup(atrisk.no.ae28, "Not at risk",
+                                     sum(df_sg_atriskno_ae28$n_intervention),
+                                     sum(df_sg_atriskno_ae28$n_intervention_tot),
+                                     sum(df_sg_atriskno_ae28$n_control),
+                                     sum(df_sg_atriskno_ae28$n_control_tot))
+result_list[[4]] <- extract_subgroup(atrisk.yes.ae28, "At risk",
+                                     sum(df_sg_atriskyes_ae28$n_intervention),
+                                     sum(df_sg_atriskyes_ae28$n_intervention_tot),
+                                     sum(df_sg_atriskyes_ae28$n_control),
+                                     sum(df_sg_atriskyes_ae28$n_control_tot))
+result_list[[5]] <- extract_subgroup(no.comed.ae28, "No Dexamethasone, no Tocilizumab",
+                                     sum(df_sg_no_comed_ae28$n_intervention),
+                                     sum(df_sg_no_comed_ae28$n_intervention_tot),
+                                     sum(df_sg_no_comed_ae28$n_control),
+                                     sum(df_sg_no_comed_ae28$n_control_tot))
+result_list[[6]] <- extract_subgroup(dexa.comed.ae28, "Dexamethasone, but no Tocilizumab",
+                                     sum(df_sg_dexa_ae28$n_intervention),
+                                     sum(df_sg_dexa_ae28$n_intervention_tot),
+                                     sum(df_sg_dexa_ae28$n_control),
+                                     sum(df_sg_dexa_ae28$n_control_tot))
+result_list[[7]] <- extract_subgroup(dexa.toci.comed.ae28, "Dexamethasone and Tocilizumab",
+                                     sum(df_sg_dexa_toci_ae28$n_intervention),
+                                     sum(df_sg_dexa_toci_ae28$n_intervention_tot),
+                                     sum(df_sg_dexa_toci_ae28$n_control),
+                                     sum(df_sg_dexa_toci_ae28$n_control_tot))
+result_list[[8]] <- extract_subgroup(toci.comed.ae28, "Tocilizumab, but no Dexamethasone",
+                                     sum(df_sg_toci_ae28$n_intervention),
+                                     sum(df_sg_toci_ae28$n_intervention_tot),
+                                     sum(df_sg_toci_ae28$n_control),
+                                     sum(df_sg_toci_ae28$n_control_tot))
 
 # Filter out NULL results and bind the results into a single data frame
 subgroup_df_ae <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -7452,10 +8273,16 @@ kable(subgroup_df_ae, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|variable     | odds_ratio|  ci_lower| ci_upper| standard_error| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
-|:------------|----------:|---------:|--------:|--------------:|--------------:|------------------:|---------:|-------------:|:---------|
-|Vaccinated   |  0.9053710| 0.6804382| 1.204660|      0.1457209|            274|               1796|       284|          1706|two-stage |
-|Unvaccinated |  0.9075733| 0.7347363| 1.121068|      0.1077891|            257|               2650|       290|          2621|two-stage |
+|variable                          | odds_ratio|  ci_lower|  ci_upper| standard_error| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
+|:---------------------------------|----------:|---------:|---------:|--------------:|--------------:|------------------:|---------:|-------------:|:---------|
+|Vaccinated                        |  0.9053710| 0.6804382| 1.2046600|      0.1457209|            107|               1530|       109|          1425|two-stage |
+|Unvaccinated                      |  0.9075733| 0.7347363| 1.1210680|      0.1077891|            204|               2412|       206|          2342|two-stage |
+|Not at risk                       |  0.9431719| 0.8028343| 1.1080409|      0.0821955|            415|               3518|       399|          3394|two-stage |
+|At risk                           |  0.9357528| 0.7737216| 1.1317163|      0.0970116|            310|               2025|       298|          1806|two-stage |
+|No Dexamethasone, no Tocilizumab  |  0.6390371| 0.4344043| 0.9400655|      0.1969357|            248|                939|       260|           892|two-stage |
+|Dexamethasone, but no Tocilizumab |  0.9789049| 0.8282295| 1.1569919|      0.0852792|            383|               3474|       348|          3242|two-stage |
+|Dexamethasone and Tocilizumab     |  0.9935810| 0.7286274| 1.3548806|      0.1582443|             94|               1134|        85|          1063|two-stage |
+|Tocilizumab, but no Dexamethasone |  0.4240208| 0.0287365| 6.2566342|      1.3732983|              0|                 10|         3|            12|two-stage |
 
 ```r
 # Save
@@ -7476,10 +8303,11 @@ tot_i <- subgroup_df$n_intervention_tot
 events_c <- subgroup_df$n_control
 tot_c <- subgroup_df$n_control_tot
 
-# ...and add p-interaction from interaction_df (except for venilation and the other sens-analyses & safety endpoint)
+# ...and add p-interaction from interaction_df (except for ventilation and the other sens-analyses & safety endpoint)
 interaction_df_fp <- interaction_df %>% 
   select(variable, p_value) %>% 
-  filter(!variable %in% c("ventilation", "comorbidity count", "any comorbidity", "comorbidity_noimmuno", "vaccination on AEs"))
+  filter(!variable %in% c("ventilation", "comorbidity count", "any comorbidity", "comorbidity_noimmuno", "vaccination on AEs"
+                          , "at risk on AEs", "comedication on AEs"))
 empty_row <- data.frame(
   variable = "",
   p_value = "")
@@ -7499,6 +8327,7 @@ first_part <- interaction_df_fp[1:15, ]
 second_part <- interaction_df_fp[16:nrow(interaction_df_fp), ]
 interaction_df_fp <- rbind(first_part, empty_row, empty_row, second_part)
 interaction_df_fp <- rbind(interaction_df_fp, empty_row)
+
 p_int <- interaction_df_fp$p_value
 # p_int <- round(p_int,2)
 
@@ -7571,7 +8400,7 @@ mort28_fp %>%
              )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-70-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-76-1.png)<!-- -->
 
 ```r
 # ## main forestplot
@@ -7667,7 +8496,7 @@ For continuous covariates (age, symptom duration, and CRP), a cut-off was chosen
 # Forestplot subgroup - on safety endpoint
 
 ```r
-# take the effect estimates from subgroup_df... 
+# take the effect estimates from subgroup_df_ae... 
 subgroup_df_ae$inverse_variance <- 1 / subgroup_df_ae$standard_error^2
 events_i <- subgroup_df_ae$n_intervention
 tot_i <- subgroup_df_ae$n_intervention_tot
@@ -7676,12 +8505,18 @@ tot_c <- subgroup_df_ae$n_control_tot
 # ...and p-interaction from interaction_df
 interaction_df_fp_ae <- interaction_df %>% 
   select(variable, p_value) %>% 
-  filter(variable %in% c("vaccination on AEs"))
+  filter(variable %in% c("vaccination on AEs", "at risk on AEs", "comedication on AEs"))
 empty_row <- data.frame(
   variable = "",
   p_value = "")
 first_part <- interaction_df_fp_ae[1:1, ]
-interaction_df_fp_ae <- rbind(first_part, empty_row)
+second_part <- interaction_df_fp_ae[2:nrow(interaction_df_fp_ae), ]
+interaction_df_fp_ae <- rbind(first_part, empty_row, second_part)
+first_part <- interaction_df_fp_ae[1:3, ]
+second_part <- interaction_df_fp_ae[4:nrow(interaction_df_fp_ae), ]
+interaction_df_fp_ae <- rbind(first_part, empty_row, second_part)
+interaction_df_fp_ae <- rbind(interaction_df_fp_ae, empty_row, empty_row, empty_row)
+
 p_int <- interaction_df_fp_ae$p_value
 
 # ...and overall results from result_df
@@ -7690,7 +8525,7 @@ ae_28_ci_lower <- result_df$ci_lower[17]
 ae_28_ci_upper <- result_df$ci_upper[17]
 
 # ...and ICEMAN assessments
-iceman <- c("not assessed", "")
+iceman <- c("not assessed", "", "not assessed", "", "not assessed", "", "", "")
 
 # build forestplot
 base_data <- tibble(mean = subgroup_df_ae$odds_ratio,
@@ -7734,7 +8569,10 @@ ae28_fp_red %>%
              graph.pos = 6,
              clip = c(0.1, 2),
              hrzl_lines = list("2" = gpar(lty = 2),
-                               "4" = gpar(lty = 2)),
+                               "4" = gpar(lty = 2),
+                               "6" = gpar(lty = 2),
+                               "10" = gpar(lty = 2)),
+             
              xlog = TRUE,
              # xticks = c(1),
              xlim = c(0.5, 1), 
@@ -7745,13 +8583,13 @@ ae28_fp_red %>%
                             summary = "magenta4",
                             hrz_lines = "gray63"),
              vertices = TRUE,
-             xlab = "  Less adverse events with JAKi <-> More adverse events with JAKi",
+             xlab = "                                                      Less adverse events with JAKi < > More adverse events with JAKi",
              zero = 1,
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
              )
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-72-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-78-1.png)<!-- -->
 
 
 # AESI
@@ -7835,7 +8673,7 @@ ggplot(proportions, aes(x = proportion, y = aesi, color = Group, shape = Group))
         axis.title.x = element_text(size = 9))
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-73-1.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-79-1.png)<!-- -->
 
 # AE
 

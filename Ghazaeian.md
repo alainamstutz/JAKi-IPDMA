@@ -262,6 +262,12 @@ df %>%
 # Viremia
 # Variant
 # Serology
+
+
+# At risk for AEs with JAKi
+df <- df %>%
+  mutate(at_risk = case_when(age>=65 | comorb_cvd==1 | comorb_smoker==1 ~ 1, # at risk
+                             TRUE ~ 0)) # not at risk
 ```
 Discussion points BASELINE data:
 1. 4 received Actemra (Tocilizumab) 2-4 days after randomization
@@ -388,7 +394,7 @@ df <- df %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
          any_comorb, comorb_cat, comorb_any, comorb_count,
-         crp, 
+         crp, at_risk,
          # sero, vl_baseline, variant,
          mort_28, mort_28_dimp, mort_60, death_reached, death_time,
          new_mv_28, new_mvd_28,
@@ -3719,6 +3725,169 @@ Discussion points
 Discussion points
 1. Vaccination data not available
 
+# POST HOC Subgroup analysis: At risk on adverse events
+
+```r
+# table(df$ae_28, df$at_risk, df$trt, useNA = "always") # only 1 AE in intervention arm in not at risk group
+ae.28.atrisk.firth <- df %>%
+  logistf(ae_28 ~ trt*at_risk
+      + age
+      + clinstatus_baseline
+      , data=.)
+summary(ae.28.atrisk.firth)
+```
+
+```
+## logistf(formula = ae_28 ~ trt * at_risk + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                            coef   se(coef)  lower 0.95 upper 0.95      Chisq
+## (Intercept)          -2.6352533 3.33628460 -13.1421765  6.0001845 0.39372088
+## trt                   1.3170162 1.49641025  -1.6787343  6.3459270 0.72321048
+## at_risk               0.6283140 2.36514969  -5.4130299  7.1524832 0.05271278
+## age                   0.0193669 0.05498621  -0.1374439  0.2004143 0.06945407
+## clinstatus_baseline3 -2.4087592 2.00452516  -7.7275768  2.8989860 1.13208389
+## trt:at_risk          -1.6065759 2.46745336  -7.8829000  4.2210332 0.38041286
+##                              p method
+## (Intercept)          0.5303500      2
+## trt                  0.3950928      2
+## at_risk              0.8184083      2
+## age                  0.7921333      2
+## clinstatus_baseline3 0.2873313      2
+## trt:at_risk          0.5373824      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.587228 on 5 df, p=0.9027895, n=97
+## Wald test = 35.66969 on 5 df, p = 1.105817e-06
+```
+
+```r
+# effect by subgroup
+ae.28.atrisk.0.firth <- df %>% 
+  filter(at_risk == 0) %>% # not at risk
+  logistf(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , data=.)
+summary(ae.28.atrisk.0.firth)
+```
+
+```
+## logistf(formula = ae_28 ~ trt + age + clinstatus_baseline, data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)  lower 0.95 upper 0.95      Chisq
+## (Intercept)          -2.56198707 3.50546347 -13.0756847  6.0884300 0.37444294
+## trt                   1.29532257 1.47365041  -1.6916813  6.3175400 0.70416788
+## age                   0.01804349 0.05854556  -0.1391725  0.1998809 0.06075757
+## clinstatus_baseline3 -2.37846176 1.99193695  -7.6852837  2.9229591 1.11193234
+##                              p method
+## (Intercept)          0.5405924      2
+## trt                  0.4013868      2
+## age                  0.8053026      2
+## clinstatus_baseline3 0.2916623      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.521673 on 3 df, p=0.6772773, n=73
+## Wald test = 25.91001 on 3 df, p = 9.960246e-06
+```
+
+```r
+# ae.28.atrisk.1.firth <- df %>% 
+#   filter(at_risk == 1) %>% # at risk
+#   logistf(ae_28 ~ trt
+#       + age 
+#       + clinstatus_baseline 
+#       , data=.)
+# summary(ae.28.atrisk.1.firth)
+```
+
+# POST HOC Subgroup analysis: Concomitant COVID-19 treatment on adverse events
+
+```r
+# 4 comorbidity categories as numeric/continuous, i.e., linear interaction
+# table(df$comed_cat, df$ae_28, df$trt, useNA = "always") # only cat 2
+# 1: patients without Dexamethasone nor Tocilizumab => JAKi effect alone
+# 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
+# 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
+# 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
+ae.28.comed.firth <- df %>%
+  logistf(ae_28 ~ trt*comed_cat 
+      + age 
+      + clinstatus_baseline 
+      , data=.)
+summary(ae.28.comed.firth)
+```
+
+```
+## logistf(formula = ae_28 ~ trt * comed_cat + age + clinstatus_baseline, 
+##     data = .)
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                              coef    se(coef)  lower 0.95  upper 0.95     Chisq
+## (Intercept)          -4.592810686 1.437419167 -18.2292052  3.96341844 0.2393606
+## trt                   1.183718929 1.647183909 -34.6186812  9.79567591 0.1531823
+## comed_cat            -0.020877767 0.128949080 -16.1804630 23.36899430 0.2393606
+## age                  -0.008139344 0.009260236  -0.1130225  0.09095651 0.0000000
+## clinstatus_baseline3  0.451585918 0.569978821 -11.3350155  9.02108586 0.0000000
+## trt:comed_cat         0.003815892 0.170362619 -34.5387077 26.86719047 0.0000000
+##                              p method
+## (Intercept)          0.6246683      2
+## trt                  0.6955126      2
+## comed_cat            0.6246683      2
+## age                  1.0000000      2
+## clinstatus_baseline3 1.0000000      2
+## trt:comed_cat        1.0000000      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=1.400577 on 5 df, p=0.9242502, n=97
+## Wald test = 29.02296 on 5 df, p = 2.294833e-05
+```
+
+```r
+# effect by subgroup
+ae.28.comed.2.firth <- df %>% 
+  filter(comed_cat == 2) %>% # Dexamethasone but no Tocilizumab
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summary(ae.28.comed.2.firth)
+```
+
+```
+## 
+## Call:
+## glm(formula = ae_28 ~ trt + age + clinstatus_baseline, family = "binomial", 
+##     data = .)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -0.27894  -0.19592  -0.00004  -0.00003   2.74646  
+## 
+## Coefficients:
+##                        Estimate Std. Error z value Pr(>|z|)
+## (Intercept)          -2.041e+01  2.066e+04  -0.001    0.999
+## trt                   1.774e+01  4.148e+03   0.004    0.997
+## age                  -2.171e-02  6.583e-02  -0.330    0.742
+## clinstatus_baseline3 -7.753e-02  2.107e+04   0.000    1.000
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 11.1391  on 96  degrees of freedom
+## Residual deviance:  9.5211  on 93  degrees of freedom
+## AIC: 17.521
+## 
+## Number of Fisher Scoring iterations: 20
+```
+
 # SENS Subgroup analysis: Duration since symptom onset on primary endpoint
 
 ```r
@@ -4592,6 +4761,8 @@ result_list[[8]] <- extract_interaction(mort.28.comed.firth, "comedication_firth
 result_list[[10]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 result_list[[11]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
 # result_list[[12]] <- extract_interaction(mort.28.var, "variant") # not available
+result_list[[13]] <- extract_interaction(ae.28.atrisk.firth, "at risk on AEs_firth") # adj: age, clinstatus
+result_list[[14]] <- extract_interaction(ae.28.comed.firth, "comedication on AEs_firth") # adj: age, clinstatus
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -4607,17 +4778,19 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                          |variable                  | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial     |JAKi        |
-|:-------------------------|:-------------------------|--------------:|---------:|----------:|--------------:|---------:|:---------|:-----------|
-|trt:clinstatus_baseline_n |respiratory support_firth |      1.0000000| 0.0016182| 617.982662|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
-|trt:age                   |age                       |      1.0504721| 0.9508741|   1.180266|      0.0531186| 0.3539392|Ghazaeian |Tofacitinib |
-|trt:comorb_cat            |comorbidity               |      1.9139158| 0.3278192|  16.486883|      0.9500040| 0.4944083|Ghazaeian |Tofacitinib |
-|trt:comorb_count          |comorbidity_count         |      1.6527667| 0.4561498|   7.127619|      0.6797149| 0.4597807|Ghazaeian |Tofacitinib |
-|trt:comorb_any            |comorbidity_any           |      1.2376379| 0.0481126|  47.600700|      1.6602489| 0.8978188|Ghazaeian |Tofacitinib |
-|trt:comorb_noimmuno       |comorbidity_noimmuno      |      0.7627025| 0.0914175|   6.377876|      1.0144732| 0.7894518|Ghazaeian |Tofacitinib |
-|trt:comed_cat             |comedication_firth        |      0.9812005| 0.0000001|  22.809022|      0.0768805| 0.9268050|Ghazaeian |Tofacitinib |
-|trt:sympdur               |symptom duration          |      1.1956574| 0.6406956|   2.362071|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
-|trt:crp                   |crp                       |      0.9966468| 0.9552354|   1.034729|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
+|                          |variable                  | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial     |JAKi        |
+|:-------------------------|:-------------------------|--------------:|---------:|------------:|--------------:|---------:|:---------|:-----------|
+|trt:clinstatus_baseline_n |respiratory support_firth |      1.0000000| 0.0016182| 6.179827e+02|      0.0327887| 0.9999994|Ghazaeian |Tofacitinib |
+|trt:age                   |age                       |      1.0504721| 0.9508741| 1.180266e+00|      0.0531186| 0.3539392|Ghazaeian |Tofacitinib |
+|trt:comorb_cat            |comorbidity               |      1.9139158| 0.3278192| 1.648688e+01|      0.9500040| 0.4944083|Ghazaeian |Tofacitinib |
+|trt:comorb_count          |comorbidity_count         |      1.6527667| 0.4561498| 7.127619e+00|      0.6797149| 0.4597807|Ghazaeian |Tofacitinib |
+|trt:comorb_any            |comorbidity_any           |      1.2376379| 0.0481126| 4.760070e+01|      1.6602489| 0.8978188|Ghazaeian |Tofacitinib |
+|trt:comorb_noimmuno       |comorbidity_noimmuno      |      0.7627025| 0.0914175| 6.377876e+00|      1.0144732| 0.7894518|Ghazaeian |Tofacitinib |
+|trt:comed_cat             |comedication_firth        |      0.9812005| 0.0000001| 2.280902e+01|      0.0768805| 0.9268050|Ghazaeian |Tofacitinib |
+|trt:sympdur               |symptom duration          |      1.1956574| 0.6406956| 2.362071e+00|      0.3232509| 0.5803940|Ghazaeian |Tofacitinib |
+|trt:crp                   |crp                       |      0.9966468| 0.9552354| 1.034729e+00|      0.0196176| 0.8640553|Ghazaeian |Tofacitinib |
+|trt:at_risk               |at risk on AEs_firth      |      0.2005732| 0.0003771| 6.810381e+01|      2.4674534| 0.5373824|Ghazaeian |Tofacitinib |
+|trt:comed_cat1            |comedication on AEs_firth |      1.0038232| 0.0000000| 4.658784e+11|      0.1703626| 1.0000000|Ghazaeian |Tofacitinib |
 
 ```r
 # Save
@@ -4782,6 +4955,27 @@ result_list[[21]] <- extract_subgroup_results(mort.28.crp.b75, "CRP below 75",
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,2], 
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,2,1], 
                                              addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,1])
+result_list[[22]] <- extract_subgroup_results(ae.28.atrisk.0.firth, "Not at risk_firth",
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,2],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,1],
+                                             addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,1])
+# result_list[[23]] <- extract_subgroup_results(ae.28.atrisk.1.firth, "At risk_firth",
+#                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,2],
+#                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,2],
+#                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,1],
+#                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,1])
+# result_list[[24]] <- extract_subgroup_results(ae.28.comed.1.firth, "No Dexa, no Tocilizumab_AE_firth",
+#                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,2],
+#                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,2],
+#                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,1],
+#                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,1])
+result_list[[25]] <- extract_subgroup_results(ae.28.comed.2.firth, "Dexa, but no Tocilizumab_AE_firth",
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,2],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,1],
+                                             addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,1])
+
 
 # Filter out NULL results and bind the results into a single data frame
 subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -4797,22 +4991,24 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|      |variable                 | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial     |JAKi        |
-|:-----|:------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|:-----------|
-|trt   |None or low-flow oxygen  |         0.8256311| 0.1539036|   3.989383|      0.7975640| 0.8101437|              3|                 46|         4|            51|Ghazaeian |Tofacitinib |
-|trt1  |low-flow oxygen          |         0.7908805| 0.1472786|   3.826382|      0.7982111| 0.7688207|              3|                 46|         4|            49|Ghazaeian |Tofacitinib |
-|trt2  |70 years and above_firth |         3.5454545| 0.1547877| 562.464444|      1.7327236| 0.4360413|              1|                  6|         0|             6|Ghazaeian |Tofacitinib |
-|trt3  |below 70 years_firth     |         0.5699856| 0.0947452|   2.736840|      0.8206782| 0.4855442|              2|                 40|         4|            45|Ghazaeian |Tofacitinib |
-|trt4  |No comorbidity           |         0.6584886| 0.0290147|   7.516449|      1.2710281| 0.7423699|              1|                 17|         2|            24|Ghazaeian |Tofacitinib |
-|trt5  |One comorbidity_firth    |         1.2592497| 0.0078305| 225.316008|      1.6982200| 0.9056900|              0|                 11|         0|            11|Ghazaeian |Tofacitinib |
-|trt6  |Multiple comorbidities   |         0.3297898| 0.0109202|   4.283704|      1.3879102| 0.4241402|              1|                 17|         2|            15|Ghazaeian |Tofacitinib |
-|trt7  |Immunocompromised_firth  |         9.0000000| 0.1388609|  53.050840|      2.3094109| 0.9999995|              1|                  1|         0|             1|Ghazaeian |Tofacitinib |
-|trt8  |Dexa, but no Tocilizumab |         0.7908805| 0.1472786|   3.826383|      0.7982351| 0.7688275|              3|                 46|         4|            51|Ghazaeian |Tofacitinib |
-|trt9  |More than 10 days        |         2.9024345| 0.0835128| 119.857941|      1.6591221| 0.5207192|              1|                  4|         1|            10|Ghazaeian |Tofacitinib |
-|trt10 |Between 5-10 days        |         0.4834340| 0.0216008|   5.406545|      1.2594224| 0.5638570|              1|                 31|         2|            31|Ghazaeian |Tofacitinib |
-|trt11 |5 days and less          |         0.5674658| 0.0083068|  18.672714|      1.6959239| 0.7383190|              1|                 11|         1|            10|Ghazaeian |Tofacitinib |
-|trt12 |CRP 75 and higher        |         0.5965489| 0.0247845|   7.899474|      1.3282549| 0.6973302|              1|                 16|         2|            16|Ghazaeian |Tofacitinib |
-|trt13 |CRP below 75             |         1.0842493| 0.1216951|   9.604896|      1.0395168| 0.9379768|              2|                 29|         2|            34|Ghazaeian |Tofacitinib |
+|      |variable                          | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial     |JAKi        |
+|:-----|:---------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:---------|:-----------|
+|trt   |None or low-flow oxygen           |      8.256311e-01| 0.1539036|   3.989383|      0.7975640| 0.8101437|              3|                 46|         4|            51|Ghazaeian |Tofacitinib |
+|trt1  |low-flow oxygen                   |      7.908805e-01| 0.1472786|   3.826382|      0.7982111| 0.7688207|              3|                 46|         4|            49|Ghazaeian |Tofacitinib |
+|trt2  |70 years and above_firth          |      3.545454e+00| 0.1547877| 562.464444|      1.7327236| 0.4360413|              1|                  6|         0|             6|Ghazaeian |Tofacitinib |
+|trt3  |below 70 years_firth              |      5.699856e-01| 0.0947452|   2.736840|      0.8206782| 0.4855442|              2|                 40|         4|            45|Ghazaeian |Tofacitinib |
+|trt4  |No comorbidity                    |      6.584886e-01| 0.0290147|   7.516449|      1.2710281| 0.7423699|              1|                 17|         2|            24|Ghazaeian |Tofacitinib |
+|trt5  |One comorbidity_firth             |      1.259250e+00| 0.0078305| 225.316008|      1.6982200| 0.9056900|              0|                 11|         0|            11|Ghazaeian |Tofacitinib |
+|trt6  |Multiple comorbidities            |      3.297898e-01| 0.0109202|   4.283704|      1.3879102| 0.4241402|              1|                 17|         2|            15|Ghazaeian |Tofacitinib |
+|trt7  |Immunocompromised_firth           |      9.000000e+00| 0.1388609|  53.050840|      2.3094109| 0.9999995|              1|                  1|         0|             1|Ghazaeian |Tofacitinib |
+|trt8  |Dexa, but no Tocilizumab          |      7.908805e-01| 0.1472786|   3.826383|      0.7982351| 0.7688275|              3|                 46|         4|            51|Ghazaeian |Tofacitinib |
+|trt9  |More than 10 days                 |      2.902435e+00| 0.0835128| 119.857941|      1.6591221| 0.5207192|              1|                  4|         1|            10|Ghazaeian |Tofacitinib |
+|trt10 |Between 5-10 days                 |      4.834340e-01| 0.0216008|   5.406545|      1.2594224| 0.5638570|              1|                 31|         2|            31|Ghazaeian |Tofacitinib |
+|trt11 |5 days and less                   |      5.674658e-01| 0.0083068|  18.672714|      1.6959239| 0.7383190|              1|                 11|         1|            10|Ghazaeian |Tofacitinib |
+|trt12 |CRP 75 and higher                 |      5.965489e-01| 0.0247845|   7.899474|      1.3282549| 0.6973302|              1|                 16|         2|            16|Ghazaeian |Tofacitinib |
+|trt13 |CRP below 75                      |      1.084249e+00| 0.1216951|   9.604896|      1.0395168| 0.9379768|              2|                 29|         2|            34|Ghazaeian |Tofacitinib |
+|trt14 |Not at risk_firth                 |      3.652174e+00| 0.1842096| 554.207969|      1.4736504| 0.4013868|              1|                 32|         0|            41|Ghazaeian |Tofacitinib |
+|trt15 |Dexa, but no Tocilizumab_AE_firth |      5.043375e+07| 0.0000000|         NA|   4148.1471061| 0.9965885|              1|                 46|         0|            51|Ghazaeian |Tofacitinib |
 
 ```r
 # Save
