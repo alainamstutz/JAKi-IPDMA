@@ -309,6 +309,9 @@ df$vacc <- 0
 # Variant // not available
 # Serology // not available
 
+df <- df %>% 
+  mutate(at_risk = case_when(age>=65 | comorb_cvd==1 | comorb_smoker==1 ~ 1,
+                             TRUE ~ 0))
 
 
 ###############
@@ -393,6 +396,11 @@ df <- df %>%
   mutate(death_time = case_when(death_time >28 ~ 28,
                                 TRUE ~ c(death_time)))
 
+#table(df$mort_28, useNA = "always")
+#table(df$mort_60, useNA = "always")
+#table(df$mort_60, df$death_reached, useNA = "always")
+#table(df$mort_60, df$death_time, useNA = "always")
+#table(df$death_reached, df$death_time, useNA = "always")
 
 # (iv) Alternative definition/analysis: New mechanical ventilation OR death within 28 days
 df_ttmv <- df_tte %>% 
@@ -672,7 +680,7 @@ df <- df %>%
          comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
          comorb_autoimm, comorb_cancer, comorb_kidney,
          any_comorb, comorb_cat, comorb_any, comorb_count,
-         crp,
+         crp, at_risk,
          # sero, variant,
          # vl_baseline,
          mort_28, mort_28_dimp,
@@ -1649,6 +1657,65 @@ mort.28.comed.2 <- df %>%
 exp(coef(mort.28.comed.2))
 exp(confint(mort.28.comed.2))
 
+#######
+# at risk on AEs
+#table(df$ae_28, df$at_risk)
+ae.28.atrisk <- df %>%
+  glm(ae_28 ~ trt*at_risk
+      + age
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+exp(coef(ae.28.atrisk))
+exp(confint(ae.28.atrisk))
+
+# effect by subgroup
+ae.28.atrisk.0 <- df %>%
+  filter(at_risk == 0) %>% 
+  glm(ae_28 ~ trt
+      + age
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+exp(coef(ae.28.atrisk.0))
+exp(confint(ae.28.atrisk.0))
+
+ae.28.atrisk.1 <- df %>%
+  filter(at_risk == 1) %>% 
+  glm(ae_28 ~ trt
+      + age
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+exp(coef(ae.28.atrisk.1))
+exp(confint(ae.28.atrisk.1))
+
+#######
+# comed on AEs
+#table(df$comed_cat, df$ae_28)
+ae.28.comed <- df %>%
+  glm(ae_28 ~ trt*comed_cat
+      + age
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+exp(coef(ae.28.comed))
+exp(confint(ae.28.comed))
+
+# effect by subgroup
+ae.28.comed.1 <- df %>%
+  filter(comed_cat == 1) %>% 
+  glm(ae_28 ~ trt
+      + age
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+exp(coef(ae.28.comed.1))
+exp(confint(ae.28.comed.1))
+
+ae.28.comed.2 <- df %>%
+  filter(comed_cat == 2) %>% 
+  glm(ae_28 ~ trt
+      + age
+      + clinstatus_baseline
+      , family = "binomial", data=.)
+exp(coef(ae.28.comed.2))
+exp(confint(ae.28.comed.2))
 
 #######
 # symptom duration
@@ -1977,6 +2044,8 @@ result_list[[8]] <- extract_interaction(mort.28.comed, "comedication") # adj: ag
 result_list[[10]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 result_list[[11]] <- extract_interaction(mort.28.crp, "crp") # adj: age, clinstatus
 # result_list[[12]] <- extract_interaction(mort.28.var, "variant") # variant not available
+result_list[[13]] <- extract_interaction(ae.28.atrisk, "at risk on AEs")
+result_list[[14]] <- extract_interaction(ae.28.comed, "comedication on AEs")
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -1990,7 +2059,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-saveRDS(interaction_df, file = "int_effects_ruxcovid_05072024.RData")
+saveRDS(interaction_df, file = "int_effects_ruxcovid_19072024.RData")
 
 
 #######
@@ -2141,6 +2210,26 @@ result_list[[19]] <- extract_subgroup_results(mort.28.crp.b75.firth, "CRP below 
                                               addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,2],
                                               addmargins(table(df$crp_75, df$mort_28, df$trt))[2,2,1],
                                               addmargins(table(df$crp_75, df$mort_28, df$trt))[2,3,1])
+result_list[[20]] <- extract_subgroup_results(ae.28.atrisk.0, "Not at risk",
+                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,2],
+                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,2],
+                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[1,2,1],
+                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[1,3,1])
+result_list[[21]] <- extract_subgroup_results(ae.28.atrisk.1, "At risk",
+                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,2],
+                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,2],
+                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,2,1],
+                                              addmargins(table(df$at_risk, df$ae_28, df$trt))[2,3,1])
+result_list[[22]] <- extract_subgroup_results(ae.28.comed.1, "No Dexa, no Tocilizumab_AE",
+                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,2],
+                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,2],
+                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,2,1],
+                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[1,3,1])
+result_list[[23]] <- extract_subgroup_results(ae.28.comed.2, "Dexa, but no Tocilizumab_AE",
+                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,2],
+                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,2],
+                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,2,1],
+                                              addmargins(table(df$comed_cat, df$ae_28, df$trt))[2,3,1])
 
 # Filter out NULL results and bind the results into a single data frame
 subgroup_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2154,5 +2243,5 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-saveRDS(subgroup_df, file = "subgroup_effects_ruxcovid_05072024.RData")
+saveRDS(subgroup_df, file = "subgroup_effects_ruxcovid_19072024.RData")
 
