@@ -361,16 +361,16 @@ df_mort28 <- df_mort28 %>%
                                         trial == "PANCOVID" ~ "10.2020-09.2021",
                                         ))
 df_mort28 <- df_mort28 %>% 
-  mutate(recruitment_period_cat = case_when(trial == "ACTT-2" ~ "mid2020",
-                                            trial == "COV-BARRIER" ~ "mid2020",
-                                            trial == "RECOVERY" ~ "beg2021",
-                                            trial == "TOFACOV" ~ "beg2021",
-                                            trial == "COVINIB" ~ "beg2021",
-                                            trial == "Ghazaeian" ~ "mid2021",
-                                            trial == "Bari-SolidAct" ~ "mid2021",
-                                            trial == "TACTIC-R" ~ "beg2021",
-                                            trial == "RUXCOVID" ~ "mid2020",
-                                            trial == "PANCOVID" ~ "beg2021",
+  mutate(period = case_when(trial == "ACTT-2" ~ "pre-delta",
+                                            trial == "COV-BARRIER" ~ "pre-delta",
+                                            trial == "RECOVERY" ~ "pre-delta/delta",
+                                            trial == "TOFACOV" ~ "pre-delta/delta",
+                                            trial == "COVINIB" ~ "pre-delta/delta",
+                                            trial == "Ghazaeian" ~ "pre-delta/delta",
+                                            trial == "Bari-SolidAct" ~ "delta/omicron",
+                                            trial == "TACTIC-R" ~ "pre-delta/delta",
+                                            trial == "RUXCOVID" ~ "pre-delta",
+                                            trial == "PANCOVID" ~ "pre-delta/delta",
                                         ))
 
 df_mort28 <- df_mort28 %>% 
@@ -423,7 +423,7 @@ row_prevent <- tibble(
   trial = "PRE-VENT*",
   JAKi = "Pacritinib",
   recruitment_period = "06.2020-02.2021",
-  recruitment_period_cat = "mid2020",
+  period = "pre-delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -450,7 +450,7 @@ row_cao <- tibble(
   trial = "CAO*",
   JAKi = "Ruxolitinib",
   recruitment_period = "02.2020",
-  recruitment_period_cat = "beg2020",
+  period = "pre-delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -477,7 +477,7 @@ row_stopcovid <- tibble(
   trial = "STOP-COVID*",
   JAKi = "Tofacitinib",
   recruitment_period = "09.2020-12.2020",
-  recruitment_period_cat = "mid2020",
+  period = "pre-delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -504,7 +504,7 @@ row_ruxcoviddevent <- tibble(
   trial = "RUXCOVID-DEVENT*",
   JAKi = "Ruxolitinib",
   recruitment_period = "05.2020-12.2020",
-  recruitment_period_cat = "mid2020",
+  period = "pre-delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -531,7 +531,7 @@ row_dastan <- tibble(
   trial = "Dastan*",
   JAKi = "Baricitinib",
   recruitment_period = "03.2022-08.2022",
-  recruitment_period_cat = "beg2022",
+  period = "delta/omicron",
   rob_mort28 = "Some concerns",
   'Data provided' = "non-IPD trials")
 
@@ -558,7 +558,7 @@ row_singh <- tibble(
   trial = "Singh*",
   JAKi = "Nezulcitinib",
   recruitment_period = "06.2020-04.2021",
-  recruitment_period_cat = "mid2021",
+  period = "pre-delta/delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
 
@@ -719,7 +719,7 @@ total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE),
                sum(df_mort28_agg$n_cont, na.rm = TRUE),
                sum(df_mort28_agg$e_cont, na.rm = TRUE))
 pushViewport(viewport())
-grid.text(label = total_row[1], x = unit(0.318, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[1], x = unit(0.317, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[3], x = unit(0.42, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
@@ -751,27 +751,69 @@ mort28.agg.jaki.mreg
 
 ```
 
-# (i.iii) Primary outcome: Meta-regression by Recruitment Period, including the non-IPD RCTs
-```{r warning=FALSE, fig.width=11, fig.height=8}
-# meta-regression by recruitment period
-# mort28.agg.rec <- update.meta(mort28.agg, 
-#                                subgroup = recruitment_period_cat)
-# forest.meta(mort28.agg.rec,
-#             leftcols = c("studlab", 
-#                          # "TE", 
-#                          # "seTE", 
-#                          "n.e"),
-#             leftlabs = c("Trial", 
-#                          # "log(OR)", 
-#                          # "Standard Error", 
-#                          "Sample Size"),
-#             sortvar = +TE,
-#             test.subgroup.random = TRUE,
-#             text.random = "Average treatment effect (RE model)",
-#             title = "Average treatment effect - mortality 28 days",
-#             xlim = c(0.03,30),
-#             # xlab = "Average treatment effect (95% CI)"
-#             )
+# (i.iii) Primary outcome: Subgroup by period, including the non-IPD RCTs
+```{r warning=FALSE, fig.width=13, fig.height=9}
+mort28.agg.period <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_mort28_agg,
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      subgroup = period,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      )
+summary(mort28.agg.period)
+
+forest.meta(mort28.agg.period,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            # xlim = c(0.10,5),
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi",
+            overall.hetstat = F,
+            test.subgroup = T
+            )
+
+
+# Open a pdf file
+pdf("./fp_mort_28_period.pdf", width=13, height=9)
+
+forestplot <- forest(mort28.agg.period,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            # xlim = c(0.15,5),
+            label.left = "Favours JAKi",
+            label.right = "Favours No JAKi",
+            test.subgroup = T,
+            pooled.total = T
+)
+
+summary_row_y <- unit(0.189, "npc")
+total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE), 
+               sum(df_mort28_agg$e_int, na.rm = TRUE), 
+               sum(df_mort28_agg$n_cont, na.rm = TRUE),
+               sum(df_mort28_agg$e_cont, na.rm = TRUE))
+pushViewport(viewport())
+grid.text(label = total_row[1], x = unit(0.316, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.4189, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+popViewport()
+
+dev.off()
 
 ```
 
