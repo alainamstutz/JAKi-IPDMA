@@ -1260,11 +1260,18 @@ df_tot_long$timesqr <- df_tot_long$time^2
 # mort_60_n only NA on the day of a censored individual
 # treat/trt not time-updated, keep only time-fixed, since we will not assess any per-protocol effects
 # censor at max trial follow-up in each trial
-# death_time incorporates already the censoring!! I.e. those censored for withdrawal/LTFU have lower death_time than 28/60 but NA in mort_60
+# death_time incorporates already the censoring!! I.e. those censored for withdrawal/LTFU have lower death_time than 28/60 and NA in mort_60
 # take death_time_60, which is capped at day 60 (see time to death section above)
 
 df_long <- df_tot_long %>% 
   filter(time <= death_time_60)
+
+df_long <- df_long %>% # remove observations after max fup date in the 4 trials that only followed up for 28d max
+  mutate(censor_admin = case_when(trial %in% c("ACTT2", "Ghazaeian", "RECOVERY", "TOFACOV") &
+                               time > 28 ~ 1,
+                             TRUE ~ 0))       
+df_long <- df_long %>% # drop all censored        
+  filter(censor_admin == 0) 
 
 df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
   mutate(mort_60_n = case_when(mort_60 == 1 & time == death_time_60 ~ 1))
@@ -1274,17 +1281,10 @@ df_long <- df_long %>% # mark the deaths at the correct time point (cave: missin
 df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
   mutate(mort_60_n = case_when(is.na(mort_60) & time == death_time_60 ~ NA, 
                                TRUE ~ mort_60_n))
-df_long <- df_long %>% # remove observations after max fup date in the 4 trials that only followed up for 28d max
-  mutate(censor = case_when(trial %in% c("ACTT2", "Ghazaeian", "RECOVERY", "TOFACOV") &
-                               time > 28 ~ 1,
-                             TRUE ~ 0))       
-df_long <- df_long %>% # drop all censored        
-  filter(censor == 0)  
 
 df_long <- df_long %>% # create censoring indicator
-  mutate(censor = case_when(is.na(mort_60_n) ~ 1,
+  mutate(censor = case_when(is.na(mort_60) & time == death_time_60 ~ 1,
                             TRUE ~ 0)) 
-
 
 # table(df_long$clinstatus_baseline, useNA = "always")
 df_long <- df_long %>%
@@ -1296,13 +1296,13 @@ df_long$clinstatus_baseline_n <- as.numeric(df_long$clinstatus_baseline)
 # table(df_long$time, useNA = "always")
 
 # df_long %>%
-#   dplyr::select(id_pat, trial, trt, time, death_time, death_time_60, mort_28, mort_60, mort_60_n, censor, death_reached, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
+#   dplyr::select(id_pat, trial, trt, time, death_time, death_time_60, mort_28, mort_60, mort_60_n, death_reached, censor_admin, censor,  discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
 #   # filter(id_pat == "80804") %>%
 #   # filter(id_pat == "80504") %>%
 #   # filter(mort_60 == 1) %>%
-#   # filter(is.na(mort_60)) %>%
+#   filter(is.na(mort_60)) %>%
 #   # filter(time == "-1") %>%
-#   filter(trial == "RECOVERY") %>%
+#   filter(trial == "ACTT2") %>%
 #   View()
 
 # table(df_long$mort_60, df_long$mort_60_n, useNA = "always") # 347 censored, 1476 deaths
@@ -1311,12 +1311,12 @@ df_long$clinstatus_baseline_n <- as.numeric(df_long$clinstatus_baseline)
 
 ```
 
-# Cumulative incidence curves and pooled logistic regression for time to death // data preparation
-```{r, warning=FALSE, messag=FALSE}
+# Cumulative incidence curves and pooled logistic regression for time to death
+```{r, warning=FALSE, messag=FALSE, eval=F}
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 30
+R <- 500
 
 # need to do this by group individually
 
@@ -1380,12 +1380,12 @@ risk.boot.0 <- function(data, indices) {
 
   
   #### Fit pooled logistic model to estimate discrete hazards
-  pool.boot <- speedglm(formula = mort_60_n==1 ~ trt + time + timesqr
-                                    + I(trt*time) +
+  pool.boot <- speedglm(formula = mort_60_n==1 ~ trt + time + timesqr +
+                                    I(trt*time) +
                                     I(trt*timesqr),
                 family = binomial(link = 'logit'),
                 data = d,
-                weights = d$sw_cens)
+                weights = d$w_tot)
 
   # Create a dataset to store results
   # Include all time points under each treatment level
@@ -1479,7 +1479,7 @@ risk.boot.1 <- function(data, indices) {
   mutate(sw_cens = ifelse(is.na(censor), 1, sw_cens)) # set NA to 1
   
   # Multiply inverse probability of treatment weights times inverse probability of censoring weights
-  d$w_tot <- d$w_trt * d$w_cens
+  d$w_tot <- d$w_trt * d$sw_cens
    
   # # Truncate the weights at the 99th percentile
   # threshold_99 <- quantile(d$w_tot, 0.99)
@@ -1488,7 +1488,7 @@ risk.boot.1 <- function(data, indices) {
 
   
   ### Fit pooled logistic model to estimate discrete hazards
-  pool.boot <- speedglm(formula = mort_60_n==1 ~ trt + time + timesqr + age + ...
+  pool.boot <- speedglm(formula = mort_60_n==1 ~ trt + time + timesqr +
                                     I(trt*time) +
                                     I(trt*timesqr),
                 family = binomial(link = 'logit'),
@@ -1525,7 +1525,7 @@ risk.boot.1 <- function(data, indices) {
   return(graph$risk1)
 }
 
-# Run bootstrap samples (ideally 500-1000)...
+# Run bootstrap samples
 set.seed(1234)
 risk.results.1 <- boot(data = df_long_ids,
                        statistic = risk.boot.1,
@@ -1562,8 +1562,8 @@ risk.boot.graph <- rbind(zero, risk.boot.graph.pred)
 ### PLOT
 # Define the intersection point
 intersect_x <- 28  # Example x-coordinate
-intersect_y <- 0.112 # Example y-coordinate 10.8, but CAVE: RUXCOVID is out
-intersect_y2 <- 0.132 # Example y-coordinate 12.9,but CAVE: RUXCOVID is out
+intersect_y <- 0.109 # Example y-coordinate 10.8, but CAVE: RUXCOVID is out
+intersect_y2 <- 0.1349 # Example y-coordinate 12.9,but CAVE: RUXCOVID is out
 
 plot.plr.ci <- ggplot(risk.boot.graph, aes(x = time_0)) +
   geom_line(aes(y = mean.1, color = ""), size = 1.5) + # Line for JAKi group
@@ -2591,7 +2591,7 @@ m.i_ul
 ```
 
 # Exploratory: Explore treatment heterogeneity using causal trees
-```{r, fig.width=16, fig.height=8}
+```{r, fig.width=16, fig.height=8, eval=F}
 library(causalweight)
 library(aggTrees)
 

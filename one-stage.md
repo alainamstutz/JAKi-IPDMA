@@ -4640,11 +4640,18 @@ df_tot_long$timesqr <- df_tot_long$time^2
 # mort_60_n only NA on the day of a censored individual
 # treat/trt not time-updated, keep only time-fixed, since we will not assess any per-protocol effects
 # censor at max trial follow-up in each trial
-# death_time incorporates already the censoring!! I.e. those censored for withdrawal/LTFU have lower death_time than 28/60 but NA in mort_60
+# death_time incorporates already the censoring!! I.e. those censored for withdrawal/LTFU have lower death_time than 28/60 and NA in mort_60
 # take death_time_60, which is capped at day 60 (see time to death section above)
 
 df_long <- df_tot_long %>% 
   filter(time <= death_time_60)
+
+df_long <- df_long %>% # remove observations after max fup date in the 4 trials that only followed up for 28d max
+  mutate(censor_admin = case_when(trial %in% c("ACTT2", "Ghazaeian", "RECOVERY", "TOFACOV") &
+                               time > 28 ~ 1,
+                             TRUE ~ 0))       
+df_long <- df_long %>% # drop all censored        
+  filter(censor_admin == 0) 
 
 df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
   mutate(mort_60_n = case_when(mort_60 == 1 & time == death_time_60 ~ 1))
@@ -4654,147 +4661,32 @@ df_long <- df_long %>% # mark the deaths at the correct time point (cave: missin
 df_long <- df_long %>% # mark the deaths at the correct time point (cave: missing)
   mutate(mort_60_n = case_when(is.na(mort_60) & time == death_time_60 ~ NA, 
                                TRUE ~ mort_60_n))
-df_long <- df_long %>% # remove observations after max fup date in the 4 trials that only followed up for 28d max
-  mutate(censor = case_when(trial %in% c("ACTT2", "Ghazaeian", "RECOVERY", "TOFACOV") &
-                               time > 28 ~ 1,
-                             TRUE ~ 0))       
-df_long <- df_long %>% 
-  filter(censor == 0) # drop all censored         
 
-# 
-# 
-# 
-# df_long <- df_long %>% # if mort_60 == NA (i.e. LTFU/withdrew) before day 60, then replace mort_60_n with NA at last fup
-#   mutate(mort_60_n = case_when(is.na(mort_60)
-#                                & time == death_time_60 ~ NA,
-#                              TRUE ~ mort_60_n))
-# 
-# 
-# 
-# 
-# df_long <- df_long %>% 
-#   filter((is.na(mort_60_n) & is.na(mort_60)) | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "1" & mort_60_n == "1") | (mort_60 == "0" & mort_60_n == "0") | (mort_60 == "1" & mort_60_n == "0")) # remove mort_60_n == NA (but only when not also NA in mort_60, since these are the true missing; check 80504)
-# 
-# df_long <- df_long %>% # mark the censored ones (part of death_time, but mort_60/mort_60_n == NA) // censor 1 day after LTFU/withdrawal!
-#   mutate(censor = case_when(is.na(mort_60) & is.na(mort_60_n) 
-#                                & death_time <= 60 
-#                                & time == death_time + 1 ~ 1, # mark the censored at the correct time point (cave: missing)
-#                             is.na(mort_60) & is.na(mort_60_n) 
-#                                & death_time <= 60 
-#                                & time <= death_time + 1 ~ 0, # refill previous to censored with 0
-#                             mort_60 %in% c("1", "0") & mort_60_n %in% c(1, 0)
-#                                ~ 0, # refill the known ones
-#                             ))
-# 
-# 
-# 
-# df_long <- df_long %>% # refill the mort_60_na == NA with 0 for the days before censoring
-#   mutate(mort_60_n = case_when(is.na(mort_60_n) & censor == 0 ~ 0,
-#                                TRUE ~ mort_60_n))
-# 
-# # df_long %>%
-# #   dplyr::select(id_pat, trial, trt, time, censor, mort_60, mort_60_n, death_reached, death_time, death_time_60, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
-# #   # filter(id_pat == "80804") %>%
-# #   # filter(id_pat == "80504") %>%
-# #   # filter(is.na(mort_60_n)) %>%
-# #   # filter(is.na(censor)) %>%
-# #   # filter(mort_60_n == 0 & mort_60 == "1") %>%
-# #   filter(trial == "Bari-Solidact") %>%
-# #   View()
-# 
-# 
+df_long <- df_long %>% # create censoring indicator
+  mutate(censor = case_when(is.na(mort_60) & time == death_time_60 ~ 1,
+                            TRUE ~ 0)) 
 
-
-
-# df_long <- df_long %>%
-#   mutate(time = time-1) %>%
-#   mutate(timesqr = time * time)
-
-table(df_long$clinstatus_baseline, useNA = "always")
-```
-
-```
-## 
-##      1      2      3      4      5      6   <NA> 
-##      0  34663 244577  89816  13850      0     14
-```
-
-```r
+# table(df_long$clinstatus_baseline, useNA = "always")
 df_long <- df_long %>%
     mutate(clinstatus_baseline = case_when(is.na(clinstatus_baseline) ~ "5", # only for 21, see rules in Notes
                                              TRUE ~ clinstatus_baseline))
 df_long$clinstatus_baseline_n <- as.numeric(df_long$clinstatus_baseline)
-table(df_long$clinstatus_baseline_n, useNA = "always")
-```
+# table(df_long$clinstatus_baseline_n, useNA = "always")
+# table(df_long$clinstatus_baseline, useNA = "always")
+# table(df_long$time, useNA = "always")
 
-```
-## 
-##      2      3      4      5   <NA> 
-##  34663 244577  89816  13864      0
-```
+# df_long %>%
+#   dplyr::select(id_pat, trial, trt, time, death_time, death_time_60, mort_28, mort_60, mort_60_n, death_reached, censor_admin, censor,  discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
+#   # filter(id_pat == "80804") %>%
+#   # filter(id_pat == "80504") %>%
+#   # filter(mort_60 == 1) %>%
+#   filter(is.na(mort_60)) %>%
+#   # filter(time == "-1") %>%
+#   filter(trial == "ACTT2") %>%
+#   View()
 
-```r
-table(df_long$clinstatus_baseline, useNA = "always")
-```
-
-```
-## 
-##      2      3      4      5   <NA> 
-##  34663 244577  89816  13864      0
-```
-
-```r
-table(df_long$time, useNA = "always")
-```
-
-```
-## 
-##     0     1     2     3     4     5     6     7     8     9    10    11    12 
-## 11970 11946 11887 11796 11725 11624 11526 11420 11331 11251 11175 11114 11040 
-##    13    14    15    16    17    18    19    20    21    22    23    24    25 
-## 10977 10911 10813 10748 10679 10628 10592 10551 10504 10444 10397 10369 10334 
-##    26    27    28    29    30    31    32    33    34    35    36    37    38 
-## 10275 10177 10037  2129  2125  2118  2111  2111  2107  2102  2097  2093  2089 
-##    39    40    41    42    43    44    45    46    47    48    49    50    51 
-##  2087  2085  2083  2082  2082  2079  2078  2078  2078  2077  2077  2074  2073 
-##    52    53    54    55    56    57    58    59  <NA> 
-##  2072  2072  2071  2071  2070  2070  2069  2069     0
-```
-
-```r
-df_long %>%
-  dplyr::select(id_pat, trial, trt, time, death_time, death_time_60, mort_28, mort_60, mort_60_n, death_reached, discharge_reached, discharge_time, sex, clinstatus_baseline) %>%
-  # filter(id_pat == "80804") %>%
-  # filter(id_pat == "80504") %>%
-  # filter(mort_60 == 1) %>%
-  # filter(is.na(mort_60)) %>%
-  # filter(time == "-1") %>%
-  filter(trial == "RECOVERY") %>%
-  View()
-
-table(df_long$mort_60, df_long$mort_60_n, useNA = "always") # 347 censored, 1476 deaths
-```
-
-```
-##       
-##             0      1   <NA>
-##   0    349040      0   8079
-##   1     19238   1476      0
-##   <NA>   4740      0    347
-```
-
-```r
-table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
-```
-
-```
-## 
-##     0     1  <NA> 
-## 10146  1476   348
-```
-
-```r
-# check Ghazaeian and PANCOVID and // ACTT2 has a few with death_time_60 == 0 and mort_60 == NA but is fine
+# table(df_long$mort_60, df_long$mort_60_n, useNA = "always") # 347 censored, 1476 deaths
+# table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
 ```
 
 # Cumulative incidence curves and pooled logistic regression for time to death // data preparation
@@ -4803,7 +4695,7 @@ table(df_tot$mort_60, useNA = "always") # 348 missing, 1476 deaths
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 50
+R <- 500
 
 # need to do this by group individually
 
@@ -4821,26 +4713,58 @@ risk.boot.0 <- function(data, indices) {
   # Subset person-time data to individuals selected into the bootstrapped sample
   d <- left_join(boot.ids, df_long, by = "id_pat")
 
-  ### IPW ###
-  ipw.denom <- speedglm(trt==1 ~ time + timesqr + age 
+  ### IPW Treatment ###
+  iptw.denom <- speedglm(trt==1 ~ time + timesqr + age
                      + as.factor(clinstatus_baseline),
           family=binomial(link="logit"),
           data=d)
   #  Estimate probabilities of being treated
-  d$ipw.denom <- predict(ipw.denom, d, type="response")
+  d$iptw.denom <- predict(iptw.denom, d, type="response")
   # Estimate nonstabilized inverse probability weights ###
-  d$w_a <- ifelse(d$trt==1,
-                              1/d$ipw.denom,
-                              1/(1-d$ipw.denom))
-  ### IPW ###
+  d$w_trt <- ifelse(d$trt==1, 1/d$iptw.denom, 1/(1-d$iptw.denom))
+  
+  ### IPW Censoring ###
+  # Weights for censoring due to loss to follow-up, withdrawal, but NOT for administrative censoring (end of follow-up) // DENOMINATOR
+  ipcw.denom <- speedglm(censor == 0 ~ time + timesqr # Follow-up time modeled using linear and quadratic terms
+                   + as.factor(trt)
+                   + as.factor(clinstatus_baseline) 
+                   + age 
+                   + as.factor(sex),
+                   family=binomial(link="logit"),
+                   data=d)
+  d$ipcw.denom <- predict(ipcw.denom, d, type="response")
+  
+  # Weights for censoring due to loss to follow-up, withdrawal, but NOT for administrative censoring (end of follow-up) // NUMERATOR
+  ipcw.num <- speedglm(censor == 0 ~ time + timesqr # Follow-up time modeled using linear and quadratic terms
+                   + as.factor(trt), # treatment variable 
+                 family = binomial(link="logit"),
+                 data=d)
+  d$ipcw.num <- predict(ipcw.num, d, type="response")
 
-  # Fit pooled logistic model to estimate discrete hazards
-  pool.boot <- glm(formula = mort_60_n==1 ~ trt + time + timesqr
-                                    + I(trt*time) +
+  # Take the cumulative product at each time point
+  d <- d %>% arrange(id_pat, time)
+  d <- d %>%
+    group_by(id_pat) %>% 
+    mutate(sw_cens = cumprod(ipcw.num)/cumprod(ipcw.denom)) %>%
+    ungroup() %>%
+    mutate(sw_cens = ifelse(is.na(censor), 1, sw_cens)) # set NA to 1
+  
+  # Multiply inverse probability of treatment weights times inverse probability of censoring weights
+  d$w_tot <- d$w_trt * d$sw_cens
+
+  # # Truncate the weights at the 99th percentile
+  # threshold_99 <- quantile(d$w_tot, 0.99)
+  # d$w_tot_99 <- d$w_tot
+  # d$w_tot_99[d$w_tot_99 > threshold_99] <- threshold_99
+
+  
+  #### Fit pooled logistic model to estimate discrete hazards
+  pool.boot <- speedglm(formula = mort_60_n==1 ~ trt + time + timesqr +
+                                    I(trt*time) +
                                     I(trt*timesqr),
                 family = binomial(link = 'logit'),
                 data = d,
-                weights = d$w_a)
+                weights = d$w_tot)
 
   # Create a dataset to store results
   # Include all time points under each treatment level
@@ -4869,10 +4793,10 @@ risk.boot.0 <- function(data, indices) {
   # Merge data from two groups and format
   graph <- merge(trt0, trt1, by=c("time", "timesqr"))
   graph <- graph[order(graph$time),]
-  return(graph$risk0) # return only control group risk
+  return(graph$risk0) # return only control group risk # extract both group estimates in one. 
 }
 
-# Run bootstrap samples (ideally 500-1000)...
+# Run bootstrap samples
 set.seed(1234)
 risk.results.0 <- boot(data = df_long_ids,
                        statistic = risk.boot.0,
@@ -4899,27 +4823,56 @@ risk.boot.1 <- function(data, indices) {
   # Subset person-time data to individuals selected into the bootstrapped sample
   d <- left_join(boot.ids, df_long, by = "id_pat")
 
-### IPW ###
-  ipw.denom <- speedglm(trt==1 ~ time + timesqr + age 
+  ### IPW Treatment ###
+  iptw.denom <- speedglm(trt==1 ~ time + timesqr + age
                      + as.factor(clinstatus_baseline),
           family=binomial(link="logit"),
           data=d)
   #  Estimate probabilities of being treated
-  d$ipw.denom <- predict(ipw.denom, d, type="response")
+  d$iptw.denom <- predict(iptw.denom, d, type="response")
   # Estimate nonstabilized inverse probability weights ###
-  d$w_a <- ifelse(d$trt==1,
-                              1/d$ipw.denom,
-                              1/(1-d$ipw.denom))
-  ### IPW ###  
+  d$w_trt <- ifelse(d$trt==1, 1/d$iptw.denom, 1/(1-d$iptw.denom))
   
+  ### IPW Censoring ###
+  # Weights for censoring due to loss to follow-up, withdrawal, or administrative censoring (end of follow-up) // DENOMINATOR
+  ipcw.denom <- speedglm(censor == 0 ~ time + timesqr # Follow-up time modeled using linear and quadratic terms
+                   + as.factor(trt)
+                   + as.factor(clinstatus_baseline) 
+                   + age 
+                   + as.factor(sex),
+                   family=binomial(link="logit"),
+                   data=d)
+  d$ipcw.denom <- predict(ipcw.denom, d, type="response")
+  # Weights for censoring due to loss to follow-up, withdrawal, or administrative censoring (end of follow-up) // NUMERATOR
+  ipcw.num <- speedglm(censor == 0 ~ time + timesqr # Follow-up time modeled using linear and quadratic terms
+                   + as.factor(trt), # treatment variable 
+                 family = binomial(link="logit"),
+                 data=d)
+  d$ipcw.num <- predict(ipcw.num, d, type="response")
+  # Take the cumulative product at each time point
+  d <- d %>% arrange(id_pat, time)
+  d <- d %>%
+  group_by(id_pat) %>% 
+  mutate(sw_cens = cumprod(ipcw.num)/cumprod(ipcw.denom)) %>%
+  ungroup() %>%
+  mutate(sw_cens = ifelse(is.na(censor), 1, sw_cens)) # set NA to 1
   
-  # Fit pooled logistic model to estimate discrete hazards
-  pool.boot <- glm(formula = mort_60_n==1 ~ trt + time + timesqr +
+  # Multiply inverse probability of treatment weights times inverse probability of censoring weights
+  d$w_tot <- d$w_trt * d$sw_cens
+   
+  # # Truncate the weights at the 99th percentile
+  # threshold_99 <- quantile(d$w_tot, 0.99)
+  # d$w_tot_99 <- d$w_tot
+  # d$w_tot_99[d$w_tot_99 > threshold_99] <- threshold_99
+
+  
+  ### Fit pooled logistic model to estimate discrete hazards
+  pool.boot <- speedglm(formula = mort_60_n==1 ~ trt + time + timesqr +
                                     I(trt*time) +
                                     I(trt*timesqr),
                 family = binomial(link = 'logit'),
                 data = d,
-                weights = d$w_a)
+                weights = d$w_tot)
 
   # Create a dataset to store results
   # Include all time points under each treatment level
@@ -4927,8 +4880,8 @@ risk.boot.1 <- function(data, indices) {
   trt1 <- data.frame(cbind(seq(0, K-1),1,(seq(0, K-1))^2))
 
   # Set column names
-  colnames(trt0) <- c("time", "trt", "timesqr")
-  colnames(trt1) <- c("time", "trt", "timesqr")
+  colnames(trt0) <- c("time", "trt", "timesqr") # if adjusted in pooled log reg: use entire dataset
+  colnames(trt1) <- c("time", "trt", "timesqr") # 
 
   # Extract predicted values from pooled logistic regression model
   # Predicted values correspond to discrete-time hazards
@@ -4951,7 +4904,7 @@ risk.boot.1 <- function(data, indices) {
   return(graph$risk1)
 }
 
-# Run bootstrap samples (ideally 500-1000)...
+# Run bootstrap samples
 set.seed(1234)
 risk.results.1 <- boot(data = df_long_ids,
                        statistic = risk.boot.1,
@@ -4976,12 +4929,20 @@ zero <- data.frame(cbind(0,0,0,0,0,0,0,0))
 zero <- setNames(zero,names(risk.boot.graph.pred))
 risk.boot.graph <- rbind(zero, risk.boot.graph.pred)
 
+# df_long %>%
+#   dplyr::select(id_pat, trial, trt, time, death_time_60, mort_60_n, censor, sex, clinstatus_baseline, iptw.denom,w_trt, ipcw.denom, ipcw.num, w_cens, w_tot, w_tot_99) %>%
+#   # filter(id_pat == "80804") %>%
+#   filter(trial == "RECOVERY") %>%
+#   View()
+# summary(df_long$w_tot_99)
+# sd(df_long$w_tot_99)
+
 
 ### PLOT
 # Define the intersection point
 intersect_x <- 28  # Example x-coordinate
-intersect_y <- 0.108 # Example y-coordinate 10.8, but CAVE: RUXCOVID is out
-intersect_y2 <- 0.134 # Example y-coordinate 12.9,but CAVE: RUXCOVID is out
+intersect_y <- 0.109 # Example y-coordinate 10.8, but CAVE: RUXCOVID is out
+intersect_y2 <- 0.1349 # Example y-coordinate 12.9,but CAVE: RUXCOVID is out
 
 plot.plr.ci <- ggplot(risk.boot.graph, aes(x = time_0)) +
   geom_line(aes(y = mean.1, color = ""), size = 1.5) + # Line for JAKi group
@@ -5023,8 +4984,6 @@ plot.plr.ci <- ggplot(risk.boot.graph, aes(x = time_0)) +
 # Display the plot
 print(plot.plr.ci)
 ```
-
-![](one-stage_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
 
 # TREATMENT-COVARIATE INTERACTIONS
@@ -8519,11 +8478,11 @@ ul <- c(1.07)
 
 ```r
 # Time to death within 60d
-# aHR 0.78 (0.65 to 0.94),
+# aHR 0.78 (0.67 to 0.91)
 # p = 0.013
 df_tot %>%
-  filter(trt == 1) %>% 
-  filter(death_reached_60 == 1) %>%
+  filter(trt == 0) %>% 
+  # filter(death_reached_60 == 1) %>%
   summarise(median = median(death_time_60),
             IQR = IQR(death_time_60),
             Q1 = quantile(death_time_60, probs = 0.25),
@@ -8534,7 +8493,7 @@ df_tot %>%
 ## # A tibble: 1 × 4
 ##   median   IQR    Q1    Q3
 ##    <dbl> <dbl> <dbl> <dbl>
-## 1     12    13     6    19
+## 1     28     0    28    28
 ```
 
 ```r
@@ -8542,8 +8501,8 @@ df_tot %>%
 # median time to event in control, in days / and HR with ll and ul
 median.c <- 11
 hr <- c(0.78)
-ll <- c(0.65)
-ul <- c(0.94)
+ll <- c(0.67)
+ul <- c(0.91)
 # corresponding median time to event in intervention
 m.i <- median.c/hr
 m.i
@@ -8569,7 +8528,7 @@ m.i_ll-median.c
 ```
 
 ```
-## [1] 5.923077
+## [1] 5.41791
 ```
 
 ```r
@@ -8579,7 +8538,7 @@ m.i_ul+median.c
 ```
 
 ```
-## [1] 22.70213
+## [1] 23.08791
 ```
 
 ```r
@@ -8654,13 +8613,6 @@ m.i_ul
 
 ```r
 library(causalweight)
-```
-
-```
-## Loading required package: ranger
-```
-
-```r
 library(aggTrees)
 
 df_ctree <- df_tot %>% 
@@ -8730,233 +8682,14 @@ X=as.matrix(df_ctree[,3:13]) # define covariates, all as numeric
 set.seed(1) # set seed
 het=build_aggtree(y=Y, D=D, X=X) # estimate effect heterogeneity based on tree
 summary(het)
-```
-
-```
-## Honest estimates: TRUE 
-## Call:
-## rpart::rpart(formula = cates ~ ., data = data.frame(cates = cates[training_idx], 
-##     X_tr), method = "anova", model = TRUE, control = rpart::rpart.control(...))
-##   n= 4194 
-## 
-##           CP nsplit rel error    xerror        xstd
-## 1 0.47957552      0 1.0000000 1.0005056 0.021835129
-## 2 0.17322304      1 0.5204245 0.5281081 0.011765191
-## 3 0.08370619      2 0.3472014 0.3575314 0.009923858
-## 4 0.06764856      3 0.2634952 0.2684356 0.006493486
-## 5 0.02136643      4 0.1958467 0.2034435 0.005656507
-## 6 0.01948320      5 0.1744803 0.1771733 0.004733455
-## 7 0.01904212      6 0.1549971 0.1740686 0.004639157
-## 8 0.01155176      7 0.1359549 0.1498234 0.004090754
-## 9 0.01000000      8 0.1244032 0.1324424 0.003675487
-## 
-## Variable importance
-##                 age clinstatus_baseline          comorb_cat           comed_cat 
-##                  55                  27                  11                   2 
-##               trial                 crp             sympdur 
-##                   2                   2                   1 
-## 
-## Node number 1: 4194 observations,    complexity param=0.4795755
-##   mean=-0.02724308, MSE=2.387165e-05 
-##   left son=2 (3292 obs) right son=3 (902 obs)
-##   Primary splits:
-##       age                 < 70.5   to the left,  improve=0.47957550, (0 missing)
-##       clinstatus_baseline < 3.5    to the right, improve=0.26971230, (0 missing)
-##       comorb_cat          < 1.5    to the left,  improve=0.22629230, (0 missing)
-##       vacc                < 0.5    to the left,  improve=0.08441467, (0 missing)
-##       crp                 < 125.3  to the right, improve=0.07638472, (0 missing)
-##   Surrogate splits:
-##       sympdur < 0.5    to the right, agree=0.785, adj=0.002, (0 split)
-## 
-## Node number 2: 3292 observations,    complexity param=0.173223
-##   mean=-0.02262259, MSE=1.09185e-05 
-##   left son=4 (870 obs) right son=5 (2422 obs)
-##   Primary splits:
-##       clinstatus_baseline < 3.5    to the right, improve=0.48249610, (0 missing)
-##       comorb_cat          < 1.5    to the left,  improve=0.21442480, (0 missing)
-##       age                 < 65.5   to the left,  improve=0.12959380, (0 missing)
-##       crp                 < 128.8  to the right, improve=0.11876110, (0 missing)
-##       comed_cat           < 2.5    to the right, improve=0.08059658, (0 missing)
-##   Surrogate splits:
-##       crp < 314.5  to the right, agree=0.738, adj=0.009, (0 split)
-## 
-## Node number 3: 902 observations,    complexity param=0.08370619
-##   mean=-0.04339254, MSE=1.791575e-05 
-##   left son=6 (214 obs) right son=7 (688 obs)
-##   Primary splits:
-##       clinstatus_baseline < 3.5    to the right, improve=0.5185933, (0 missing)
-##       crp                 < 114.25 to the right, improve=0.2183229, (0 missing)
-##       age                 < 74.5   to the left,  improve=0.1475321, (0 missing)
-##       comorb_cat          < 1.5    to the left,  improve=0.1342497, (0 missing)
-##       comed_cat           < 2.5    to the right, improve=0.1257703, (0 missing)
-##   Surrogate splits:
-##       comed_cat < 2.5    to the right, agree=0.767, adj=0.019, (0 split)
-##       crp       < 388.5  to the right, agree=0.765, adj=0.009, (0 split)
-## 
-## Node number 4: 870 observations,    complexity param=0.01904212
-##   mean=-0.05965079, MSE=5.133606e-06 
-##   left son=8 (437 obs) right son=9 (433 obs)
-##   Primary splits:
-##       comorb_cat < 1.5    to the left,  improve=0.42685890, (0 missing)
-##       age        < 65.5   to the left,  improve=0.17997920, (0 missing)
-##       crp        < 74.65  to the right, improve=0.16241050, (0 missing)
-##       vacc       < 0.5    to the left,  improve=0.07223535, (0 missing)
-##       sympdur    < 10.5   to the right, improve=0.04324518, (0 missing)
-##   Surrogate splits:
-##       comed_cat < 2.5    to the right, agree=0.622, adj=0.240, (0 split)
-##       age       < 54.5   to the left,  agree=0.615, adj=0.226, (0 split)
-##       trial     < 4.5    to the right, agree=0.614, adj=0.224, (0 split)
-##       sympdur   < 10.5   to the right, agree=0.576, adj=0.148, (0 split)
-##       crp       < 22.5   to the left,  agree=0.536, adj=0.067, (0 split)
-## 
-## Node number 5: 2422 observations,    complexity param=0.06764856
-##   mean=-0.009338722, MSE=5.835989e-06 
-##   left son=10 (1324 obs) right son=11 (1098 obs)
-##   Primary splits:
-##       comorb_cat < 1.5    to the left,  improve=0.47916030, (0 missing)
-##       age        < 65.5   to the left,  improve=0.28843610, (0 missing)
-##       crp        < 128.7  to the right, improve=0.15345390, (0 missing)
-##       sympdur    < 6.5    to the right, improve=0.05351083, (0 missing)
-##       vacc       < 0.5    to the left,  improve=0.05045786, (0 missing)
-##   Surrogate splits:
-##       trial     < 6      to the right, agree=0.641, adj=0.209, (0 split)
-##       comed_cat < 1.5    to the right, agree=0.633, adj=0.191, (0 split)
-##       age       < 59.5   to the left,  agree=0.618, adj=0.158, (0 split)
-##       sympdur   < 6.5    to the right, agree=0.568, adj=0.047, (0 split)
-##       ethn      < 4.5    to the left,  agree=0.564, adj=0.038, (0 split)
-## 
-## Node number 6: 214 observations
-##   mean=0.009482143, MSE=9.350696e-06 
-## 
-## Node number 7: 688 observations,    complexity param=0.0194832
-##   mean=-0.05865608, MSE=8.398962e-06 
-##   left son=14 (159 obs) right son=15 (529 obs)
-##   Primary splits:
-##       comorb_cat < 1.5    to the left,  improve=0.33756470, (0 missing)
-##       crp        < 111.5  to the right, improve=0.27238540, (0 missing)
-##       age        < 74.5   to the left,  improve=0.18564680, (0 missing)
-##       vacc       < 0.5    to the left,  improve=0.07397241, (0 missing)
-##       comed_cat  < 2.5    to the right, improve=0.05838720, (0 missing)
-##   Surrogate splits:
-##       sympdur < 40.5   to the right, agree=0.77, adj=0.006, (0 split)
-## 
-## Node number 8: 437 observations
-##   mean=-0.08115487, MSE=2.184611e-06 
-## 
-## Node number 9: 433 observations
-##   mean=-0.03759012, MSE=3.70695e-06 
-## 
-## Node number 10: 1324 observations
-##   mean=-0.01280902, MSE=1.980668e-06 
-## 
-## Node number 11: 1098 observations,    complexity param=0.02136643
-##   mean=-0.004635599, MSE=4.316524e-06 
-##   left son=22 (902 obs) right son=23 (196 obs)
-##   Primary splits:
-##       age     < 65.5   to the left,  improve=0.45134250, (0 missing)
-##       crp     < 121.31 to the right, improve=0.30934700, (0 missing)
-##       vacc    < 0.5    to the left,  improve=0.09339111, (0 missing)
-##       trial   < 3      to the left,  improve=0.03982388, (0 missing)
-##       sympdur < 6.5    to the right, improve=0.03808196, (0 missing)
-##   Surrogate splits:
-##       sympdur < 1.5    to the right, agree=0.822, adj=0.005, (0 split)
-## 
-## Node number 14: 159 observations
-##   mean=0.04989163, MSE=5.949929e-06 
-## 
-## Node number 15: 529 observations,    complexity param=0.01155176
-##   mean=-0.09069611, MSE=5.447702e-06 
-##   left son=30 (166 obs) right son=31 (363 obs)
-##   Primary splits:
-##       crp       < 118.5  to the right, improve=0.40131940, (0 missing)
-##       age       < 73.5   to the left,  improve=0.19747050, (0 missing)
-##       vacc      < 0.5    to the left,  improve=0.11824760, (0 missing)
-##       trial     < 3      to the left,  improve=0.04465299, (0 missing)
-##       comed_cat < 2.5    to the right, improve=0.03028933, (0 missing)
-##   Surrogate splits:
-##       comorb_cat < 3.5    to the right, agree=0.69, adj=0.012, (0 split)
-##       ethn       < 4.5    to the right, agree=0.69, adj=0.012, (0 split)
-## 
-## Node number 22: 902 observations
-##   mean=-0.006744905, MSE=1.911793e-06 
-## 
-## Node number 23: 196 observations
-##   mean=0.005898525, MSE=4.469127e-06 
-## 
-## Node number 30: 166 observations
-##   mean=-0.06741943, MSE=3.431187e-06 
-## 
-## Node number 31: 363 observations
-##   mean=-0.1028736, MSE=3.183805e-06
-```
-
-```r
 print(het)
-```
-
-```
-## Honest estimates: TRUE 
-## n= 4194 
-## 
-## node), split, n, deviance, yval
-##       * denotes terminal node
-## 
-##  1) root 4194 0.1001177000 -0.027243080  
-##    2) age< 70.5 3292 0.0359436900 -0.022622590  
-##      4) clinstatus_baseline>=3.5 870 0.0044662370 -0.059650790  
-##        8) comorb_cat< 1.5 437 0.0009546750 -0.081154870 *
-##        9) comorb_cat>=1.5 433 0.0016051090 -0.037590120 *
-##      5) clinstatus_baseline< 3.5 2422 0.0141347600 -0.009338722  
-##       10) comorb_cat< 1.5 1324 0.0026224040 -0.012809020 *
-##       11) comorb_cat>=1.5 1098 0.0047395430 -0.004635599  
-##         22) age< 65.5 902 0.0017244370 -0.006744905 *
-##         23) age>=65.5 196 0.0008759489  0.005898525 *
-##    3) age>=70.5 902 0.0161600100 -0.043392540  
-##      6) clinstatus_baseline>=3.5 214 0.0020010490  0.009482143 *
-##      7) clinstatus_baseline< 3.5 688 0.0057784860 -0.058656080  
-##       14) comorb_cat< 1.5 159 0.0009460388  0.049891630 *
-##       15) comorb_cat>=1.5 529 0.0028818340 -0.090696110  
-##         30) crp>=118.5 166 0.0005695771 -0.067419430 *
-##         31) crp< 118.5 363 0.0011557210 -0.102873600 *
-```
-
-```r
 results <- inference_aggtree(het, n_groups = 9)
 summary(results$model) # Coefficient of leafk is GATE in k-th leaf.
-```
-
-```
-## 
-## Call:
-## estimatr::lm_robust(formula = scores ~ 0 + leaf, data = data.frame(scores = scores, 
-##     leaf = leaves), se_type = "HC1")
-## 
-## Standard error type:  HC1 
-## 
-## Coefficients:
-##        Estimate Std. Error t value Pr(>|t|) CI Lower  CI Upper   DF
-## leaf1 -0.102874   0.043744 -2.3517  0.01873 -0.18864 -0.017112 4185
-## leaf2 -0.081155   0.033523 -2.4209  0.01552 -0.14688 -0.015432 4185
-## leaf3 -0.067419   0.062307 -1.0820  0.27929 -0.18957  0.054736 4185
-## leaf4 -0.037590   0.039119 -0.9609  0.33665 -0.11428  0.039104 4185
-## leaf5 -0.012809   0.008851 -1.4472  0.14790 -0.03016  0.004543 4185
-## leaf6 -0.006745   0.014781 -0.4563  0.64818 -0.03572  0.022234 4185
-## leaf7  0.005899   0.049148  0.1200  0.90448 -0.09046  0.102254 4185
-## leaf8  0.009482   0.070921  0.1337  0.89365 -0.12956  0.148524 4185
-## leaf9  0.049892   0.056799  0.8784  0.37978 -0.06146  0.161248 4185
-## 
-## Multiple R-squared:  0.005649 ,	Adjusted R-squared:  0.003511 
-## F-statistic: 1.844 on 9 and 4185 DF,  p-value: 0.05584
-```
-
-```r
 # results$gates_diff_pairs$gates_diff # GATEs differences.
 # results$gates_diff_pairs$holm_pvalues # p-values
 
 plot(het, sequence = T) # plot tree with heterogeneous effects
 ```
-
-![](one-stage_files/figure-html/unnamed-chunk-42-1.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-42-2.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-42-3.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-42-4.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-42-5.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-42-6.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-42-7.png)<!-- -->![](one-stage_files/figure-html/unnamed-chunk-42-8.png)<!-- -->
 Notes: Nodes with predictions smaller (in our case: more effect on mortality) than the ATE (i.e., the root prediction) are colored in blue shades, and nodes with predictions larger than the ATE are colored in red shades. Moreover, predictions that are more distant in absolute value from the ATE get darker shades.
 
 Aggregation Trees: Nonparametric data-driven approach to discovering heterogeneous subgroups in a selection-on-observables framework, i.e. to define groups whereby each group has similar treatment effects, but across groups distinct differences in treatment effect. The approach constructs a sequence of groupings, one for each level of granularity. Groupings are nested and feature an optimality property. For each grouping, we obtain point estimation and standard errors for the group average treatment effects (GATEs). Additionally, we assess whether systematic heterogeneity is found by testing the hypotheses that the differences in the GATEs across all pairs of groups are zero. Finally, we investigate the driving mechanisms of effect heterogeneity by computing the average characteristics of units in each group. Aggregation trees are a three-step procedure. First, the conditional average treatment effects (CATEs) are estimated using any estimator. Second, a tree is grown to approximate the CATEs. Third, the tree is pruned to derive a nested sequence of optimal groupings, one for each granularity level. For each level of granularity, we can obtain point estimation and inference about the GATEs. Hypothesis testing: inference_aggtree uses the standard errors obtained by fitting the linear models above to test the hypotheses that the GATEs are different across all pairs of leaves. Here, we adjust p-values to account for multiple hypotheses testing using Holm’s procedure. inference_aggtree takes as input an aggTrees object constructed by build_aggtree. Then, for the desired granularity level, chosen via the n_groups argument, it provides point estimation and standard errors for the GATEs. Additionally, it performs some hypothesis testing to assess whether we find systematic heterogeneity and computes the average characteristics of the units in each group to investigate the driving mechanisms.

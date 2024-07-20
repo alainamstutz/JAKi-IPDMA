@@ -2054,7 +2054,7 @@ df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
-df_int_ruxcovid <- readRDS("int_effects_ruxcovid_05072024.RData")
+df_int_ruxcovid <- readRDS("int_effects_ruxcovid_19072024.RData")
 df_int_pancovid <- readRDS("int_effects_pancovid.RData")
 
 ```
@@ -2163,6 +2163,28 @@ for (df in list_int_df) {
   df_vacc_ae28 <- rbind(df_vacc_ae28, selected_rows)
 }
 
+## At risk on AEs
+outcomes <- "at risk on AEs"
+outcomes.firth <- "at risk on AEs_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_atrisk_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_atrisk_ae28 <- rbind(df_atrisk_ae28, selected_rows)
+}
+
+## Comedication on AEs
+outcomes <- "comedication on AEs"
+outcomes.firth <- "comedication on AEs_firth" # depends on which estimates to include
+# Initialize an empty data frame to store the selected rows
+df_comed_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_int_df) {
+  selected_rows <- df %>% filter(variable == outcomes | variable == outcomes.firth)
+  df_comed_ae28 <- rbind(df_comed_ae28, selected_rows)
+}
+
 ## Symptom duration on Mortality at day 28
 outcomes <- "symptom duration"
 outcomes.firth <- "symptom duration_firth" # depends on which estimates to include
@@ -2212,6 +2234,10 @@ kable(df_symp_mort28, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 kable(df_crp_mort28, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_atrisk_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_comed_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 
@@ -2226,7 +2252,7 @@ df_subgroup_tofacov <- readRDS("subgroup_effects_tofacov.RData")
 df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
 df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
 df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
-df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_05072024.RData")
+df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_19072024.RData")
 df_subgroup_pancovid <- readRDS("subgroup_effects_pancovid.RData")
 
 ```
@@ -2339,6 +2365,38 @@ for (df in list_subgroup_df) {
   df_sg_vacc_ae28 <- rbind(df_sg_vacc_ae28, selected_rows)
 }
 
+## At risk on AEs
+outcomes1 <- "Not at risk"
+outcomes1.firth <- "Not at risk_firth"
+outcomes2 <- "At risk"
+outcomes2.firth <- "At risk_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_atrisk_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth)
+  df_sg_atrisk_ae28 <- rbind(df_sg_atrisk_ae28, selected_rows)
+}
+
+## Comedication on AEs
+outcomes1 <- "No Dexa, no Tocilizumab_AE"
+outcomes1.firth <- "No Dexa, no Tocilizumab_AE_firth"
+outcomes2 <- "Dexa, but no Tocilizumab_AE"
+outcomes2.firth <- "Dexa, but no Tocilizumab_AE_firth"
+outcomes3 <- "Dexa and Tocilizumab_AE"
+outcomes3.firth <- "Dexa and Tocilizumab_AE_firth"
+outcomes4 <- "Tocilizumab, but no Dexa_AE"
+outcomes4.firth <- "Tocilizumab, but no Dexa_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_comed_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth
+                                 | variable == outcomes2 | variable == outcomes2.firth)
+  df_sg_comed_ae28 <- rbind(df_sg_comed_ae28, selected_rows)
+}
+
 ## Symptom onset
 outcomes1 <- "More than 10 days"
 outcomes1.firth <- "More than 10 days_firth"
@@ -2390,6 +2448,10 @@ kable(df_sg_vacc_ae28, format = "markdown", table.attr = 'class="table"') %>%
 kable(df_sg_symp_mort28, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 kable(df_sg_crp_mort28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_sg_atrisk_ae28, format = "markdown", table.attr = 'class="table"') %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+kable(df_sg_comed_ae28, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
@@ -2654,6 +2716,74 @@ df_sg_vaccno_ae28 <- data.frame()
 for (df in list_subgroup_df) {
   selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
   df_sg_vaccno_ae28 <- rbind(df_sg_vaccno_ae28, selected_rows)
+}
+
+
+## At risk on AEs: Not at risk
+outcomes1 <- "Not at risk"
+outcomes1.firth <- "Not at risk_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_atriskno_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_atriskno_ae28 <- rbind(df_sg_atriskno_ae28, selected_rows)
+}
+
+## At risk on AEs: At risk
+outcomes1 <- "At risk"
+outcomes1.firth <- "At risk_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_atriskyes_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_atriskyes_ae28 <- rbind(df_sg_atriskyes_ae28, selected_rows)
+}
+
+
+## Comedication on AEs: No Dexa, no Tocilizumab
+outcomes1 <- "No Dexa, no Tocilizumab_AE"
+outcomes1.firth <- "No Dexa, no Tocilizumab_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_no_comed_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_no_comed_ae28 <- rbind(df_sg_no_comed_ae28, selected_rows)
+}
+
+## Comedication on AEs: Dexa, but no Tocilizumab
+outcomes1 <- "Dexa, but no Tocilizumab_AE"
+outcomes1.firth <- "Dexa, but no Tocilizumab_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_dexa_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_dexa_ae28 <- rbind(df_sg_dexa_ae28, selected_rows)
+}
+
+## Comedication on AEs: Dexa and Tocilizumab
+outcomes1 <- "Dexa and Tocilizumab_AE"
+outcomes1.firth <- "Dexa and Tocilizumab_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_dexa_toci_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_dexa_toci_ae28 <- rbind(df_sg_dexa_toci_ae28, selected_rows)
+}
+
+## Comedication on AEs: Tocilizumab but no Dexa
+outcomes1 <- "Tocilizumab, but no Dexa_AE"
+outcomes1.firth <- "Tocilizumab, but no Dexa_AE_firth"
+# Initialize an empty data frame to store the selected rows
+df_sg_toci_ae28 <- data.frame()
+# Loop through the list of data frames
+for (df in list_subgroup_df) {
+  selected_rows <- df %>% filter(variable == outcomes1 | variable == outcomes1.firth)
+  df_sg_toci_ae28 <- rbind(df_sg_toci_ae28, selected_rows)
 }
 
 ```
@@ -3370,8 +3500,7 @@ vacc.ae28 <- metagen(TE = log(log_odds_ratio),
                       adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on AEs: vaccination",
                       # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
-                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
-                      )
+                      exclude = trial %in% c("Ghazaeian"))
 summary(vacc.ae28)
 forest.meta(vacc.ae28,
             hetstat = F,
@@ -3381,7 +3510,7 @@ forest.meta(vacc.ae28,
             # text.random = "Average interaction effect (random effect model)*",
             text.random = "",
             title = "Treatment-covariate interaction on primary endpoint: Comorbidity",
-            xlab = "vaccination: greater effect <-> no vaccination: greater effect",
+            xlab = "vaccination: less AEs <-> no vaccination: less AEs",
             xlab.pos = 0.0,
             fs.xlab = 11
 )
@@ -3405,7 +3534,8 @@ vacc.yes.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       n.c = n_control,
                       sm = "OR",
                       fixed = T, 
-                      random = F)
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
 summary(vacc.yes.ae28)
 forest.meta(vacc.yes.ae28,
             hetstat = F,
@@ -3421,9 +3551,193 @@ vacc.no.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       n.c = n_control,
                       sm = "OR",
                       fixed = T, 
-                      random = F)
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
 summary(vacc.no.ae28)
 forest.meta(vacc.no.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+# Interaction: At risk on AEs
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# str(df_atrisk_ae28)
+df_atrisk_ae28 <- df_atrisk_ae28[order(df_atrisk_ae28$trial), ]
+atrisk.ae28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_atrisk_ae28,
+                      sm = "OR",
+                      fixed = F, 
+                      random = T, 
+                      method.tau = "ML", 
+                      method.random.ci = "HK",
+                      exclude = trial %in% c("Ghazaeian"))
+summary(atrisk.ae28)
+forest.meta(atrisk.ae28,
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            # text.common = "Average interaction effect (common effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            xlab = "at risk: less AEs <-> not at risk: less AEs",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
+
+```
+
+# Subgroups: At risk on AEs: Descriptive
+```{r warning=FALSE, fig.width=9, fig.height=10}
+# Calculate the inverse variance
+df_sg_atrisk_ae28$inverse_variance <- 1 / df_sg_atrisk_ae28$standard_error^2
+
+```
+
+# Subgroups: At risk on AEs: Pooled across trials // Descriptive
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# Not at risk
+atrisk.no.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_atriskno_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(atrisk.no.ae28)
+forest.meta(atrisk.no.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# At risk
+atrisk.yes.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_atriskyes_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(atrisk.yes.ae28)
+forest.meta(atrisk.yes.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+```
+
+# Interaction: Comed on AEs
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# str(df_comed_ae28)
+df_comed_ae28 <- df_comed_ae28[order(df_comed_ae28$trial), ]
+comed.ae28 <- metagen(TE = log(log_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_comed_ae28,
+                      sm = "OR",
+                      fixed = F, 
+                      random = T, 
+                      method.tau = "ML", 
+                      method.random.ci = "HK",
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      exclude = trial %in% c("Ghazaeian")) # incl in plot but exclude from analysis
+summary(comed.ae28)
+forest.meta(comed.ae28,
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            # text.common = "Average interaction effect (common effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            xlab = "More comed: less AEs <-> Less comed: less AEs",
+            xlab.pos = 0.0,
+            fs.xlab = 11
+)
+
+```
+
+# Subgroups: Comed on AEs: Descriptive
+```{r warning=FALSE, fig.width=9, fig.height=10}
+# Calculate the inverse variance
+df_sg_comed_ae28$inverse_variance <- 1 / df_sg_comed_ae28$standard_error^2
+
+```
+
+# Subgroups: Comed on AEs: Pooled across trials // Descriptive
+```{r warning=FALSE, fig.width=14, fig.height=4}
+# No comedication
+no.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_no_comed_mort28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, # the true subgroup effect is assumed the same in all trials
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(no.comed.ae28)
+forest.meta(no.comed.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# Dexa, but no Toci
+dexa.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_dexa_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian")) # incl in plot but exclude from analysis
+summary(dexa.comed.ae28)
+forest.meta(dexa.comed.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# Dexa and Toci
+dexa.toci.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_dexa_toci_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(dexa.toci.comed.ae28)
+forest.meta(dexa.toci.comed.ae28,
+            hetstat = F,
+            leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
+            leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
+            sortvar = +TE)
+# No dexa, but toci
+toci.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_sg_toci_ae28,
+                      n.e = n_intervention,
+                      n.c = n_control,
+                      sm = "OR",
+                      fixed = T, 
+                      random = F,
+                      exclude = trial %in% c("Ghazaeian"))
+summary(toci.comed.ae28)
+forest.meta(toci.comed.ae28,
             hetstat = F,
             leftcols = c("studlab", "TE", "seTE", "n.e", "n.c"),
             leftlabs = c("Trial", "aOR", "stand. error", "events_int", "events_cont"),
@@ -3651,6 +3965,8 @@ result_list[[8]] <- extract_interaction(comed.mort28, "comedication")
 result_list[[9]] <- extract_interaction(vacc.ae28, "vaccination on AEs") 
 result_list[[10]] <- extract_interaction(symp.mort28, "symptom duration") 
 result_list[[11]] <- extract_interaction(crp.mort28, "crp") 
+result_list[[12]] <- extract_interaction(atrisk.ae28, "at risk on AEs") 
+result_list[[13]] <- extract_interaction(comed.ae28, "comedication on AEs") 
 
 # Filter out NULL results and bind the results into a single data frame
 interaction_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -3882,6 +4198,36 @@ result_list[[2]] <- extract_subgroup(vacc.no.ae28, "Unvaccinated",
                                      sum(df_sg_vaccno_ae28$n_intervention_tot),
                                      sum(df_sg_vaccno_ae28$n_control),
                                      sum(df_sg_vaccno_ae28$n_control_tot))
+result_list[[3]] <- extract_subgroup(atrisk.no.ae28, "Not at risk",
+                                     sum(df_sg_atriskno_ae28$n_intervention),
+                                     sum(df_sg_atriskno_ae28$n_intervention_tot),
+                                     sum(df_sg_atriskno_ae28$n_control),
+                                     sum(df_sg_atriskno_ae28$n_control_tot))
+result_list[[4]] <- extract_subgroup(atrisk.yes.ae28, "At risk",
+                                     sum(df_sg_atriskyes_ae28$n_intervention),
+                                     sum(df_sg_atriskyes_ae28$n_intervention_tot),
+                                     sum(df_sg_atriskyes_ae28$n_control),
+                                     sum(df_sg_atriskyes_ae28$n_control_tot))
+result_list[[5]] <- extract_subgroup(no.comed.ae28, "No Dexamethasone, no Tocilizumab",
+                                     sum(df_sg_no_comed_ae28$n_intervention),
+                                     sum(df_sg_no_comed_ae28$n_intervention_tot),
+                                     sum(df_sg_no_comed_ae28$n_control),
+                                     sum(df_sg_no_comed_ae28$n_control_tot))
+result_list[[6]] <- extract_subgroup(dexa.comed.ae28, "Dexamethasone, but no Tocilizumab",
+                                     sum(df_sg_dexa_ae28$n_intervention),
+                                     sum(df_sg_dexa_ae28$n_intervention_tot),
+                                     sum(df_sg_dexa_ae28$n_control),
+                                     sum(df_sg_dexa_ae28$n_control_tot))
+result_list[[7]] <- extract_subgroup(dexa.toci.comed.ae28, "Dexamethasone and Tocilizumab",
+                                     sum(df_sg_dexa_toci_ae28$n_intervention),
+                                     sum(df_sg_dexa_toci_ae28$n_intervention_tot),
+                                     sum(df_sg_dexa_toci_ae28$n_control),
+                                     sum(df_sg_dexa_toci_ae28$n_control_tot))
+result_list[[8]] <- extract_subgroup(toci.comed.ae28, "Tocilizumab, but no Dexamethasone",
+                                     sum(df_sg_toci_ae28$n_intervention),
+                                     sum(df_sg_toci_ae28$n_intervention_tot),
+                                     sum(df_sg_toci_ae28$n_control),
+                                     sum(df_sg_toci_ae28$n_control_tot))
 
 # Filter out NULL results and bind the results into a single data frame
 subgroup_df_ae <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -3910,10 +4256,11 @@ tot_i <- subgroup_df$n_intervention_tot
 events_c <- subgroup_df$n_control
 tot_c <- subgroup_df$n_control_tot
 
-# ...and add p-interaction from interaction_df (except for venilation and the other sens-analyses & safety endpoint)
+# ...and add p-interaction from interaction_df (except for ventilation and the other sens-analyses & safety endpoint)
 interaction_df_fp <- interaction_df %>% 
   select(variable, p_value) %>% 
-  filter(!variable %in% c("ventilation", "comorbidity count", "any comorbidity", "comorbidity_noimmuno", "vaccination on AEs"))
+  filter(!variable %in% c("ventilation", "comorbidity count", "any comorbidity", "comorbidity_noimmuno", "vaccination on AEs"
+                          , "at risk on AEs", "comedication on AEs"))
 empty_row <- data.frame(
   variable = "",
   p_value = "")
@@ -3933,6 +4280,7 @@ first_part <- interaction_df_fp[1:15, ]
 second_part <- interaction_df_fp[16:nrow(interaction_df_fp), ]
 interaction_df_fp <- rbind(first_part, empty_row, empty_row, second_part)
 interaction_df_fp <- rbind(interaction_df_fp, empty_row)
+
 p_int <- interaction_df_fp$p_value
 # p_int <- round(p_int,2)
 
@@ -4096,8 +4444,8 @@ For continuous covariates (age, symptom duration, and CRP), a cut-off was chosen
 ```
 
 # Forestplot subgroup - on safety endpoint
-```{r, fig.width=14, fig.height=4}
-# take the effect estimates from subgroup_df... 
+```{r, fig.width=14, fig.height=7}
+# take the effect estimates from subgroup_df_ae... 
 subgroup_df_ae$inverse_variance <- 1 / subgroup_df_ae$standard_error^2
 events_i <- subgroup_df_ae$n_intervention
 tot_i <- subgroup_df_ae$n_intervention_tot
@@ -4106,12 +4454,18 @@ tot_c <- subgroup_df_ae$n_control_tot
 # ...and p-interaction from interaction_df
 interaction_df_fp_ae <- interaction_df %>% 
   select(variable, p_value) %>% 
-  filter(variable %in% c("vaccination on AEs"))
+  filter(variable %in% c("vaccination on AEs", "at risk on AEs", "comedication on AEs"))
 empty_row <- data.frame(
   variable = "",
   p_value = "")
 first_part <- interaction_df_fp_ae[1:1, ]
-interaction_df_fp_ae <- rbind(first_part, empty_row)
+second_part <- interaction_df_fp_ae[2:nrow(interaction_df_fp_ae), ]
+interaction_df_fp_ae <- rbind(first_part, empty_row, second_part)
+first_part <- interaction_df_fp_ae[1:3, ]
+second_part <- interaction_df_fp_ae[4:nrow(interaction_df_fp_ae), ]
+interaction_df_fp_ae <- rbind(first_part, empty_row, second_part)
+interaction_df_fp_ae <- rbind(interaction_df_fp_ae, empty_row, empty_row, empty_row)
+
 p_int <- interaction_df_fp_ae$p_value
 
 # ...and overall results from result_df
@@ -4120,7 +4474,7 @@ ae_28_ci_lower <- result_df$ci_lower[17]
 ae_28_ci_upper <- result_df$ci_upper[17]
 
 # ...and ICEMAN assessments
-iceman <- c("not assessed", "")
+iceman <- c("not assessed", "", "not assessed", "", "not assessed", "", "", "")
 
 # build forestplot
 base_data <- tibble(mean = subgroup_df_ae$odds_ratio,
@@ -4164,7 +4518,10 @@ ae28_fp_red %>%
              graph.pos = 6,
              clip = c(0.1, 2),
              hrzl_lines = list("2" = gpar(lty = 2),
-                               "4" = gpar(lty = 2)),
+                               "4" = gpar(lty = 2),
+                               "6" = gpar(lty = 2),
+                               "10" = gpar(lty = 2)),
+             
              xlog = TRUE,
              # xticks = c(1),
              xlim = c(0.5, 1), 
@@ -4175,7 +4532,7 @@ ae28_fp_red %>%
                             summary = "magenta4",
                             hrz_lines = "gray63"),
              vertices = TRUE,
-             xlab = "  Less adverse events with JAKi <-> More adverse events with JAKi",
+             xlab = "                                                      Less adverse events with JAKi < > More adverse events with JAKi",
              zero = 1,
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
              )
