@@ -2802,8 +2802,8 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       random = T, 
                       method.tau = "ML", 
                       method.random.ci = "HK",
-                      # subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
-                      exclude = trial %in% c("Ghazaeian", "COVINIB", "TOFACOV", "Bari-SolidAct") # incl in plot but exclude from analysis
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R"),
+                      exclude = trial %in% c("Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(rs.mort28)
 forest.meta(rs.mort28,
@@ -2832,7 +2832,7 @@ df_sg_rs_mort28 <- df_sg_rs_mort28 %>%
   mutate(prop_cont = paste0(round(n_control / n_control_tot * 100), "%"))
 
 # Open a pdf file
-# pdf("./fp_sg_rs.pdf", width=10, height=15)
+# pdf("./fp_sg_rs.pdf", width=10, height=11)
 
 mort28.rs <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
@@ -3264,10 +3264,18 @@ forest.meta(comorb.noimmuno.mort28,
 ```
 
 # Subgroups: Comorbidity on primary endpoint: Descriptive
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10, fig.height=13}
 df_sg_comorb_mort28$inverse_variance <- 1 / df_sg_comorb_mort28$standard_error^2
 df_sg_comorb_mort28$variable <- gsub("_firth$", "", df_sg_comorb_mort28$variable)
 df_sg_comorb_mort28 <- df_sg_comorb_mort28[order(df_sg_comorb_mort28$trial), ]
+
+# add the proportions in each treatment group
+df_sg_comorb_mort28 <- df_sg_comorb_mort28 %>%
+  mutate(prop_int = paste0(round(n_intervention / n_intervention_tot * 100), "%")) %>% 
+  mutate(prop_cont = paste0(round(n_control / n_control_tot * 100), "%"))
+
+# Open a pdf file
+pdf("./fp_sg_comorb.pdf", width=10, height=13)
 
 mort28.comorb <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
@@ -3286,10 +3294,10 @@ mort28.comorb <- metagen(TE = log(hazard_odds_ratio),
 summary(mort28.comorb)
 
 forest.meta(mort28.comorb,
-            rightcols = c("effect", "ci"),
-            rightlabs = c("aOR", "95%-CI"),
-            leftcols = c("studlab"),
-            leftlabs = c("Trial"),
+            rightcols = c("effect"),
+            rightlabs = c("aOR"),
+            leftcols = c("studlab", "n_intervention_tot", "n_intervention", "prop_int", "n_control_tot", "n_control", "prop_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "Prop.\nJAKi", "no JAKi", "Events\nno JAKi", "Prop.\nno JAKi"),
             text.random = "",
             # xlim = c(0.10,5),
             # label.left = "Favours JAKi",  
@@ -3299,6 +3307,8 @@ forest.meta(mort28.comorb,
             overall = F,
             hetstat = F
             )
+
+dev.off()
 ```
 
 # Subgroups: Comorbidity on primary endpoint: Pooled across trials (only for overall forestplot; descriptive)

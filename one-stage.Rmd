@@ -2528,9 +2528,10 @@ ul <- c(1.07)
 1000*(acr-(ul*acr/(1-acr+(ul*acr))))
 
 
-# Time to death within 60d
-# aHR 0.78 (0.67 to 0.91)
-# p = 0.013
+#### time-to-event outcomes
+### Time to death within 60d
+
+## aHR 0.78 (0.67 to 0.91)
 df_tot %>%
   filter(trt == 0) %>% 
   # filter(death_reached_60 == 1) %>%
@@ -2539,8 +2540,7 @@ df_tot %>%
             Q1 = quantile(death_time_60, probs = 0.25),
             Q3 = quantile(death_time_60, probs = 0.75))
 
-### time-to-event outcome
-# median time to event in control, in days / and HR with ll and ul
+## median time to event in control, in days / and HR with ll and ul
 median.c <- 11
 hr <- c(0.78)
 ll <- c(0.67)
@@ -2558,8 +2558,9 @@ m.i_ul <- median.c/ul
 m.i_ul+median.c
 
 
-# Time to discharge within 28d
-# aHR 1.10 (1.05 to 1.15)
+### Time to discharge within 28d
+
+## aHR 1.10 (1.05 to 1.15)
 df_tot %>%
   filter(trt == 0) %>% 
   # filter(discharge_reached == 1) %>% 
@@ -2568,8 +2569,7 @@ df_tot %>%
             Q1 = quantile(discharge_time, probs = 0.25),
             Q3 = quantile(discharge_time, probs = 0.75))
 
-### time-to-event outcome
-# median time to event in control, in days / and HR with ll and ul
+## median time to event in control, in days / and HR with ll and ul
 median.c <- 8
 hr <- c(1.10)
 ll <- c(1.05)
@@ -2585,6 +2585,23 @@ m.i_ll
 #ul
 m.i_ul <- median.c/ul
 m.i_ul
+
+## NNT
+# assumed comparator risk (ACR) based on control group of the IPDMA dataset
+acr <- 4664/6063 # see ordinal score
+acr <- 0.02
+hr <- c(1.10)
+ll <- c(1.05)
+ul <- c(1.15)
+# NNT for discharge at day 28
+nnt <- 1/((acr^hr)-acr)
+nnt
+# 96%CI for discharge at day 28
+nnt_ll <- 1/((acr^ll)-acr)
+nnt_ll
+nnt_ul <- 1/((acr^ul)-acr)
+nnt_ul
+
 
 # addmargins(table(df_tot$clinstatus_28_imp, df_tot$trt))
 

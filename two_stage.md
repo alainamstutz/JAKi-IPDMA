@@ -5092,43 +5092,43 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       random = T, 
                       method.tau = "ML", 
                       method.random.ci = "HK",
-                      # subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
-                      exclude = trial %in% c("Ghazaeian", "COVINIB", "TOFACOV", "Bari-SolidAct") # incl in plot but exclude from analysis
+                      # subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R"),
+                      exclude = trial %in% c("Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(rs.mort28)
 ```
 
 ```
 ##                   OR             95%-CI %W(random) exclude
-## ACTT-2        1.7465 [0.8842;   3.4499]        7.6        
-## Bari-SolidAct 0.2121 [0.0270;   1.6637]        0.0       *
-## COV-BARRIER   0.8771 [0.5637;   1.3647]       17.9        
-## COVINIB       0.2524 [0.0021;  30.2401]        0.0       *
+## ACTT-2        1.7465 [0.8842;   3.4499]        7.5        
+## Bari-SolidAct 0.2121 [0.0270;   1.6637]        0.8        
+## COV-BARRIER   0.8771 [0.5637;   1.3647]       17.7        
+## COVINIB       0.2524 [0.0021;  30.2401]        0.2        
 ## Ghazaeian     1.0000 [0.9378;   1.0664]        0.0       *
-## PANCOVID      0.0372 [0.0009;   1.5461]        0.3        
-## RECOVERY      0.8420 [0.6756;   1.0495]       72.2        
+## PANCOVID      0.0372 [0.0009;   1.5461]        0.2        
+## RECOVERY      0.8420 [0.6756;   1.0495]       71.4        
 ## RUXCOVID      1.2193 [0.0886;  16.7713]        0.5        
 ## TACTIC-R      0.8715 [0.1982;   3.8325]        1.6        
-## TOFACOV       1.1884 [0.0095; 148.1544]        0.0       *
+## TOFACOV       1.1884 [0.0095; 148.1544]        0.1        
 ## 
-## Number of studies: k = 6
+## Number of studies: k = 9
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.8914 [0.6687; 1.1883] -1.03  0.3512
+## Random effects model (HK) 0.8797 [0.6976; 1.1095] -1.27  0.2387
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 8.7924]; tau = 0.0002 [0.0000; 2.9652]
-##  I^2 = 27.1% [0.0%; 69.8%]; H = 1.17 [1.00; 1.82]
+##  tau^2 = 0 [0.0000; 2.9373]; tau = 0 [0.0000; 1.7139]
+##  I^2 = 11.0% [0.0%; 68.7%]; H = 1.06 [1.00; 1.79]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.86    5  0.2314
+##  8.99    8  0.3435
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 5)
+## - Hartung-Knapp adjustment for random effects model (df = 8)
 ```
 
 ```r
@@ -5160,7 +5160,7 @@ df_sg_rs_mort28 <- df_sg_rs_mort28 %>%
   mutate(prop_cont = paste0(round(n_control / n_control_tot * 100), "%"))
 
 # Open a pdf file
-# pdf("./fp_sg_rs.pdf", width=10, height=15)
+# pdf("./fp_sg_rs.pdf", width=10, height=11)
 
 mort28.rs <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
@@ -6213,6 +6213,14 @@ df_sg_comorb_mort28$inverse_variance <- 1 / df_sg_comorb_mort28$standard_error^2
 df_sg_comorb_mort28$variable <- gsub("_firth$", "", df_sg_comorb_mort28$variable)
 df_sg_comorb_mort28 <- df_sg_comorb_mort28[order(df_sg_comorb_mort28$trial), ]
 
+# add the proportions in each treatment group
+df_sg_comorb_mort28 <- df_sg_comorb_mort28 %>%
+  mutate(prop_int = paste0(round(n_intervention / n_intervention_tot * 100), "%")) %>% 
+  mutate(prop_cont = paste0(round(n_control / n_control_tot * 100), "%"))
+
+# Open a pdf file
+pdf("./fp_sg_comorb.pdf", width=10, height=13)
+
 mort28.comorb <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = variable,
@@ -6278,10 +6286,10 @@ summary(mort28.comorb)
 
 ```r
 forest.meta(mort28.comorb,
-            rightcols = c("effect", "ci"),
-            rightlabs = c("aOR", "95%-CI"),
-            leftcols = c("studlab"),
-            leftlabs = c("Trial"),
+            rightcols = c("effect"),
+            rightlabs = c("aOR"),
+            leftcols = c("studlab", "n_intervention_tot", "n_intervention", "prop_int", "n_control_tot", "n_control", "prop_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "Prop.\nJAKi", "no JAKi", "Events\nno JAKi", "Prop.\nno JAKi"),
             text.random = "",
             # xlim = c(0.10,5),
             # label.left = "Favours JAKi",  
@@ -6291,9 +6299,14 @@ forest.meta(mort28.comorb,
             overall = F,
             hetstat = F
             )
+
+dev.off()
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-53-1.png)<!-- -->
+```
+## quartz_off_screen 
+##                 2
+```
 
 # Subgroups: Comorbidity on primary endpoint: Pooled across trials (only for overall forestplot; descriptive)
 
@@ -7964,7 +7977,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 |variable             | log_odds_ratio| ci_lower| ci_upper| standard_error| p_value|approach  |
 |:--------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
-|respiratory support  |          0.891|    0.669|    1.188|          0.112|   0.351|two-stage |
+|respiratory support  |          0.880|    0.698|    1.109|          0.101|   0.239|two-stage |
 |ventilation          |          0.787|    0.572|    1.082|          0.124|   0.111|two-stage |
 |age                  |          1.010|    1.001|    1.020|          0.004|   0.031|two-stage |
 |comorbidity          |          1.202|    1.037|    1.394|          0.065|   0.020|two-stage |
