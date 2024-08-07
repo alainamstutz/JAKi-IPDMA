@@ -1570,7 +1570,7 @@ plot.plr.ci <- ggplot(risk.boot.graph, aes(x = time_0)) +
   geom_ribbon(aes(ymin = ll.1, ymax = ul.1, fill = "JAKi"), alpha = 0.4) + # Ribbon for JAKi group
   geom_line(aes(y = mean.0, color = ""), size = 1.5) + # Line for No JAKi group
   geom_ribbon(aes(ymin = ll.0, ymax = ul.0, fill = "No JAKi"), alpha = 0.4) + # Ribbon for No JAKi group
-  xlab("Days") + # X-axis label
+  xlab("Days since randomisation") + # X-axis label
   scale_x_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5)) + # X-axis scale
   ylab("Cumulative Incidence (%)") + # Y-axis label
   scale_y_continuous(limits = c(0, 0.20), breaks = seq(0, 0.20, by = 0.05), 
