@@ -647,9 +647,8 @@ dev.off()
 ```
 
 ### Funnel plot
-```{r warning=FALSE, fig.width=13, fig.height=4}
+```{r warning=FALSE, fig.width=13, fig.height=8}
 ## funnel plot (contour enhanced)
-funnel(mort28.agg)
 funnel(mort28.agg, common = TRUE,
   level = 0.95, contour = c(0.9, 0.95, 0.99),
   col.contour = c("grey", "lightgrey", "lightyellow"),
@@ -658,6 +657,14 @@ funnel(mort28.agg, common = TRUE,
 #   c("0.1 > p > 0.05", "0.05 > p > 0.01", "< 0.01"),
 #   fill = c("darkgreen", "green", "lightgreen"))
 # par(oldpar)
+
+# Open a pdf file
+pdf("./funnelplot.pdf", width=13, height=8)
+funnelplot <- funnel(mort28.agg, common = TRUE,
+  level = 0.95, contour = c(0.9, 0.95, 0.99),
+  col.contour = c("grey", "lightgrey", "lightyellow"),
+  lwd = 2, cex = 1.5, pch = 16, studlab = TRUE, cex.studlab = 1.0)
+dev.off()
 ```
 
 # (i.ii) Primary outcome: Subgroup by JAKi, including the non-IPD RCTs
@@ -1666,8 +1673,8 @@ dev.off()
 
 ```
 
-# (x) Meta-regression by RoB: Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
-```{r warning=FALSE, fig.width=13, fig.height=6}
+# (x) Between-trial compariso by RoB: Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
+```{r warning=FALSE, fig.width=11, fig.height=7}
 df_ae28 <- df_ae28 %>% 
   mutate("Risk of Bias" = case_when(trial == "ACTT-2" ~ "low risk",
                                             trial == "COV-BARRIER" ~ "low risk",
@@ -1681,24 +1688,64 @@ df_ae28 <- df_ae28 %>%
                                 trial == "PANCOVID" ~ "some concerns",
                                         ))
 
-# meta-regression by RoB
-ae28.rob <- update.meta(ae28,
-                        subgroup = df_ae28$`Risk of Bias`)
+ae28.rob <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_ae28,
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      subgroup = `Risk of Bias`
+                      )
+summary(ae28.rob)
 forest.meta(ae28.rob,
-            hetstat = F,
             rightcols = c("effect", "ci", "w.random"),
             rightlabs = c("aOR", "95%-CI", "Weight"),
-            leftcols = c("studlab", 
-                         "n.e", "n.c"),
-            leftlabs = c("Trial",
-                         "Total Intervention", "Total Control"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
             sortvar = +TE,
-            test.subgroup.random = T,
-            text.random = "Average treatment effect (RE model)",
-            xlim = c(0.2,5),
+            text.random = "Average treatment effect   ",
             label.left = "Favours JAKi",  
-            label.right = "Favours No JAKi"
+            label.right = "Favours No JAKi",
+            overall.hetstat = F,
+            test.subgroup = T
             )
+
+
+# Open a pdf file
+pdf("./fp_ae_28_rob.pdf", width=13, height=7)
+
+forestplot <- forest.meta(ae28.rob,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi",
+            test.subgroup = T,
+            pooled.total = F
+            )
+
+summary_row_y <- unit(0.243, "npc")
+total_row <- c(sum(df_ae28$n_int, na.rm = TRUE), 
+               sum(df_ae28$e_int, na.rm = TRUE), 
+               sum(df_ae28$n_cont, na.rm = TRUE),
+               sum(df_ae28$e_cont, na.rm = TRUE))
+pushViewport(viewport())
+grid.text(label = total_row[1], x = unit(0.320, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.366, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.421, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.471, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+popViewport()
+
+dev.off()
 
 ```
 
@@ -4625,7 +4672,7 @@ proportions <- df_aesi_tot %>%
   mutate(proportion = (count / denom)*100)
 ggplot(proportions, aes(x = proportion, y = aesi, color = Group, shape = Group)) +
   geom_point(size = 2.5) +
-  labs(x = "Proportion (%), by treatment group", y = NULL) +
+  labs(x = "Proportion (%)", y = NULL) +
   theme_minimal() + 
   scale_x_continuous(breaks = seq(0, 5, by = 0.5)) +
   theme(axis.text.y = element_text(size = 10),
