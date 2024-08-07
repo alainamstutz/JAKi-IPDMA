@@ -4254,7 +4254,7 @@ saveRDS(subgroup_df_ae, file = "subgroup_effects_safety_two-stage.RData")
 ```
 
 # Forestplot subgroup - on primary endpoint
-```{r, fig.width=15, fig.height=13}
+```{r, fig.width=15, fig.height=15}
 # first take out ventilation from subgroup_df 
 subgroup_df <- subgroup_df %>% 
   filter(!variable %in% c("No ventilation at baseline", "Ventilation at baseline"))
@@ -4348,7 +4348,7 @@ mort28_fp %>%
                                "19" = gpar(lty = 2),                               
                                "21" = gpar(lty = 2)),
              xlog = T,
-             # xticks = c(1),
+             xticks = c(log(0.5), log(0.71), log(1), log(2)),
              psize = sqrt(subgroup_df$inverse_variance),
              lty.ci = c(1),
              col = fpColors(box = "maroon4",
@@ -4356,11 +4356,11 @@ mort28_fp %>%
                             summary = "magenta4",
                             hrz_lines = "gray63"),
              vertices = TRUE,
-             xlab = "              Favours JAKi < > Favours No JAKi",
+             xlab = "               Favours JAKi < > Favours No JAKi",
              zero = 1,
              grid = structure(c(0.71), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-             )
+            )
 
 
 # ## main forestplot
@@ -4502,14 +4502,16 @@ summary <- tibble(mean  = ae_28_OR,
                   upper = ae_28_ci_upper,
                   subgroup = "Overall safety effect",
                   summary = TRUE)
+
 header <- tibble(subgroup = c("Subgroup"),
-                 events_i = c("Events int."),
-                 tot_i = c("No. int."),
-                 events_c = c("Events cont."),
-                 tot_c = c("No. cont."),
+                 tot_i = c("JAKi"),
+                 events_i = c("Events JAKi"),
+                 tot_c = c("No JAKi"),
+                 events_c = c("Events no JAKi"),
                  p_int = c("p-int*"),
                  iceman = c("ICEMAN\ncredibility assessment"),
                  summary = TRUE)
+
 ae28_fp <- bind_rows(header,base_data,summary)
 
 ae28_fp_red <- ae28_fp %>% 
@@ -4533,7 +4535,7 @@ ae28_fp_red %>%
                                "10" = gpar(lty = 2)),
              
              xlog = TRUE,
-             # xticks = c(1),
+             xticks = c(log(0.1), log(0.5), log(1), log(2)),
              xlim = c(0.5, 1), 
              psize = sqrt(subgroup_df_ae$inverse_variance),
              lty.ci = c(1),
