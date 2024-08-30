@@ -778,13 +778,9 @@ df_ae34_unique$ae_28 <- 1
 # table(df_ae34_unique$ae_28)
 # merge
 df <- left_join(df, df_ae34_unique[, c("ae_28", "USUBJID")], by = join_by(USUBJID == USUBJID)) ## merge variable to main df
-# the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
+# the remaining missing have no AE grade 34 -> recode as 0 
 df <- df %>% 
-  mutate(ae_28 = case_when(is.na(ae_28) & mort_28 == 0 ~ 0,
-                           is.na(ae_28) & mort_28 == 1 ~ NA,
-                           TRUE ~ ae_28))
-df <- df %>% 
-  mutate(ae_28 = case_when(mort_28 == 1 ~ NA,
+  mutate(ae_28 = case_when(is.na(ae_28) ~ 0,
                            TRUE ~ ae_28))
 # table(df$ae_28, df$mort_28, useNA = "always")
 # addmargins(table(df$ae_28, df$trt, useNA = "always"))
@@ -795,15 +791,61 @@ ae_npp <- df_ae34 %>%
 df <- left_join(df, ae_npp[, c("ae_28_sev", "USUBJID")], by = join_by(USUBJID == USUBJID)) # merge variable to main df
 # the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
 df <- df %>% 
-  mutate(ae_28_sev = case_when(is.na(ae_28_sev) & mort_28 == 0 ~ 0,
-                           is.na(ae_28_sev) & mort_28 == 1 ~ NA,
+  mutate(ae_28_sev = case_when(is.na(ae_28_sev) ~ 0,
                            TRUE ~ ae_28_sev))
-df <- df %>% 
-  mutate(ae_28_sev = case_when(mort_28 == 1 ~ NA,
-                           TRUE ~ ae_28_sev))
-# table(df$ae_28_sev, df$mort_28, useNA = "always")
-# addmargins(table(df$ae_28_sev, df$trt, useNA = "always"))
+table(df$ae_28_sev, df$mort_28, useNA = "always")
+```
 
+```
+##       
+##           0    1 <NA>
+##   0    1011    3   90
+##   1     146   51    8
+##   2      73   55    4
+##   3      36   40    0
+##   4      12   18    0
+##   5      16   18    1
+##   6       7    9    0
+##   7       3    8    0
+##   8       0    2    0
+##   9       4    3    0
+##   10      1    0    0
+##   11      0    1    0
+##   12      1    1    0
+##   13      2    0    0
+##   15      0    1    0
+##   19      0    1    0
+##   <NA>    0    0    0
+```
+
+```r
+addmargins(table(df$ae_28_sev, df$trt, useNA = "always"))
+```
+
+```
+##       
+##           0    1 <NA>  Sum
+##   0     541  563    0 1104
+##   1     112   93    0  205
+##   2      66   66    0  132
+##   3      37   39    0   76
+##   4      13   17    0   30
+##   5      22   13    0   35
+##   6       7    9    0   16
+##   7       8    3    0   11
+##   8       1    1    0    2
+##   9       4    3    0    7
+##   10      0    1    0    1
+##   11      0    1    0    1
+##   12      0    2    0    2
+##   13      0    2    0    2
+##   15      0    1    0    1
+##   19      0    1    0    1
+##   <NA>    0    0    0    0
+##   Sum   811  815    0 1626
+```
+
+```r
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
 # re-discuss
 
@@ -1204,10 +1246,9 @@ Table: By completeness (only mort_28)
 |discharge_reached_sus (%)         |0                                         |414 ( 25.5)           |75 ( 72.8)            |339 ( 22.3)           |<0.001 |        |0.0     |
 |                                  |1                                         |1212 ( 74.5)          |28 ( 27.2)            |1184 ( 77.7)          |       |        |        |
 |discharge_time_sus (median [IQR]) |                                          |10.00 [6.00, 15.00]   |6.00 [2.00, 9.00]     |10.00 [7.00, 16.00]   |<0.001 |nonnorm |0.0     |
-|ae_28 (%)                         |0                                         |1011 ( 62.2)          |0 (  0.0)             |1011 ( 66.4)          |<0.001 |        |18.5    |
-|                                  |1                                         |314 ( 19.3)           |13 ( 12.6)            |301 ( 19.8)           |       |        |        |
-|                                  |NA                                        |301 ( 18.5)           |90 ( 87.4)            |211 ( 13.9)           |       |        |        |
-|ae_28_sev (median [IQR])          |                                          |0.00 [0.00, 0.00]     |1.00 [1.00, 2.00]     |0.00 [0.00, 0.00]     |<0.001 |nonnorm |18.5    |
+|ae_28 (%)                         |0                                         |1104 ( 67.9)          |90 ( 87.4)            |1014 ( 66.6)          |<0.001 |        |0.0     |
+|                                  |1                                         |522 ( 32.1)           |13 ( 12.6)            |509 ( 33.4)           |       |        |        |
+|ae_28_sev (median [IQR])          |                                          |0.00 [0.00, 1.00]     |0.00 [0.00, 0.00]     |0.00 [0.00, 1.00]     |<0.001 |nonnorm |0.0     |
 |vir_clear_5 (%)                   |0                                         |734 ( 45.1)           |49 ( 47.6)            |685 ( 45.0)           |0.609  |        |39.9    |
 |                                  |1                                         |244 ( 15.0)           |12 ( 11.7)            |232 ( 15.2)           |       |        |        |
 |                                  |NA                                        |648 ( 39.9)           |42 ( 40.8)            |606 ( 39.8)           |       |        |        |
@@ -1283,46 +1324,32 @@ md.pattern(df_imp[,c("mort_28", "age",
 ![](cov-barrier_files/figure-html/unnamed-chunk-7-6.png)<!-- -->
 
 ```
-##      age sex ethn country comorb_cat comed_ab comed_other clinstatus_baseline
-## 1018   1   1    1       1          1        1           1                   1
-## 228    1   1    1       1          1        1           1                   1
-## 166    1   1    1       1          1        1           1                   1
-## 31     1   1    1       1          1        1           1                   1
-## 11     1   1    1       1          1        1           1                   1
-## 2      1   1    1       1          1        1           1                   1
-## 51     1   1    1       1          1        1           1                   1
-## 26     1   1    1       1          1        1           1                   1
-## 46     1   1    1       1          1        1           1                   1
-## 17     1   1    1       1          1        1           1                   1
-## 9      1   1    1       1          1        1           1                   1
-## 4      1   1    1       1          1        1           1                   1
-## 5      1   1    1       1          1        1           1                   1
-## 1      1   1    1       1          1        1           1                   1
-## 3      1   1    1       1          1        1           1                   1
-## 1      1   1    1       1          1        1           1                   1
-## 2      1   1    1       1          1        1           1                   0
-## 5      1   1    1       1          1        1           1                   0
-##        0   0    0       0          0        0           0                   7
-##      comed_dexa sympdur vl_baseline mort_28 ae_28_sev crp    
-## 1018          1       1           1       1         1   1   0
-## 228           1       1           1       1         1   0   1
-## 166           1       1           1       1         0   1   1
-## 31            1       1           1       1         0   0   2
-## 11            1       1           1       0         1   1   1
-## 2             1       1           1       0         1   0   2
-## 51            1       1           1       0         0   1   2
-## 26            1       1           1       0         0   0   3
-## 46            1       1           0       1         1   1   1
-## 17            1       1           0       1         1   0   2
-## 9             1       1           0       1         0   1   2
-## 4             1       1           0       1         0   0   3
-## 5             1       1           0       0         0   1   3
-## 1             1       1           0       0         0   0   4
-## 3             1       0           1       1         1   1   1
-## 1             1       0           1       1         0   1   2
-## 2             0       1           0       0         0   0   6
-## 5             0       0           0       0         0   0   7
-##               7       9          89     103       301 316 832
+##      age sex ethn country comorb_cat comed_ab comed_other ae_28_sev
+## 1184   1   1    1       1          1        1           1         1
+## 259    1   1    1       1          1        1           1         1
+## 62     1   1    1       1          1        1           1         1
+## 28     1   1    1       1          1        1           1         1
+## 55     1   1    1       1          1        1           1         1
+## 21     1   1    1       1          1        1           1         1
+## 5      1   1    1       1          1        1           1         1
+## 1      1   1    1       1          1        1           1         1
+## 4      1   1    1       1          1        1           1         1
+## 2      1   1    1       1          1        1           1         1
+## 5      1   1    1       1          1        1           1         1
+##        0   0    0       0          0        0           0         0
+##      clinstatus_baseline comed_dexa sympdur vl_baseline mort_28 crp    
+## 1184                   1          1       1           1       1   1   0
+## 259                    1          1       1           1       1   0   1
+## 62                     1          1       1           1       0   1   1
+## 28                     1          1       1           1       0   0   2
+## 55                     1          1       1           0       1   1   1
+## 21                     1          1       1           0       1   0   2
+## 5                      1          1       1           0       0   1   2
+## 1                      1          1       1           0       0   0   3
+## 4                      1          1       0           1       1   1   1
+## 2                      0          0       1           0       0   0   5
+## 5                      0          0       0           0       0   0   6
+##                        7          7       9          89     103 316 531
 ```
 
 ```r
@@ -1740,9 +1767,9 @@ df_imp %>%
   <tr>
    <td style="text-align:left;"> ae_28_sev </td>
    <td style="text-align:left;"> Mean (SD) </td>
-   <td style="text-align:right;"> 0.5 (1.3) </td>
-   <td style="text-align:right;"> 1.6 (1.1) </td>
-   <td style="text-align:right;"> 0.003 </td>
+   <td style="text-align:right;"> 0.9 (1.8) </td>
+   <td style="text-align:right;"> 0.2 (0.7) </td>
+   <td style="text-align:right;"> &lt;0.001 </td>
   </tr>
 </tbody>
 </table>
@@ -5020,9 +5047,9 @@ table(df$ae_28, df$trt, useNA = "always")
 ```
 ##       
 ##          0   1 <NA>
-##   0    499 512    0
-##   1    143 171    0
-##   <NA> 169 132    0
+##   0    541 563    0
+##   1    270 252    0
+##   <NA>   0   0    0
 ```
 
 ```r
@@ -5037,7 +5064,7 @@ summ(ae.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 1325 (301 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1619 (7 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -5070,50 +5097,50 @@ summ(ae.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.11 </td>
    <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 0.21 </td>
-   <td style="text-align:right;"> -6.41 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.09 </td>
+   <td style="text-align:right;"> -9.62 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.10 </td>
-   <td style="text-align:right;"> 0.85 </td>
-   <td style="text-align:right;"> 1.44 </td>
-   <td style="text-align:right;"> 0.73 </td>
-   <td style="text-align:right;"> 0.46 </td>
+   <td style="text-align:right;"> 0.87 </td>
+   <td style="text-align:right;"> 0.69 </td>
+   <td style="text-align:right;"> 1.09 </td>
+   <td style="text-align:right;"> -1.19 </td>
+   <td style="text-align:right;"> 0.23 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> 1.01 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 3.00 </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 7.44 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.81 </td>
-   <td style="text-align:right;"> 0.54 </td>
-   <td style="text-align:right;"> 1.22 </td>
-   <td style="text-align:right;"> -1.01 </td>
-   <td style="text-align:right;"> 0.31 </td>
+   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.67 </td>
+   <td style="text-align:right;"> 1.46 </td>
+   <td style="text-align:right;"> -0.05 </td>
+   <td style="text-align:right;"> 0.96 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 2.04 </td>
-   <td style="text-align:right;"> 1.30 </td>
-   <td style="text-align:right;"> 3.20 </td>
-   <td style="text-align:right;"> 3.12 </td>
+   <td style="text-align:right;"> 2.99 </td>
+   <td style="text-align:right;"> 1.98 </td>
+   <td style="text-align:right;"> 4.50 </td>
+   <td style="text-align:right;"> 5.23 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 13.81 </td>
-   <td style="text-align:right;"> 6.41 </td>
-   <td style="text-align:right;"> 29.75 </td>
-   <td style="text-align:right;"> 6.70 </td>
+   <td style="text-align:right;"> 22.96 </td>
+   <td style="text-align:right;"> 11.71 </td>
+   <td style="text-align:right;"> 45.04 </td>
+   <td style="text-align:right;"> 9.12 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -5129,19 +5156,23 @@ table(df$ae_28_sev, df$trt, useNA = "always")
 ```
 ##       
 ##          0   1 <NA>
-##   0    499 512    0
-##   1     77  77    0
-##   2     35  42    0
-##   3     13  23    0
-##   4      5   7    0
-##   5      8   9    0
-##   6      2   5    0
-##   7      1   2    0
-##   9      2   2    0
+##   0    541 563    0
+##   1    112  93    0
+##   2     66  66    0
+##   3     37  39    0
+##   4     13  17    0
+##   5     22  13    0
+##   6      7   9    0
+##   7      8   3    0
+##   8      1   1    0
+##   9      4   3    0
 ##   10     0   1    0
-##   12     0   1    0
+##   11     0   1    0
+##   12     0   2    0
 ##   13     0   2    0
-##   <NA> 169 132    0
+##   15     0   1    0
+##   19     0   1    0
+##   <NA>   0   0    0
 ```
 
 ```r
@@ -5156,7 +5187,7 @@ summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 1325 (301 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1619 (7 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -5189,50 +5220,50 @@ summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.09 </td>
-   <td style="text-align:right;"> 0.06 </td>
+   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> 0.07 </td>
    <td style="text-align:right;"> 0.14 </td>
-   <td style="text-align:right;"> -10.96 </td>
+   <td style="text-align:right;"> -13.59 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.30 </td>
-   <td style="text-align:right;"> 1.12 </td>
-   <td style="text-align:right;"> 1.51 </td>
-   <td style="text-align:right;"> 3.37 </td>
-   <td style="text-align:right;"> 0.00 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 0.94 </td>
+   <td style="text-align:right;"> 1.16 </td>
+   <td style="text-align:right;"> 0.74 </td>
+   <td style="text-align:right;"> 0.46 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.02 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 7.41 </td>
+   <td style="text-align:right;"> 12.46 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 1.05 </td>
-   <td style="text-align:right;"> 0.80 </td>
-   <td style="text-align:right;"> 1.38 </td>
-   <td style="text-align:right;"> 0.36 </td>
-   <td style="text-align:right;"> 0.72 </td>
+   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 0.86 </td>
+   <td style="text-align:right;"> 1.35 </td>
+   <td style="text-align:right;"> 0.66 </td>
+   <td style="text-align:right;"> 0.51 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 2.34 </td>
-   <td style="text-align:right;"> 1.77 </td>
-   <td style="text-align:right;"> 3.09 </td>
-   <td style="text-align:right;"> 5.96 </td>
+   <td style="text-align:right;"> 2.47 </td>
+   <td style="text-align:right;"> 1.96 </td>
+   <td style="text-align:right;"> 3.10 </td>
+   <td style="text-align:right;"> 7.76 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 4.48 </td>
-   <td style="text-align:right;"> 3.22 </td>
-   <td style="text-align:right;"> 6.21 </td>
-   <td style="text-align:right;"> 8.96 </td>
+   <td style="text-align:right;"> 5.37 </td>
+   <td style="text-align:right;"> 4.22 </td>
+   <td style="text-align:right;"> 6.83 </td>
+   <td style="text-align:right;"> 13.70 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -7622,7 +7653,7 @@ summ(ae.28.atrisk, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 1325 (301 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1619 (7 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -7655,67 +7686,67 @@ summ(ae.28.atrisk, exp = T, confint = T, model.info = T, model.fit = F, digits =
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.11 </td>
    <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 0.24 </td>
-   <td style="text-align:right;"> -5.52 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.10 </td>
+   <td style="text-align:right;"> -8.22 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> 0.72 </td>
-   <td style="text-align:right;"> 1.45 </td>
-   <td style="text-align:right;"> 0.11 </td>
-   <td style="text-align:right;"> 0.91 </td>
+   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> 0.62 </td>
+   <td style="text-align:right;"> 1.16 </td>
+   <td style="text-align:right;"> -1.04 </td>
+   <td style="text-align:right;"> 0.30 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> at_risk </td>
-   <td style="text-align:right;"> 0.92 </td>
-   <td style="text-align:right;"> 0.58 </td>
-   <td style="text-align:right;"> 1.46 </td>
-   <td style="text-align:right;"> -0.35 </td>
-   <td style="text-align:right;"> 0.73 </td>
+   <td style="text-align:right;"> 1.01 </td>
+   <td style="text-align:right;"> 0.69 </td>
+   <td style="text-align:right;"> 1.49 </td>
+   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 0.94 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> 1.00 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 2.18 </td>
-   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 5.23 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.81 </td>
-   <td style="text-align:right;"> 0.54 </td>
-   <td style="text-align:right;"> 1.23 </td>
-   <td style="text-align:right;"> -0.98 </td>
-   <td style="text-align:right;"> 0.33 </td>
+   <td style="text-align:right;"> 0.99 </td>
+   <td style="text-align:right;"> 0.68 </td>
+   <td style="text-align:right;"> 1.46 </td>
+   <td style="text-align:right;"> -0.04 </td>
+   <td style="text-align:right;"> 0.97 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 2.05 </td>
-   <td style="text-align:right;"> 1.31 </td>
-   <td style="text-align:right;"> 3.22 </td>
-   <td style="text-align:right;"> 3.14 </td>
+   <td style="text-align:right;"> 2.99 </td>
+   <td style="text-align:right;"> 1.98 </td>
+   <td style="text-align:right;"> 4.50 </td>
+   <td style="text-align:right;"> 5.23 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 13.93 </td>
-   <td style="text-align:right;"> 6.46 </td>
-   <td style="text-align:right;"> 30.02 </td>
-   <td style="text-align:right;"> 6.72 </td>
+   <td style="text-align:right;"> 23.04 </td>
+   <td style="text-align:right;"> 11.74 </td>
+   <td style="text-align:right;"> 45.20 </td>
+   <td style="text-align:right;"> 9.12 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt:at_risk </td>
-   <td style="text-align:right;"> 1.21 </td>
-   <td style="text-align:right;"> 0.70 </td>
-   <td style="text-align:right;"> 2.08 </td>
-   <td style="text-align:right;"> 0.69 </td>
-   <td style="text-align:right;"> 0.49 </td>
+   <td style="text-align:right;"> 1.06 </td>
+   <td style="text-align:right;"> 0.67 </td>
+   <td style="text-align:right;"> 1.68 </td>
+   <td style="text-align:right;"> 0.26 </td>
+   <td style="text-align:right;"> 0.79 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -7737,7 +7768,7 @@ summ(ae.28.atrisk.0, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 818 (127 missing obs. deleted) </td>
+   <td style="text-align:right;"> 940 (5 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -7770,50 +7801,50 @@ summ(ae.28.atrisk.0, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.07 </td>
-   <td style="text-align:right;"> 0.03 </td>
-   <td style="text-align:right;"> 0.20 </td>
-   <td style="text-align:right;"> -4.98 </td>
+   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.12 </td>
+   <td style="text-align:right;"> -6.11 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> 0.72 </td>
-   <td style="text-align:right;"> 1.45 </td>
-   <td style="text-align:right;"> 0.12 </td>
-   <td style="text-align:right;"> 0.90 </td>
+   <td style="text-align:right;"> 0.85 </td>
+   <td style="text-align:right;"> 0.62 </td>
+   <td style="text-align:right;"> 1.16 </td>
+   <td style="text-align:right;"> -1.03 </td>
+   <td style="text-align:right;"> 0.30 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 1.04 </td>
-   <td style="text-align:right;"> 2.46 </td>
-   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> 3.87 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.88 </td>
-   <td style="text-align:right;"> 0.51 </td>
-   <td style="text-align:right;"> 1.53 </td>
-   <td style="text-align:right;"> -0.45 </td>
-   <td style="text-align:right;"> 0.65 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 1.69 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.99 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 2.12 </td>
-   <td style="text-align:right;"> 1.15 </td>
-   <td style="text-align:right;"> 3.90 </td>
-   <td style="text-align:right;"> 2.41 </td>
-   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 2.86 </td>
+   <td style="text-align:right;"> 1.63 </td>
+   <td style="text-align:right;"> 5.02 </td>
+   <td style="text-align:right;"> 3.65 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 13.94 </td>
-   <td style="text-align:right;"> 5.39 </td>
-   <td style="text-align:right;"> 36.05 </td>
-   <td style="text-align:right;"> 5.44 </td>
+   <td style="text-align:right;"> 19.73 </td>
+   <td style="text-align:right;"> 8.70 </td>
+   <td style="text-align:right;"> 44.76 </td>
+   <td style="text-align:right;"> 7.14 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -7835,7 +7866,7 @@ summ(ae.28.atrisk.1, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 507 (174 missing obs. deleted) </td>
+   <td style="text-align:right;"> 679 (2 missing obs. deleted) </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -7868,50 +7899,50 @@ summ(ae.28.atrisk.1, exp = T, confint = T, model.info = T, model.fit = F, digits
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.21 </td>
    <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 0.85 </td>
-   <td style="text-align:right;"> -2.18 </td>
-   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.19 </td>
+   <td style="text-align:right;"> -4.52 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.25 </td>
-   <td style="text-align:right;"> 0.82 </td>
-   <td style="text-align:right;"> 1.89 </td>
-   <td style="text-align:right;"> 1.04 </td>
-   <td style="text-align:right;"> 0.30 </td>
+   <td style="text-align:right;"> 0.90 </td>
+   <td style="text-align:right;"> 0.64 </td>
+   <td style="text-align:right;"> 1.26 </td>
+   <td style="text-align:right;"> -0.61 </td>
+   <td style="text-align:right;"> 0.54 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.03 </td>
    <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-   <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> 0.53 </td>
-   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> 3.53 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.73 </td>
-   <td style="text-align:right;"> 0.39 </td>
-   <td style="text-align:right;"> 1.35 </td>
-   <td style="text-align:right;"> -1.00 </td>
-   <td style="text-align:right;"> 0.32 </td>
+   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> 0.56 </td>
+   <td style="text-align:right;"> 1.74 </td>
+   <td style="text-align:right;"> -0.06 </td>
+   <td style="text-align:right;"> 0.95 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 1.96 </td>
-   <td style="text-align:right;"> 1.00 </td>
-   <td style="text-align:right;"> 3.81 </td>
-   <td style="text-align:right;"> 1.97 </td>
-   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 3.13 </td>
+   <td style="text-align:right;"> 1.72 </td>
+   <td style="text-align:right;"> 5.71 </td>
+   <td style="text-align:right;"> 3.73 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 15.01 </td>
-   <td style="text-align:right;"> 3.86 </td>
-   <td style="text-align:right;"> 58.33 </td>
-   <td style="text-align:right;"> 3.91 </td>
+   <td style="text-align:right;"> 33.88 </td>
+   <td style="text-align:right;"> 9.32 </td>
+   <td style="text-align:right;"> 123.18 </td>
+   <td style="text-align:right;"> 5.35 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -7940,7 +7971,122 @@ summ(ae.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 1325 (301 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1619 (7 missing obs. deleted) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> ae_28 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Generalized linear model </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Family </td>
+   <td style="text-align:right;"> binomial </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Link </td>
+   <td style="text-align:right;"> logit </td>
+  </tr>
+</tbody>
+</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> exp(Est.) </th>
+   <th style="text-align:right;"> 2.5% </th>
+   <th style="text-align:right;"> 97.5% </th>
+   <th style="text-align:right;"> z val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.08 </td>
+   <td style="text-align:right;"> -7.20 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt </td>
+   <td style="text-align:right;"> 0.90 </td>
+   <td style="text-align:right;"> 0.30 </td>
+   <td style="text-align:right;"> 2.68 </td>
+   <td style="text-align:right;"> -0.19 </td>
+   <td style="text-align:right;"> 0.85 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> comed_cat </td>
+   <td style="text-align:right;"> 1.30 </td>
+   <td style="text-align:right;"> 0.86 </td>
+   <td style="text-align:right;"> 1.99 </td>
+   <td style="text-align:right;"> 1.23 </td>
+   <td style="text-align:right;"> 0.22 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> age </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> 1.02 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 7.53 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
+   <td style="text-align:right;"> 0.90 </td>
+   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 1.34 </td>
+   <td style="text-align:right;"> -0.52 </td>
+   <td style="text-align:right;"> 0.60 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
+   <td style="text-align:right;"> 2.66 </td>
+   <td style="text-align:right;"> 1.72 </td>
+   <td style="text-align:right;"> 4.10 </td>
+   <td style="text-align:right;"> 4.42 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
+   <td style="text-align:right;"> 20.69 </td>
+   <td style="text-align:right;"> 10.43 </td>
+   <td style="text-align:right;"> 41.04 </td>
+   <td style="text-align:right;"> 8.67 </td>
+   <td style="text-align:right;"> 0.00 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
+   <td style="text-align:right;"> 0.98 </td>
+   <td style="text-align:right;"> 0.54 </td>
+   <td style="text-align:right;"> 1.77 </td>
+   <td style="text-align:right;"> -0.06 </td>
+   <td style="text-align:right;"> 0.95 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: MLE</td></tr></tfoot>
+</table>
+
+```r
+# effect by subgroup
+ae.28.comed.1 <- df %>% 
+  filter(comed_cat == 1) %>% # without Dexamethasone nor Tocilizumab
+  glm(ae_28 ~ trt
+      + age 
+      + clinstatus_baseline 
+      , family = "binomial", data=.)
+summ(ae.28.comed.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 328 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -7975,164 +8121,49 @@ summ(ae.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.06 </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.19 </td>
-   <td style="text-align:right;"> -4.90 </td>
+   <td style="text-align:right;"> 0.22 </td>
+   <td style="text-align:right;"> -4.35 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.71 </td>
-   <td style="text-align:right;"> 0.48 </td>
-   <td style="text-align:right;"> 6.06 </td>
-   <td style="text-align:right;"> 0.83 </td>
-   <td style="text-align:right;"> 0.40 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_cat </td>
-   <td style="text-align:right;"> 1.40 </td>
-   <td style="text-align:right;"> 0.83 </td>
-   <td style="text-align:right;"> 2.35 </td>
-   <td style="text-align:right;"> 1.26 </td>
-   <td style="text-align:right;"> 0.21 </td>
+   <td style="text-align:right;"> 0.93 </td>
+   <td style="text-align:right;"> 0.55 </td>
+   <td style="text-align:right;"> 1.57 </td>
+   <td style="text-align:right;"> -0.28 </td>
+   <td style="text-align:right;"> 0.78 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
    <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 3.05 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.75 </td>
-   <td style="text-align:right;"> 0.48 </td>
-   <td style="text-align:right;"> 1.15 </td>
-   <td style="text-align:right;"> -1.31 </td>
-   <td style="text-align:right;"> 0.19 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 1.86 </td>
-   <td style="text-align:right;"> 1.15 </td>
-   <td style="text-align:right;"> 3.00 </td>
-   <td style="text-align:right;"> 2.54 </td>
-   <td style="text-align:right;"> 0.01 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 12.70 </td>
-   <td style="text-align:right;"> 5.81 </td>
-   <td style="text-align:right;"> 27.73 </td>
-   <td style="text-align:right;"> 6.38 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
-   <td style="text-align:right;"> 0.79 </td>
-   <td style="text-align:right;"> 0.40 </td>
-   <td style="text-align:right;"> 1.55 </td>
-   <td style="text-align:right;"> -0.69 </td>
-   <td style="text-align:right;"> 0.49 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: MLE</td></tr></tfoot>
-</table>
-
-```r
-# effect by subgroup
-ae.28.comed.1 <- df %>% 
-  filter(comed_cat == 1) %>% # without Dexamethasone nor Tocilizumab
-  glm(ae_28 ~ trt
-      + age 
-      + clinstatus_baseline 
-      , family = "binomial", data=.)
-summ(ae.28.comed.1, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-```
-
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 277 (51 missing obs. deleted) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> ae_28 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> Generalized linear model </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Family </td>
-   <td style="text-align:right;"> binomial </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Link </td>
-   <td style="text-align:right;"> logit </td>
-  </tr>
-</tbody>
-</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> exp(Est.) </th>
-   <th style="text-align:right;"> 2.5% </th>
-   <th style="text-align:right;"> 97.5% </th>
-   <th style="text-align:right;"> z val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.09 </td>
+   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 2.33 </td>
    <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.35 </td>
-   <td style="text-align:right;"> -3.50 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.36 </td>
-   <td style="text-align:right;"> 0.74 </td>
-   <td style="text-align:right;"> 2.50 </td>
-   <td style="text-align:right;"> 0.99 </td>
-   <td style="text-align:right;"> 0.32 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 1.13 </td>
-   <td style="text-align:right;"> 0.26 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.84 </td>
-   <td style="text-align:right;"> 0.42 </td>
-   <td style="text-align:right;"> 1.68 </td>
-   <td style="text-align:right;"> -0.48 </td>
-   <td style="text-align:right;"> 0.63 </td>
+   <td style="text-align:right;"> 1.03 </td>
+   <td style="text-align:right;"> 0.55 </td>
+   <td style="text-align:right;"> 1.93 </td>
+   <td style="text-align:right;"> 0.09 </td>
+   <td style="text-align:right;"> 0.93 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 3.71 </td>
-   <td style="text-align:right;"> 1.46 </td>
-   <td style="text-align:right;"> 9.44 </td>
-   <td style="text-align:right;"> 2.75 </td>
-   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 4.71 </td>
+   <td style="text-align:right;"> 2.08 </td>
+   <td style="text-align:right;"> 10.66 </td>
+   <td style="text-align:right;"> 3.72 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 3.26 </td>
-   <td style="text-align:right;"> 0.67 </td>
-   <td style="text-align:right;"> 15.94 </td>
-   <td style="text-align:right;"> 1.46 </td>
-   <td style="text-align:right;"> 0.14 </td>
+   <td style="text-align:right;"> 10.03 </td>
+   <td style="text-align:right;"> 2.81 </td>
+   <td style="text-align:right;"> 35.80 </td>
+   <td style="text-align:right;"> 3.55 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -8153,7 +8184,7 @@ summ(ae.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digits 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 1048 (243 missing obs. deleted) </td>
+   <td style="text-align:right;"> 1291 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -8186,50 +8217,50 @@ summ(ae.28.comed.2, exp = T, confint = T, model.info = T, model.fit = F, digits 
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.13 </td>
    <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 0.30 </td>
-   <td style="text-align:right;"> -4.68 </td>
+   <td style="text-align:right;"> 0.02 </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> -7.52 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 1.06 </td>
-   <td style="text-align:right;"> 0.78 </td>
-   <td style="text-align:right;"> 1.42 </td>
-   <td style="text-align:right;"> 0.36 </td>
-   <td style="text-align:right;"> 0.72 </td>
+   <td style="text-align:right;"> 0.87 </td>
+   <td style="text-align:right;"> 0.67 </td>
+   <td style="text-align:right;"> 1.12 </td>
+   <td style="text-align:right;"> -1.10 </td>
+   <td style="text-align:right;"> 0.27 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.02 </td>
-   <td style="text-align:right;"> 1.00 </td>
+   <td style="text-align:right;"> 1.04 </td>
    <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 2.82 </td>
+   <td style="text-align:right;"> 1.05 </td>
+   <td style="text-align:right;"> 7.20 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 0.67 </td>
-   <td style="text-align:right;"> 0.38 </td>
-   <td style="text-align:right;"> 1.18 </td>
-   <td style="text-align:right;"> -1.38 </td>
-   <td style="text-align:right;"> 0.17 </td>
+   <td style="text-align:right;"> 0.81 </td>
+   <td style="text-align:right;"> 0.47 </td>
+   <td style="text-align:right;"> 1.39 </td>
+   <td style="text-align:right;"> -0.77 </td>
+   <td style="text-align:right;"> 0.44 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 1.56 </td>
-   <td style="text-align:right;"> 0.85 </td>
-   <td style="text-align:right;"> 2.85 </td>
-   <td style="text-align:right;"> 1.45 </td>
-   <td style="text-align:right;"> 0.15 </td>
+   <td style="text-align:right;"> 2.27 </td>
+   <td style="text-align:right;"> 1.30 </td>
+   <td style="text-align:right;"> 3.97 </td>
+   <td style="text-align:right;"> 2.87 </td>
+   <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline5 </td>
-   <td style="text-align:right;"> 16.36 </td>
-   <td style="text-align:right;"> 6.16 </td>
-   <td style="text-align:right;"> 43.44 </td>
-   <td style="text-align:right;"> 5.61 </td>
+   <td style="text-align:right;"> 23.07 </td>
+   <td style="text-align:right;"> 9.91 </td>
+   <td style="text-align:right;"> 53.73 </td>
+   <td style="text-align:right;"> 7.28 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
 </tbody>
@@ -9152,8 +9183,8 @@ result_list[[17]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days
                                          addmargins(table(df$ae_28, df$trt))[2,2], 
                                          addmargins(table(df$ae_28, df$trt))[2,1])
 result_list[[18]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
-                                         addmargins(table(df$ae_28_sev, df$trt))[13,2], 
-                                         addmargins(table(df$ae_28_sev, df$trt))[13,1],
+                                         addmargins(table(df$ae_28_sev, df$trt))[17,2], 
+                                         addmargins(table(df$ae_28_sev, df$trt))[17,1],
                                          NA,
                                          NA)
 
@@ -9188,8 +9219,8 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt12 |viral clearance until day 5                |         0.8979536|  0.6696927|  1.2033260|      0.1493832| 0.4711914|   492|    486|   118|    126|COV-BARRIER |Baricitinib |
 |trt13 |viral clearance until day 10               |         0.9903239|  0.7700322|  1.2737250|      0.1283352| 0.9396065|   538|    522|   205|    201|COV-BARRIER |Baricitinib |
 |trt14 |viral clearance until day 15               |         0.9717344|  0.7629677|  1.2375794|      0.1233524| 0.8161915|   551|    545|   255|    257|COV-BARRIER |Baricitinib |
-|trt15 |Any AE grade 3,4 within 28 days            |         1.1048134|  0.8459092|  1.4440171|      0.1363248| 0.4646760|   683|    642|   171|    143|COV-BARRIER |Baricitinib |
-|trt16 |AEs grade 3,4 within 28 days               |         1.2980088|  1.1162311|  1.5115350|      0.0773026| 0.0007404|   683|    642|    NA|     NA|COV-BARRIER |Baricitinib |
+|trt15 |Any AE grade 3,4 within 28 days            |         0.8702023|  0.6917067|  1.0942340|      0.1169506| 0.2345228|   815|    811|   252|    270|COV-BARRIER |Baricitinib |
+|trt16 |AEs grade 3,4 within 28 days               |         1.0414037|  0.9359631|  1.1588239|      0.0544738| 0.4564218|   815|    811|    NA|     NA|COV-BARRIER |Baricitinib |
 
 ```r
 # Save
@@ -9280,8 +9311,8 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt:comed_cat             |comedication         |      1.4282252| 0.5549093| 3.877636|      0.4923985| 0.4691455|COV-BARRIER |Baricitinib |
 |trt:sympdur               |symptom duration     |      1.0402961| 0.9725413| 1.111020|      0.0338918| 0.2437633|COV-BARRIER |Baricitinib |
 |trt:crp                   |crp                  |      1.0005119| 0.9972352| 1.003570|      0.0015972| 0.7486330|COV-BARRIER |Baricitinib |
-|trt:at_risk               |at risk on AEs       |      1.2095172| 0.7037829| 2.082667|      0.2765626| 0.4915753|COV-BARRIER |Baricitinib |
-|trt:comed_cat1            |comedication on AEs  |      0.7852309| 0.3945380| 1.548850|      0.3479803| 0.4871794|COV-BARRIER |Baricitinib |
+|trt:at_risk               |at risk on AEs       |      1.0630331| 0.6714743| 1.683523|      0.2343806| 0.7942475|COV-BARRIER |Baricitinib |
+|trt:comed_cat1            |comedication on AEs  |      0.9813360| 0.5442612| 1.772354|      0.3007583| 0.9500509|COV-BARRIER |Baricitinib |
 
 ```r
 # Save
@@ -9492,10 +9523,10 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt16 |5 days and less                                |         0.3162069| 0.0844070|   1.0366943|      0.6289219| 0.0671475|              5|                 82|        12|            75|COV-BARRIER |Baricitinib |
 |trt17 |CRP 75 and higher                              |         0.5538630| 0.3339109|   0.9076951|      0.2544456| 0.0202297|             40|                279|        53|           274|COV-BARRIER |Baricitinib |
 |trt18 |CRP below 75                                   |         0.6042953| 0.3450617|   1.0431773|      0.2812340| 0.0732920|             30|                328|        53|           362|COV-BARRIER |Baricitinib |
-|trt19 |Not at risk                                    |         1.0216675| 0.7190005|   1.4522761|      0.1791096| 0.9047355|             94|                420|        83|           398|COV-BARRIER |Baricitinib |
-|trt20 |At risk                                        |         1.2457939| 0.8239951|   1.8900601|      0.2114457| 0.2986267|             77|                263|        60|           244|COV-BARRIER |Baricitinib |
-|trt21 |No Dexa, no Tocilizumab_AE                     |         1.3597013| 0.7401130|   2.5229187|      0.3115837| 0.3240646|             32|                139|        24|           138|COV-BARRIER |Baricitinib |
-|trt22 |Dexa, but no Tocilizumab_AE                    |         1.0563603| 0.7834353|   1.4253375|      0.1525382| 0.7192612|            139|                544|       119|           504|COV-BARRIER |Baricitinib |
+|trt19 |Not at risk                                    |         0.8475966| 0.6176077|   1.1616958|      0.1610141| 0.3044525|            119|                474|       129|           471|COV-BARRIER |Baricitinib |
+|trt20 |At risk                                        |         0.9006282| 0.6441887|   1.2583651|      0.1706707| 0.5397151|            133|                341|       141|           340|COV-BARRIER |Baricitinib |
+|trt21 |No Dexa, no Tocilizumab_AE                     |         0.9271221| 0.5445994|   1.5738301|      0.2699836| 0.7792654|             41|                159|        45|           169|COV-BARRIER |Baricitinib |
+|trt22 |Dexa, but no Tocilizumab_AE                    |         0.8660498| 0.6706532|   1.1178306|      0.1302599| 0.2695733|            211|                654|       225|           637|COV-BARRIER |Baricitinib |
 
 ```r
 # Save

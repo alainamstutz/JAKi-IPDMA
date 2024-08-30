@@ -1048,9 +1048,7 @@ df <- left_join(df, df_sae34[, c("id_pat", "sae")], by = join_by(id_pat == id_pa
 # the remaining missing have no (S)AE(SI) grade 34 -> recode as 0 and exclude deaths
 df <- df %>% 
   mutate(ae_28 = case_when(sae == 1 | aesi34 == 1 ~ 1,
-                           TRUE ~ 0)) %>% 
-  mutate(ae_28 = case_when(mort_28 == 1 ~ NA,
-                           TRUE ~ ae_28))
+                           TRUE ~ 0))
 # table(df$ae_28, df$mort_28, useNA = "always")
 # addmargins(table(df$ae_28, df$trt, useNA = "always"))
 
@@ -1077,9 +1075,7 @@ df <- df %>%
                                is.na(aesi_28_sev) & !is.na(sae_28_sev) ~ sae_28_sev, 
                                !is.na(aesi_28_sev) & is.na(sae_28_sev) ~ aesi_28_sev, 
                                !is.na(aesi_28_sev) & !is.na(sae_28_sev) ~ aesi_28_sev + sae_28_sev,
-                               TRUE ~ 0)) %>%
-  mutate(ae_28_sev = case_when(mort_28 == 1 ~ NA,
-                           TRUE ~ ae_28_sev))
+                               TRUE ~ 0))
 # addmargins(table(df$ae_28_sev, useNA = "always"))
 
 # df %>% # cross-check with binary variables in scheduled routine CRF
@@ -2007,7 +2003,7 @@ ae.28.sev.firth <- df %>%
   logistf(ae_28_sev ~ trt 
       + age + clinstatus_baseline 
       , family = "poisson", data=.)
-tab_model(ae.28.sev.firth)
+summary(ae.28.sev.firth)
 ```
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
@@ -2582,9 +2578,9 @@ result_list[[17]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days
                                          addmargins(table(df$ae_28, df$trt))[3,1],
                                          addmargins(table(df$ae_28, df$trt))[2,2], 
                                          addmargins(table(df$ae_28, df$trt))[2,1])
-result_list[[18]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days_firth",
-                                         addmargins(table(df$ae_28_sev, df$trt))[6,2], 
-                                         addmargins(table(df$ae_28_sev, df$trt))[6,1],
+result_list[[18]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days",
+                                         addmargins(table(df$ae_28_sev, df$trt))[7,2], 
+                                         addmargins(table(df$ae_28_sev, df$trt))[7,1],
                                          NA,
                                          NA)
 

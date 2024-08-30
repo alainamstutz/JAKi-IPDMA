@@ -245,7 +245,7 @@ df$discharge_time_sus <- df$discharge_time
 
 # (ix) Participants with an adverse event grade 3 or 4, or a serious adverse event, excluding death, by day 28
 table(df$ae_28, df$trt, useNA = "always")
-# table(df$ae_28, df$mort_28, useNA = "always") # corresponds to publication and excludes the death
+# table(df$ae_28, df$mort_28, useNA = "always") # corresponds to publication
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 df$ae_28_sev <- df$ae_28 # there were only 1 AE grade 3/4 per person 

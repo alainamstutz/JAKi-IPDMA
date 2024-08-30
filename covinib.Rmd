@@ -319,7 +319,7 @@ df <- left_join(df, df_ae34_unique[, c("ae_28", "id_pat")], by = join_by(id_pat 
 # the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
 df <- df %>% 
   mutate(ae_28 = case_when(is.na(ae_28) ~ 0, # the LTFU were discharged
-                           mort_28 == 1 ~ NA, # exclude the deaths
+                           # mort_28 == 1 ~ NA, # exclude the deaths
                                 TRUE ~ ae_28))
 # table(df$ae_28, df$mort_28, useNA = "always") # does not correspond to publication because they included AEs up until day 70 (see correspondence with authors)
 
@@ -331,7 +331,7 @@ df <- left_join(df, ae_npp[, c("ae_28_sev", "id_pat")], by = join_by(id_pat == i
 # the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
 df <- df %>% 
   mutate(ae_28_sev = case_when(is.na(ae_28_sev) ~ 0, # the LTFU were discharged
-                           mort_28 == 1 ~ NA, # exclude the deaths
+                           # mort_28 == 1 ~ NA, # exclude the deaths
                                 TRUE ~ ae_28_sev))
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: time to first (of these) adverse event, within 28 days, considering death as a competing risk (=> censor and set to 28 days)
@@ -443,7 +443,7 @@ Discussion points
 * Outcomes:
   - vir_clear_5, vir_clear_10, vir_clear_15
 2. Missing data:
-- NAs in mort_28, mort_60, new_mv_28, new_mvd_28, ae_28, ae_28_sev
+- NAs in mort_28, mort_60, new_mv_28, new_mvd_28
 
 # Missing data: Explore for MI
 ```{r message=FALSE, warning=FALSE}

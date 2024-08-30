@@ -514,16 +514,16 @@ kable(df_ae28, format = "markdown", table.attr = 'class="table"') %>%
 
 |       |variable                              | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_int| n_cont| e_int| e_cont|trial         |JAKi        |
 |:------|:-------------------------------------|-----------------:|---------:|----------:|--------------:|---------:|-----:|------:|-----:|------:|:-------------|:-----------|
-|trt15  |Any AE grade 3,4 within 28 days       |         0.9097563| 0.5310592|   1.557063|      0.2738090| 0.7297801|   130|    123|    44|     44|Bari-SolidAct |Baricitinib |
-|trt151 |Any AE grade 3,4 within 28 days       |         0.9214240| 0.7032692|   1.207079|      0.1377423| 0.5524340|   491|    481|   196|    204|ACTT-2        |Baricitinib |
+|trt15  |Any AE grade 3,4 within 28 days       |         0.8549787| 0.5225665|   1.396999|      0.2504432| 0.5315734|   145|    144|    59|     65|Bari-SolidAct |Baricitinib |
+|trt151 |Any AE grade 3,4 within 28 days       |         0.8745291| 0.6715191|   1.138502|      0.1346108| 0.3192596|   515|    518|   220|    241|ACTT-2        |Baricitinib |
 |trt11  |any AE grade 3,4 within 28 days_firth |         3.2247381| 0.1701822| 472.450898|      1.4759989| 0.4412199|    46|     51|     1|      0|Ghazaeian     |Tofacitinib |
 |trt111 |any AE grade 3,4 within 28 days       |         0.6936245| 0.2408177|   1.956966|      0.5287298| 0.4890045|    58|     58|     9|     13|TOFACOV       |Tofacitinib |
-|trt112 |any AE grade 3,4 within 28 days       |         0.7968701| 0.3083398|   2.035379|      0.4772424| 0.6342294|    55|     53|    11|     12|COVINIB       |Baricitinib |
-|trt152 |Any AE grade 3,4 within 28 days       |         1.1048134| 0.8459092|   1.444017|      0.1363248| 0.4646760|   683|    642|   171|    143|COV-BARRIER   |Baricitinib |
-|trt153 |Any AE grade 3,4 within 28 days       |         0.9093754| 0.7511848|   1.100785|      0.0974199| 0.3294946|  3559|   3399|   229|    230|RECOVERY      |Baricitinib |
-|trt154 |Any AE grade 3,4 within 28 days       |         1.3388686| 0.6236369|   2.925078|      0.3912535| 0.4557449|   119|    128|    18|     14|TACTIC-R      |Baricitinib |
+|trt112 |any AE grade 3,4 within 28 days       |         0.6838160| 0.2692335|   1.696880|      0.4658885| 0.4146211|    55|     55|    11|     14|COVINIB       |Baricitinib |
+|trt152 |Any AE grade 3,4 within 28 days       |         0.8702023| 0.6917067|   1.094234|      0.1169506| 0.2345228|   815|    811|   252|    270|COV-BARRIER   |Baricitinib |
+|trt153 |Any AE grade 3,4 within 28 days       |         0.9172446| 0.7778061|   1.081576|      0.0840704| 0.3041924|  4136|   3994|   310|    315|RECOVERY      |Baricitinib |
+|trt154 |Any AE grade 3,4 within 28 days       |         1.1283082| 0.6242726|   2.041506|      0.3013016| 0.6886709|   137|    145|    36|     31|TACTIC-R      |Baricitinib |
 |trt113 |Any AE grade 3,4 within 28 days       |         0.5830045| 0.3117147|   1.098558|      0.3196187| 0.0913849|   273|    139|    27|     21|RUXCOVID      |Ruxolitinib |
-|trt12  |Any AE grade 3,4 within 28 days       |         1.1944162| 0.5826642|   2.479301|      0.3668133| 0.6281539|   143|    136|    19|     16|PANCOVID      |Baricitinib |
+|trt12  |Any AE grade 3,4 within 28 days       |         1.0064847| 0.5087400|   1.992973|      0.3462932| 0.9851080|   145|    142|    20|     20|PANCOVID      |Baricitinib |
 
 ```r
 kable(df_ae28sev, format = "markdown", table.attr = 'class="table"') %>%
@@ -534,16 +534,16 @@ kable(df_ae28sev, format = "markdown", table.attr = 'class="table"') %>%
 
 |       |variable                           | hazard_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value| n_int| n_cont| e_int| e_cont|trial         |JAKi        |
 |:------|:----------------------------------|-----------------:|---------:|-----------:|--------------:|---------:|-----:|------:|-----:|------:|:-------------|:-----------|
-|trt16  |AEs grade 3,4 within 28 days       |         1.2666683| 0.9515693|   1.6929896|      0.1467211| 0.1071465|     1|      0|    NA|     NA|Bari-SolidAct |Baricitinib |
-|trt161 |AEs grade 3,4 within 28 days       |         0.8106790| 0.7179717|   0.9148002|      0.0617874| 0.0006816|   491|    481|    NA|     NA|ACTT-2        |Baricitinib |
+|trt16  |AEs grade 3,4 within 28 days       |         0.8880244| 0.7053892|   1.1164281|      0.1170019| 0.3101094|   145|    144|    NA|     NA|Bari-SolidAct |Baricitinib |
+|trt161 |AEs grade 3,4 within 28 days       |         0.7990002| 0.7173997|   0.8893710|      0.0548047| 0.0000423|   515|    518|    NA|     NA|ACTT-2        |Baricitinib |
 |trt12  |AEs grade 3,4 within 28 days_firth |         3.2247381| 0.1701822| 472.4508978|      1.4759989| 0.4412199|    46|     51|    NA|     NA|Ghazaeian     |Tofacitinib |
 |trt121 |AEs grade 3,4 within 28 days       |         0.6936245| 0.2408177|   1.9569664|      0.5287298| 0.4890045|    58|     58|    NA|     NA|TOFACOV       |Tofacitinib |
-|trt122 |AEs grade 3,4 within 28 days       |         0.5880219| 0.3243155|   1.0415364|      0.2955431| 0.0723893|    55|     53|    NA|     NA|COVINIB       |Baricitinib |
-|trt162 |AEs grade 3,4 within 28 days       |         1.2980088| 1.1162311|   1.5115350|      0.0773026| 0.0007404|   683|    642|    NA|     NA|COV-BARRIER   |Baricitinib |
-|trt163 |AEs grade 3,4 within 28 days       |         0.8576196| 0.7201617|   1.0209676|      0.0889837| 0.0843297|  3559|   3399|    NA|     NA|RECOVERY      |Baricitinib |
-|trt164 |AEs grade 3,4 within 28 days_firth |         1.4541954| 0.7410439|   2.8944172|      0.3428692| 0.2768425|   119|    128|    NA|     NA|TACTIC-R      |Baricitinib |
+|trt122 |AEs grade 3,4 within 28 days       |         0.4994331| 0.2808138|   0.8602145|      0.2836944| 0.0143936|    55|     55|    NA|     NA|COVINIB       |Baricitinib |
+|trt162 |AEs grade 3,4 within 28 days       |         1.0414037| 0.9359631|   1.1588239|      0.0544738| 0.4564218|   815|    811|    NA|     NA|COV-BARRIER   |Baricitinib |
+|trt163 |AEs grade 3,4 within 28 days       |         0.8735036| 0.7528565|   1.0132185|      0.0757350| 0.0741414|  4136|   3994|    NA|     NA|RECOVERY      |Baricitinib |
+|trt164 |AEs grade 3,4 within 28 days       |         1.3220839| 0.7605841|   2.3034114|      0.2808870| 0.3218575|   137|    145|    NA|     NA|TACTIC-R      |Baricitinib |
 |trt123 |AEs grade 3,4 within 28 days       |         0.5844046| 0.3873412|   0.8859314|      0.2103249| 0.0106505|   273|    139|    NA|     NA|RUXCOVID      |Ruxolitinib |
-|trt13  |AEs grade 3,4 within 28 days       |         1.1317900| 0.6369407|   2.0215022|      0.2927380| 0.6723643|   143|    136|    NA|     NA|PANCOVID      |Baricitinib |
+|trt13  |AEs grade 3,4 within 28 days       |         0.8616374| 0.5059762|   1.4554617|      0.2680822| 0.5785498|   145|    142|    NA|     NA|PANCOVID      |Baricitinib |
 
 
 # (i) Primary outcome: Mortality at day 28. Only IPD trials
@@ -1410,25 +1410,32 @@ dev.off()
 
 ```r
 ## funnel plot (contour enhanced)
-funnel(mort28.agg)
-```
-
-![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
-
-```r
 funnel(mort28.agg, common = TRUE,
   level = 0.95, contour = c(0.9, 0.95, 0.99),
   col.contour = c("grey", "lightgrey", "lightyellow"),
   lwd = 2, cex = 1.5, pch = 16, studlab = TRUE, cex.studlab = 1.0)
 ```
 
-![](two_stage_files/figure-html/unnamed-chunk-9-2.png)<!-- -->
+![](two_stage_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 ```r
 # legend(0.05, 0.05,
 #   c("0.1 > p > 0.05", "0.05 > p > 0.01", "< 0.01"),
 #   fill = c("darkgreen", "green", "lightgreen"))
 # par(oldpar)
+
+# Open a pdf file
+pdf("./funnelplot.pdf", width=13, height=8)
+funnelplot <- funnel(mort28.agg, common = TRUE,
+  level = 0.95, contour = c(0.9, 0.95, 0.99),
+  col.contour = c("grey", "lightgrey", "lightyellow"),
+  lwd = 2, cex = 1.5, pch = 16, studlab = TRUE, cex.studlab = 1.0)
+dev.off()
+```
+
+```
+## quartz_off_screen 
+##                 2
 ```
 
 # (i.ii) Primary outcome: Subgroup by JAKi, including the non-IPD RCTs
@@ -3261,31 +3268,31 @@ summary(ae28)
 
 ```
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 0.9098 [0.5319;  1.5559]        5.2
-## ACTT-2        0.9214 [0.7034;  1.2070]       20.5
-## Ghazaeian     3.2247 [0.1787; 58.1925]        0.2
-## TOFACOV       0.6936 [0.2461;  1.9552]        1.4
-## COVINIB       0.7969 [0.3127;  2.0306]        1.7
-## COV-BARRIER   1.1048 [0.8458;  1.4432]       20.9
-## RECOVERY      0.9094 [0.7513;  1.1007]       40.9
-## TACTIC-R      1.3389 [0.6219;  2.8825]        2.5
-## RUXCOVID      0.5830 [0.3116;  1.0908]        3.8
-## PANCOVID      1.1944 [0.5820;  2.4513]        2.9
+## Bari-SolidAct 0.8550 [0.5233;  1.3968]        4.9
+## ACTT-2        0.8745 [0.6717;  1.1386]       17.1
+## Ghazaeian     3.2247 [0.1787; 58.1925]        0.1
+## TOFACOV       0.6936 [0.2461;  1.9552]        1.1
+## COVINIB       0.6838 [0.2744;  1.7041]        1.4
+## COV-BARRIER   0.8702 [0.6919;  1.0944]       22.6
+## RECOVERY      0.9172 [0.7779;  1.0815]       43.7
+## TACTIC-R      1.1283 [0.6251;  2.0366]        3.4
+## RUXCOVID      0.5830 [0.3116;  1.0908]        3.0
+## PANCOVID      1.0065 [0.5106;  1.9841]        2.6
 ## 
 ## Number of studies: k = 10
-## Number of observations: o = 10767
+## Number of observations: o = 12382
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.9469 [0.8426; 1.0641] -1.06  0.3178
-## Prediction interval              [0.8201; 1.0933]              
+## Random effects model (HK) 0.8872 [0.8158; 0.9649] -3.23  0.0104
+## Prediction interval              [0.7805; 1.0086]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1408]; tau = 0 [0.0000; 0.3753]
+##  tau^2 = 0 [0.0000; 0.0621]; tau = 0 [0.0000; 0.2493]
 ##  I^2 = 0.0% [0.0%; 62.4%]; H = 1.00 [1.00; 1.63]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.17    9  0.7231
+##  4.01    9  0.9110
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -3350,7 +3357,7 @@ dev.off()
 ##                 2
 ```
 
-# (x) Meta-regression by RoB: Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
+# (x) Between-trial compariso by RoB: Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. ANY
 
 ```r
 df_ae28 <- df_ae28 %>% 
@@ -3366,27 +3373,121 @@ df_ae28 <- df_ae28 %>%
                                 trial == "PANCOVID" ~ "some concerns",
                                         ))
 
-# meta-regression by RoB
-ae28.rob <- update.meta(ae28,
-                        subgroup = df_ae28$`Risk of Bias`)
+ae28.rob <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = trial,
+                      data = df_ae28,
+                      n.e = n_int,
+                      n.c = n_cont,
+                      sm = "OR",
+                      fixed = F,
+                      random = T,
+                      prediction = T,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      subgroup = `Risk of Bias`
+                      )
+summary(ae28.rob)
+```
+
+```
+##                   OR            95%-CI %W(random)  Risk of Bias
+## Bari-SolidAct 0.8550 [0.5233;  1.3968]        4.9      low risk
+## ACTT-2        0.8745 [0.6717;  1.1386]       17.1      low risk
+## Ghazaeian     3.2247 [0.1787; 58.1925]        0.1      low risk
+## TOFACOV       0.6936 [0.2461;  1.9552]        1.1 some concerns
+## COVINIB       0.6838 [0.2744;  1.7041]        1.4 some concerns
+## COV-BARRIER   0.8702 [0.6919;  1.0944]       22.6      low risk
+## RECOVERY      0.9172 [0.7779;  1.0815]       43.7 some concerns
+## TACTIC-R      1.1283 [0.6251;  2.0366]        3.4 some concerns
+## RUXCOVID      0.5830 [0.3116;  1.0908]        3.0      low risk
+## PANCOVID      1.0065 [0.5106;  1.9841]        2.6 some concerns
+## 
+## Number of studies: k = 10
+## Number of observations: o = 12382
+## 
+##                               OR           95%-CI     t p-value
+## Random effects model (HK) 0.8872 [0.8158; 0.9649] -3.23  0.0104
+## Prediction interval              [0.7805; 1.0086]              
+## 
+## Quantifying heterogeneity:
+##  tau^2 = 0 [0.0000; 0.0621]; tau = 0 [0.0000; 0.2493]
+##  I^2 = 0.0% [0.0%; 62.4%]; H = 1.00 [1.00; 1.63]
+## 
+## Test of heterogeneity:
+##     Q d.f. p-value
+##  4.01    9  0.9110
+## 
+## Results for subgroups (random effects model (HK)):
+##                                k     OR           95%-CI tau^2 tau    Q  I^2
+## Risk of Bias = low risk        5 0.8517 [0.7192; 1.0086]     0   0 2.29 0.0%
+## Risk of Bias = some concerns   5 0.9211 [0.8187; 1.0363]     0   0 1.22 0.0%
+## 
+## Test for subgroup differences (random effects model (HK)):
+##                   Q d.f. p-value
+## Between groups 1.11    1  0.2913
+## 
+## Details on meta-analytical method:
+## - Inverse variance method
+## - Maximum-likelihood estimator for tau^2
+## - Q-Profile method for confidence interval of tau^2 and tau
+## - Hartung-Knapp adjustment for random effects model (df = 9)
+## - Prediction interval based on t-distribution (df = 8)
+```
+
+```r
 forest.meta(ae28.rob,
-            hetstat = F,
             rightcols = c("effect", "ci", "w.random"),
             rightlabs = c("aOR", "95%-CI", "Weight"),
-            leftcols = c("studlab", 
-                         "n.e", "n.c"),
-            leftlabs = c("Trial",
-                         "Total Intervention", "Total Control"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
             sortvar = +TE,
-            test.subgroup.random = T,
-            text.random = "Average treatment effect (RE model)",
-            xlim = c(0.2,5),
+            text.random = "Average treatment effect   ",
             label.left = "Favours JAKi",  
-            label.right = "Favours No JAKi"
+            label.right = "Favours No JAKi",
+            overall.hetstat = F,
+            test.subgroup = T
             )
 ```
 
 ![](two_stage_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+
+```r
+# Open a pdf file
+pdf("./fp_ae_28_rob.pdf", width=13, height=7)
+
+forestplot <- forest.meta(ae28.rob,
+            rightcols = c("effect", "ci", "w.random"),
+            rightlabs = c("aOR", "95%-CI", "Weight"),
+            leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
+            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            sortvar = +TE,
+            text.random = "Average treatment effect   ",
+            label.left = "Favours JAKi",  
+            label.right = "Favours No JAKi",
+            test.subgroup = T,
+            pooled.total = F
+            )
+
+summary_row_y <- unit(0.243, "npc")
+total_row <- c(sum(df_ae28$n_int, na.rm = TRUE), 
+               sum(df_ae28$e_int, na.rm = TRUE), 
+               sum(df_ae28$n_cont, na.rm = TRUE),
+               sum(df_ae28$e_cont, na.rm = TRUE))
+pushViewport(viewport())
+grid.text(label = total_row[1], x = unit(0.320, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[2], x = unit(0.366, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[3], x = unit(0.421, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[4], x = unit(0.471, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+popViewport()
+
+dev.off()
+```
+
+```
+## quartz_off_screen 
+##                 2
+```
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
 
@@ -3416,31 +3517,31 @@ summary(ae28sev)
 ## Review:     Average treatment effect - Adverse event(s) grade 3 or 4, or a s ...
 ## 
 ##                   OR            95%-CI %W(random)
-## Bari-SolidAct 1.2667 [0.9501;  1.6887]       13.6
-## ACTT-2        0.8107 [0.7182;  0.9150]       17.8
-## Ghazaeian     3.2247 [0.1787; 58.1925]        0.5
-## TOFACOV       0.6936 [0.2461;  1.9552]        3.1
-## COVINIB       0.5880 [0.3295;  1.0494]        7.3
-## COV-BARRIER   1.2980 [1.1155;  1.5104]       17.2
-## RECOVERY      0.8576 [0.7204;  1.0210]       16.7
-## TACTIC-R      1.4542 [0.7426;  2.8476]        6.0
-## RUXCOVID      0.5844 [0.3870;  0.8826]       10.5
-## PANCOVID      1.1318 [0.6377;  2.0088]        7.4
+## Bari-SolidAct 0.8880 [0.7060;  1.1169]       13.8
+## ACTT-2        0.7990 [0.7176;  0.8896]       23.3
+## Ghazaeian     3.2247 [0.1787; 58.1925]        0.2
+## TOFACOV       0.6936 [0.2461;  1.9552]        1.2
+## COVINIB       0.4994 [0.2864;  0.8709]        3.9
+## COV-BARRIER   1.0414 [0.9359;  1.1587]       23.3
+## RECOVERY      0.8735 [0.7530;  1.0133]       19.8
+## TACTIC-R      1.3221 [0.7624;  2.2927]        3.9
+## RUXCOVID      0.5844 [0.3870;  0.8826]        6.3
+## PANCOVID      0.8616 [0.5095;  1.4572]        4.3
 ## 
 ## Number of studies: k = 10
-## Number of observations: o = 10515
+## Number of observations: o = 12382
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.9463 [0.7466; 1.1994] -0.53  0.6111
-## Prediction interval              [0.5278; 1.6966]              
+## Random effects model (HK) 0.8652 [0.7419; 1.0090] -2.13  0.0620
+## Prediction interval              [0.6461; 1.1585]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0538 [0.0124; 0.3927]; tau = 0.2320 [0.1112; 0.6267]
-##  I^2 = 76.9% [57.5%; 87.5%]; H = 2.08 [1.53; 2.82]
+##  tau^2 = 0.0124 [0.0015; 0.2833]; tau = 0.1115 [0.0389; 0.5323]
+##  I^2 = 61.5% [23.3%; 80.7%]; H = 1.61 [1.14; 2.27]
 ## 
 ## Test of heterogeneity:
-##      Q d.f.  p-value
-##  38.97    9 < 0.0001
+##      Q d.f. p-value
+##  23.38    9  0.0054
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -3600,10 +3701,10 @@ result_list[[17]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days"
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[3,1])
 result_list[[18]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2], 
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2],
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,1],
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,1])
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[19,2], 
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[19,2],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[19,1],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[19,1])
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -3636,8 +3737,8 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |viral clearance until day 5                |         0.9463025| 0.7619593| 1.1752444|      0.0780383| 0.5184358|            317|               4765|       322|          4648|two-stage |
 |viral clearance until day 10               |         0.9422592| 0.8649134| 1.0265218|      0.0308492| 0.1261162|            459|               4928|       465|          4788|two-stage |
 |viral clearance until day 15               |         0.9586996| 0.8755424| 1.0497550|      0.0326800| 0.2663823|            559|               4983|       564|          4848|two-stage |
-|Any AE grade 3,4 within 28 days            |         0.9469009| 0.8425909| 1.0641240|      0.0515936| 0.3178353|            725|               5557|       697|          5210|two-stage |
-|AEs grade 3,4 within 28 days               |         0.9462924| 0.7465857| 1.1994194|      0.1047855| 0.6110515|              6|                  6|         4|             4|two-stage |
+|Any AE grade 3,4 within 28 days            |         0.8872445| 0.8158331| 0.9649065|      0.0370932| 0.0104016|            725|               5557|       697|          5210|two-stage |
+|AEs grade 3,4 within 28 days               |         0.8652048| 0.7418940| 1.0090112|      0.0679705| 0.0620038|           5557|               5557|      5210|          5210|two-stage |
 
 ```r
 # Save
@@ -4149,11 +4250,11 @@ kable(df_vacc_ae28, format = "markdown", table.attr = 'class="table"') %>%
 
 |          |variable                 | log_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value|trial         |JAKi        |
 |:---------|:------------------------|--------------:|---------:|-------------:|--------------:|---------:|:-------------|:-----------|
-|trt:vacc  |vaccination on AEs       |      1.4025601| 0.4397817|  4.499607e+00|      0.5914840| 0.5673559|Bari-SolidAct |Baricitinib |
-|trt:vacc1 |vaccination on AEs_firth |      2.6499354| 0.0097053|  7.652130e+02|      2.3583074| 0.6837461|TOFACOV       |Tofacitinib |
-|trt:vacc2 |vaccination on AEs_firth |      1.0000000| 0.0000000| 1.774721e+204|      2.3995390| 0.9999999|COVINIB       |Baricitinib |
-|trt:vacc3 |vaccination on AEs       |      0.9483684| 0.6418187|  1.401235e+00|      0.1990351| 0.7899724|RECOVERY      |Baricitinib |
-|trt:vacc4 |vaccination on AEs       |      1.3276689| 0.1663357|  1.267403e+01|      1.0618899| 0.7895416|PANCOVID      |Baricitinib |
+|trt:vacc  |vaccination on AEs       |       1.796608| 0.6363966|  5.103247e+00|      0.5300549| 0.2690044|Bari-SolidAct |Baricitinib |
+|trt:vacc1 |vaccination on AEs_firth |       2.649935| 0.0097053|  7.652130e+02|      2.3583074| 0.6837461|TOFACOV       |Tofacitinib |
+|trt:vacc2 |vaccination on AEs_firth |       1.000000| 0.0000000| 1.855381e+204|      2.3997657| 1.0000000|COVINIB       |Baricitinib |
+|trt:vacc3 |vaccination on AEs       |       1.197035| 0.8571251|  1.672944e+00|      0.1705193| 0.2915605|RECOVERY      |Baricitinib |
+|trt:vacc4 |vaccination on AEs       |       1.805937| 0.2302140|  1.702834e+01|      1.0535726| 0.5747812|PANCOVID      |Baricitinib |
 
 ```r
 kable(df_symp_mort28, format = "markdown", table.attr = 'class="table"') %>%
@@ -4204,16 +4305,16 @@ kable(df_atrisk_ae28, format = "markdown", table.attr = 'class="table"') %>%
 
 |             |variable             | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial         |JAKi        |
 |:------------|:--------------------|--------------:|---------:|---------:|--------------:|---------:|:-------------|:-----------|
-|trt:at_risk  |at risk on AEs       |      1.2294818| 0.4142531|  3.670119|      0.5552097| 0.7098194|Bari-SolidAct |Baricitinib |
-|trt:at_risk1 |at risk on AEs       |      0.9655355| 0.5540986|  1.681546|      0.2830432| 0.9013852|ACTT-2        |Baricitinib |
+|trt:at_risk  |at risk on AEs       |      1.1424843| 0.4262815|  3.075211|      0.5032626| 0.7912537|Bari-SolidAct |Baricitinib |
+|trt:at_risk1 |at risk on AEs       |      0.9732503| 0.5670951|  1.670005|      0.2753856| 0.9215683|ACTT-2        |Baricitinib |
 |trt:at_risk2 |at risk on AEs_firth |      0.2005732| 0.0003771| 68.103813|      2.4674534| 0.5373824|Ghazaeian     |Tofacitinib |
 |trt:at_risk3 |at risk on AEs       |      1.0998251| 0.0348928| 34.581506|      1.5739799| 0.9517952|TOFACOV       |Tofacitinib |
-|trt:at_risk4 |at risk on AEs       |      0.5620926| 0.0745475|  4.178634|      1.0180360| 0.5714737|COVINIB       |Baricitinib |
-|trt:at_risk5 |at risk on AEs       |      1.2095172| 0.7037829|  2.082667|      0.2765626| 0.4915753|COV-BARRIER   |Baricitinib |
-|trt:at_risk6 |at risk on AEs       |      0.8407115| 0.5706143|  1.238500|      0.1975548| 0.3797967|RECOVERY      |Baricitinib |
-|trt:at_risk7 |at risk on AEs       |      0.3137477| 0.0590740|  1.515225|      0.8170721| 0.1559916|TACTIC-R      |Baricitinib |
+|trt:at_risk4 |at risk on AEs       |      0.5487727| 0.0762571|  3.855576|      0.9925585| 0.5454648|COVINIB       |Baricitinib |
+|trt:at_risk5 |at risk on AEs       |      1.0630331| 0.6714743|  1.683523|      0.2343806| 0.7942475|COV-BARRIER   |Baricitinib |
+|trt:at_risk6 |at risk on AEs       |      1.0369238| 0.7453848|  1.443392|      0.1685113| 0.8296352|RECOVERY      |Baricitinib |
+|trt:at_risk7 |at risk on AEs       |      0.8029621| 0.2370455|  2.733637|      0.6208412| 0.7237373|TACTIC-R      |Baricitinib |
 |trt:at_risk8 |at risk on AEs       |      2.2435276| 0.5829516|  9.394466|      0.7013907| 0.2492933|RUXCOVID      |Ruxolitinib |
-|trt:at_risk9 |at risk on AEs       |      0.9430390| 0.1967419|  4.416148|      0.7841062| 0.9403774|PANCOVID      |Baricitinib |
+|trt:at_risk9 |at risk on AEs       |      0.7501305| 0.1621833|  3.366872|      0.7639415| 0.7066579|PANCOVID      |Baricitinib |
 
 ```r
 kable(df_comed_ae28, format = "markdown", table.attr = 'class="table"') %>%
@@ -4224,16 +4325,16 @@ kable(df_comed_ae28, format = "markdown", table.attr = 'class="table"') %>%
 
 |                |variable                  | log_odds_ratio|  ci_lower|     ci_upper| standard_error|   p_value|trial         |JAKi        |
 |:---------------|:-------------------------|--------------:|---------:|------------:|--------------:|---------:|:-------------|:-----------|
-|trt:comed_cat1  |comedication on AEs       |      1.0025515| 0.1168221| 1.055681e+01|      1.1154956| 0.9981773|Bari-SolidAct |Baricitinib |
-|trt:comed_cat11 |comedication on AEs       |      1.2089287| 0.2762678| 5.403130e+00|      0.7522954| 0.8008806|ACTT-2        |Baricitinib |
-|trt:comed_cat12 |comedication on AEs_firth |      1.0038232| 0.0000000| 4.658784e+11|      0.1703626| 1.0000000|Ghazaeian     |Tofacitinib |
-|trt:comed_cat13 |comedication on AEs_firth |      2.9293027| 0.0941528| 5.348705e+02|      1.8579432| 0.5519923|TOFACOV       |Tofacitinib |
-|trt:comed_cat14 |comedication on AEs       |      0.8775139| 0.0501322| 2.584768e+01|      1.4824285| 0.9297648|COVINIB       |Baricitinib |
-|trt:comed_cat15 |comedication on AEs       |      0.7852309| 0.3945380| 1.548850e+00|      0.3479803| 0.4871794|COV-BARRIER   |Baricitinib |
-|trt:comed_cat16 |comedication on AEs       |      1.1014949| 0.7804889| 1.555381e+00|      0.1758209| 0.5824492|RECOVERY      |Baricitinib |
-|trt:comed_cat17 |comedication on AEs       |      3.8768734| 0.4808470| 3.168773e+01|      1.0631619| 0.2024766|TACTIC-R      |Baricitinib |
-|trt:comed_cat18 |comedication on AEs       |      2.6439096| 0.7320758| 1.004275e+01|      0.6638690| 0.1430481|RUXCOVID      |Ruxolitinib |
-|trt:comed_cat19 |comedication on AEs       |      2.7963619| 0.0854931| 9.325435e+01|      1.6068324| 0.5221942|PANCOVID      |Baricitinib |
+|trt:comed_cat1  |comedication on AEs       |       1.686060| 0.2179876| 1.678632e+01|      1.0751228| 0.6270430|Bari-SolidAct |Baricitinib |
+|trt:comed_cat11 |comedication on AEs       |       1.280660| 0.3081835| 5.513655e+00|      0.7302245| 0.7347859|ACTT-2        |Baricitinib |
+|trt:comed_cat12 |comedication on AEs_firth |       1.003823| 0.0000000| 4.658784e+11|      0.1703626| 1.0000000|Ghazaeian     |Tofacitinib |
+|trt:comed_cat13 |comedication on AEs_firth |       2.929303| 0.0941528| 5.348705e+02|      1.8579432| 0.5519923|TOFACOV       |Tofacitinib |
+|trt:comed_cat14 |comedication on AEs       |       1.017925| 0.0584374| 2.988775e+01|      1.4799571| 0.9904221|COVINIB       |Baricitinib |
+|trt:comed_cat15 |comedication on AEs       |       0.981336| 0.5442612| 1.772354e+00|      0.3007583| 0.9500509|COV-BARRIER   |Baricitinib |
+|trt:comed_cat16 |comedication on AEs       |       1.004861| 0.7464445| 1.352728e+00|      0.1516209| 0.9744869|RECOVERY      |Baricitinib |
+|trt:comed_cat17 |comedication on AEs       |       1.230840| 0.2842346| 5.443123e+00|      0.7485381| 0.7814192|TACTIC-R      |Baricitinib |
+|trt:comed_cat18 |comedication on AEs       |       2.643910| 0.7320758| 1.004275e+01|      0.6638690| 0.1430481|RUXCOVID      |Ruxolitinib |
+|trt:comed_cat19 |comedication on AEs       |       1.253452| 0.0478261| 1.675611e+01|      1.3844344| 0.8703829|PANCOVID      |Baricitinib |
 
 
 # Load subgroup effects from all trials (on primary endpoint - and vacc.ae)
@@ -4608,16 +4709,16 @@ kable(df_sg_vacc_ae28, format = "markdown", table.attr = 'class="table"') %>%
 
 |       |variable         | hazard_odds_ratio|  ci_lower|      ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
 |:------|:----------------|-----------------:|---------:|-------------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
-|trt11  |vaccinated       |         1.0153459| 0.3847503|  2.689931e+00|   4.927174e-01| 0.9753421|             14|                 40|        16|            44|Bari-SolidAct |Baricitinib |
-|trt12  |not vaccinated   |         0.7785301| 0.3932854|  1.529344e+00|   3.451862e-01| 0.4682963|             29|                 87|        28|            77|Bari-SolidAct |Baricitinib |
+|trt11  |vaccinated       |         1.0784093| 0.4586959|  2.527861e+00|   4.333600e-01| 0.8617159|             25|                 51|        23|            51|Bari-SolidAct |Baricitinib |
+|trt12  |not vaccinated   |         0.6490862| 0.3428633|  1.217275e+00|   3.222661e-01| 0.1798894|             33|                 91|        42|            91|Bari-SolidAct |Baricitinib |
 |trt111 |vaccinated_firth |         1.0000980| 0.0000000| 2.005975e+204|   2.399885e+00| 1.0000000|              0|                  2|         0|             0|COVINIB       |Baricitinib |
-|trt121 |not vaccinated   |         0.8436332| 0.3258987|  2.160550e+00|   4.783483e-01| 0.7222391|             11|                 53|        12|            53|COVINIB       |Baricitinib |
+|trt121 |not vaccinated   |         0.7268055| 0.2855387|  1.810001e+00|   4.673459e-01| 0.4947433|             11|                 53|        14|            55|COVINIB       |Baricitinib |
 |trt10  |vaccinated_firth |         1.0074623| 0.0000000|  7.364779e+09|   3.839147e+06| 1.0000000|              0|                  1|         0|             2|TOFACOV       |Tofacitinib |
 |trt112 |not vaccinated   |         0.6777994| 0.2341347|  1.922727e+00|   5.314252e-01| 0.4642826|              9|                 57|        13|            56|TOFACOV       |Tofacitinib |
-|trt15  |vaccinated       |         0.8843193| 0.6526309|  1.197942e+00|   1.546928e-01| 0.4267778|             90|               1468|        91|          1362|RECOVERY      |Baricitinib |
-|trt16  |not vaccinated   |         0.9244622| 0.7224957|  1.182727e+00|   1.256030e-01| 0.5317556|            139|               2091|       139|          2037|RECOVERY      |Baricitinib |
-|trt122 |vaccinated       |         1.4750109| 0.2100704|  1.268436e+01|   9.943302e-01| 0.6958847|              3|                 19|         2|            17|PANCOVID      |Baricitinib |
-|trt13  |not vaccinated   |         1.1430250| 0.5257026|  2.514096e+00|   3.959354e-01| 0.7356446|             16|                124|        14|           119|PANCOVID      |Baricitinib |
+|trt15  |vaccinated       |         1.0199462| 0.7904180|  1.317112e+00|   1.301287e-01| 0.8793667|            136|               1755|       125|          1665|RECOVERY      |Baricitinib |
+|trt16  |not vaccinated   |         0.8475074| 0.6820625|  1.052381e+00|   1.105534e-01| 0.1344941|            174|               2381|       190|          2329|RECOVERY      |Baricitinib |
+|trt122 |vaccinated       |         1.5720086| 0.2240110|  1.350703e+01|   9.938083e-01| 0.6489852|              3|                 19|         2|            18|PANCOVID      |Baricitinib |
+|trt13  |not vaccinated   |         0.9299538| 0.4459684|  1.933292e+00|   3.716760e-01| 0.8450906|             17|                126|        18|           124|PANCOVID      |Baricitinib |
 
 ```r
 kable(df_sg_symp_mort28, format = "markdown", table.attr = 'class="table"') %>%
@@ -4697,25 +4798,25 @@ kable(df_sg_atrisk_ae28, format = "markdown", table.attr = 'class="table"') %>%
 
 |       |variable          | hazard_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
 |:------|:-----------------|-----------------:|---------:|-----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
-|trt19  |Not at risk       |         0.9313914| 0.6578292|   1.3187055|      0.1772541| 0.6884336|            118|                317|       115|           294|ACTT-2        |Baricitinib |
-|trt20  |At risk           |         0.9003117| 0.5833286|   1.3883032|      0.2209306| 0.6345539|             78|                174|        89|           187|ACTT-2        |Baricitinib |
-|trt191 |Not at risk       |         1.0216675| 0.7190005|   1.4522761|      0.1791096| 0.9047355|             94|                420|        83|           398|COV-BARRIER   |Baricitinib |
-|trt201 |At risk           |         1.2457939| 0.8239951|   1.8900601|      0.2114457| 0.2986267|             77|                263|        60|           244|COV-BARRIER   |Baricitinib |
-|trt18  |Not at risk       |         0.7806200| 0.3623424|   1.6647714|      0.3870626| 0.5222621|             25|                 75|        24|            68|Bari-SolidAct |Baricitinib |
-|trt192 |At risk           |         0.9478624| 0.4266395|   2.1030638|      0.4051799| 0.8948628|             19|                 55|        20|            55|Bari-SolidAct |Baricitinib |
-|trt17  |Not at risk       |         0.9038391| 0.2632798|   3.0179659|      0.6113948| 0.8686559|              6|                 38|         7|            42|COVINIB       |Baricitinib |
-|trt181 |At risk           |         0.4843481| 0.0871070|   2.5330444|      0.8438136| 0.3902650|              5|                 17|         5|            11|COVINIB       |Baricitinib |
+|trt19  |Not at risk       |         0.8790652| 0.6243769|   1.2367208|      0.1742042| 0.4593519|            129|                328|       127|           306|ACTT-2        |Baricitinib |
+|trt20  |At risk           |         0.8551505| 0.5618035|   1.3006977|      0.2139134| 0.4644734|             91|                187|       114|           212|ACTT-2        |Baricitinib |
+|trt191 |Not at risk       |         0.8475966| 0.6176077|   1.1616958|      0.1610141| 0.3044525|            119|                474|       129|           471|COV-BARRIER   |Baricitinib |
+|trt201 |At risk           |         0.9006282| 0.6441887|   1.2583651|      0.1706707| 0.5397151|            133|                341|       141|           340|COV-BARRIER   |Baricitinib |
+|trt18  |Not at risk       |         0.7705286| 0.3680608|   1.5983379|      0.3729752| 0.4846042|             28|                 78|        28|            72|Bari-SolidAct |Baricitinib |
+|trt192 |At risk           |         0.8333998| 0.4163253|   1.6627481|      0.3522272| 0.6048780|             31|                 67|        37|            72|Bari-SolidAct |Baricitinib |
+|trt17  |Not at risk       |         0.7864073| 0.2338240|   2.5228886|      0.5969423| 0.6873023|              6|                 38|         8|            43|COVINIB       |Baricitinib |
+|trt181 |At risk           |         0.4048385| 0.0747632|   2.0012148|      0.8243696| 0.2726766|              5|                 17|         6|            12|COVINIB       |Baricitinib |
 |trt171 |Not at risk       |         0.6561957| 0.2128490|   1.9673509|      0.5612381| 0.4528602|              8|                 37|        12|            39|TOFACOV       |Tofacitinib |
 |trt182 |At risk           |         0.5175578| 0.0131880|  16.6610804|      1.6164984| 0.6836812|              1|                 21|         1|            19|TOFACOV       |Tofacitinib |
 |trt14  |Not at risk_firth |         3.6521739| 0.1842096| 554.2079690|      1.4736504| 0.4013868|              1|                 32|         0|            41|Ghazaeian     |Tofacitinib |
-|trt22  |Not at risk       |         0.9777556| 0.7614186|   1.2555060|      0.1274477| 0.8598950|            133|               2295|       133|          2287|RECOVERY      |Baricitinib |
-|trt23  |At risk           |         0.8288704| 0.6159894|   1.1149735|      0.1511587| 0.2143528|             96|               1264|        97|          1112|RECOVERY      |Baricitinib |
-|trt193 |Not at risk       |         2.5760892| 0.7687116|  10.0689264|      0.6387149| 0.1384666|              8|                 65|         4|            79|TACTIC-R      |Baricitinib |
-|trt202 |At risk           |         0.8247433| 0.2989248|   2.2853379|      0.5135367| 0.7075058|             10|                 54|        10|            49|TACTIC-R      |Baricitinib |
+|trt22  |Not at risk       |         0.9037110| 0.7193588|   1.1344640|      0.1161177| 0.3832507|            155|               2445|       171|          2478|RECOVERY      |Baricitinib |
+|trt23  |At risk           |         0.9421417| 0.7415664|   1.1975779|      0.1221631| 0.6256427|            155|               1691|       144|          1516|RECOVERY      |Baricitinib |
+|trt193 |Not at risk       |         1.2471821| 0.4817106|   3.2072337|      0.4782734| 0.6441947|             10|                 67|        11|            86|TACTIC-R      |Baricitinib |
+|trt202 |At risk           |         1.0287375| 0.4702109|   2.2620965|      0.3988715| 0.9433729|             26|                 70|        20|            59|TACTIC-R      |Baricitinib |
 |trt172 |Not at risk       |         0.4240682| 0.1915337|   0.9284717|      0.3993909| 0.0317198|             16|                189|        16|            97|RUXCOVID      |Ruxolitinib |
 |trt183 |At risk           |         1.1562778| 0.3843312|   3.9284333|      0.5813974| 0.8027780|             11|                 84|         5|            42|RUXCOVID      |Ruxolitinib |
 |trt194 |Not at risk       |         1.3360574| 0.3548438|   5.2708749|      0.6735382| 0.6670859|              6|                 50|         5|            49|PANCOVID      |Baricitinib |
-|trt203 |At risk           |         1.0600390| 0.4404118|   2.5841715|      0.4468885| 0.8961943|             13|                 93|        11|            87|PANCOVID      |Baricitinib |
+|trt203 |At risk           |         0.8236139| 0.3625219|   1.8549919|      0.4132488| 0.6386550|             14|                 95|        15|            93|PANCOVID      |Baricitinib |
 
 ```r
 kable(df_sg_comed_ae28, format = "markdown", table.attr = 'class="table"') %>%
@@ -4726,24 +4827,24 @@ kable(df_sg_comed_ae28, format = "markdown", table.attr = 'class="table"') %>%
 
 |       |variable                          | hazard_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value| n_intervention| n_intervention_tot| n_control| n_control_tot|trial         |JAKi        |
 |:------|:---------------------------------|-----------------:|---------:|----------:|--------------:|---------:|--------------:|------------------:|---------:|-------------:|:-------------|:-----------|
-|trt21  |No Dexa, no Tocilizumab_AE        |      9.164330e-01| 0.6965700|  1.2055453|      0.1398572| 0.5326493|            188|                477|       192|           457|ACTT-2        |Baricitinib |
-|trt22  |Dexa, but no Tocilizumab_AE       |      4.928888e-01| 0.0368487|  4.9694556|      1.2040117| 0.5568039|              8|                 14|        12|            24|ACTT-2        |Baricitinib |
-|trt211 |No Dexa, no Tocilizumab_AE        |      1.359701e+00| 0.7401130|  2.5229187|      0.3115837| 0.3240646|             32|                139|        24|           138|COV-BARRIER   |Baricitinib |
-|trt221 |Dexa, but no Tocilizumab_AE       |      1.056360e+00| 0.7834353|  1.4253375|      0.1525382| 0.7192612|            139|                544|       119|           504|COV-BARRIER   |Baricitinib |
-|trt20  |No Dexa, no Tocilizumab_AE        |      5.490797e-01| 0.0386955|  6.9382508|      1.2644230| 0.6354011|              2|                  8|         4|             9|Bari-SolidAct |Baricitinib |
-|trt212 |Dexa, but no Tocilizumab_AE       |      9.557239e-01| 0.5456751|  1.6729367|      0.2851094| 0.8737966|             42|                122|        39|           113|Bari-SolidAct |Baricitinib |
-|trt19  |No Dexa, no Tocilizumab_AE        |      8.244015e-01| 0.2924886|  2.2707095|      0.5175401| 0.7090692|              9|                 44|        11|            48|COVINIB       |Baricitinib |
+|trt21  |No Dexa, no Tocilizumab_AE        |      8.680547e-01| 0.6639188|  1.1345505|      0.1366254| 0.3003504|            210|                499|       227|           492|ACTT-2        |Baricitinib |
+|trt22  |Dexa, but no Tocilizumab_AE       |      5.428229e-01| 0.0461670|  5.1877850|      1.1635370| 0.5995143|             10|                 16|        14|            26|ACTT-2        |Baricitinib |
+|trt211 |No Dexa, no Tocilizumab_AE        |      9.271221e-01| 0.5445994|  1.5738301|      0.2699836| 0.7792654|             41|                159|        45|           169|COV-BARRIER   |Baricitinib |
+|trt221 |Dexa, but no Tocilizumab_AE       |      8.660498e-01| 0.6706532|  1.1178306|      0.1302599| 0.2695733|            211|                654|       225|           637|COV-BARRIER   |Baricitinib |
+|trt20  |No Dexa, no Tocilizumab_AE        |      3.973496e-01| 0.0301126|  4.0754843|      1.2050893| 0.4437551|              2|                  8|         5|            10|Bari-SolidAct |Baricitinib |
+|trt212 |Dexa, but no Tocilizumab_AE       |      9.110102e-01| 0.5466210|  1.5174016|      0.2599990| 0.7199933|             57|                137|        59|           133|Bari-SolidAct |Baricitinib |
+|trt19  |No Dexa, no Tocilizumab_AE        |      6.962592e-01| 0.2516995|  1.8568419|      0.5050440| 0.4734758|              9|                 44|        13|            50|COVINIB       |Baricitinib |
 |trt201 |Dexa, but no Tocilizumab_AE       |      4.622442e-01| 0.0237634| 13.1726047|      1.4759221| 0.6010899|              2|                 11|         1|             5|COVINIB       |Baricitinib |
 |trt191 |No Dexa, no Tocilizumab_AE_firth  |      5.850331e-01| 0.0035637| 60.0965918|      1.7769302| 0.7766083|              0|                  4|         1|             3|TOFACOV       |Tofacitinib |
 |trt202 |Dexa, but no Tocilizumab_AE       |      8.061029e-01| 0.2724618|  2.3617200|      0.5448572| 0.6924024|              9|                 54|        12|            55|TOFACOV       |Tofacitinib |
 |trt15  |Dexa, but no Tocilizumab_AE_firth |      5.043375e+07| 0.0000000|         NA|   4148.1471061| 0.9965885|              1|                 46|         0|            51|Ghazaeian     |Tofacitinib |
-|trt24  |No Dexa, no Tocilizumab_AE        |      6.107571e-01| 0.2356888|  1.4831933|      0.4628046| 0.2867107|              8|                146|        14|           157|RECOVERY      |Baricitinib |
-|trt25  |Dexa, but no Tocilizumab_AE       |      9.193613e-01| 0.7136172|  1.1843802|      0.1291051| 0.5149035|            130|               2279|       129|          2182|RECOVERY      |Baricitinib |
-|trt213 |No Dexa, no Tocilizumab_AE        |      1.589858e-01| 0.0006961|  3.9368587|      1.9042628| 0.3341959|              1|                 11|         2|            18|TACTIC-R      |Baricitinib |
-|trt222 |Dexa, but no Tocilizumab_AE       |      1.276201e+00| 0.5573211|  2.9814719|      0.4238777| 0.5650391|             15|                103|        12|           105|TACTIC-R      |Baricitinib |
+|trt24  |No Dexa, no Tocilizumab_AE        |      8.039048e-01| 0.3478286|  1.8044376|      0.4154821| 0.5993383|             11|                167|        15|           182|RECOVERY      |Baricitinib |
+|trt25  |Dexa, but no Tocilizumab_AE       |      9.389579e-01| 0.7552396|  1.1674109|      0.1110098| 0.5704567|            179|               2628|       176|          2529|RECOVERY      |Baricitinib |
+|trt213 |No Dexa, no Tocilizumab_AE        |      1.071632e+00| 0.2007731|  5.3616450|      0.8211574| 0.9328578|              5|                 15|         5|            21|TACTIC-R      |Baricitinib |
+|trt222 |Dexa, but no Tocilizumab_AE       |      1.121946e+00| 0.5751967|  2.1960122|      0.3403215| 0.7352825|             29|                117|        24|           117|TACTIC-R      |Baricitinib |
 |trt192 |No Dexa, no Tocilizumab_AE        |      3.641774e-01| 0.1325555|  0.9609916|      0.4985872| 0.0427696|              8|                110|        12|            62|RUXCOVID      |Ruxolitinib |
 |trt203 |Dexa, but no Tocilizumab_AE       |      9.238495e-01| 0.3959037|  2.2848053|      0.4421620| 0.8578328|             19|                163|         9|            77|RUXCOVID      |Ruxolitinib |
-|trt214 |Dexa, but no Tocilizumab_AE       |      1.141285e+00| 0.5457068|  2.4204059|      0.3771301| 0.7260226|             18|                138|        15|           126|PANCOVID      |Baricitinib |
+|trt214 |Dexa, but no Tocilizumab_AE       |      1.054332e+00| 0.5169829|  2.1672363|      0.3631652| 0.8841697|             19|                140|        17|           129|PANCOVID      |Baricitinib |
 
 # Reshape dataframes for each subgroup estimate (for overall forestplot only; descriptive purpose)
 
@@ -6838,24 +6939,24 @@ summary(vacc.ae28)
 ## Review:     Treatment-covariate interaction on AEs: vaccination
 ## 
 ##                   OR             95%-CI %W(random) exclude
-## Bari-SolidAct 1.4026 [0.4400;   4.4709]        9.7        
-## TOFACOV       2.6499 [0.0261; 269.5443]        0.6        
-## COVINIB       1.0000 [0.0091; 110.2786]        0.6        
-## RECOVERY      0.9484 [0.6420;   1.4009]       86.0        
-## PANCOVID      1.3277 [0.1657;  10.6407]        3.0        
+## Bari-SolidAct 1.7966 [0.6357;   5.0773]        9.1        
+## TOFACOV       2.6499 [0.0261; 269.5443]        0.5        
+## COVINIB       1.0000 [0.0091; 110.3276]        0.4        
+## RECOVERY      1.1970 [0.8570;   1.6721]       87.7        
+## PANCOVID      1.8059 [0.2290;  14.2398]        2.3        
 ## 
 ## Number of studies: k = 5
 ## 
 ##                                  OR           95%-CI    t p-value
-## Random effects model (HK-CI) 1.0019 [0.6977; 1.4387] 0.01  0.9918
+## Random effects model (HK-CI) 1.2574 [0.9194; 1.7195] 1.43  0.1516
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0749]; tau = 0 [0.0000; 0.2737]
+##  tau^2 = 0 [0.0000; 0.1040]; tau = 0 [0.0000; 0.3224]
 ##  I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.64    4  0.9585
+##  0.76    4  0.9433
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -6907,24 +7008,24 @@ summary(vacc.yes.ae28)
 
 ```
 ##                   OR             95%-CI %W(common) exclude
-## Bari-SolidAct 1.0153 [0.3866;   2.6670]        8.7        
-## COVINIB       1.0001 [0.0091; 110.3643]        0.4        
+## Bari-SolidAct 1.0784 [0.4612;   2.5215]        8.1        
+## COVINIB       1.0001 [0.0091; 110.3643]        0.3        
 ## TOFACOV       1.0075 [0.0000;      Inf]        0.0        
-## RECOVERY      0.8843 [0.6530;   1.1975]       88.7        
-## PANCOVID      1.4750 [0.2101;  10.3555]        2.1        
+## RECOVERY      1.0199 [0.7903;   1.3163]       90.1        
+## PANCOVID      1.5720 [0.2241;  11.0252]        1.5        
 ## 
 ## Number of studies: k = 5
-## Number of observations: o = 216
+## Number of observations: o = 314
 ## 
-##                         OR           95%-CI     z p-value
-## Common effect model 0.9054 [0.6804; 1.2047] -0.68  0.4951
+##                         OR           95%-CI    z p-value
+## Common effect model 1.0314 [0.8097; 1.3138] 0.25  0.8024
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.32    4  0.9885
+##  0.20    4  0.9954
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -6958,25 +7059,25 @@ summary(vacc.no.ae28)
 
 ```
 ##                   OR           95%-CI %W(common) exclude
-## Bari-SolidAct 0.7785 [0.3958; 1.5314]        9.8        
-## COVINIB       0.8436 [0.3304; 2.1544]        5.1        
-## TOFACOV       0.6778 [0.2392; 1.9207]        4.1        
-## RECOVERY      0.9245 [0.7227; 1.1825]       73.6        
-## PANCOVID      1.1430 [0.5261; 2.4836]        7.4        
+## Bari-SolidAct 0.6491 [0.3451; 1.2207]        9.0        
+## COVINIB       0.7268 [0.2908; 1.8165]        4.3        
+## TOFACOV       0.6778 [0.2392; 1.9207]        3.3        
+## RECOVERY      0.8475 [0.6824; 1.0526]       76.6        
+## PANCOVID      0.9300 [0.4488; 1.9268]        6.8        
 ## 
 ## Number of studies: k = 5
-## Number of observations: o = 410
+## Number of observations: o = 521
 ## 
 ##                         OR           95%-CI     z p-value
-## Common effect model 0.9076 [0.7347; 1.1211] -0.90  0.3683
+## Common effect model 0.8210 [0.6792; 0.9925] -2.04  0.0415
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.1307]; tau = 0 [0.0000; 0.3616]
+##  tau^2 = 0 [0.0000; 0.0750]; tau = 0 [0.0000; 0.2739]
 ##  I^2 = 0.0% [0.0%; 79.2%]; H = 1.00 [1.00; 2.19]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  0.88    4  0.9269
+##  0.92    4  0.9210
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -7014,34 +7115,32 @@ summary(atrisk.ae28)
 
 ```
 ##                   OR            95%-CI %W(random) exclude
-## ACTT-2        0.9655 [0.5544;  1.6815]       20.5        
-## Bari-SolidAct 1.2295 [0.4141;  3.6502]        5.3        
-## COV-BARRIER   1.2095 [0.7034;  2.0798]       21.5        
-## COVINIB       0.5621 [0.0764;  4.1339]        1.6        
+## ACTT-2        0.9733 [0.5673;  1.6697]       16.8        
+## Bari-SolidAct 1.1425 [0.4261;  3.0636]        5.0        
+## COV-BARRIER   1.0630 [0.6715;  1.6829]       23.2        
+## COVINIB       0.5488 [0.0784;  3.8394]        1.3        
 ## Ghazaeian     0.2006 [0.0016; 25.2681]        0.0       *
-## PANCOVID      0.9430 [0.2028;  4.3849]        2.7        
-## RECOVERY      0.8407 [0.5708;  1.2382]       42.0        
-## RUXCOVID      2.2435 [0.5674;  8.8707]        3.3        
-## TACTIC-R      0.3137 [0.0633;  1.5562]        2.5        
-## TOFACOV       1.0998 [0.0503; 24.0490]        0.7        
+## PANCOVID      0.7501 [0.1678;  3.3528]        2.2        
+## RECOVERY      1.0369 [0.7453;  1.4427]       45.0        
+## RUXCOVID      2.2435 [0.5674;  8.8707]        2.6        
+## TACTIC-R      0.8030 [0.2378;  2.7112]        3.3        
+## TOFACOV       1.0998 [0.0503; 24.0490]        0.5        
 ## 
 ## Number of studies: k = 9
 ## 
-##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.9609 [0.7613; 1.2128] -0.40  0.7029
+##                               OR           95%-CI    t p-value
+## Random effects model (HK) 1.0333 [0.9050; 1.1799] 0.57  0.5843
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.5056]; tau = 0 [0.0000; 0.7111]
-##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.97    8  0.7607
+##  2.07    8  0.9787
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
-## - Q-Profile method for confidence interval of tau^2 and tau
 ## - Hartung-Knapp adjustment for random effects model (df = 8)
 ```
 
@@ -7087,30 +7186,30 @@ summary(atrisk.no.ae28)
 
 ```
 ##                   OR            95%-CI %W(common) exclude
-## ACTT-2        0.9314 [0.6580;  1.3183]       21.5        
-## COV-BARRIER   1.0217 [0.7192;  1.4513]       21.1        
-## Bari-SolidAct 0.7806 [0.3656;  1.6669]        4.5        
-## COVINIB       0.9038 [0.2727;  2.9958]        1.8        
-## TOFACOV       0.6562 [0.2184;  1.9713]        2.1        
+## ACTT-2        0.8791 [0.6248;  1.2368]       19.2        
+## COV-BARRIER   0.8476 [0.6182;  1.1621]       22.5        
+## Bari-SolidAct 0.7705 [0.3709;  1.6005]        4.2        
+## COVINIB       0.7864 [0.2441;  2.5338]        1.6        
+## TOFACOV       0.6562 [0.2184;  1.9713]        1.8        
 ## Ghazaeian     3.6522 [0.2033; 65.6032]        0.0       *
-## RECOVERY      0.9778 [0.7616;  1.2552]       41.6        
-## TACTIC-R      2.5761 [0.7367;  9.0082]        1.7        
-## RUXCOVID      0.4241 [0.1939;  0.9277]        4.2        
-## PANCOVID      1.3361 [0.3569;  5.0020]        1.5        
+## RECOVERY      0.9037 [0.7198;  1.1347]       43.2        
+## TACTIC-R      1.2472 [0.4885;  3.1845]        2.5        
+## RUXCOVID      0.4241 [0.1939;  0.9277]        3.7        
+## PANCOVID      1.3361 [0.3569;  5.0020]        1.3        
 ## 
 ## Number of studies: k = 9
-## Number of observations: o = 814
+## Number of observations: o = 985
 ## 
 ##                         OR           95%-CI     z p-value
-## Common effect model 0.9432 [0.8028; 1.1080] -0.71  0.4766
+## Common effect model 0.8605 [0.7410; 0.9994] -1.97  0.0490
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 < 0.0001 [0.0000; 0.5913]; tau = 0.0025 [0.0000; 0.7690]
+##  tau^2 = 0 [0.0000; 0.1973]; tau = 0 [0.0000; 0.4442]
 ##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  7.69    8  0.4640
+##  4.71    8  0.7877
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -7145,34 +7244,32 @@ summary(atrisk.yes.ae28)
 
 ```
 ##                   OR            95%-CI %W(common) exclude
-## ACTT-2        0.9003 [0.5839;  1.3882]       19.3        
-## COV-BARRIER   1.2458 [0.8231;  1.8855]       21.0        
-## Bari-SolidAct 0.9479 [0.4284;  2.0972]        5.7        
-## COVINIB       0.4843 [0.0927;  2.5317]        1.3        
-## TOFACOV       0.5176 [0.0218; 12.3006]        0.4        
-## RECOVERY      0.8289 [0.6163;  1.1147]       41.2        
-## TACTIC-R      0.8247 [0.3014;  2.2565]        3.6        
-## RUXCOVID      1.1563 [0.3700;  3.6137]        2.8        
-## PANCOVID      1.0600 [0.4415;  2.5452]        4.7        
+## ACTT-2        0.8552 [0.5623;  1.3005]       14.7        
+## COV-BARRIER   0.9006 [0.6446;  1.2584]       23.2        
+## Bari-SolidAct 0.8334 [0.4179;  1.6621]        5.4        
+## COVINIB       0.4048 [0.0805;  2.0370]        1.0        
+## TOFACOV       0.5176 [0.0218; 12.3006]        0.3        
+## RECOVERY      0.9421 [0.7415;  1.1970]       45.2        
+## TACTIC-R      1.0287 [0.4707;  2.2481]        4.2        
+## RUXCOVID      1.1563 [0.3700;  3.6137]        2.0        
+## PANCOVID      0.8236 [0.3664;  1.8513]        4.0        
 ## 
 ## Number of studies: k = 9
-## Number of observations: o = 608
+## Number of observations: o = 950
 ## 
 ##                         OR           95%-CI     z p-value
-## Common effect model 0.9358 [0.7737; 1.1317] -0.68  0.4937
+## Common effect model 0.9063 [0.7715; 1.0646] -1.20  0.2308
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0386]; tau = 0 [0.0000; 0.1965]
-##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
+##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  3.52    8  0.8975
+##  1.64    8  0.9902
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Restricted maximum-likelihood estimator for tau^2
-## - Q-Profile method for confidence interval of tau^2 and tau
 ```
 
 ```r
@@ -7206,29 +7303,29 @@ summary(comed.ae28)
 
 ```
 ##                   OR             95%-CI %W(random) exclude
-## ACTT-2        1.2089 [0.2767;   5.2815]        3.7        
-## Bari-SolidAct 1.0026 [0.1126;   8.9252]        1.7        
-## COV-BARRIER   0.7852 [0.3970;   1.5531]       17.4        
-## COVINIB       0.8775 [0.0480;  16.0361]        1.0        
+## ACTT-2        1.2807 [0.3061;   5.3580]        3.0        
+## Bari-SolidAct 1.6861 [0.2050;  13.8682]        1.4        
+## COV-BARRIER   0.9813 [0.5443;   1.7694]       17.7        
+## COVINIB       1.0179 [0.0560;  18.5122]        0.7        
 ## Ghazaeian     1.0038 [0.7189;   1.4017]        0.0       *
-## PANCOVID      2.7964 [0.1199;  65.2126]        0.8        
-## RECOVERY      1.1015 [0.7804;   1.5547]       68.2        
-## RUXCOVID      2.6439 [0.7197;   9.7125]        4.8        
-## TACTIC-R      3.8769 [0.4825;  31.1492]        1.9        
-## TOFACOV       2.9293 [0.0768; 111.7502]        0.6        
+## PANCOVID      1.2535 [0.0831;  18.9034]        0.8        
+## RECOVERY      1.0049 [0.7465;   1.3526]       69.5        
+## RUXCOVID      2.6439 [0.7197;   9.7125]        3.6        
+## TACTIC-R      1.2308 [0.2838;   5.3378]        2.9        
+## TOFACOV       2.9293 [0.0768; 111.7502]        0.5        
 ## 
 ## Number of studies: k = 9
 ## 
 ##                               OR           95%-CI    t p-value
-## Random effects model (HK) 1.1234 [0.8685; 1.4530] 1.04  0.3275
+## Random effects model (HK) 1.0648 [0.8992; 1.2609] 0.86  0.4165
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.4938]; tau = 0 [0.0000; 0.7027]
+##  tau^2 = 0 [0.0000; 0.0595]; tau = 0 [0.0000; 0.2439]
 ##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  4.73    8  0.7863
+##  2.69    8  0.9522
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -7335,29 +7432,29 @@ summary(dexa.comed.ae28)
 
 ```
 ##                          OR           95%-CI %W(common) exclude
-## ACTT-2               0.4929 [0.0465; 5.2192]        0.5        
-## COV-BARRIER          1.0564 [0.7834; 1.4245]       31.3        
-## Bari-SolidAct        0.9557 [0.5466; 1.6712]        8.9        
+## ACTT-2               0.5428 [0.0555; 5.3096]        0.4        
+## COV-BARRIER          0.8660 [0.6709; 1.1179]       32.6        
+## Bari-SolidAct        0.9110 [0.5473; 1.5165]        8.2        
 ## COVINIB              0.4622 [0.0256; 8.3402]        0.3        
-## TOFACOV              0.8061 [0.2771; 2.3452]        2.4        
+## TOFACOV              0.8061 [0.2771; 2.3452]        1.9        
 ## Ghazaeian     50433754.1850 [0.0000;    Inf]        0.0       *
-## RECOVERY             0.9194 [0.7138; 1.1841]       43.6        
-## TACTIC-R             1.2762 [0.5560; 2.9290]        4.0        
-## RUXCOVID             0.9238 [0.3884; 2.1977]        3.7        
-## PANCOVID             1.1413 [0.5450; 2.3901]        5.1        
+## RECOVERY             0.9390 [0.7554; 1.1672]       44.9        
+## TACTIC-R             1.1219 [0.5758; 2.1860]        4.8        
+## RUXCOVID             0.9238 [0.3884; 2.1977]        2.8        
+## PANCOVID             1.0543 [0.5174; 2.1483]        4.2        
 ## 
 ## Number of studies: k = 9
-## Number of observations: o = 731
+## Number of observations: o = 1073
 ## 
 ##                         OR           95%-CI     z p-value
-## Common effect model 0.9789 [0.8282; 1.1570] -0.25  0.8026
+## Common effect model 0.9178 [0.7933; 1.0618] -1.15  0.2488
 ## 
 ## Quantifying heterogeneity:
 ##  tau^2 = 0; tau = 0; I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.78    8  0.9871
+##  1.21    8  0.9965
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -7391,23 +7488,23 @@ summary(dexa.toci.comed.ae28)
 
 ```
 ##              OR             95%-CI %W(common) exclude
-## RECOVERY 0.9759 [0.7141;   1.3336]       98.6        
-## TACTIC-R 1.3018 [0.0219;  77.2590]        0.6        
-## PANCOVID 7.7134 [0.2340; 254.2128]        0.8        
+## RECOVERY 0.9235 [0.7054;   1.2090]       98.5        
+## TACTIC-R 0.5705 [0.0335;   9.7106]        0.9        
+## PANCOVID 3.8510 [0.1424; 104.1778]        0.7        
 ## 
 ## Number of studies: k = 3
-## Number of observations: o = 179
+## Number of observations: o = 246
 ## 
 ##                         OR           95%-CI     z p-value
-## Common effect model 0.9936 [0.7286; 1.3549] -0.04  0.9675
+## Common effect model 0.9282 [0.7105; 1.2126] -0.55  0.5849
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 47.0348]; tau = 0 [0.0000; 6.8582]
+##  tau^2 = 0 [0.0000; 36.5059]; tau = 0 [0.0000; 6.0420]
 ##  I^2 = 0.0% [0.0%; 89.6%]; H = 1.00 [1.00; 3.10]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  1.35    2  0.5091
+##  0.83    2  0.6604
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -7441,10 +7538,10 @@ summary(toci.comed.ae28)
 ```
 
 ```
-## Number of observations: o = 3
+## Number of observations: o = 6
 ## 
 ##              OR           95%-CI     z p-value
-## RECOVERY 0.4240 [0.0287; 6.2566] -0.62  0.5321
+## RECOVERY 0.8174 [0.1371; 4.8720] -0.22  0.8248
 ```
 
 ```r
@@ -7985,11 +8082,11 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |any comorbidity      |          1.456|    1.177|    1.802|          0.094|   0.003|two-stage |
 |comorbidity_noimmuno |          1.103|    0.963|    1.263|          0.060|   0.137|two-stage |
 |comedication         |          0.976|    0.766|    1.244|          0.124|   0.845|two-stage |
-|vaccination on AEs   |          1.002|    0.698|    1.439|          0.185|   0.992|two-stage |
+|vaccination on AEs   |          1.257|    0.919|    1.719|          0.160|   0.152|two-stage |
 |symptom duration     |          0.998|    0.970|    1.028|          0.013|   0.905|two-stage |
 |crp                  |          1.000|    0.999|    1.001|          0.001|   0.933|two-stage |
-|at risk on AEs       |          0.961|    0.761|    1.213|          0.101|   0.703|two-stage |
-|comedication on AEs  |          1.123|    0.869|    1.453|          0.112|   0.328|two-stage |
+|at risk on AEs       |          1.033|    0.905|    1.180|          0.058|   0.584|two-stage |
+|comedication on AEs  |          1.065|    0.899|    1.261|          0.073|   0.417|two-stage |
 
 ```r
 # Save
@@ -8288,14 +8385,14 @@ kable(subgroup_df_ae, format = "markdown", table.attr = 'class="table"') %>%
 
 |variable                          | odds_ratio|  ci_lower|  ci_upper| standard_error| n_intervention| n_intervention_tot| n_control| n_control_tot|approach  |
 |:---------------------------------|----------:|---------:|---------:|--------------:|--------------:|------------------:|---------:|-------------:|:---------|
-|Vaccinated                        |  0.9053710| 0.6804382| 1.2046600|      0.1457209|            107|               1530|       109|          1425|two-stage |
-|Unvaccinated                      |  0.9075733| 0.7347363| 1.1210680|      0.1077891|            204|               2412|       206|          2342|two-stage |
-|Not at risk                       |  0.9431719| 0.8028343| 1.1080409|      0.0821955|            415|               3518|       399|          3394|two-stage |
-|At risk                           |  0.9357528| 0.7737216| 1.1317163|      0.0970116|            310|               2025|       298|          1806|two-stage |
-|No Dexamethasone, no Tocilizumab  |  0.6390371| 0.4344043| 0.9400655|      0.1969357|            248|                939|       260|           892|two-stage |
-|Dexamethasone, but no Tocilizumab |  0.9789049| 0.8282295| 1.1569919|      0.0852792|            383|               3474|       348|          3242|two-stage |
-|Dexamethasone and Tocilizumab     |  0.9935810| 0.7286274| 1.3548806|      0.1582443|             94|               1134|        85|          1063|two-stage |
-|Tocilizumab, but no Dexamethasone |  0.4240208| 0.0287365| 6.2566342|      1.3732983|              0|                 10|         3|            12|two-stage |
+|Vaccinated                        |  1.0313875| 0.8096543| 1.3138449|      0.1234987|            164|               1828|       150|          1736|two-stage |
+|Unvaccinated                      |  0.8210229| 0.6791910| 0.9924728|      0.0967613|            244|               2708|       277|          2655|two-stage |
+|Not at risk                       |  0.8605176| 0.7409696| 0.9993534|      0.0763149|            478|               3738|       507|          3682|two-stage |
+|At risk                           |  0.9062667| 0.7715004| 1.0645741|      0.0821426|            467|               2573|       483|          2365|two-stage |
+|No Dexamethasone, no Tocilizumab  |  0.6390371| 0.4344043| 0.9400655|      0.1969357|            286|               1006|       323|           989|two-stage |
+|Dexamethasone, but no Tocilizumab |  0.9177921| 0.7932964| 1.0618255|      0.0743758|            536|               3966|       537|          3759|two-stage |
+|Dexamethasone and Tocilizumab     |  0.9282116| 0.7105196| 1.2126012|      0.1363613|            121|               1333|       125|          1287|two-stage |
+|Tocilizumab, but no Dexamethasone |  0.8173999| 0.1371398| 4.8719809|      0.9107960|              2|                 18|         4|            16|two-stage |
 
 ```r
 # Save
@@ -8398,7 +8495,7 @@ mort28_fp %>%
                                "19" = gpar(lty = 2),                               
                                "21" = gpar(lty = 2)),
              xlog = T,
-             # xticks = c(1),
+             xticks = c(log(0.5), log(0.71), log(1), log(2)),
              psize = sqrt(subgroup_df$inverse_variance),
              lty.ci = c(1),
              col = fpColors(box = "maroon4",
@@ -8406,11 +8503,11 @@ mort28_fp %>%
                             summary = "magenta4",
                             hrz_lines = "gray63"),
              vertices = TRUE,
-             xlab = "              Favours JAKi < > Favours No JAKi",
+             xlab = "               Favours JAKi < > Favours No JAKi",
              zero = 1,
              grid = structure(c(0.71), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
-             )
+            )
 ```
 
 ![](two_stage_files/figure-html/unnamed-chunk-76-1.png)<!-- -->
@@ -8556,14 +8653,16 @@ summary <- tibble(mean  = ae_28_OR,
                   upper = ae_28_ci_upper,
                   subgroup = "Overall safety effect",
                   summary = TRUE)
+
 header <- tibble(subgroup = c("Subgroup"),
-                 events_i = c("Events int."),
-                 tot_i = c("No. int."),
-                 events_c = c("Events cont."),
-                 tot_c = c("No. cont."),
+                 tot_i = c("JAKi"),
+                 events_i = c("Events JAKi"),
+                 tot_c = c("No JAKi"),
+                 events_c = c("Events no JAKi"),
                  p_int = c("p-int*"),
                  iceman = c("ICEMAN\ncredibility assessment"),
                  summary = TRUE)
+
 ae28_fp <- bind_rows(header,base_data,summary)
 
 ae28_fp_red <- ae28_fp %>% 
@@ -8587,7 +8686,7 @@ ae28_fp_red %>%
                                "10" = gpar(lty = 2)),
              
              xlog = TRUE,
-             # xticks = c(1),
+             xticks = c(log(0.1), log(0.5), log(1), log(2)),
              xlim = c(0.5, 1), 
              psize = sqrt(subgroup_df_ae$inverse_variance),
              lty.ci = c(1),
@@ -8679,7 +8778,7 @@ proportions <- df_aesi_tot %>%
   mutate(proportion = (count / denom)*100)
 ggplot(proportions, aes(x = proportion, y = aesi, color = Group, shape = Group)) +
   geom_point(size = 2.5) +
-  labs(x = "Proportion (%), by treatment group", y = NULL) +
+  labs(x = "Proportion (%)", y = NULL) +
   theme_minimal() + 
   scale_x_continuous(breaks = seq(0, 5, by = 0.5)) +
   theme(axis.text.y = element_text(size = 10),

@@ -1114,10 +1114,10 @@ result_list[[14]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days"
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[3,1])
 result_list[[15]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2], 
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,2],
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,1],
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[9,1])
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[21,2], 
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[21,2],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[21,1],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[21,1])
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2462,7 +2462,7 @@ Similarly, ordinal covariates (detailed respiratory support, comorbidities) were
 
 # assumed comparator risk (ACR) based on control group of the IPDMA dataset
 acr <- 764/5916
-# acr <- 0.02 # CDC mortality rate
+# acr <- 0.0181 # OpenSAFELY 28-day in-hospital mortality rate for 2023
 # corresponding intervention risk per 1000
 or <- c(0.71)
 
