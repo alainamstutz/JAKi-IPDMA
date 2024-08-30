@@ -598,7 +598,7 @@ df <- left_join(df, df_ae34_unique[, c("ae_28", "id_pat")], by = join_by(id_pat 
 # the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
 df <- df %>% 
   mutate(ae_28 = case_when(is.na(ae_28) ~ 0, # the LTFU were discharged
-                           mort_28 == 1 ~ NA, # exclude the deaths
+                           # mort_28 == 1 ~ NA, # exclude the deaths
                                 TRUE ~ ae_28))
 # table(df$ae_28, df$mort_28, useNA = "always")
 # addmargins(table(df$ae_28, df$trt, useNA = "always"))
@@ -611,7 +611,7 @@ df <- left_join(df, ae_npp[, c("ae_28_sev", "id_pat")], by = join_by(id_pat == i
 # the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
 df <- df %>% 
   mutate(ae_28_sev = case_when(is.na(ae_28_sev) ~ 0, # the LTFU were discharged
-                           mort_28 == 1 ~ NA, # exclude the deaths
+                           # mort_28 == 1 ~ NA, # exclude the deaths
                                 TRUE ~ ae_28_sev))
 # addmargins(table(df$ae_28_sev, df$trt, useNA = "always"))
 
@@ -2089,8 +2089,8 @@ result_list[[17]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days
                                          addmargins(table(df$ae_28, df$trt))[2,2], 
                                          addmargins(table(df$ae_28, df$trt))[2,1])
 result_list[[18]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
-                                         addmargins(table(df$ae_28_sev, df$trt))[19,2], 
-                                         addmargins(table(df$ae_28_sev, df$trt))[19,1],
+                                         addmargins(table(df$ae_28_sev, df$trt))[20,2], 
+                                         addmargins(table(df$ae_28_sev, df$trt))[20,1],
                                          NA,
                                          NA)
 
@@ -2366,3 +2366,4 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 # Save
 saveRDS(subgroup_df, file = "subgroup_effects_ACTT2.RData")
 ```
+
