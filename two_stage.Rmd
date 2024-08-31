@@ -47,7 +47,7 @@ df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
-df_ruxcovid <- readRDS("trt_effects_ruxcovid_05072024.RData")
+df_ruxcovid <- readRDS("trt_effects_ruxcovid_31082024.RData")
 df_pancovid <- readRDS("trt_effects_pancovid.RData")
 
 ```
@@ -2101,7 +2101,7 @@ df_int_covinib <- readRDS("int_effects_covinib.RData")
 df_int_covbarrier <- readRDS("int_effects_cov-barrier.RData")
 df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
-df_int_ruxcovid <- readRDS("int_effects_ruxcovid_19072024.RData")
+df_int_ruxcovid <- readRDS("int_effects_ruxcovid_31082024.RData")
 df_int_pancovid <- readRDS("int_effects_pancovid.RData")
 
 ```
@@ -2299,7 +2299,7 @@ df_subgroup_tofacov <- readRDS("subgroup_effects_tofacov.RData")
 df_subgroup_ghazaeian <- readRDS("subgroup_effects_ghazaeian.RData")
 df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
 df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
-df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_19072024.RData")
+df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_31082024.RData")
 df_subgroup_pancovid <- readRDS("subgroup_effects_pancovid.RData")
 
 ```

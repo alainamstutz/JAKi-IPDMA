@@ -41,6 +41,8 @@ df_dispo <- read_sas("E:/NVT-RA-12435/files_NVT_SA_CINC424J12301/Files/Raw Datas
 df_medicalhist <- read_sas("E:/NVT-RA-12435/files_NVT_SA_CINC424J12301/Files/Raw Datasets/mh_mse.sas7bdat")
 
 #####
+addmargins(table(df$clinstatus_28_imp, df$trt, useNA = "always"))
+
 # Baseline data
 df <- df %>% # keep only those randomized. Corresponds to publication
   filter(RANDFL == "Y")
@@ -545,13 +547,9 @@ df_ae34_unique$ae_28 <- 1
 #table(df_ae34_unique$ae_28)
 # merge
 df <- left_join(df, df_ae34_unique[, c("ae_28", "id_pat")], by = join_by(id_pat == id_pat)) ## merge variable to main df
-# the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
+# the remaining missing have no AE grade 34 -> recode as 0
 df <- df %>%
-  mutate(ae_28 = case_when(is.na(ae_28) & mort_28 == 0 ~ 0,
-                           is.na(ae_28) & mort_28 == 1 ~ NA,
-                           TRUE ~ ae_28))
-df <- df %>%
-  mutate(ae_28 = case_when(mort_28 == 1 ~ NA,
+  mutate(ae_28 = case_when(is.na(ae_28) ~ 0,
                            TRUE ~ ae_28))
 #table(df$ae_28, df$mort_28, useNA = "always")
 #addmargins(table(df$ae_28, df$trt, useNA = "always"))
@@ -563,11 +561,7 @@ ae_npp <- df_ae34 %>%
 df <- left_join(df, ae_npp[, c("ae_28_sev", "id_pat")], by = join_by(id_pat == id_pat)) # merge variable to main df
 # the remaining missing have no AE grade 34 -> recode as 0 and exclude deaths
 df <- df %>%
-  mutate(ae_28_sev = case_when(is.na(ae_28_sev) & mort_28 == 0 ~ 0,
-                               is.na(ae_28_sev) & mort_28 == 1 ~ NA,
-                               TRUE ~ ae_28_sev))
-df <- df %>%
-  mutate(ae_28_sev = case_when(mort_28 == 1 ~ NA,
+  mutate(ae_28_sev = case_when(is.na(ae_28_sev) ~ 0,
                                TRUE ~ ae_28_sev))
 # table(df$ae_28_sev, df$mort_28, useNA = "always")
 # addmargins(table(df$ae_28_sev, df$trt, useNA = "always"))
@@ -1985,7 +1979,7 @@ result_ame <- data.frame(
 result_df <- rbind(result_df, result_ame)
 
 # Save
-saveRDS(result_df, file = "trt_effects_ruxcovid_05072024.RData")
+saveRDS(result_df, file = "trt_effects_ruxcovid_31082024.RData")
 
 
 
@@ -2059,7 +2053,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-saveRDS(interaction_df, file = "int_effects_ruxcovid_19072024.RData")
+saveRDS(interaction_df, file = "int_effects_ruxcovid_31082024.RData")
 
 
 #######
@@ -2243,5 +2237,5 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 # Save
-saveRDS(subgroup_df, file = "subgroup_effects_ruxcovid_19072024.RData")
+saveRDS(subgroup_df, file = "subgroup_effects_ruxcovid_31082024.RData")
 
