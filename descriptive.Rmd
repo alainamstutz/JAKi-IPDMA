@@ -195,8 +195,40 @@ df_pancovid <- df_pancovid %>%
          ae_28, ae_28_sev,
          vir_clear_5, vir_clear_10, vir_clear_15)
 
+## RUXCOVID-DEVENT
+df_ruxcoviddevent <- readRDS("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RUXCOVID-DEVENT/df_os_ruxcoviddevent.RData")
+df_ruxcoviddevent <- df_ruxcoviddevent %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+
+## STOP-COVID
+df_stopcovid <- readRDS("df_os_stopcovid.RData")
+df_stopcovid <- df_stopcovid %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+
 # append
-df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_ruxcovid, df_pancovid)
+df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_ruxcovid, df_pancovid, df_ruxcoviddevent, df_stopcovid)
 # save
 saveRDS(df_tot, file = "df_tot_rux.RData")
 ```
@@ -256,7 +288,7 @@ df_baseline <- df_baseline %>%
                              Country == "PORTUGAL" ~ "Portugal",
                              Country == "MEX" ~ "Mexico",
                              Country == "ARG" ~ "Argentina",
-                             Country == "BRA" ~ "Brasil",
+                             Country == "BRA" | Country == "Brazil" ~ "Brazil",
                              Country == "RUS" ~ "Russia",
                              Country == "JPN" ~ "Japan",
                              Country == "KOR" ~ "South Korea",
@@ -331,9 +363,19 @@ df_baseline <- df_baseline %>%
 # addmargins(table(df_baseline$ARM, df_baseline$Trial))
 df_baseline$ARM <- ifelse(df_baseline$ARM == 0, "No JAK inhibitor", "JAK inhibitor")
 
+# take out Age of RUXCOVID-DEVENT since it is binary, but do not show it as missing?
+# addmargins(table(df_baseline$`Age, years`, df_baseline$Trial))
+# class(df_baseline$`Age, years`)
+df_baseline <- df_baseline %>% 
+  mutate(`Age, years` = case_when(Trial == "RUXCOVID-DEVENT" ~ NA,
+                                  TRUE ~ c(`Age, years`)))
+df_baseline$`Age, years` <- as.numeric(df_baseline$`Age, years`)
+# class(df_baseline$`Age, years`)
+# addmargins(table(df_baseline$`Age, years`, df_baseline$Trial))
+
 ```
 
-# Main Baseline table, by treatment arm (CAVE: RUXCOVID is included but only its categorical covariates)
+# Main Baseline table, by treatment arm (CAVE: RUXCOVID is included but only its categorical covariates // RUXCOVID-DEVENT excluded from Age due to binary variable)
 ```{r message=FALSE, warning=FALSE}
 vars.list_main <- c("ARM","Age, years", "Sex", "Vaccination", "Time from symptom onset to randomisation, days", "Clinical status on ordinal scale", "Comorbidities", "Dexamethasone and Tocilizumab", "Remdesivir", "C-reactive protein concentration, mg/L", "Seroconversion (patients with detectable anti-SARS-CoV-2 antibodies [anti-RBD or anti-N])", "Patients with undetectable viral load")
 table_baseline <- CreateTableOne(data = df_baseline, vars = vars.list_main[!vars.list_main %in% c("ARM")], strata = "ARM", includeNA = F, test = F, addOverall = TRUE)
@@ -354,7 +396,7 @@ kable(table_baseline, format = "markdown", table.attr = 'class="table"', caption
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 
-# All Baseline Characteristics, by trial (CAVE: RUXCOVID is included but only its categorical covariates)
+# All Baseline Characteristics, by trial (CAVE: RUXCOVID is included but only its categorical covariates // RUXCOVID-DEVENT excluded from Age due to binary variable)
 ```{r message=FALSE, warning=FALSE}
 # all participants, by trial
 table_baseline_trial <- CreateTableOne(data = df_baseline, vars = vars.list[!vars.list %in% c("Trial", "ARM")], strata = "Trial", includeNA = F, test = F, addOverall = TRUE)
@@ -486,7 +528,6 @@ kable(missing_summary, format = "markdown", table.attr = 'class="table"', captio
 # Missing data table for all variables, by trial (excluding RUXCOVID, added separately in next chapter)
 ```{r message=FALSE, warning=FALSE}
 # table(df_tot$mort_28,useNA = "always")
-
 vars.list <- c("trt", "trial", "age", "sex", "ethn", "country", "vacc", "sympdur", "icu", "clinstatus_baseline", "comorb_cat", "comed_cat", "comed_rdv", "crp", "sero", "vl_baseline", "variant",
                "mort_28", "mort_60", "death_reached", "new_mv_28", "new_mvd_28", "clinstatus_28_imp", "discharge_reached",
                "discharge_reached_sus" , "ae_28","ae_28_sev" ,"vir_clear_5" ,"vir_clear_10", "vir_clear_15")
@@ -503,6 +544,13 @@ char_vars <- c("trt", "trial", "sex", "ethn", "country", "vacc", "icu", "clinsta
 # Convert character variables to factors
 df_missing <- df_missing %>%
   mutate(across(all_of(char_vars), factor))
+# take out Age of RUXCOVID-DEVENT since it is binary, but do not show it as missing
+df_missing <- df_missing %>% 
+  mutate(age = case_when(trial == "RUXCOVID-DEVENT" ~ NA,
+                                  TRUE ~ c(age)))
+df_missing$age <- as.numeric(df_missing$age)
+# class(df_missing$age)
+# addmargins(table(df_missing$age, df_missing$trial))
 
 # all missing data, by trial
 table_missing_trial <- CreateTableOne(data = df_missing, vars = vars.list[!vars.list %in% c("trt", "trial")], strata = "trial", includeNA = T, test = F, addOverall = TRUE)
@@ -510,7 +558,6 @@ capture.output(table_missing_trial <- print(table_missing_trial, nonnormal = var
 #print
 kable(table_missing_trial, format = "markdown", table.attr = 'class="table"', caption = "Missing data, by trial") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-
 
 ```
 

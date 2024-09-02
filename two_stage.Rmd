@@ -49,6 +49,8 @@ df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
 df_ruxcovid <- readRDS("trt_effects_ruxcovid_31082024.RData")
 df_pancovid <- readRDS("trt_effects_pancovid.RData")
+df_stopcovid <- readRDS("trt_effects_stopcovid.RData")
+df_ruxcoviddevent <- readRDS("trt_effects_ruxcoviddevent.RData")
 
 ```
 
@@ -57,7 +59,9 @@ df_pancovid <- readRDS("trt_effects_pancovid.RData")
 ### Create a list of all data frames / trials
 list_df <- list(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, 
                 df_ruxcovid, 
-                df_pancovid) # add all trials
+                df_pancovid,
+                df_stopcovid,
+                df_ruxcoviddevent) # add all trials
 
 ## Mortality at day 28
 outcomes <- "death at day 28"
@@ -359,6 +363,8 @@ df_mort28 <- df_mort28 %>%
                                         trial == "TACTIC-R" ~ "05.2020-05.2021",
                                         trial == "RUXCOVID" ~ "04.2020-09.2020",
                                         trial == "PANCOVID" ~ "10.2020-09.2021",
+                                        trial == "STOP-COVID" ~ "09.2020-12.2020",
+                                        trial == "RUXCOVID-DEVENT" ~ "05.2020-12.2020",
                                         ))
 df_mort28 <- df_mort28 %>% 
   mutate(period = case_when(trial == "ACTT-2" ~ "pre-delta",
@@ -371,6 +377,8 @@ df_mort28 <- df_mort28 %>%
                                             trial == "TACTIC-R" ~ "pre-delta/delta",
                                             trial == "RUXCOVID" ~ "pre-delta",
                                             trial == "PANCOVID" ~ "pre-delta/delta",
+                                            trial == "STOP-COVID" ~ "pre-delta",
+                                            trial == "RUXCOVID-DEVENT" ~ "pre-delta",
                                         ))
 
 df_mort28 <- df_mort28 %>% 
@@ -384,6 +392,8 @@ df_mort28 <- df_mort28 %>%
                                 trial == "TACTIC-R" ~ "low risk",
                                 trial == "RUXCOVID" ~ "low risk",
                                 trial == "PANCOVID" ~ "low risk",
+                                trial == "STOP-COVID" ~ "low risk",
+                                trial == "RUXCOVID-DEVENT" ~ "low risk",
                                         ))
 df_mort28 <- df_mort28 %>% 
   mutate('Data provided' = case_when(trial == "ACTT-2" ~ "IPD trials",
@@ -396,8 +406,9 @@ df_mort28 <- df_mort28 %>%
                                 trial == "TACTIC-R" ~ "IPD trials",
                                 trial == "RUXCOVID" ~ "IPD trials",
                                 trial == "PANCOVID" ~ "IPD trials",
+                                trial == "STOP-COVID" ~ "IPD trials",
+                                trial == "RUXCOVID-DEVENT" ~ "IPD trials",
                                         ))
-
 
 #### read in aggregate data
 ## PRE-VENT
@@ -450,60 +461,6 @@ row_cao <- tibble(
   trial = "CAO*",
   JAKi = "Ruxolitinib",
   recruitment_period = "02.2020",
-  period = "pre-delta",
-  rob_mort28 = "low risk",
-  'Data provided' = "non-IPD trials")
-
-## STOP-COVID
-df_stopcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "STOP-COVID")
-# analyse with same model
-addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt, useNA = "always"))
-mort.28.stopcovid <- df_stopcovid %>% 
-  glm(mort_28 ~ trt
-      , family = "binomial", data=.)
-summ(mort.28.stopcovid, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# add effect estimates and other parameters to df_mort28
-row_stopcovid <- tibble(
-  variable = "death at day 28",
-  hazard_odds_ratio = exp(coef(mort.28.stopcovid)["trt"]),
-  ci_lower = exp(confint(mort.28.stopcovid)["trt", ])[1],
-  ci_upper = exp(confint(mort.28.stopcovid)["trt", ])[2],
-  standard_error = summary(mort.28.stopcovid)$coefficients["trt", "Std. Error"],
-  p_value = summary(mort.28.stopcovid)$coefficients["trt", "Pr(>|z|)"],
-  n_int = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt))[3,2],
-  n_cont = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt))[3,1],
-  e_int = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt))[2,2],
-  e_cont = addmargins(table(df_stopcovid$mort_28, df_stopcovid$trt))[2,1],
-  trial = "STOP-COVID*",
-  JAKi = "Tofacitinib",
-  recruitment_period = "09.2020-12.2020",
-  period = "pre-delta",
-  rob_mort28 = "low risk",
-  'Data provided' = "non-IPD trials")
-
-## RUXCOVID-DEVENT
-df_ruxcoviddevent <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/non-IPD/JAKi_IPDMA_aggr_data.xlsx", sheet = "RUXCOVID-DEVENT")
-# analyse with same model
-addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt, useNA = "always"))
-mort.28.ruxcoviddevent <- df_ruxcoviddevent %>% 
-  glm(mort_28 ~ trt
-      , family = "binomial", data=.)
-summ(mort.28.ruxcoviddevent, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
-# add effect estimates and other parameters to df_mort28
-row_ruxcoviddevent <- tibble(
-  variable = "death at day 28",
-  hazard_odds_ratio = exp(coef(mort.28.ruxcoviddevent)["trt"]),
-  ci_lower = exp(confint(mort.28.ruxcoviddevent)["trt", ])[1],
-  ci_upper = exp(confint(mort.28.ruxcoviddevent)["trt", ])[2],
-  standard_error = summary(mort.28.ruxcoviddevent)$coefficients["trt", "Std. Error"],
-  p_value = summary(mort.28.ruxcoviddevent)$coefficients["trt", "Pr(>|z|)"],
-  n_int = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt))[3,2],
-  n_cont = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt))[3,1],
-  e_int = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt))[2,2],
-  e_cont = addmargins(table(df_ruxcoviddevent$mort_28, df_ruxcoviddevent$trt))[2,1],
-  trial = "RUXCOVID-DEVENT*",
-  JAKi = "Ruxolitinib",
-  recruitment_period = "05.2020-12.2020",
   period = "pre-delta",
   rob_mort28 = "low risk",
   'Data provided' = "non-IPD trials")
@@ -564,7 +521,7 @@ row_singh <- tibble(
 
 
 # Add the new rows to your existing dataframe
-df_mort28_agg <- bind_rows(df_mort28, row_prevent, row_cao, row_stopcovid, row_ruxcoviddevent, row_dastan, row_singh)
+df_mort28_agg <- bind_rows(df_mort28, row_prevent, row_cao, row_dastan, row_singh)
 
 ```
 Discussion points:
@@ -931,41 +888,45 @@ Discussion points:
 # }
 # # Save
 # saveRDS(df_mort28_mi, file = "trt_effects_mi.RData") # collected on 7.5.24: Bari-Solidact, ACTT2, RECOVERY, COV-BARRIER, TACTIC-R
-##### ONLY WORKS IF NEW MI ESTIMATES
 
-##### ONLY RUN IF NEW MI ESTIMATES
-# ## UPDATE on 14.5.24
-# df_mort28_mi <- readRDS("trt_effects_mi.RData") # use the one above
+##### UPDATE on 14.5.24, including RUXCOVID and PANCOVID
+# df_mort28_mi <- readRDS("trt_effects_mi.RData")
 # df_pancovid_mi <- readRDS("trt_effects_pancovid.RData")
 # df_pancovid_mi <- df_pancovid_mi %>% # add PANCOVID
 #   filter(variable == "death at day 28_mi")
 # df_ruxcovid_mi <- readRDS("trt_effects_ruxcovid.RData")
 # df_ruxcovid_mi <- df_ruxcovid_mi %>% # add RUXCOVID
 #   filter(variable == "death at day 28_mi")
-# # %>%
-# #   mutate(JAKi = case_when(JAKi == "Baricitinib" ~ "Ruxolitinib", ## shoud be fine now, double-check
-# #                           TRUE ~ JAKi))
 # df_mort28_mi <- rbind(df_mort28_mi, df_ruxcovid_mi, df_pancovid_mi)
 # Save
 # saveRDS(df_mort28_mi, file = "trt_effects_mi_14052024.RData") # updated on 14.5.24: incl. PANCOVID and RUXCOVID
-##### ONLY RUN IF NEW MI ESTIMATES
+
+##### UPDATE on 02.09.24, including RUXCOVID-DEVENT
+# df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
+# df_ruxcoviddevent_mi <- readRDS("trt_effects_ruxcoviddevent.RData")
+# df_ruxcoviddevent_mi <- df_ruxcoviddevent_mi %>% # add RUXCOVID-DEVENT
+#   filter(variable == "death at day 28_mi")
+# ## adapt dataframe to include the event columns
+# df_mort28_add_events <- df_mort28_dimp %>%
+#   filter(trial %in% c("Bari-SolidAct", "ACTT-2", "COV-BARRIER", "RECOVERY", "TACTIC-R", 
+#                       "RUXCOVID", 
+#                       "PANCOVID",
+#                       "RUXCOVID-DEVENT")) %>% 
+#   dplyr::select(trial, n_int, n_cont, e_int, e_cont)
+# df_mort28_mi <- left_join(df_mort28_mi, df_mort28_add_events, by = join_by(trial == trial)) 
+# df_mort28_mi <- df_mort28_mi %>% 
+#   dplyr::select(!n_intervention) %>% 
+#   dplyr::select(!n_control)
+# df_mort28_mi <- rbind(df_mort28_mi, df_ruxcoviddevent_mi)
+# saveRDS(df_mort28_mi, file = "trt_effects_mi_02092024.RData") # updated on 02.09.24: incl. RUXCOVID-DEVENT
+
 
 # LOAD
-df_mort28_mi <- readRDS("trt_effects_mi_14052024.RData")
-## adapt dataframe to include the event columns
-df_mort28_add_events <- df_mort28_dimp %>%
-  filter(trial %in% c("Bari-SolidAct", "ACTT-2", "COV-BARRIER", "RECOVERY", "TACTIC-R", 
-                      "RUXCOVID", 
-                      "PANCOVID")) %>% 
-  dplyr::select(trial, n_int, n_cont, e_int, e_cont)
-df_mort28_mi <- left_join(df_mort28_mi, df_mort28_add_events, by = join_by(trial == trial)) 
-df_mort28_mi <- df_mort28_mi %>% 
-  dplyr::select(!n_intervention) %>% 
-  dplyr::select(!n_control)
+df_mort28_mi <- readRDS("trt_effects_mi_02092024.RData")
 
-# no MI from ghazaeian, tofacov -> add their df_mort28 estimates and covinib
+# no MI from ghazaeian, tofacov and stop-covid -> add their df_mort28 estimates / and covinib
 df_mort28_mi_add <- df_mort28_dimp %>%
-  filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "COVINIB")
+  filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "STOP-COVID" | trial == "COVINIB")
 df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
 
 mort28.mi <- metagen(TE = log(hazard_odds_ratio),
@@ -1208,6 +1169,7 @@ forest.meta(new.mv28,
 ```
 Discussion points:
 1. Ghazaeian: new_mv_28: Besides the deaths no-one was intubated, and the deaths are excluded => no further events than death => not a single event in either arm!
+2. RUXCOVID-DEVENT: ALl started with clinicalstatus == 5 => not a single event in either arm!
 
 # (v) Clinical status at day 28
 ```{r warning=FALSE, fig.width=13, fig.height=5}
@@ -1262,6 +1224,7 @@ dev.off()
 
 ```
 Discussion points
+1. RUXCOVID-DEVENT: NO data on this endpoint!
 
 # (vi) Time to discharge or reaching discharge criteria up to day 28. Death = Competing event
 ```{r warning=FALSE, fig.width=13, fig.height=4}
@@ -1686,6 +1649,8 @@ df_ae28 <- df_ae28 %>%
                                 trial == "TACTIC-R" ~ "some concerns",
                                 trial == "RUXCOVID" ~ "low risk",
                                 trial == "PANCOVID" ~ "some concerns",
+                                trial == "STOP-COVID" ~ "low risk",
+                                trial == "RUXCOVID-DEVENT" ~ "low risk",
                                         ))
 
 ae28.rob <- metagen(TE = log(hazard_odds_ratio),
@@ -1917,10 +1882,10 @@ result_list[[17]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days"
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[3,1])
 result_list[[18]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[19,2], 
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[19,2],
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[19,1],
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[19,1])
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[22,2], # DOUBLE-CHECK denominator!!! BUT run descriptive first to have updated df_tot !!!
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[22,2],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[22,1],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[22,1])
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -2103,13 +2068,15 @@ df_int_recovery <- readRDS("int_effects_recovery.RData")
 df_int_tactic_r <- readRDS("int_effects_tactic-r.RData")
 df_int_ruxcovid <- readRDS("int_effects_ruxcovid_31082024.RData")
 df_int_pancovid <- readRDS("int_effects_pancovid.RData")
+df_int_stopcovid <- readRDS("int_effects_stopcovid.RData")
+df_int_ruxcoviddevent <- readRDS("int_effects_ruxcoviddevent.RData")
 
 ```
 
 # Reshape dataframes for all treatment-covariate interaction estimates (on primary endpoint - and vacc.ae)
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
-list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier, df_int_recovery, df_int_tactic_r, df_int_ruxcovid, df_int_pancovid) # add all trials
+list_int_df <- list(df_int_barisolidact, df_int_actt2, df_int_ghazaeian, df_int_tofacov, df_int_covinib, df_int_covbarrier, df_int_recovery, df_int_tactic_r, df_int_ruxcovid, df_int_pancovid, df_int_stopcovid, df_int_ruxcoviddevent) # add all trials
 
 ## Respiratory support on Mortality at day 28
 outcomes <- "respiratory support"
@@ -2301,13 +2268,15 @@ df_subgroup_recovery <- readRDS("subgroup_effects_recovery.RData")
 df_subgroup_tactic_r <- readRDS("subgroup_effects_tactic-r.RData")
 df_subgroup_ruxcovid <- readRDS("subgroup_effects_ruxcovid_31082024.RData")
 df_subgroup_pancovid <- readRDS("subgroup_effects_pancovid.RData")
+df_subgroup_stopcovid <- readRDS("subgroup_effects_stopcovid.RData")
+df_subgroup_ruxcoviddevent <- readRDS("subgroup_effects_ruxcoviddevent.RData")
 
 ```
 
 # Reshape dataframes for subgroup estimates by trial
 ```{r warning=FALSE}
 ### Create a list of all data frames / trials
-list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian, df_subgroup_recovery, df_subgroup_tactic_r, df_subgroup_ruxcovid, df_subgroup_pancovid) # add all trials
+list_subgroup_df <- list(df_subgroup_actt2, df_subgroup_covbarrier, df_subgroup_barisolidact, df_subgroup_covinib, df_subgroup_tofacov, df_subgroup_ghazaeian, df_subgroup_recovery, df_subgroup_tactic_r, df_subgroup_ruxcovid, df_subgroup_pancovid, df_subgroup_stopcovid, df_subgroup_ruxcoviddevent) # add all trials
 
 ## Respiratory support
 outcomes1 <- "No oxygen"
@@ -2838,7 +2807,7 @@ for (df in list_subgroup_df) {
 # Interaction: Respiratory support (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE, fig.width=14, fig.height=4}
 # str(df_rs_mort28)
-## "Ghazaeian" do only have events in 1 subgroup ? -> see deft: do not include! "(insufficient data)"
+## Ghazaeian & RUXCOVID-DEVENT do only have events in 1 subgroup -> see deft: do not include! "(insufficient data)"
 df_rs_mort28 <- df_rs_mort28[order(df_rs_mort28$trial), ]
 rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -2850,7 +2819,7 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       method.tau = "ML", 
                       method.random.ci = "HK",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R"),
-                      exclude = trial %in% c("Ghazaeian") # incl in plot but exclude from analysis
+                      exclude = trial %in% c("Ghazaeian", "RUXCOVID-DEVENT") # incl in plot but exclude from analysis
                       )
 summary(rs.mort28)
 forest.meta(rs.mort28,
@@ -2914,8 +2883,6 @@ forest.meta(mort28.rs,
 # dev.off()
 
 ```
-Discussion: Which trials label as "insufficient data"?
-
 
 
 # Subgroups: Respiratory support (proxy for disease severity) on primary endpoint: Pooled across trials // Descriptive
@@ -2993,7 +2960,7 @@ forest.meta(rs.ecmo.mort28,
 # Interaction: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE, fig.width=11, fig.height=4}
 # str(df_vb_mort28)
-## "TOFACOV", "COVINIB", "Ghazaeian" and "Bari-SolidAct" do only have 1 of 2 subgroups -> see deft: do not include! "(insufficient data)"
+## "TOFACOV", "COVINIB", "Ghazaeian", "RUXCOVID-DEVENT" and "Bari-SolidAct" do only have 1 of 2 subgroups -> see deft: do not include! "(insufficient data)"
 df_vb_mort28 <- df_vb_mort28[order(df_vb_mort28$trial), ]
 vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -3005,7 +2972,7 @@ vb.mort28 <- metagen(TE = log(log_odds_ratio),
                       method.tau = "ML", 
                       method.random.ci = "HK",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2", "Bari-SolidAct", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
-                      exclude = trial %in% c("Ghazaeian", "COVINIB", "TOFACOV", "Bari-SolidAct") # incl in plot but exclude from analysis
+                      exclude = trial %in% c("Ghazaeian", "COVINIB", "TOFACOV", "Bari-SolidAct", "RUXCOVID-DEVENT") # incl in plot but exclude from analysis
                       )
 summary(vb.mort28)
 forest.meta(vb.mort28,
@@ -3067,7 +3034,7 @@ forest.meta(vent.mort28,
 
 # Interaction: Age on primary endpoint
 ```{r warning=FALSE, fig.width=10, fig.height=5}
-# str(df_age_mort28)
+# str(df_age_mort28) // EXCLUDE RUXCOVID-DEVENT because its interaction estimate is from binary age?
 df_age_mort28 <- df_age_mort28[order(df_age_mort28$trial), ]
 age.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -3079,7 +3046,7 @@ age.mort28 <- metagen(TE = log(log_odds_ratio),
                       method.tau = "ML", 
                       method.random.ci = "HK",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
-                      # exclude = trial %in% c("TOFACOV", "COVINIB", "Ghazaeian") # incl in plot but exclude from analysis
+                      # exclude = trial %in% c("RUXCOVID-DEVENT") # incl in plot but exclude from analysis
                       )
 summary(age.mort28)
 forest.meta(age.mort28,
@@ -3108,6 +3075,7 @@ df_sg_age_mort28 <- df_sg_age_mort28 %>%
                            trial == "PANCOVID" ~ "PANCOVID*",
                            trial == "RUXCOVID" ~ "RUXCOVID*",
                            trial == "TOFACOV" ~ "TOFACOV*",
+                           trial == "RUXCOVID-DEVENT" ~ "RUXCOVID-DEVENT*",
                            TRUE ~ trial),
          variable = case_when(trial == "COVINIB*" & variable == "70 years and above" ~ "65 years and above",
                               trial == "COVINIB*" & variable == "below 70 years" ~ "below 65 years",
@@ -3117,6 +3085,8 @@ df_sg_age_mort28 <- df_sg_age_mort28 %>%
                               trial == "RUXCOVID*" & variable == "below 70 years" ~ "below 65 years",
                               trial == "TOFACOV*" & variable == "70 years and above" ~ "65 years and above",
                               trial == "TOFACOV*" & variable == "below 70 years" ~ "below 65 years",
+                              trial == "RUXCOVID-DEVENT*" & variable == "70 years and above" ~ "65 years and above",
+                              trial == "RUXCOVID-DEVENT*" & variable == "below 70 years" ~ "below 65 years",
                               TRUE ~ variable)
          )
 
@@ -3160,6 +3130,9 @@ forest.meta(mort28.age,
 
 dev.off()
 ```
+Discussion point:
+1. Exclude RUXCOVID-DEVENT since we don't have age as continuous variable?
+
 
 # Subgroups: Age on primary endpoint: Pooled across trials // only descriptive purpose for overall forestplot!
 ```{r warning=FALSE, fig.width=14, fig.height=4}
@@ -3190,7 +3163,8 @@ age.below70.mort28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = T, # the true subgroup effect is assumed the same in all trials
                       random = F,
-                      exclude = trial %in% c("RUXCOVID", "COVINIB")) # incl in plot but exclude from analysis)
+                      exclude = trial %in% c("Ghazaeian", "COVINIB", "RUXCOVID-DEVENT")
+                      ) # incl in plot but exclude from analysis, e.g. different cut-off in RUXCOVID-DEVENT
 summary(age.below70.mort28)
 forest.meta(age.below70.mort28,
             hetstat = F,
@@ -3402,7 +3376,7 @@ mult.comorb.mort28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = T, 
                       random = F,
-                      exclude = trial %in% c("TOFACOV", "COVINIB")
+                      exclude = trial %in% c("TOFACOV", "COVINIB", "RUXCOVID")
                       )
 summary(mult.comorb.mort28)
 forest.meta(mult.comorb.mort28,
@@ -3446,7 +3420,7 @@ comed.mort28 <- metagen(TE = log(log_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on primary endpoint: Comedication",
-                      subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID"), #### ADD NEW TRIALS!
+                      subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB", "RECOVERY", "TACTIC-R", "RUXCOVID", "PANCOVID", "STOP-COVID", "RUXCOVID-DEVENT"), #### ADD NEW TRIALS!
                       # exclude = trial %in% c("Ghazaeian") # incl in plot but exclude from analysis
                       )
 summary(comed.mort28)
@@ -3557,7 +3531,8 @@ vacc.ae28 <- metagen(TE = log(log_odds_ratio),
                       adhoc.hakn.ci = "ci", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Treatment-covariate interaction on AEs: vaccination",
                       # subset = trial %in% c("COV-BARRIER", "Bari-SolidAct", "ACTT-2", "TOFACOV", "COVINIB"),
-                      exclude = trial %in% c("Ghazaeian"))
+                      # exclude = trial %in% c("Ghazaeian")
+                     )
 summary(vacc.ae28)
 forest.meta(vacc.ae28,
             hetstat = F,
@@ -3592,7 +3567,8 @@ vacc.yes.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = T, 
                       random = F,
-                      exclude = trial %in% c("Ghazaeian"))
+                      # exclude = trial %in% c("Ghazaeian")
+                      )
 summary(vacc.yes.ae28)
 forest.meta(vacc.yes.ae28,
             hetstat = F,
@@ -3609,7 +3585,8 @@ vacc.no.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = T, 
                       random = F,
-                      exclude = trial %in% c("Ghazaeian"))
+                      # exclude = trial %in% c("Ghazaeian")
+                      )
 summary(vacc.no.ae28)
 forest.meta(vacc.no.ae28,
             hetstat = F,
@@ -3631,7 +3608,8 @@ atrisk.ae28 <- metagen(TE = log(log_odds_ratio),
                       random = T, 
                       method.tau = "ML", 
                       method.random.ci = "HK",
-                      exclude = trial %in% c("Ghazaeian"))
+                      # exclude = trial %in% c("Ghazaeian")
+                      )
 summary(atrisk.ae28)
 forest.meta(atrisk.ae28,
             hetstat = F,
@@ -3666,7 +3644,8 @@ atrisk.no.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = T, 
                       random = F,
-                      exclude = trial %in% c("Ghazaeian"))
+                      # exclude = trial %in% c("Ghazaeian")
+                      )
 summary(atrisk.no.ae28)
 forest.meta(atrisk.no.ae28,
             hetstat = F,
@@ -3683,7 +3662,8 @@ atrisk.yes.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = T, 
                       random = F,
-                      exclude = trial %in% c("Ghazaeian"))
+                      # exclude = trial %in% c("Ghazaeian")
+                      )
 summary(atrisk.yes.ae28)
 forest.meta(atrisk.yes.ae28,
             hetstat = F,
@@ -3706,7 +3686,8 @@ comed.ae28 <- metagen(TE = log(log_odds_ratio),
                       method.tau = "ML", 
                       method.random.ci = "HK",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
-                      exclude = trial %in% c("Ghazaeian")) # incl in plot but exclude from analysis
+                      exclude = trial %in% c("Ghazaeian")
+                      ) # incl in plot but exclude from analysis
 summary(comed.ae28)
 forest.meta(comed.ae28,
             hetstat = F,
@@ -3741,7 +3722,8 @@ no.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = T, # the true subgroup effect is assumed the same in all trials
                       random = F,
-                      exclude = trial %in% c("Ghazaeian"))
+                      exclude = trial %in% c("Ghazaeian")
+                      )
 summary(no.comed.ae28)
 forest.meta(no.comed.ae28,
             hetstat = F,
@@ -3758,7 +3740,8 @@ dexa.comed.ae28 <- metagen(TE = log(hazard_odds_ratio),
                       sm = "OR",
                       fixed = T, 
                       random = F,
-                      exclude = trial %in% c("Ghazaeian")) # incl in plot but exclude from analysis
+                      exclude = trial %in% c("Ghazaeian")
+                      ) # incl in plot but exclude from analysis
 summary(dexa.comed.ae28)
 forest.meta(dexa.comed.ae28,
             hetstat = F,
@@ -4395,7 +4378,7 @@ mort28_fp %>%
                                "19" = gpar(lty = 2),                               
                                "21" = gpar(lty = 2)),
              xlog = T,
-             xticks = c(log(0.5), log(0.71), log(1), log(2)),
+             xticks = c(log(0.5), log(0.67), log(1), log(2)), # ADAPT if new point estimate!!
              psize = sqrt(subgroup_df$inverse_variance),
              lty.ci = c(1),
              col = fpColors(box = "maroon4",
@@ -4405,7 +4388,7 @@ mort28_fp %>%
              vertices = TRUE,
              xlab = "               Favours JAKi < > Favours No JAKi",
              zero = 1,
-             grid = structure(c(0.71), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
+             grid = structure(c(0.67), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
             )
 
@@ -4611,6 +4594,8 @@ df_aesi_recovery <- readRDS("df_aesi_recovery.RData")
 df_aesi_tactic_r <- readRDS("df_aesi_tactic-r.RData")
 df_aesi_ruxcovid <- read_excel("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RUXCOVID/RUXCOVID_desc.xlsx", sheet = "RUXCOVID_AESI")
 df_aesi_pancovid <- readRDS("df_aesi_pancovid.RData")
+df_aesi_stopcovid <- readRDS("df_aesi_stopcovid.RData")
+df_aesi_ruxcoviddevent <- readRDS("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RUXCOVID-DEVENT/df_aesi_ruxcoviddevent.RData")
 
 df_aesi_actt2 <- df_aesi_actt2 %>%
   mutate(trial = "ACTT2") %>% 
@@ -4640,10 +4625,16 @@ df_aesi_ruxcovid <- df_aesi_ruxcovid %>%
   mutate(trial = "RUXCOVID") %>% 
   select(trial, trt, aesi)
 df_aesi_pancovid <- df_aesi_pancovid %>%
-  mutate(trial = "RUXCOVID") %>% 
+  mutate(trial = "PANCOVID") %>% 
+  select(trial, trt, aesi)
+df_aesi_stopcovid <- df_aesi_stopcovid %>%
+  mutate(trial = "STOP-COVID") %>% 
+  select(trial, trt, aesi)
+df_aesi_ruxcoviddevent <- df_aesi_ruxcoviddevent %>%
+  mutate(trial = "RUXCOVID-DEVENT") %>% 
   select(trial, trt, aesi)
 
-df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df_aesi_covinib, df_aesi_tofacov, df_aesi_ghazaeian, df_aesi_recovery, df_aesi_tactic_r, df_aesi_ruxcovid, df_aesi_pancovid) # ADD NEW TRIALS
+df_aesi_tot <- rbind(df_aesi_actt2, df_aesi_covbarrier, df_aesi_barisolidact, df_aesi_covinib, df_aesi_tofacov, df_aesi_ghazaeian, df_aesi_recovery, df_aesi_tactic_r, df_aesi_ruxcovid, df_aesi_pancovid, df_aesi_stopcovid, df_aesi_ruxcoviddevent) # ADD NEW TRIALS
 
 # round(prop.table(table(df_aesi_tot$aesi, df_aesi_tot$trt),2)*100,0)
 # addmargins(table(df_aesi_tot$aesi, df_aesi_tot$trt))
@@ -4667,14 +4658,14 @@ proportions <- df_aesi_tot %>%
   summarise(count = n()) %>%
   group_by(Group) %>%
   # mutate(proportion = (count / sum(count))*100) %>%
-  mutate(denom = case_when(Group == "No JAK inhibitor" ~ 6063, #### ADAPT if NEW TRIALS!
-                           Group == "JAK inhibitor" ~ 6339)) %>%  #### ADAPT if NEW TRIALS!
+  mutate(denom = case_when(Group == "No JAK inhibitor" ~ 6249, #### ADAPT if NEW TRIALS, see "Collect all treatment effect estimates" - BUT run descriptive first to have updated df_tot !!!
+                           Group == "JAK inhibitor" ~ 6633)) %>%   #### ADAPT if NEW TRIALS, see "Collect all treatment effect estimates" - BUT run descriptive first to have updated df_tot !!!
   mutate(proportion = (count / denom)*100)
 ggplot(proportions, aes(x = proportion, y = aesi, color = Group, shape = Group)) +
   geom_point(size = 2.5) +
   labs(x = "Proportion (%)", y = NULL) +
   theme_minimal() + 
-  scale_x_continuous(breaks = seq(0, 5, by = 0.5)) +
+  scale_x_continuous(breaks = seq(0, 6, by = 0.5)) +
   theme(axis.text.y = element_text(size = 10),
         axis.title.x = element_text(size = 9))
 

@@ -949,12 +949,12 @@ mort.28.comorb.count <- df %>%
 summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 # any comorbidity
 # table(df$comorb_any, df$mort_28, useNA = "always")
-mort.28.comorb.any <- df %>%
-  glm(mort_28 ~ trt*comorb_any 
+mort.28.comorb.any.firth <- df %>%
+  logistf(mort_28 ~ trt*comorb_any 
       + age 
       + clinstatus_baseline
       , family = "binomial", data=.)
-summ(mort.28.comorb.any, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+summary(mort.28.comorb.any.firth)
 # comorbidities without immunosuppressed
 # table(df$comorb_cat, df$mort_28, useNA = "always")
 df <- df %>% 
@@ -1011,12 +1011,12 @@ table(df$comed_cat, df$trt, useNA = "always")
 # 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
 # 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
-mort.28.comed <- df %>%
-  glm(mort_28 ~ trt*comed_cat 
+mort.28.comed.firth <- df %>%
+  logistf(mort_28 ~ trt*comed_cat 
       + age 
       + clinstatus_baseline 
       , family = "binomial", data=.)
-summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+summary(mort.28.comed.firth)
 # comedication as ordinal factor
 df$comed_cat_f <- factor(df$comed_cat, levels = 1:4)
 # table(df$comed_cat_f, df$mort_28, useNA = "always") 
@@ -1398,9 +1398,9 @@ result_list[[2]] <- extract_interaction(mort.28.vent.vb, "ventilation") # adj: a
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
 result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.comorb.any, "comorbidity_any") # adj: age, clinstatus
+result_list[[6]] <- extract_interaction(mort.28.comorb.any.firth, "comorbidity_any_firth") # adj: age, clinstatus
 result_list[[7]] <- extract_interaction(mort.28.comorb.noimmuno, "comorbidity_noimmuno") # adj: age, clinstatus 
-result_list[[8]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
 # result_list[[9]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
 result_list[[10]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 # result_list[[11]] <- extract_interaction(mort.28.crp, "crp") # not available

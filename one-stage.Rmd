@@ -194,16 +194,46 @@ df_pancovid <- df_pancovid %>%
          discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
          ae_28, ae_28_sev,
          vir_clear_5, vir_clear_10, vir_clear_15)
-
-
+## STOP-COVID
+df_stopcovid <- readRDS("df_os_stopcovid.RData")
+df_stopcovid <- df_stopcovid %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+## RUXCOVID-DEVENT
+df_ruxcoviddevent <- readRDS("/Users/amstutzal/Library/CloudStorage/OneDrive-usb.ch/Dokumente - JAKi IPDMA data source management/General/RUXCOVID-DEVENT/df_os_ruxcoviddevent.RData")
+df_ruxcoviddevent <- df_ruxcoviddevent %>% 
+    select(id_pat, trial, JAKi, trt, sex, age, ethn, country, icu, sympdur, vacc, clinstatus_baseline, vbaseline,
+         comed_dexa, comed_rdv, comed_toci, comed_ab, comed_acoa, comed_interferon, comed_other,
+         comed_cat,
+         comorb_lung, comorb_liver, comorb_cvd, comorb_aht, comorb_dm, comorb_obese, comorb_smoker, immunosupp,
+         comorb_autoimm, comorb_cancer, comorb_kidney, any_comorb, comorb_cat, comorb_any, comorb_count,
+         crp, sero, vl_baseline, variant,
+         mort_28, mort_28_dimp, mort_60, death_reached, death_time,
+         new_mv_28, new_mvd_28,
+         clinstatus_28_imp,
+         discharge_reached, discharge_time, discharge_time_sens, discharge_reached_sus, discharge_time_sus,
+         ae_28, ae_28_sev,
+         vir_clear_5, vir_clear_10, vir_clear_15)
+df_ruxcoviddevent <- df_ruxcoviddevent %>% 
+  mutate(age = NA)
 
 # append
-df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_pancovid)
+df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_pancovid, df_stopcovid, df_ruxcoviddevent)
 # df_tot_Muru <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_murugesan, df_recovery)
 
 # Save
-saveRDS(df_tot, file = "df_tot.RData")
-write_xlsx(df_tot, path = "df_tot.xlsx")
+# saveRDS(df_tot, file = "df_tot.RData")
+# write_xlsx(df_tot, path = "df_tot.xlsx")
 # saveRDS(df_tot_Muru, file = "df_tot_Muru.RData")
 
 ```
@@ -231,6 +261,8 @@ df_tot <- df_tot %>%
                              trial == "RECOVERY" ~ 7,
                              trial == "TACTIC-R" ~ 8,
                              trial == "PANCOVID" ~ 9,
+                             trial == "STOP-COVID" ~ 10,
+                             trial == "RUXCOVID-DEVENT" ~ 11,
                              ))
 table(df_tot$trial_n, useNA = "always")
 ```
@@ -240,6 +272,7 @@ GOAL: random treatment effect, stratified trial intercept, stratified prognostic
 ### (1) common treatment effect, random trial intercept, common prognostic factors
 ```{r}
 # (1) common treatment effect, random trial intercept, common prognostic factors, ML
+class(df_tot$age)
 mort28.ctreat.rtrial.ml <- glmmTMB(mort_28 ~ trt + (1|trial)
                               + age + clinstatus_baseline
                               , data = df_tot, family = binomial)
@@ -360,7 +393,10 @@ df_tot <- df_tot %>%
          age_trial_6 = case_when(trial == "COV-BARRIER" ~ age, TRUE ~ 0),
          age_trial_7 = case_when(trial == "RECOVERY" ~ age, TRUE ~ 0),
          age_trial_8 = case_when(trial == "TACTIC-R" ~ age, TRUE ~ 0),
-         age_trial_9 = case_when(trial == "PANCOVID" ~ age, TRUE ~ 0))
+         age_trial_9 = case_when(trial == "PANCOVID" ~ age, TRUE ~ 0),
+         age_trial_10 = case_when(trial == "STOP-COVID" ~ age, TRUE ~ 0),
+         age_trial_11 = case_when(trial == "RUXCOVID-DEVENT" ~ age, TRUE ~ 0)
+         )
 df_tot <- df_tot %>%
   mutate(clinstat_trial_1 = case_when(trial == "Bari-Solidact" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_2 = case_when(trial == "ACTT2" ~ clinstatus_baseline, TRUE ~ "0"),
@@ -370,7 +406,10 @@ df_tot <- df_tot %>%
          clinstat_trial_6 = case_when(trial == "COV-BARRIER" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_7 = case_when(trial == "RECOVERY" ~ clinstatus_baseline, TRUE ~ "0"),
          clinstat_trial_8 = case_when(trial == "TACTIC-R" ~ clinstatus_baseline, TRUE ~ "0"),
-         clinstat_trial_9 = case_when(trial == "PANCOVID" ~ clinstatus_baseline, TRUE ~ "0"))
+         clinstat_trial_9 = case_when(trial == "PANCOVID" ~ clinstatus_baseline, TRUE ~ "0"),
+         clinstat_trial_10 = case_when(trial == "STOP-COVID" ~ clinstatus_baseline, TRUE ~ "0"),
+         clinstat_trial_11 = case_when(trial == "RUXCOVID-DEVENT" ~ clinstatus_baseline, TRUE ~ "0")
+         )
 
 ## centered
 df_tot <- df_tot %>%
@@ -382,7 +421,10 @@ df_tot <- df_tot %>%
          age_cent_trial_6 = case_when(trial == "COV-BARRIER" ~ age_centered, TRUE ~ 0),
          age_cent_trial_7 = case_when(trial == "RECOVERY" ~ age_centered, TRUE ~ 0),
          age_cent_trial_8 = case_when(trial == "TACTIC-R" ~ age_centered, TRUE ~ 0),
-         age_cent_trial_9 = case_when(trial == "PANCOVID" ~ age_centered, TRUE ~ 0))
+         age_cent_trial_9 = case_when(trial == "PANCOVID" ~ age_centered, TRUE ~ 0),
+         age_cent_trial_10 = case_when(trial == "STOP-COVID" ~ age_centered, TRUE ~ 0),
+         age_cent_trial_11 = case_when(trial == "RUXCOVID-DEVENT" ~ age_centered, TRUE ~ 0)
+         )
 df_tot <- df_tot %>%
   mutate(clinstat_cent_trial_1 = case_when(trial == "Bari-Solidact" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_2 = case_when(trial == "ACTT2" ~ clinstatus_baseline_centered, TRUE ~ 0),
@@ -392,7 +434,10 @@ df_tot <- df_tot %>%
          clinstat_cent_trial_6 = case_when(trial == "COV-BARRIER" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_7 = case_when(trial == "RECOVERY" ~ clinstatus_baseline_centered, TRUE ~ 0),
          clinstat_cent_trial_8 = case_when(trial == "TACTIC-R" ~ clinstatus_baseline_centered, TRUE ~ 0),
-         clinstat_cent_trial_9 = case_when(trial == "PANCOVID" ~ clinstatus_baseline_centered, TRUE ~ 0))
+         clinstat_cent_trial_9 = case_when(trial == "PANCOVID" ~ clinstatus_baseline_centered, TRUE ~ 0),
+         clinstat_cent_trial_10 = case_when(trial == "STOP-COVID" ~ clinstatus_baseline_centered, TRUE ~ 0),
+         clinstat_cent_trial_11 = case_when(trial == "RUXCOVID-DEVENT" ~ clinstatus_baseline_centered, TRUE ~ 0)
+         )
 
 
 # (5) random treatment effect, stratified trial intercept, stratified prognostic factors and residual variances, with centering of the treatment variable AND the prognostic factors
@@ -401,9 +446,9 @@ mort28.rtreat.strial.cent.ml.spf.cent <- glmmTMB(mort_28 ~ trt_centered_n
                                                  + trial_f
                                                  + (trt_centered_n -1 | trial_f) -1
                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4
-                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 + age_cent_trial_11
                                                  + clinstat_cent_trial_1 + clinstat_cent_trial_2 + clinstat_cent_trial_3
-                                                 + clinstat_cent_trial_4 + clinstat_cent_trial_5 + clinstat_cent_trial_6 + clinstat_cent_trial_7 + clinstat_cent_trial_8 + clinstat_cent_trial_9
+                                                 + clinstat_cent_trial_4 + clinstat_cent_trial_5 + clinstat_cent_trial_6 + clinstat_cent_trial_7 + clinstat_cent_trial_8 + clinstat_cent_trial_9 + clinstat_cent_trial_10 + + clinstat_cent_trial_11
                                                  , data = df_tot, family = binomial)
 tab_model(mort28.rtreat.strial.cent.ml.spf.cent)
 
@@ -423,7 +468,7 @@ mort28.rtreat.strial.cent.ml.sage.cent.rclinstat <- glmmTMB(mort_28 ~ trt_center
                                                  + trial_f 
                                                  + (trt_centered_n -1 | trial_f) -1 
                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
-                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 + age_cent_trial_11
                                                  + (clinstatus_baseline_n -1 | trial_f)
                                                  , data = df_tot, family = binomial)
 # tab_model(mort28.rtreat.strial.cent.ml.sage.cent.rclinstat) 
@@ -432,7 +477,7 @@ mort28.rtreat.strial.cent.ml.sage.cent.rvb <- glmmTMB(mort_28 ~ trt_centered_n
                                                  + trial_f 
                                                  + (trt_centered_n -1 | trial_f) -1 
                                                  + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 + age_cent_trial_4 
-                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                                                 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 + age_cent_trial_11
                                                  + (vbaseline -1 | trial_f)
                                                  , data = df_tot, family = binomial)
 # tab_model(mort28.rtreat.strial.cent.ml.sage.cent.rvb) 
@@ -570,6 +615,7 @@ mort28 <- glmmTMB(mort_28 ~ trt_centered_n
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline
                   , data = df_tot, family = binomial)
 tab_model(mort28)
@@ -586,6 +632,7 @@ mort60 <- glmmTMB(mort_60 ~ trt_centered_n
                   + (trt_centered_n -1 | trial_f) -1 
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(mort60)
@@ -650,6 +697,8 @@ ttdeath <- coxme(Surv(death_time_60, death_reached_60) ~ trt_centered_n
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 
+                 # + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
 tab_model(ttdeath)
@@ -665,6 +714,7 @@ new.mvd28 <- glmmTMB(new_mvd_28 ~ trt_centered_n
                   + (trt_centered_n -1 | trial_f) -1 
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(new.mvd28)
@@ -680,6 +730,7 @@ new.mv28 <- glmmTMB(new_mv_28 ~ trt_centered_n
                   + (trt_centered_n -1 | trial_f) -1 
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(new.mv28)
@@ -701,7 +752,8 @@ clin28 <- df_tot %>%
                   + age_cent_trial_4
                   + age_cent_trial_5
                   + age_cent_trial_6
-                  + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 
+         + age_cent_trial_11
                   + clinstatus_baseline_n
                   # + (clinstatus_baseline_n -1 | trial_f)
       , link= c("logit"), data=.)
@@ -800,6 +852,8 @@ ttdischarge.comp <- crr(Surv(discharge_time, discharge_reached_comp) ~ trt_cente
                   # + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 
+                  # + age_cent_trial_11
                   + clinstatus_baseline_n
                   # + (clinstatus_baseline_n -1 | trial_f)
                   ,data = df_tot)
@@ -822,6 +876,8 @@ ttdischarge.hypo <- coxme(Surv(discharge_time_sens, discharge_reached) ~ trt_cen
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 
+                  # + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
 tab_model(ttdischarge.hypo)
@@ -837,6 +893,8 @@ ttdischarge.cens <- coxme(Surv(discharge_time, discharge_reached) ~ trt_centered
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 
+                  # + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
 tab_model(ttdischarge.cens)
@@ -879,6 +937,8 @@ ttdischarge.sus <- coxme(Surv(discharge_time_sus, discharge_reached_sus) ~ trt_c
                   + (trt_centered_n -1 | trial_f) -1
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 
+                  # + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
 tab_model(ttdischarge.sus)
@@ -897,7 +957,7 @@ vir.clear5 <- glmmTMB(vir_clear_5 ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(vir.clear5)
@@ -916,7 +976,7 @@ vir.clear10 <- glmmTMB(vir_clear_10 ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(vir.clear10)
@@ -935,7 +995,7 @@ vir.clear15 <- glmmTMB(vir_clear_15 ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(vir.clear15)
@@ -954,7 +1014,7 @@ ae28 <- glmmTMB(ae_28 ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = binomial)
 tab_model(ae28)
@@ -973,7 +1033,7 @@ ae28sev <- glmmTMB(ae_28_sev ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot, family = poisson) # double-check !
 tab_model(ae28sev)
@@ -1114,10 +1174,10 @@ result_list[[14]] <- extract_trt_results(ae28, "Any AE grade 3,4 within 28 days"
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[2,1],
                                         addmargins(table(df_tot$ae_28, df_tot$trt))[3,1])
 result_list[[15]] <- extract_trt_results(ae28sev, "AEs grade 3,4 within 28 days",
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[21,2], 
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[21,2],
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[21,1],
-                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[21,1])
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[22,2], # UPDATE if new trials added!!!
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[22,2],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[22,1],
+                                        addmargins(table(df_tot$ae_28_sev, df_tot$trt))[22,1])
 
 # Filter out NULL results and bind the results into a single data frame
 result_df <- do.call(rbind, Filter(function(x) !is.null(x), result_list))
@@ -1267,7 +1327,7 @@ df_long <- df_tot_long %>%
   filter(time <= death_time_60)
 
 df_long <- df_long %>% # remove observations after max fup date in the 4 trials that only followed up for 28d max
-  mutate(censor_admin = case_when(trial %in% c("ACTT2", "Ghazaeian", "RECOVERY", "TOFACOV") &
+  mutate(censor_admin = case_when(trial %in% c("ACTT2", "Ghazaeian", "RECOVERY", "TOFACOV", "STOP-COVID", "RUXCOVID-DEVENT") &
                                time > 28 ~ 1,
                              TRUE ~ 0))       
 df_long <- df_long %>% # drop all censored        
@@ -1316,7 +1376,7 @@ df_long$clinstatus_baseline_n <- as.numeric(df_long$clinstatus_baseline)
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 500
+R <- 5
 
 # need to do this by group individually
 
@@ -1617,6 +1677,7 @@ rs.mort28 <- glmmTMB(mort_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   # + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*clinstatus_baseline_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -1677,6 +1738,7 @@ vb.mort28 <- glmmTMB(mort_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*vbaseline_centered_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -1726,6 +1788,7 @@ age.mort28 <- glmmTMB(mort_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*age_centered # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -1793,6 +1856,7 @@ comorb.mort28 <- glmmTMB(mort_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*comorb_cat_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -1819,6 +1883,7 @@ comorb.count.mort28 <- glmmTMB(mort_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*comorb_count # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -1830,6 +1895,7 @@ comorb.any.mort28 <- glmmTMB(mort_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*comorb_any # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -1890,6 +1956,7 @@ comed.mort28 <- glmmTMB(mort_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*comed_cat_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -1957,6 +2024,7 @@ vacc.ae28 <- glmmTMB(ae_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*vacc_centered_n # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -2005,6 +2073,7 @@ symp.mort28 <- glmmTMB(mort_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*sympdur_centered # interaction term (common effect), centered
                   , data = df_tot, family = binomial)
@@ -2065,6 +2134,7 @@ crp.mort28 <- glmmTMB(mort_28 ~
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
                   + age_cent_trial_1 + age_cent_trial_2 + age_cent_trial_3 # stratified prognostic factor age (and centered)
                   + age_cent_trial_4 + age_cent_trial_5 + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9
+                  + age_cent_trial_10 + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f) # random prognostic factor clinstatus_baseline within trial
                   + trt_centered_n*crp_centered # interaction term (common effect), centered
                   , data = df_tot, family = binomial)

@@ -2850,109 +2850,42 @@ summ(mort.28.comorb.count, exp = T, confint = T, model.info = T, model.fit = F, 
 ```r
 # any comorbidity
 # table(df$comorb_any, df$mort_28, useNA = "always")
-mort.28.comorb.any <- df %>%
-  glm(mort_28 ~ trt*comorb_any 
+mort.28.comorb.any.firth <- df %>%
+  logistf(mort_28 ~ trt*comorb_any 
       + age 
       + clinstatus_baseline
       , family = "binomial", data=.)
-summ(mort.28.comorb.any, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+summary(mort.28.comorb.any.firth)
 ```
 
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 289 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> mort_28 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> Generalized linear model </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Family </td>
-   <td style="text-align:right;"> binomial </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Link </td>
-   <td style="text-align:right;"> logit </td>
-  </tr>
-</tbody>
-</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> exp(Est.) </th>
-   <th style="text-align:right;"> 2.5% </th>
-   <th style="text-align:right;"> 97.5% </th>
-   <th style="text-align:right;"> z val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -3.96 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comorb_any </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.11 </td>
-   <td style="text-align:right;"> 9.49 </td>
-   <td style="text-align:right;"> 0.02 </td>
-   <td style="text-align:right;"> 0.98 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 1.15 </td>
-   <td style="text-align:right;"> 2.97 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 4.42 </td>
-   <td style="text-align:right;"> 0.53 </td>
-   <td style="text-align:right;"> 36.88 </td>
-   <td style="text-align:right;"> 1.37 </td>
-   <td style="text-align:right;"> 0.17 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 7.91 </td>
-   <td style="text-align:right;"> 0.62 </td>
-   <td style="text-align:right;"> 100.39 </td>
-   <td style="text-align:right;"> 1.60 </td>
-   <td style="text-align:right;"> 0.11 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:comorb_any </td>
-   <td style="text-align:right;"> 10740797.49 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: MLE</td></tr></tfoot>
-</table>
+```
+## logistf(formula = mort_28 ~ trt * comorb_any + age + clinstatus_baseline, 
+##     data = ., family = "binomial")
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)   lower 0.95 upper 0.95       Chisq
+## (Intercept)          -8.05161794 1.85216893 -12.69081038 -4.4759793 26.20512216
+## trt                  -2.01959816 1.68131137  -7.22923408  1.1660148  1.51175552
+## comorb_any           -0.26978137 0.91803002  -1.95529522  2.0527241  0.07592594
+## age                   0.07499662 0.02296911   0.02757272  0.1306362 10.08610499
+## clinstatus_baseline3  1.10718775 0.85440853  -0.41607939  3.3683773  1.88956074
+## clinstatus_baseline4  1.73824465 1.02658590  -0.37706671  4.2267795  2.63075531
+## trt:comorb_any        1.54634566 1.76479529  -1.84017800  6.8057495  0.76176652
+##                                 p method
+## (Intercept)          3.070071e-07      2
+## trt                  2.188714e-01      2
+## comorb_any           7.828963e-01      2
+## age                  1.493916e-03      2
+## clinstatus_baseline3 1.692515e-01      2
+## clinstatus_baseline4 1.048118e-01      2
+## trt:comorb_any       3.827763e-01      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=13.88693 on 6 df, p=0.03092507, n=289
+## Wald test = 90.69674 on 6 df, p = 0
+```
 
 ```r
 # comorbidities without immunosuppressed
@@ -3312,109 +3245,42 @@ table(df$comed_cat, df$trt, useNA = "always")
 # 2: patients with Dexamethasone but no Tocilizumab => JAKi effect with Dexa only
 # 3: patients with Dexamethasone and Tocilizumab => JAKi effect with Dexa + Toci
 # 4: patients with Tocilizumab but no Dexamethasone (if exist) => JAKi effect with Toci only 
-mort.28.comed <- df %>%
-  glm(mort_28 ~ trt*comed_cat 
+mort.28.comed.firth <- df %>%
+  logistf(mort_28 ~ trt*comed_cat 
       + age 
       + clinstatus_baseline 
       , family = "binomial", data=.)
-summ(mort.28.comed, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
+summary(mort.28.comed.firth)
 ```
 
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 289 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> mort_28 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> Generalized linear model </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Family </td>
-   <td style="text-align:right;"> binomial </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Link </td>
-   <td style="text-align:right;"> logit </td>
-  </tr>
-</tbody>
-</table>  <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> exp(Est.) </th>
-   <th style="text-align:right;"> 2.5% </th>
-   <th style="text-align:right;"> 97.5% </th>
-   <th style="text-align:right;"> z val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> -3.39 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> comed_cat </td>
-   <td style="text-align:right;"> 1.74 </td>
-   <td style="text-align:right;"> 0.19 </td>
-   <td style="text-align:right;"> 15.84 </td>
-   <td style="text-align:right;"> 0.49 </td>
-   <td style="text-align:right;"> 0.62 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> age </td>
-   <td style="text-align:right;"> 1.09 </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 1.15 </td>
-   <td style="text-align:right;"> 3.16 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 3.80 </td>
-   <td style="text-align:right;"> 0.44 </td>
-   <td style="text-align:right;"> 32.65 </td>
-   <td style="text-align:right;"> 1.22 </td>
-   <td style="text-align:right;"> 0.22 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 6.61 </td>
-   <td style="text-align:right;"> 0.50 </td>
-   <td style="text-align:right;"> 87.16 </td>
-   <td style="text-align:right;"> 1.43 </td>
-   <td style="text-align:right;"> 0.15 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> trt:comed_cat </td>
-   <td style="text-align:right;"> 7980234.40 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> 0.99 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: MLE</td></tr></tfoot>
-</table>
+```
+## logistf(formula = mort_28 ~ trt * comed_cat + age + clinstatus_baseline, 
+##     data = ., family = "binomial")
+## 
+## Model fitted by Penalized ML
+## Coefficients:
+##                             coef   se(coef)   lower 0.95 upper 0.95       Chisq
+## (Intercept)          -8.86176983 2.45914168 -14.92747728 -4.2199265 17.93789199
+## trt                  -2.81888985 3.38537861 -13.21285335  3.6559960  0.68646278
+## comed_cat             0.22741136 0.90998732  -1.43034221  2.5455319  0.05947001
+## age                   0.07972413 0.02322333   0.03226007  0.1348698 11.44150577
+## clinstatus_baseline3  0.94259304 0.84550111  -0.60728892  3.2171651  1.28432661
+## clinstatus_baseline4  1.55271032 1.02389592  -0.58355524  4.0676603  2.06315435
+## trt:comed_cat         1.13452668 1.76289661  -2.26516035  6.3855968  0.39621154
+##                                 p method
+## (Intercept)          2.282317e-05      2
+## trt                  4.073701e-01      2
+## comed_cat            8.073356e-01      2
+## age                  7.182157e-04      2
+## clinstatus_baseline3 2.570961e-01      2
+## clinstatus_baseline4 1.508975e-01      2
+## trt:comed_cat        5.290523e-01      2
+## 
+## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## 
+## Likelihood ratio test=14.35255 on 6 df, p=0.02593653, n=289
+## Wald test = 89.80588 on 6 df, p = 0
+```
 
 ```r
 # comedication as ordinal factor
@@ -4831,9 +4697,9 @@ result_list[[2]] <- extract_interaction(mort.28.vent.vb, "ventilation") # adj: a
 result_list[[3]] <- extract_interaction(mort.28.age, "age") # adj: age, clinstatus
 result_list[[4]] <- extract_interaction(mort.28.comorb, "comorbidity") # adj: age, clinstatus
 result_list[[5]] <- extract_interaction(mort.28.comorb.count, "comorbidity_count") # adj: age, clinstatus
-result_list[[6]] <- extract_interaction(mort.28.comorb.any, "comorbidity_any") # adj: age, clinstatus
+result_list[[6]] <- extract_interaction(mort.28.comorb.any.firth, "comorbidity_any_firth") # adj: age, clinstatus
 result_list[[7]] <- extract_interaction(mort.28.comorb.noimmuno, "comorbidity_noimmuno") # adj: age, clinstatus 
-result_list[[8]] <- extract_interaction(mort.28.comed, "comedication") # adj: age, clinstatus
+result_list[[8]] <- extract_interaction(mort.28.comed.firth, "comedication_firth") # adj: age, clinstatus
 # result_list[[9]] <- extract_interaction(ae.28.vacc, "vaccination on AEs") # not available
 result_list[[10]] <- extract_interaction(mort.28.symp, "symptom duration") # adj: age, clinstatus
 # result_list[[11]] <- extract_interaction(mort.28.crp, "crp") # not available
@@ -4855,19 +4721,19 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|                          |variable             | log_odds_ratio|  ci_lower|  ci_upper| standard_error|   p_value|trial      |JAKi        |
-|:-------------------------|:--------------------|--------------:|---------:|---------:|--------------:|---------:|:----------|:-----------|
-|trt:clinstatus_baseline_n |respiratory support  |   1.142871e+00| 0.1258804| 10.977303|      1.1265718| 0.9056402|STOP-COVID |Tofacitinib |
-|trt:vbaseline             |ventilation          |   9.247936e-01| 0.0235238| 35.394401|      1.7105282| 0.9635430|STOP-COVID |Tofacitinib |
-|trt:age                   |age                  |   9.824264e-01| 0.8805208|  1.092588|      0.0539643| 0.7424976|STOP-COVID |Tofacitinib |
-|trt:comorb_cat            |comorbidity          |   1.109271e+00| 0.1867894|  8.309144|      0.9192810| 0.9101820|STOP-COVID |Tofacitinib |
-|trt:comorb_count          |comorbidity_count    |   1.078990e+00| 0.3107990|  3.785583|      0.6269555| 0.9034840|STOP-COVID |Tofacitinib |
-|trt:comorb_any            |comorbidity_any      |   1.074080e+07| 0.0000000|        NA|   1559.8596245| 0.9917190|STOP-COVID |Tofacitinib |
-|trt:comorb_noimmuno       |comorbidity_noimmuno |   1.109271e+00| 0.1867894|  8.309144|      0.9192810| 0.9101820|STOP-COVID |Tofacitinib |
-|trt:comed_cat             |comedication         |   7.980234e+06| 0.0000000|        NA|   1686.3505923| 0.9924807|STOP-COVID |Tofacitinib |
-|trt:sympdur               |symptom duration     |   9.732444e-01| 0.6754192|  1.301280|      0.1674070| 0.8713055|STOP-COVID |Tofacitinib |
-|trt:at_risk               |at risk on AEs       |   5.326074e-01| 0.1601331|  1.729631|      0.6047982| 0.2975872|STOP-COVID |Tofacitinib |
-|trt:comed_cat1            |comedication on AEs  |   8.486328e-01| 0.1905894|  3.614789|      0.7417296| 0.8248758|STOP-COVID |Tofacitinib |
+|                          |variable              | log_odds_ratio|  ci_lower|   ci_upper| standard_error|   p_value|trial      |JAKi        |
+|:-------------------------|:---------------------|--------------:|---------:|----------:|--------------:|---------:|:----------|:-----------|
+|trt:clinstatus_baseline_n |respiratory support   |      1.1428708| 0.1258804|  10.977303|      1.1265718| 0.9056402|STOP-COVID |Tofacitinib |
+|trt:vbaseline             |ventilation           |      0.9247936| 0.0235238|  35.394401|      1.7105282| 0.9635430|STOP-COVID |Tofacitinib |
+|trt:age                   |age                   |      0.9824264| 0.8805208|   1.092588|      0.0539643| 0.7424976|STOP-COVID |Tofacitinib |
+|trt:comorb_cat            |comorbidity           |      1.1092711| 0.1867894|   8.309144|      0.9192810| 0.9101820|STOP-COVID |Tofacitinib |
+|trt:comorb_count          |comorbidity_count     |      1.0789901| 0.3107990|   3.785583|      0.6269555| 0.9034840|STOP-COVID |Tofacitinib |
+|trt:comorb_any            |comorbidity_any_firth |      4.6942843| 0.1587892| 903.024339|      1.7647953| 0.3827763|STOP-COVID |Tofacitinib |
+|trt:comorb_noimmuno       |comorbidity_noimmuno  |      1.1092711| 0.1867894|   8.309144|      0.9192810| 0.9101820|STOP-COVID |Tofacitinib |
+|trt:comed_cat             |comedication_firth    |      3.1097013| 0.1038134| 593.238659|      1.7628966| 0.5290523|STOP-COVID |Tofacitinib |
+|trt:sympdur               |symptom duration      |      0.9732444| 0.6754192|   1.301280|      0.1674070| 0.8713055|STOP-COVID |Tofacitinib |
+|trt:at_risk               |at risk on AEs        |      0.5326074| 0.1601331|   1.729631|      0.6047982| 0.2975872|STOP-COVID |Tofacitinib |
+|trt:comed_cat1            |comedication on AEs   |      0.8486328| 0.1905894|   3.614789|      0.7417296| 0.8248758|STOP-COVID |Tofacitinib |
 
 ```r
 # Save
