@@ -924,7 +924,7 @@ Discussion points:
 # LOAD
 df_mort28_mi <- readRDS("trt_effects_mi_02092024.RData")
 
-# no MI from ghazaeian, tofacov and stop-covid -> add their df_mort28 estimates / and covinib
+# no MI from ghazaeian, tofacov, covinib and stop-covid -> add their df_mort28 estimates
 df_mort28_mi_add <- df_mort28_dimp %>%
   filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "STOP-COVID" | trial == "COVINIB")
 df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
