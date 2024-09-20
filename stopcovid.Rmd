@@ -899,11 +899,11 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 
 # effect by subgroup
 df <- df %>% 
-  mutate(age_70 = case_when(age < 70 ~ 0,
-                            age > 69 ~ 1))
+  mutate(age_70 = case_when(age < 65 ~ 0,
+                            age > 64 ~ 1))
 # table(df$age_70, useNA = "always")
 mort.28.age.a70 <- df %>% 
-  filter(age_70 == 1) %>% # 70 and above
+  filter(age_70 == 1) %>% 
   glm(mort_28 ~ trt
       # + age 
       + clinstatus_baseline 
@@ -911,7 +911,7 @@ mort.28.age.a70 <- df %>%
 summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 mort.28.age.b70 <- df %>% 
-  filter(age_70 == 0) %>% # below 70
+  filter(age_70 == 0) %>% 
   glm(mort_28 ~ trt
       # + age 
       + clinstatus_baseline 

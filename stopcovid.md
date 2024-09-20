@@ -2328,11 +2328,11 @@ summ(mort.28.age, exp = T, confint = T, model.info = T, model.fit = F, digits = 
 ```r
 # effect by subgroup
 df <- df %>% 
-  mutate(age_70 = case_when(age < 70 ~ 0,
-                            age > 69 ~ 1))
+  mutate(age_70 = case_when(age < 65 ~ 0,
+                            age > 64 ~ 1))
 # table(df$age_70, useNA = "always")
 mort.28.age.a70 <- df %>% 
-  filter(age_70 == 1) %>% # 70 and above
+  filter(age_70 == 1) %>% 
   glm(mort_28 ~ trt
       # + age 
       + clinstatus_baseline 
@@ -2344,7 +2344,7 @@ summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 56 </td>
+   <td style="text-align:right;"> 89 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -2385,15 +2385,15 @@ summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digit
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.62 </td>
-   <td style="text-align:right;"> 0.09 </td>
-   <td style="text-align:right;"> 4.29 </td>
-   <td style="text-align:right;"> -0.48 </td>
-   <td style="text-align:right;"> 0.63 </td>
+   <td style="text-align:right;"> 0.60 </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> 3.40 </td>
+   <td style="text-align:right;"> -0.58 </td>
+   <td style="text-align:right;"> 0.56 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 54176970.30 </td>
+   <td style="text-align:right;"> 40276050.01 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.01 </td>
@@ -2401,7 +2401,7 @@ summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digit
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 1.08 </td>
+   <td style="text-align:right;"> 1.09 </td>
    <td style="text-align:right;"> 0.00 </td>
    <td style="text-align:right;"> Inf </td>
    <td style="text-align:right;"> 0.00 </td>
@@ -2414,7 +2414,7 @@ summ(mort.28.age.a70, exp = T, confint = T, model.info = T, model.fit = F, digit
 
 ```r
 mort.28.age.b70 <- df %>% 
-  filter(age_70 == 0) %>% # below 70
+  filter(age_70 == 0) %>% 
   glm(mort_28 ~ trt
       # + age 
       + clinstatus_baseline 
@@ -2426,7 +2426,7 @@ summ(mort.28.age.b70, exp = T, confint = T, model.info = T, model.fit = F, digit
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 233 </td>
+   <td style="text-align:right;"> 200 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
@@ -2461,33 +2461,33 @@ summ(mort.28.age.b70, exp = T, confint = T, model.info = T, model.fit = F, digit
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
    <td style="text-align:right;"> 0.03 </td>
    <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.20 </td>
-   <td style="text-align:right;"> -3.52 </td>
+   <td style="text-align:right;"> 0.21 </td>
+   <td style="text-align:right;"> -3.44 </td>
    <td style="text-align:right;"> 0.00 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> trt </td>
-   <td style="text-align:right;"> 0.40 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 2.10 </td>
-   <td style="text-align:right;"> -1.09 </td>
-   <td style="text-align:right;"> 0.28 </td>
+   <td style="text-align:right;"> 0.66 </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> 4.14 </td>
+   <td style="text-align:right;"> -0.44 </td>
+   <td style="text-align:right;"> 0.66 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline3 </td>
-   <td style="text-align:right;"> 1.55 </td>
-   <td style="text-align:right;"> 0.17 </td>
-   <td style="text-align:right;"> 14.27 </td>
-   <td style="text-align:right;"> 0.39 </td>
-   <td style="text-align:right;"> 0.70 </td>
+   <td style="text-align:right;"> 0.77 </td>
+   <td style="text-align:right;"> 0.07 </td>
+   <td style="text-align:right;"> 8.84 </td>
+   <td style="text-align:right;"> -0.21 </td>
+   <td style="text-align:right;"> 0.84 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> clinstatus_baseline4 </td>
-   <td style="text-align:right;"> 3.79 </td>
-   <td style="text-align:right;"> 0.33 </td>
-   <td style="text-align:right;"> 43.95 </td>
-   <td style="text-align:right;"> 1.07 </td>
-   <td style="text-align:right;"> 0.29 </td>
+   <td style="text-align:right;"> 3.26 </td>
+   <td style="text-align:right;"> 0.28 </td>
+   <td style="text-align:right;"> 37.75 </td>
+   <td style="text-align:right;"> 0.95 </td>
+   <td style="text-align:right;"> 0.34 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -4931,8 +4931,8 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt2  |No oxygen_firth                                |         0.3364358| 0.0022919|  6.361023|      1.5013143| 0.4754757|              0|                 34|         1|            37|STOP-COVID |Tofacitinib |
 |trt3  |low-flow oxygen                                |         0.4442575| 0.0771471|  1.951066|      0.7973342| 0.3088779|              3|                 91|         6|            90|STOP-COVID |Tofacitinib |
 |trt4  |high-flow oxygen / NIV                         |         0.7831673| 0.0248560| 22.513026|      1.5281359| 0.8729289|              1|                 19|         1|            18|STOP-COVID |Tofacitinib |
-|trt5  |70 years and above                             |         0.6222222| 0.0734532|  4.296669|      0.9856107| 0.6302431|              2|                 29|         3|            27|STOP-COVID |Tofacitinib |
-|trt6  |below 70 years                                 |         0.3977103| 0.0559478|  1.897170|      0.8497183| 0.2778762|              2|                115|         5|           118|STOP-COVID |Tofacitinib |
+|trt5  |70 years and above                             |         0.6000000| 0.0804124|  3.089775|      0.8850612| 0.5638285|              2|                 41|         5|            48|STOP-COVID |Tofacitinib |
+|trt6  |below 70 years                                 |         0.6642150| 0.0849085|  4.173207|      0.9338094| 0.6612770|              2|                103|         3|            97|STOP-COVID |Tofacitinib |
 |trt7  |No comorbidity_firth                           |         0.2014959| 0.0002358|  4.669871|      1.3782198| 0.3129692|              0|                 36|         1|            29|STOP-COVID |Tofacitinib |
 |trt8  |One comorbidity                                |         2.1221789| 0.1617742| 24.730588|      1.1986706| 0.5301798|              2|                 48|         2|            51|STOP-COVID |Tofacitinib |
 |trt9  |Multiple comorbidities                         |         0.3558991| 0.0451172|  1.863055|      0.9055656| 0.2539353|              2|                 60|         5|            65|STOP-COVID |Tofacitinib |
