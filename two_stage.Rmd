@@ -313,7 +313,7 @@ forestplot <- forest(mort28,
             pooled.total = F
 )
 
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_mort28$n_int, na.rm = TRUE), 
                sum(df_mort28$e_int, na.rm = TRUE), 
                sum(df_mort28$n_cont, na.rm = TRUE),
@@ -677,13 +677,13 @@ forestplot <- forest(mort28.agg.jaki,
             pooled.total = F
 )
 
-summary_row_y <- unit(0.143, "npc")
+summary_row_y <- unit(0.144, "npc")
 total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE), 
                sum(df_mort28_agg$e_int, na.rm = TRUE), 
                sum(df_mort28_agg$n_cont, na.rm = TRUE),
                sum(df_mort28_agg$e_cont, na.rm = TRUE))
 pushViewport(viewport())
-grid.text(label = total_row[1], x = unit(0.317, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[1], x = unit(0.318, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[3], x = unit(0.42, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
@@ -997,7 +997,7 @@ forestplot <- forest(mort60,
             label.right = "Favours No JAKi",
             pooled.total = F
             )
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_mort60$n_int, na.rm = TRUE), 
                sum(df_mort60$e_int, na.rm = TRUE), 
                sum(df_mort60$n_cont, na.rm = TRUE),
@@ -1056,7 +1056,7 @@ forestplot <- forest(ttdeath,
             pooled.total = F
             )
 
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_ttdeath$n_int, na.rm = TRUE), 
                sum(df_ttdeath$e_int, na.rm = TRUE), 
                sum(df_ttdeath$n_cont, na.rm = TRUE),
@@ -1116,7 +1116,7 @@ forestplot <- forest(new.mvd28,
             pooled.total = F
             )
 
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_new_mvd28$n_int, na.rm = TRUE), 
                sum(df_new_mvd28$e_int, na.rm = TRUE), 
                sum(df_new_mvd28$n_cont, na.rm = TRUE),
@@ -1212,7 +1212,7 @@ forestplot <- forest(clin28,
             label.right = "Favours No JAKi",
             pooled.total = F
             )
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.24, "npc")
 total_row <- c(sum(df_clin28$n_int, na.rm = TRUE), 
                sum(df_clin28$n_cont, na.rm = TRUE))
 pushViewport(viewport())
@@ -1267,7 +1267,7 @@ forestplot <- forest(ttdischarge.comp,
             label.right = "Favours No JAKi",
             pooled.total = F
             )
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_ttdischarge_comp$n_int, na.rm = TRUE), 
                sum(df_ttdischarge_comp$e_int, na.rm = TRUE), 
                sum(df_ttdischarge_comp$n_cont, na.rm = TRUE),
@@ -1616,7 +1616,7 @@ forestplot <- forest(ae28,
             pooled.total = F
             )
 
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 
 total_row <- c(sum(df_ae28$n_int, na.rm = TRUE), 
                sum(df_ae28$e_int, na.rm = TRUE), 
@@ -1698,7 +1698,7 @@ forestplot <- forest.meta(ae28.rob,
             pooled.total = F
             )
 
-summary_row_y <- unit(0.243, "npc")
+summary_row_y <- unit(0.215, "npc")
 total_row <- c(sum(df_ae28$n_int, na.rm = TRUE), 
                sum(df_ae28$e_int, na.rm = TRUE), 
                sum(df_ae28$n_cont, na.rm = TRUE),
@@ -2819,7 +2819,7 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       method.tau = "ML", 
                       method.random.ci = "HK",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R"),
-                      exclude = trial %in% c("Ghazaeian", "RUXCOVID-DEVENT") # incl in plot but exclude from analysis
+                      exclude = trial %in% c("Ghazaeian", "RUXCOVID-DEVENT") # incl in plot but exclude from analysis (but ruxcovid-devent cannot even provide an estimate)
                       )
 summary(rs.mort28)
 forest.meta(rs.mort28,
@@ -2891,7 +2891,7 @@ forest.meta(mort28.rs,
 rs.no.ox.mort28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
-                      data = df_sg_no_ox_mort28,
+                      data = df_sg_no_ox_mort28, # for the descriptive all trials that have data can provide data
                       n.e = n_intervention,
                       n.c = n_control,
                       sm = "OR",
@@ -3034,7 +3034,7 @@ forest.meta(vent.mort28,
 
 # Interaction: Age on primary endpoint
 ```{r warning=FALSE, fig.width=10, fig.height=5}
-# str(df_age_mort28) // EXCLUDE RUXCOVID-DEVENT because its interaction estimate is from binary age?
+# str(df_age_mort28) // EXCLUDE RUXCOVID-DEVENT because its interaction estimate is from binary age
 df_age_mort28 <- df_age_mort28[order(df_age_mort28$trial), ]
 age.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -3045,7 +3045,7 @@ age.mort28 <- metagen(TE = log(log_odds_ratio),
                       random = T, 
                       method.tau = "ML", 
                       method.random.ci = "HK",
-                      # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      subset = trial != "RUXCOVID-DEVENT",
                       # exclude = trial %in% c("RUXCOVID-DEVENT") # incl in plot but exclude from analysis
                       )
 summary(age.mort28)
@@ -3067,6 +3067,8 @@ forest.meta(age.mort28,
 ```{r warning=FALSE, fig.width=10, fig.height=10}
 df_sg_age_mort28$inverse_variance <- 1 / df_sg_age_mort28$standard_error^2
 df_sg_age_mort28$variable <- gsub("_firth$", "", df_sg_age_mort28$variable)
+df_sg_age_mort28 <- df_sg_age_mort28 %>% 
+  filter(trial != "RUXCOVID-DEVENT")
 df_sg_age_mort28 <- df_sg_age_mort28[order(df_sg_age_mort28$trial), ]
 
 # modify labels because for 4 trials (COVINIB, PANCOVID, RUXCOVID, TOFACOV) we used a different threshold.
@@ -3075,7 +3077,8 @@ df_sg_age_mort28 <- df_sg_age_mort28 %>%
                            trial == "PANCOVID" ~ "PANCOVID*",
                            trial == "RUXCOVID" ~ "RUXCOVID*",
                            trial == "TOFACOV" ~ "TOFACOV*",
-                           trial == "RUXCOVID-DEVENT" ~ "RUXCOVID-DEVENT*",
+                           trial == "STOP-COVID" ~ "STOP-COVID*",
+                           # trial == "RUXCOVID-DEVENT" ~ "RUXCOVID-DEVENT*",
                            TRUE ~ trial),
          variable = case_when(trial == "COVINIB*" & variable == "70 years and above" ~ "65 years and above",
                               trial == "COVINIB*" & variable == "below 70 years" ~ "below 65 years",
@@ -3085,8 +3088,10 @@ df_sg_age_mort28 <- df_sg_age_mort28 %>%
                               trial == "RUXCOVID*" & variable == "below 70 years" ~ "below 65 years",
                               trial == "TOFACOV*" & variable == "70 years and above" ~ "65 years and above",
                               trial == "TOFACOV*" & variable == "below 70 years" ~ "below 65 years",
-                              trial == "RUXCOVID-DEVENT*" & variable == "70 years and above" ~ "65 years and above",
-                              trial == "RUXCOVID-DEVENT*" & variable == "below 70 years" ~ "below 65 years",
+                              trial == "STOP-COVID*" & variable == "70 years and above" ~ "65 years and above",
+                              trial == "STOP-COVID*" & variable == "below 70 years" ~ "below 65 years",
+                              # trial == "RUXCOVID-DEVENT*" & variable == "70 years and above" ~ "65 years and above",
+                              # trial == "RUXCOVID-DEVENT*" & variable == "below 70 years" ~ "below 65 years",
                               TRUE ~ variable)
          )
 
@@ -3131,7 +3136,7 @@ forest.meta(mort28.age,
 dev.off()
 ```
 Discussion point:
-1. Exclude RUXCOVID-DEVENT since we don't have age as continuous variable?
+1. Exclude RUXCOVID-DEVENT since we don't have age as continuous variable
 
 
 # Subgroups: Age on primary endpoint: Pooled across trials // only descriptive purpose for overall forestplot!

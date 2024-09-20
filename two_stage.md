@@ -671,7 +671,7 @@ forestplot <- forest(mort28,
             pooled.total = F
 )
 
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_mort28$n_int, na.rm = TRUE), 
                sum(df_mort28$e_int, na.rm = TRUE), 
                sum(df_mort28$n_cont, na.rm = TRUE),
@@ -1394,13 +1394,13 @@ forestplot <- forest(mort28.agg.jaki,
             pooled.total = F
 )
 
-summary_row_y <- unit(0.143, "npc")
+summary_row_y <- unit(0.144, "npc")
 total_row <- c(sum(df_mort28_agg$n_int, na.rm = TRUE), 
                sum(df_mort28_agg$e_int, na.rm = TRUE), 
                sum(df_mort28_agg$n_cont, na.rm = TRUE),
                sum(df_mort28_agg$e_cont, na.rm = TRUE))
 pushViewport(viewport())
-grid.text(label = total_row[1], x = unit(0.317, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
+grid.text(label = total_row[1], x = unit(0.318, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[2], x = unit(0.365, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[3], x = unit(0.42, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
 grid.text(label = total_row[4], x = unit(0.47, "npc"), y = summary_row_y, just = "left", gp = gpar(fontsize = 12, fontface = "bold"))
@@ -1870,7 +1870,7 @@ Discussion points:
 # LOAD
 df_mort28_mi <- readRDS("trt_effects_mi_02092024.RData")
 
-# no MI from ghazaeian, tofacov and stop-covid -> add their df_mort28 estimates / and covinib
+# no MI from ghazaeian, tofacov, covinib and stop-covid -> add their df_mort28 estimates
 df_mort28_mi_add <- df_mort28_dimp %>%
   filter(trial == "Ghazaeian" | trial == "TOFACOV" | trial == "STOP-COVID" | trial == "COVINIB")
 df_mort28_mi_ext <- rbind(df_mort28_mi, df_mort28_mi_add)
@@ -2031,7 +2031,7 @@ forestplot <- forest(mort60,
             label.right = "Favours No JAKi",
             pooled.total = F
             )
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_mort60$n_int, na.rm = TRUE), 
                sum(df_mort60$e_int, na.rm = TRUE), 
                sum(df_mort60$n_cont, na.rm = TRUE),
@@ -2140,7 +2140,7 @@ forestplot <- forest(ttdeath,
             pooled.total = F
             )
 
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_ttdeath$n_int, na.rm = TRUE), 
                sum(df_ttdeath$e_int, na.rm = TRUE), 
                sum(df_ttdeath$n_cont, na.rm = TRUE),
@@ -2250,7 +2250,7 @@ forestplot <- forest(new.mvd28,
             pooled.total = F
             )
 
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_new_mvd28$n_int, na.rm = TRUE), 
                sum(df_new_mvd28$e_int, na.rm = TRUE), 
                sum(df_new_mvd28$n_cont, na.rm = TRUE),
@@ -2438,7 +2438,7 @@ forestplot <- forest(clin28,
             label.right = "Favours No JAKi",
             pooled.total = F
             )
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.24, "npc")
 total_row <- c(sum(df_clin28$n_int, na.rm = TRUE), 
                sum(df_clin28$n_cont, na.rm = TRUE))
 pushViewport(viewport())
@@ -2543,7 +2543,7 @@ forestplot <- forest(ttdischarge.comp,
             label.right = "Favours No JAKi",
             pooled.total = F
             )
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 total_row <- c(sum(df_ttdischarge_comp$n_int, na.rm = TRUE), 
                sum(df_ttdischarge_comp$e_int, na.rm = TRUE), 
                sum(df_ttdischarge_comp$n_cont, na.rm = TRUE),
@@ -3206,7 +3206,7 @@ forestplot <- forest(ae28,
             pooled.total = F
             )
 
-summary_row_y <- unit(0.26, "npc")
+summary_row_y <- unit(0.22, "npc")
 
 total_row <- c(sum(df_ae28$n_int, na.rm = TRUE), 
                sum(df_ae28$e_int, na.rm = TRUE), 
@@ -3346,7 +3346,7 @@ forestplot <- forest.meta(ae28.rob,
             pooled.total = F
             )
 
-summary_row_y <- unit(0.243, "npc")
+summary_row_y <- unit(0.215, "npc")
 total_row <- c(sum(df_ae28$n_int, na.rm = TRUE), 
                sum(df_ae28$e_int, na.rm = TRUE), 
                sum(df_ae28$n_cont, na.rm = TRUE),
@@ -3616,7 +3616,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |viral clearance until day 5                |         0.9463025| 0.7619593| 1.1752444|      0.0780383| 0.5184358|            317|               4765|       322|          4648|two-stage |
 |viral clearance until day 10               |         0.9422592| 0.8649134| 1.0265218|      0.0308492| 0.1261162|            459|               4928|       465|          4788|two-stage |
 |viral clearance until day 15               |         0.9586996| 0.8755424| 1.0497550|      0.0326800| 0.2663823|            559|               4983|       564|          4848|two-stage |
-|Any AE grade 3,4 within 28 days            |         0.8997103| 0.8332908| 0.9714239|      0.0348435| 0.0113869|           1063|               6633|      1044|          6249|two-stage |
+|Any AE grade 3,4 within 28 days            |         0.8997103| 0.8332908| 0.9714239|      0.0348435| 0.0113869|           1072|               6647|      1047|          6255|two-stage |
 |AEs grade 3,4 within 28 days               |         0.9041428| 0.7750218| 1.0547758|      0.0700124| 0.1779122|           6633|               6633|      6249|          6249|two-stage |
 
 ```r
@@ -4531,8 +4531,8 @@ kable(df_sg_age_mort28, format = "markdown", table.attr = 'class="table"') %>%
 |trt64 |below 70 years           |         1.0435959| 0.0985408|  22.6540452|      1.2323670| 0.9723777|              2|                200|         1|           103|RUXCOVID        |Ruxolitinib |
 |trt52 |70 years and above       |         0.7412002| 0.0803986|   6.7470924|      1.0577503| 0.7770745|              2|                 34|         2|            27|PANCOVID        |Baricitinib |
 |trt65 |below 70 years_firth     |         0.1336728| 0.0010069|   1.2931050|      1.3699564| 0.0888291|              0|                106|         4|           109|PANCOVID        |Baricitinib |
-|trt53 |70 years and above       |         0.6222222| 0.0734532|   4.2966688|      0.9856107| 0.6302431|              2|                 29|         3|            27|STOP-COVID      |Tofacitinib |
-|trt66 |below 70 years           |         0.3977103| 0.0559478|   1.8971698|      0.8497183| 0.2778762|              2|                115|         5|           118|STOP-COVID      |Tofacitinib |
+|trt53 |70 years and above       |         0.6000000| 0.0804124|   3.0897754|      0.8850612| 0.5638285|              2|                 41|         5|            48|STOP-COVID      |Tofacitinib |
+|trt66 |below 70 years           |         0.6642150| 0.0849085|   4.1732072|      0.9338094| 0.6612770|              2|                103|         3|            97|STOP-COVID      |Tofacitinib |
 |trt21 |70 years and above       |         0.4296875| 0.1328156|   1.1807889|      0.5472035| 0.1226703|             55|                 87|        20|            25|RUXCOVID-DEVENT |Ruxolitinib |
 |trt34 |below 70 years           |         0.4364548| 0.1610468|   1.1384150|      0.4942227| 0.0934401|             29|                 75|        13|            22|RUXCOVID-DEVENT |Ruxolitinib |
 
@@ -5131,7 +5131,7 @@ rs.mort28 <- metagen(TE = log(log_odds_ratio),
                       method.tau = "ML", 
                       method.random.ci = "HK",
                       # subset = trial %in% c("COV-BARRIER", "ACTT-2", "RECOVERY", "TACTIC-R"),
-                      exclude = trial %in% c("Ghazaeian", "RUXCOVID-DEVENT") # incl in plot but exclude from analysis
+                      exclude = trial %in% c("Ghazaeian", "RUXCOVID-DEVENT") # incl in plot but exclude from analysis (but ruxcovid-devent cannot even provide an estimate)
                       )
 summary(rs.mort28)
 ```
@@ -5291,7 +5291,7 @@ forest.meta(mort28.rs,
 rs.no.ox.mort28 <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
-                      data = df_sg_no_ox_mort28,
+                      data = df_sg_no_ox_mort28, # for the descriptive all trials that have data can provide data
                       n.e = n_intervention,
                       n.c = n_control,
                       sm = "OR",
@@ -5699,7 +5699,7 @@ forest.meta(vent.mort28,
 # Interaction: Age on primary endpoint
 
 ```r
-# str(df_age_mort28) // EXCLUDE RUXCOVID-DEVENT because its interaction estimate is from binary age?
+# str(df_age_mort28) // EXCLUDE RUXCOVID-DEVENT because its interaction estimate is from binary age
 df_age_mort28 <- df_age_mort28[order(df_age_mort28$trial), ]
 age.mort28 <- metagen(TE = log(log_odds_ratio),
                       seTE = standard_error,
@@ -5710,45 +5710,44 @@ age.mort28 <- metagen(TE = log(log_odds_ratio),
                       random = T, 
                       method.tau = "ML", 
                       method.random.ci = "HK",
-                      # subset = trial %in% c("COV-BARRIER", "ACTT-2"),
+                      subset = trial != "RUXCOVID-DEVENT",
                       # exclude = trial %in% c("RUXCOVID-DEVENT") # incl in plot but exclude from analysis
                       )
 summary(age.mort28)
 ```
 
 ```
-##                     OR           95%-CI %W(random)
-## ACTT-2          0.9925 [0.9515; 1.0352]        5.4
-## Bari-SolidAct   1.0266 [0.9535; 1.1054]        1.8
-## COV-BARRIER     1.0241 [0.9960; 1.0529]       12.5
-## COVINIB         0.8660 [0.7030; 1.0668]        0.2
-## Ghazaeian       1.0505 [0.9466; 1.1657]        0.9
-## PANCOVID        1.0308 [0.8044; 1.3208]        0.2
-## RECOVERY        1.0080 [0.9967; 1.0195]       75.9
-## RUXCOVID        1.0129 [0.8943; 1.1473]        0.6
-## RUXCOVID-DEVENT 0.9845 [0.2320; 4.1768]        0.0
-## STOP-COVID      0.9824 [0.8838; 1.0920]        0.9
-## TACTIC-R        1.0545 [0.9700; 1.1463]        1.4
-## TOFACOV         1.0471 [0.8652; 1.2672]        0.3
+##                   OR           95%-CI %W(random)
+## ACTT-2        0.9925 [0.9515; 1.0352]        5.4
+## Bari-SolidAct 1.0266 [0.9535; 1.1054]        1.8
+## COV-BARRIER   1.0241 [0.9960; 1.0529]       12.5
+## COVINIB       0.8660 [0.7030; 1.0668]        0.2
+## Ghazaeian     1.0505 [0.9466; 1.1657]        0.9
+## PANCOVID      1.0308 [0.8044; 1.3208]        0.2
+## RECOVERY      1.0080 [0.9967; 1.0195]       75.9
+## RUXCOVID      1.0129 [0.8943; 1.1473]        0.6
+## STOP-COVID    0.9824 [0.8838; 1.0920]        0.9
+## TACTIC-R      1.0545 [0.9700; 1.1463]        1.4
+## TOFACOV       1.0471 [0.8652; 1.2672]        0.3
 ## 
-## Number of studies: k = 12
+## Number of studies: k = 11
 ## 
 ##                               OR           95%-CI    t p-value
-## Random effects model (HK) 1.0101 [1.0019; 1.0184] 2.71  0.0202
+## Random effects model (HK) 1.0101 [1.0014; 1.0189] 2.59  0.0271
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0 [0.0000; 0.0010]; tau = 0 [0.0000; 0.0308]
-##  I^2 = 0.0% [0.0%; 58.3%]; H = 1.00 [1.00; 1.55]
+##  tau^2 = 0 [0.0000; 0.0018]; tau = 0 [0.0000; 0.0421]
+##  I^2 = 0.0% [0.0%; 60.2%]; H = 1.00 [1.00; 1.59]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.00   11  0.8731
+##  6.00   10  0.8151
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 11)
+## - Hartung-Knapp adjustment for random effects model (df = 10)
 ```
 
 ```r
@@ -5772,6 +5771,8 @@ forest.meta(age.mort28,
 ```r
 df_sg_age_mort28$inverse_variance <- 1 / df_sg_age_mort28$standard_error^2
 df_sg_age_mort28$variable <- gsub("_firth$", "", df_sg_age_mort28$variable)
+df_sg_age_mort28 <- df_sg_age_mort28 %>% 
+  filter(trial != "RUXCOVID-DEVENT")
 df_sg_age_mort28 <- df_sg_age_mort28[order(df_sg_age_mort28$trial), ]
 
 # modify labels because for 4 trials (COVINIB, PANCOVID, RUXCOVID, TOFACOV) we used a different threshold.
@@ -5780,7 +5781,8 @@ df_sg_age_mort28 <- df_sg_age_mort28 %>%
                            trial == "PANCOVID" ~ "PANCOVID*",
                            trial == "RUXCOVID" ~ "RUXCOVID*",
                            trial == "TOFACOV" ~ "TOFACOV*",
-                           trial == "RUXCOVID-DEVENT" ~ "RUXCOVID-DEVENT*",
+                           trial == "STOP-COVID" ~ "STOP-COVID*",
+                           # trial == "RUXCOVID-DEVENT" ~ "RUXCOVID-DEVENT*",
                            TRUE ~ trial),
          variable = case_when(trial == "COVINIB*" & variable == "70 years and above" ~ "65 years and above",
                               trial == "COVINIB*" & variable == "below 70 years" ~ "below 65 years",
@@ -5790,8 +5792,10 @@ df_sg_age_mort28 <- df_sg_age_mort28 %>%
                               trial == "RUXCOVID*" & variable == "below 70 years" ~ "below 65 years",
                               trial == "TOFACOV*" & variable == "70 years and above" ~ "65 years and above",
                               trial == "TOFACOV*" & variable == "below 70 years" ~ "below 65 years",
-                              trial == "RUXCOVID-DEVENT*" & variable == "70 years and above" ~ "65 years and above",
-                              trial == "RUXCOVID-DEVENT*" & variable == "below 70 years" ~ "below 65 years",
+                              trial == "STOP-COVID*" & variable == "70 years and above" ~ "65 years and above",
+                              trial == "STOP-COVID*" & variable == "below 70 years" ~ "below 65 years",
+                              # trial == "RUXCOVID-DEVENT*" & variable == "70 years and above" ~ "65 years and above",
+                              # trial == "RUXCOVID-DEVENT*" & variable == "below 70 years" ~ "below 65 years",
                               TRUE ~ variable)
          )
 
@@ -5821,34 +5825,32 @@ summary(mort28.age)
 ```
 
 ```
-##                        OR             95%-CI            trial
-## 70 years and above 0.6904 [0.2639;   1.8060]           ACTT-2
-## below 70 years     0.6762 [0.3346;   1.3666]           ACTT-2
-## 70 years and above 0.9118 [0.3189;   2.6069]    Bari-SolidAct
-## below 70 years     0.6336 [0.2161;   1.8583]    Bari-SolidAct
-## 70 years and above 0.6487 [0.3824;   1.1005]      COV-BARRIER
-## below 70 years     0.4610 [0.3005;   0.7073]      COV-BARRIER
-## 65 years and above 0.2402 [0.0120;   4.7986]         COVINIB*
-## below 65 years     0.3451 [0.0189;   6.3182]         COVINIB*
-## 70 years and above 3.5455 [0.1188; 105.8203]        Ghazaeian
-## below 70 years     0.5700 [0.1141;   2.8473]        Ghazaeian
-## 75 years and above 0.7412 [0.0932;   5.8924]        PANCOVID*
-## below 75 years     0.1337 [0.0091;   1.9595]        PANCOVID*
-## 70 years and above 0.9414 [0.7692;   1.1521]         RECOVERY
-## below 70 years     0.7614 [0.6289;   0.9218]         RECOVERY
-## 65 years and above 1.7550 [0.3449;   8.9311]        RUXCOVID*
-## below 65 years     1.0436 [0.0932;  11.6822]        RUXCOVID*
-## 65 years and above 0.4297 [0.1470;   1.2558] RUXCOVID-DEVENT*
-## below 65 years     0.4365 [0.1657;   1.1498] RUXCOVID-DEVENT*
-## 70 years and above 0.6222 [0.0902;   4.2944]       STOP-COVID
-## below 70 years     0.3977 [0.0752;   2.1030]       STOP-COVID
-## 70 years and above 1.1695 [0.3822;   3.5787]         TACTIC-R
-## below 70 years     0.7340 [0.2362;   2.2812]         TACTIC-R
-## 65 years and above 2.9152 [0.1566;  54.2581]         TOFACOV*
-## below 65 years     1.1153 [0.0426;  29.2057]         TOFACOV*
+##                        OR             95%-CI         trial
+## 70 years and above 0.6904 [0.2639;   1.8060]        ACTT-2
+## below 70 years     0.6762 [0.3346;   1.3666]        ACTT-2
+## 70 years and above 0.9118 [0.3189;   2.6069] Bari-SolidAct
+## below 70 years     0.6336 [0.2161;   1.8583] Bari-SolidAct
+## 70 years and above 0.6487 [0.3824;   1.1005]   COV-BARRIER
+## below 70 years     0.4610 [0.3005;   0.7073]   COV-BARRIER
+## 65 years and above 0.2402 [0.0120;   4.7986]      COVINIB*
+## below 65 years     0.3451 [0.0189;   6.3182]      COVINIB*
+## 70 years and above 3.5455 [0.1188; 105.8203]     Ghazaeian
+## below 70 years     0.5700 [0.1141;   2.8473]     Ghazaeian
+## 75 years and above 0.7412 [0.0932;   5.8924]     PANCOVID*
+## below 75 years     0.1337 [0.0091;   1.9595]     PANCOVID*
+## 70 years and above 0.9414 [0.7692;   1.1521]      RECOVERY
+## below 70 years     0.7614 [0.6289;   0.9218]      RECOVERY
+## 65 years and above 1.7550 [0.3449;   8.9311]     RUXCOVID*
+## below 65 years     1.0436 [0.0932;  11.6822]     RUXCOVID*
+## 65 years and above 0.6000 [0.1059;   3.4003]   STOP-COVID*
+## below 65 years     0.6642 [0.1065;   4.1416]   STOP-COVID*
+## 70 years and above 1.1695 [0.3822;   3.5787]      TACTIC-R
+## below 70 years     0.7340 [0.2362;   2.2812]      TACTIC-R
+## 65 years and above 2.9152 [0.1566;  54.2581]      TOFACOV*
+## below 65 years     1.1153 [0.0426;  29.2057]      TOFACOV*
 ## 
-## Number of studies: k = 24
-## Number of observations: o = 12573
+## Number of studies: k = 22
+## Number of observations: o = 12364
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -5878,7 +5880,7 @@ dev.off()
 ##                 2
 ```
 Discussion point:
-1. Exclude RUXCOVID-DEVENT since we don't have age as continuous variable?
+1. Exclude RUXCOVID-DEVENT since we don't have age as continuous variable
 
 
 # Subgroups: Age on primary endpoint: Pooled across trials // only descriptive purpose for overall forestplot!
@@ -5900,31 +5902,31 @@ summary(age.above70.mort28)
 ```
 ##                     OR             95%-CI %W(common)
 ## ACTT-2          0.6904 [0.2639;   1.8060]        3.3
-## COV-BARRIER     0.6487 [0.3824;   1.1005]       10.9
-## Bari-SolidAct   0.9118 [0.3189;   2.6069]        2.8
+## COV-BARRIER     0.6487 [0.3824;   1.1005]       10.8
+## Bari-SolidAct   0.9118 [0.3189;   2.6069]        2.7
 ## COVINIB         0.2402 [0.0120;   4.7986]        0.3
 ## TOFACOV         2.9152 [0.1566;  54.2581]        0.4
 ## Ghazaeian       3.5455 [0.1188; 105.8203]        0.3
-## RECOVERY        0.9414 [0.7692;   1.1521]       74.4
+## RECOVERY        0.9414 [0.7692;   1.1521]       74.3
 ## TACTIC-R        1.1695 [0.3822;   3.5787]        2.4
 ## RUXCOVID        1.7550 [0.3449;   8.9311]        1.1
 ## PANCOVID        0.7412 [0.0932;   5.8924]        0.7
-## STOP-COVID      0.6222 [0.0902;   4.2944]        0.8
+## STOP-COVID      0.6000 [0.1059;   3.4003]        1.0
 ## RUXCOVID-DEVENT 0.4297 [0.1470;   1.2558]        2.6
 ## 
 ## Number of studies: k = 12
-## Number of observations: o = 822
+## Number of observations: o = 824
 ## 
 ##                         OR           95%-CI     z p-value
-## Common effect model 0.8848 [0.7433; 1.0532] -1.38  0.1685
+## Common effect model 0.8838 [0.7426; 1.0519] -1.39  0.1644
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0040 [0.0000; 0.2664]; tau = 0.0632 [0.0000; 0.5162]
+##  tau^2 = 0.0043 [0.0000; 0.2746]; tau = 0.0658 [0.0000; 0.5240]
 ##  I^2 = 0.0% [0.0%; 58.3%]; H = 1.00 [1.00; 1.55]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.77   11  0.8173
+##  6.84   11  0.8122
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -5966,26 +5968,26 @@ summary(age.below70.mort28)
 ## COVINIB         0.3451 [0.0189;  6.3182]        0.0       *
 ## TOFACOV         1.1153 [0.0426; 29.2057]        0.3        
 ## Ghazaeian       0.5700 [0.1141;  2.8473]        0.0       *
-## RECOVERY        0.7614 [0.6289;  0.9218]       73.5        
+## RECOVERY        0.7614 [0.6289;  0.9218]       73.6        
 ## TACTIC-R        0.7340 [0.2362;  2.2812]        2.1        
 ## RUXCOVID        1.0436 [0.0932; 11.6822]        0.5        
 ## PANCOVID        0.1337 [0.0091;  1.9595]        0.4        
-## STOP-COVID      0.3977 [0.0752;  2.1030]        1.0        
+## STOP-COVID      0.6642 [0.1065;  4.1416]        0.8        
 ## RUXCOVID-DEVENT 0.4365 [0.1657;  1.1498]        0.0       *
 ## 
 ## Number of studies: k = 9
-## Number of observations: o = 738
+## Number of observations: o = 736
 ## 
 ##                         OR           95%-CI     z  p-value
-## Common effect model 0.6921 [0.5875; 0.8154] -4.40 < 0.0001
+## Common effect model 0.6956 [0.5904; 0.8196] -4.34 < 0.0001
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0324 [0.0000; 0.2209]; tau = 0.1801 [0.0000; 0.4700]
+##  tau^2 = 0.0306 [0.0000; 0.1627]; tau = 0.1748 [0.0000; 0.4034]
 ##  I^2 = 0.0% [0.0%; 64.8%]; H = 1.00 [1.00; 1.69]
 ## 
 ## Test of heterogeneity:
 ##     Q d.f. p-value
-##  6.52    8  0.5894
+##  6.09    8  0.6370
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -8095,7 +8097,7 @@ kable(interaction_df, format = "markdown", table.attr = 'class="table"') %>%
 |:--------------------|--------------:|--------:|--------:|--------------:|-------:|:---------|
 |respiratory support  |          0.881|    0.711|    1.092|          0.095|   0.216|two-stage |
 |ventilation          |          0.788|    0.597|    1.039|          0.113|   0.079|two-stage |
-|age                  |          1.010|    1.002|    1.018|          0.004|   0.020|two-stage |
+|age                  |          1.010|    1.001|    1.019|          0.004|   0.027|two-stage |
 |comorbidity          |          1.078|    0.888|    1.308|          0.088|   0.412|two-stage |
 |comorbidity count    |          1.072|    0.966|    1.190|          0.047|   0.169|two-stage |
 |any comorbidity      |          1.407|    1.063|    1.861|          0.127|   0.021|two-stage |
@@ -8283,8 +8285,8 @@ kable(subgroup_df, format = "markdown", table.attr = 'class="table"') %>%
 |Mechanical ventilation or ECMO                      |  0.6130785| 0.4277663|  0.8786695|      0.1836339|            156|                401|       124|           281|two-stage |
 |No ventilation at baseline                          |  0.8400858| 0.7096685|  0.9944702|      0.0860761|            328|               4581|       354|          4443|two-stage |
 |Ventilation at baseline                             |  0.6592334| 0.5567633|  0.7805626|      0.0861941|            427|               1884|       451|          1665|two-stage |
-|70 years of age or older                            |  0.8847632| 0.7432718|  1.0531893|      0.0889089|            426|               1555|       396|          1374|two-stage |
-|Below 70 years of age                               |  0.6921318| 0.5875193|  0.8153715|      0.0836073|            329|               4910|       409|          4734|two-stage |
+|70 years of age or older                            |  0.8838322| 0.7426159|  1.0519023|      0.0888222|            426|               1567|       398|          1395|two-stage |
+|Below 70 years of age                               |  0.6956306| 0.5904086|  0.8196052|      0.0836770|            329|               4898|       407|          4713|two-stage |
 |No comorbidity                                      |  0.5989539| 0.4753645|  0.7546750|      0.1179117|            160|               2685|       223|          2626|two-stage |
 |One comorbidity                                     |  0.8536674| 0.6908897|  1.0547964|      0.1079415|            243|               1952|       247|          1858|two-stage |
 |Multiple comorbidities                              |  0.7256871| 0.5942911|  0.8861343|      0.1019149|            342|               1780|       329|          1579|two-stage |
@@ -8807,7 +8809,7 @@ ggplot(proportions, aes(x = proportion, y = aesi, color = Group, shape = Group))
   geom_point(size = 2.5) +
   labs(x = "Proportion (%)", y = NULL) +
   theme_minimal() + 
-  scale_x_continuous(breaks = seq(0, 5, by = 0.5)) +
+  scale_x_continuous(breaks = seq(0, 6, by = 0.5)) +
   theme(axis.text.y = element_text(size = 10),
         axis.title.x = element_text(size = 9))
 ```
