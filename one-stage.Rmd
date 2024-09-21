@@ -233,7 +233,11 @@ df_tot <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib,
 
 # Save
 # saveRDS(df_tot, file = "df_tot.RData")
-# write_xlsx(df_tot, path = "df_tot.xlsx")
+
+# Save for MFPI
+# df_tot_mfpi <- rbind(df_barisolidact, df_actt2, df_ghazaeian, df_tofacov, df_covinib, df_covbarrier, df_recovery, df_tactic_r, df_pancovid, df_stopcovid) # exclude ruxcovid-devent
+
+write_xlsx(df_tot, path = "df_tot_mfpi.xlsx")
 # saveRDS(df_tot_Muru, file = "df_tot_Muru.RData")
 
 ```
@@ -1376,7 +1380,7 @@ df_long$clinstatus_baseline_n <- as.numeric(df_long$clinstatus_baseline)
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 5
+R <- 500
 
 # need to do this by group individually
 
@@ -2526,15 +2530,15 @@ Similarly, ordinal covariates (detailed respiratory support, comorbidities) were
 ## https://training.cochrane.org/handbook/current/chapter-14#section-14-1-5-2
 
 # All-cause mortality at day 28, no. (%)
-# intervention: 667/6159 (10.8)
-# control: 764/5916 (12.9)
-# aOR 0.71 (0.58 to 0.87), p = 0.004
+# intervention: 755/6465 (11.7)
+# control: 805/6108 (13.2)
+# aOR 0.67 (0.55 to 0.82), p = 0.001
 
 # assumed comparator risk (ACR) based on control group of the IPDMA dataset
-acr <- 764/5916
+acr <- 805/6108
 # acr <- 0.0181 # OpenSAFELY 28-day in-hospital mortality rate for 2023
 # corresponding intervention risk per 1000
-or <- c(0.71)
+or <- c(0.67)
 
 1000*(or*acr/(1-acr+(or*acr)))
 
@@ -2545,19 +2549,19 @@ or <- c(0.71)
 1/(acr-(or*acr/(1-acr+(or*acr))))
 
 # 95% CI for number fewer per 1000
-ll <- c(0.58)
+ll <- c(0.55)
 1000*(acr-(ll*acr/(1-acr+(ll*acr))))
 
-ul <- c(0.87)
+ul <- c(0.82)
 1000*(acr-(ul*acr/(1-acr+(ul*acr))))
 
 
 # New MV death by day 28, no. (%)
-# aOR 0.81 (0.74-0.90)
+# aOR 0.80 (0.72-0.89)
 # assumed comparator risk (ACR) based on control group of the IPDMA dataset
-acr <- 1113/5952
+acr <- 1163/6144
 # corresponding intervention risk per 1000
-or <- c(0.81)
+or <- c(0.80)
 
 1000*(or*acr/(1-acr+(or*acr)))
 
@@ -2568,19 +2572,19 @@ or <- c(0.81)
 1/(acr-(or*acr/(1-acr+(or*acr))))
 
 # 95% CI for number fewer per 1000
-ll <- c(0.74)
+ll <- c(0.72)
 1000*(acr-(ll*acr/(1-acr+(ll*acr))))
 
-ul <- c(0.90)
+ul <- c(0.89)
 1000*(acr-(ul*acr/(1-acr+(ul*acr))))
 
 
 # AEs by day 28, no. (%)
-# aOR 0.95 (0.84-1.07)
+# aOR 0.90 (0.83-0.97)
 # assumed comparator risk (ACR) based on control group of the IPDMA dataset
-acr <- 697/5210
+acr <- 1047/6255 
 # corresponding intervention risk per 1000
-or <- c(0.95)
+or <- c(0.90)
 
 1000*(or*acr/(1-acr+(or*acr)))
 
@@ -2591,20 +2595,20 @@ or <- c(0.95)
 1/(acr-(or*acr/(1-acr+(or*acr))))
 
 # 95% CI for number fewer per 1000
-ll <- c(0.84)
+ll <- c(0.83)
 1000*(acr-(ll*acr/(1-acr+(ll*acr))))
 
-ul <- c(1.07)
+ul <- c(0.97)
 1000*(acr-(ul*acr/(1-acr+(ul*acr))))
 
 
 #### time-to-event outcomes
 ### Time to death within 60d
 
-## aHR 0.78 (0.67 to 0.91)
+## aHR 0.73 (0.61 to 0.86)
 df_tot %>%
-  filter(trt == 0) %>% 
-  # filter(death_reached_60 == 1) %>%
+  filter(trt == 1) %>% 
+  filter(death_reached_60 == 1) %>%
   summarise(median = median(death_time_60),
             IQR = IQR(death_time_60),
             Q1 = quantile(death_time_60, probs = 0.25),
@@ -2612,9 +2616,9 @@ df_tot %>%
 
 ## median time to event in control, in days / and HR with ll and ul
 median.c <- 11
-hr <- c(0.78)
-ll <- c(0.67)
-ul <- c(0.91)
+hr <- c(0.73)
+ll <- c(0.61)
+ul <- c(0.86)
 # corresponding median time to event in intervention
 m.i <- median.c/hr
 m.i
@@ -2630,20 +2634,20 @@ m.i_ul+median.c
 
 ### Time to discharge within 28d
 
-## aHR 1.10 (1.05 to 1.15)
+## aHR 1.11 (1.06 to 1.16)
 df_tot %>%
   filter(trt == 0) %>% 
-  # filter(discharge_reached == 1) %>% 
+  filter(discharge_reached == 1) %>% 
   summarise(median = median(discharge_time),
             IQR = IQR(discharge_time),
             Q1 = quantile(discharge_time, probs = 0.25),
             Q3 = quantile(discharge_time, probs = 0.75))
 
 ## median time to event in control, in days / and HR with ll and ul
-median.c <- 8
-hr <- c(1.10)
-ll <- c(1.05)
-ul <- c(1.15)
+median.c <- 7
+hr <- c(1.11)
+ll <- c(1.06)
+ul <- c(1.16)
 # corresponding median time to event in intervention
 m.i <- median.c/hr
 m.i
@@ -2658,11 +2662,11 @@ m.i_ul
 
 ## NNT
 # assumed comparator risk (ACR) based on control group of the IPDMA dataset
-acr <- 4664/6063 # see ordinal score
-acr <- 0.02
-hr <- c(1.10)
-ll <- c(1.05)
-ul <- c(1.15)
+acr <- 4664/6208 # see ordinal score
+# acr <- 0.02
+hr <- c(1.11)
+ll <- c(1.06)
+ul <- c(1.16)
 # NNT for discharge at day 28
 nnt <- 1/((acr^hr)-acr)
 nnt

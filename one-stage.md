@@ -5026,7 +5026,7 @@ df_long$clinstatus_baseline_n <- as.numeric(df_long$clinstatus_baseline)
 # Construct adjusted parametric cumulative incidence (risk) curves, based on pooled log reg, and adjust for baseline covariates (as primary analysis) # using IPW, including 95% CIs, using bootstrapping
 
 # set the bootstrap R
-R <- 5
+R <- 500
 
 # need to do this by group individually
 
@@ -6322,36 +6322,36 @@ summary(comorb.mort28)
 ## 
 ## Conditional model:
 ##  Groups    Name                  Variance Std.Dev.
-##  trial_f   trt_centered_n        0.03942  0.1986  
-##  trial_f.1 clinstatus_baseline_n 0.67945  0.8243  
+##  trial_f   trt_centered_n        0.03942  0.1985  
+##  trial_f.1 clinstatus_baseline_n 0.67950  0.8243  
 ## Number of obs: 11940, groups:  trial_f, 10
 ## 
 ## Conditional model:
 ##                              Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                -8.369638   0.702571 -11.913  < 2e-16 ***
-## trial_fBari-Solidact        -5.756905   1.813127  -3.175 0.001498 ** 
-## trial_fCOV-BARRIER          -7.571256   0.443033 -17.090  < 2e-16 ***
-## trial_fCOVINIB              -6.153812   2.463245  -2.498 0.012481 *  
-## trial_fGhazaeian            -3.853416   2.396843  -1.608 0.107900    
-## trial_fPANCOVID             -6.715309   1.948568  -3.446 0.000568 ***
-## trial_fRECOVERY             -6.895737   0.231462 -29.792  < 2e-16 ***
-## trial_fSTOP-COVID           -6.364919   1.448281  -4.395 1.11e-05 ***
-## trial_fTACTIC-R             -7.292147   1.326639  -5.497 3.87e-08 ***
-## trial_fTOFACOV              -6.498812   2.670261  -2.434 0.014942 *  
+## trial_fACTT2                -8.369667   0.702572 -11.913  < 2e-16 ***
+## trial_fBari-Solidact        -5.756434   1.813139  -3.175 0.001499 ** 
+## trial_fCOV-BARRIER          -7.571263   0.443033 -17.090  < 2e-16 ***
+## trial_fCOVINIB              -6.153821   2.463291  -2.498 0.012482 *  
+## trial_fGhazaeian            -3.853717   2.396924  -1.608 0.107884    
+## trial_fPANCOVID             -6.715674   1.948656  -3.446 0.000568 ***
+## trial_fRECOVERY             -6.895748   0.231462 -29.792  < 2e-16 ***
+## trial_fSTOP-COVID           -6.364960   1.448293  -4.395 1.11e-05 ***
+## trial_fTACTIC-R             -7.292294   1.326658  -5.497 3.87e-08 ***
+## trial_fTOFACOV              -6.499013   2.670342  -2.434 0.014942 *  
 ## age_cent_trial_1             0.077431   0.018744   4.131 3.61e-05 ***
-## age_cent_trial_2             0.051373   0.010671   4.814 1.48e-06 ***
-## age_cent_trial_3             0.022349   0.025633   0.872 0.383278    
-## age_cent_trial_4             0.056315   0.093926   0.600 0.548796    
-## age_cent_trial_5             0.115406   0.091018   1.268 0.204820    
-## age_cent_trial_6             0.060219   0.007051   8.540  < 2e-16 ***
+## age_cent_trial_2             0.051372   0.010671   4.814 1.48e-06 ***
+## age_cent_trial_3             0.022349   0.025633   0.872 0.383268    
+## age_cent_trial_4             0.056315   0.093928   0.600 0.548800    
+## age_cent_trial_5             0.115404   0.091018   1.268 0.204824    
+## age_cent_trial_6             0.060218   0.007051   8.540  < 2e-16 ***
 ## age_cent_trial_7             0.072170   0.003122  23.116  < 2e-16 ***
 ## age_cent_trial_8             0.095122   0.019814   4.801 1.58e-06 ***
-## age_cent_trial_9             0.140643   0.052113   2.699 0.006959 ** 
-## age_cent_trial_10            0.075576   0.025995   2.907 0.003645 ** 
+## age_cent_trial_9             0.140645   0.052114   2.699 0.006959 ** 
+## age_cent_trial_10            0.075574   0.025995   2.907 0.003646 ** 
 ## age_cent_trial_11                  NA         NA      NA       NA    
-## trt_centered_n              -0.831764   0.244696  -3.399 0.000676 ***
-## comorb_cat_n                 0.398199   0.042440   9.383  < 2e-16 ***
-## trt_centered_n:comorb_cat_n  0.177041   0.081931   2.161 0.030706 *  
+## trt_centered_n              -0.831763   0.244696  -3.399 0.000676 ***
+## comorb_cat_n                 0.398202   0.042440   9.383  < 2e-16 ***
+## trt_centered_n:comorb_cat_n  0.177042   0.081931   2.161 0.030705 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -6411,35 +6411,35 @@ summary(comorb.count.mort28)
 ## Conditional model:
 ##  Groups    Name                  Variance Std.Dev.
 ##  trial_f   trt_centered_n        0.03639  0.1908  
-##  trial_f.1 clinstatus_baseline_n 0.68723  0.8290  
+##  trial_f.1 clinstatus_baseline_n 0.68725  0.8290  
 ## Number of obs: 11933, groups:  trial_f, 10
 ## 
 ## Conditional model:
 ##                              Estimate Std. Error z value Pr(>|z|)    
-## trial_fACTT2                -8.104281   0.704504 -11.504  < 2e-16 ***
-## trial_fBari-Solidact        -5.017318   1.826195  -2.747  0.00601 ** 
-## trial_fCOV-BARRIER          -7.142234   0.437559 -16.323  < 2e-16 ***
-## trial_fCOVINIB              -5.700953   2.478646  -2.300  0.02145 *  
-## trial_fGhazaeian            -3.363116   2.410388  -1.395  0.16294    
-## trial_fPANCOVID             -6.191133   1.960919  -3.157  0.00159 ** 
-## trial_fRECOVERY             -6.424499   0.217824 -29.494  < 2e-16 ***
-## trial_fSTOP-COVID           -5.895654   1.441675  -4.089 4.32e-05 ***
-## trial_fTACTIC-R             -7.003435   1.337565  -5.236 1.64e-07 ***
-## trial_fTOFACOV              -6.007774   2.676727  -2.244  0.02480 *  
-## age_cent_trial_1             0.078693   0.018973   4.148 3.36e-05 ***
+## trial_fACTT2                -8.104315   0.704507 -11.504  < 2e-16 ***
+## trial_fBari-Solidact        -5.017006   1.826198  -2.747  0.00601 ** 
+## trial_fCOV-BARRIER          -7.142238   0.437559 -16.323  < 2e-16 ***
+## trial_fCOVINIB              -5.700999   2.478687  -2.300  0.02145 *  
+## trial_fGhazaeian            -3.363200   2.410426  -1.395  0.16293    
+## trial_fPANCOVID             -6.191441   1.960986  -3.157  0.00159 ** 
+## trial_fRECOVERY             -6.424498   0.217824 -29.494  < 2e-16 ***
+## trial_fSTOP-COVID           -5.895572   1.441672  -4.089 4.32e-05 ***
+## trial_fTACTIC-R             -7.003459   1.337570  -5.236 1.64e-07 ***
+## trial_fTOFACOV              -6.007769   2.676761  -2.244  0.02481 *  
+## age_cent_trial_1             0.078691   0.018973   4.148 3.36e-05 ***
 ## age_cent_trial_2             0.048732   0.010774   4.523 6.09e-06 ***
-## age_cent_trial_3             0.020442   0.025338   0.807  0.41979    
-## age_cent_trial_4             0.057500   0.093877   0.613  0.54020    
-## age_cent_trial_5             0.109507   0.090221   1.214  0.22484    
+## age_cent_trial_3             0.020442   0.025338   0.807  0.41980    
+## age_cent_trial_4             0.057503   0.093877   0.613  0.54019    
+## age_cent_trial_5             0.109511   0.090222   1.214  0.22483    
 ## age_cent_trial_6             0.058540   0.007120   8.222  < 2e-16 ***
 ## age_cent_trial_7             0.073395   0.003089  23.760  < 2e-16 ***
-## age_cent_trial_8             0.091032   0.020162   4.515 6.33e-06 ***
-## age_cent_trial_9             0.136620   0.051574   2.649  0.00807 ** 
-## age_cent_trial_10            0.076815   0.026136   2.939  0.00329 ** 
+## age_cent_trial_8             0.091031   0.020162   4.515 6.33e-06 ***
+## age_cent_trial_9             0.136622   0.051574   2.649  0.00807 ** 
+## age_cent_trial_10            0.076816   0.026136   2.939  0.00329 ** 
 ## age_cent_trial_11                  NA         NA      NA       NA    
-## trt_centered_n              -0.566849   0.180419  -3.142  0.00168 ** 
+## trt_centered_n              -0.566853   0.180420  -3.142  0.00168 ** 
 ## comorb_count                 0.285364   0.030912   9.231  < 2e-16 ***
-## trt_centered_n:comorb_count  0.085869   0.059992   1.431  0.15233    
+## trt_centered_n:comorb_count  0.085870   0.059991   1.431  0.15232    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```

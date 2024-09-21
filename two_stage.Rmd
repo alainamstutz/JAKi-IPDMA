@@ -4335,7 +4335,7 @@ mort_28_ci_lower <- result_df$ci_lower[1]
 mort_28_ci_upper <- result_df$ci_upper[1]
 
 # ...and ICEMAN assessments
-iceman <- c("not assessed", "", "", "", "moderate credibility", "", "low credibility", "", "", "", "not assessed", "", "", "", "not assessed", "", "", "not assessed", "")
+iceman <- c("not assessed", "", "", "", "moderate credibility", "", "not assessed", "", "", "", "not assessed", "", "", "", "not assessed", "", "", "not assessed", "")
 
 # build forestplot
 base_data <- tibble(mean = subgroup_df$odds_ratio,
