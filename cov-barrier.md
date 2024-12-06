@@ -5271,6 +5271,90 @@ summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 
+# Assess poisson distribution and if overdispersion, change to negative binomial)
+
+```r
+# Residuals
+deviance_residuals <- residuals(ae.28.sev, type = "deviance")
+pearson_residuals <- residuals(ae.28.sev, type = "pearson")
+
+# Residual Plots
+par(mfrow = c(2, 2))  # Plot layout
+
+# Deviance residuals vs fitted values
+plot(fitted(ae.28.sev), deviance_residuals, main = "Deviance Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Deviance Residuals")
+abline(h = 0, col = "red")
+
+# Pearson residuals vs fitted values
+plot(fitted(ae.28.sev), pearson_residuals, main = "Pearson Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Pearson Residuals")
+abline(h = 0, col = "blue")
+
+# QQ plot for residuals
+qqnorm(deviance_residuals, main = "QQ Plot for Deviance Residuals")
+qqline(deviance_residuals, col = "red")
+
+# Histogram of residuals
+hist(deviance_residuals, breaks = 20, main = "Histogram of Deviance Residuals",
+     xlab = "Deviance Residuals")
+```
+
+![](cov-barrier_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+
+```r
+# Fit the negative binomial model, otherwise using the same model structure
+library(glmmTMB)
+```
+
+```
+## Warning in checkDepPackageVersion(dep_pkg = "TMB"): Package version inconsistency detected.
+## glmmTMB was built with TMB version 1.9.6
+## Current TMB version is 1.9.4
+## Please re-install glmmTMB from source or restore original 'TMB' package (see '?reinstalling' for more information)
+```
+
+```r
+ae.28.sev <- df %>% 
+  glmmTMB(ae_28_sev ~ trt 
+      + age + clinstatus_baseline
+      , family = "nbinom2", data=.)
+summary(ae.28.sev)
+```
+
+```
+##  Family: nbinom2  ( log )
+## Formula:          ae_28_sev ~ trt + age + clinstatus_baseline
+## Data: .
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##   3662.8   3700.5  -1824.4   3648.8     1612 
+## 
+## 
+## Dispersion parameter for nbinom2 family (): 0.43 
+## 
+## Conditional model:
+##                       Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)          -2.529461   0.273217  -9.258  < 2e-16 ***
+## trt                  -0.003194   0.098820  -0.032    0.974    
+## age                   0.030399   0.003772   8.058 7.75e-16 ***
+## clinstatus_baseline3  0.063443   0.171529   0.370    0.711    
+## clinstatus_baseline4  0.892237   0.183024   4.875 1.09e-06 ***
+## clinstatus_baseline5  1.762976   0.228573   7.713 1.23e-14 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+# tab_model(ae.28.sev)
+# tab_model(ae.28.sev.nb)
+
+# Compare models
+# cat("Poisson AIC:", AIC(ae.28.sev), "\n")
+# cat("Negative Binomial AIC:", AIC(ae.28.sev.nb), "\n")
+```
+Overdispersion detected => changed from Poisson to neg binomial
+
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
 ```r
@@ -9075,6 +9159,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont, e_int, e_co
     ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
     se <- model$std.error[2]
     p_value <- model$p.value[2]
+  } else if (inherits(model, "glmmTMB")) {
+    trt_coef <- confint(model)["trt", "Estimate"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(confint(model)["trt", "2.5 %"]), exp(confint(model)["trt", "97.5 %"]))
+    se <- summary(model)$coefficients$cond["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients$cond["trt", "Pr(>|z|)"]
   } else {
     stop("Unsupported model class")
   }
@@ -9220,7 +9310,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt13 |viral clearance until day 10               |         0.9903239|  0.7700322|  1.2737250|      0.1283352| 0.9396065|   538|    522|   205|    201|COV-BARRIER |Baricitinib |
 |trt14 |viral clearance until day 15               |         0.9717344|  0.7629677|  1.2375794|      0.1233524| 0.8161915|   551|    545|   255|    257|COV-BARRIER |Baricitinib |
 |trt15 |Any AE grade 3,4 within 28 days            |         0.8702023|  0.6917067|  1.0942340|      0.1169506| 0.2345228|   815|    811|   252|    270|COV-BARRIER |Baricitinib |
-|trt16 |AEs grade 3,4 within 28 days               |         1.0414037|  0.9359631|  1.1588239|      0.0544738| 0.4564218|   815|    811|    NA|     NA|COV-BARRIER |Baricitinib |
+|1     |AEs grade 3,4 within 28 days               |         0.9968116|  0.8212915|  1.2098424|      0.0988200| 0.9742195|   815|    811|    NA|     NA|COV-BARRIER |Baricitinib |
 
 ```r
 # Save

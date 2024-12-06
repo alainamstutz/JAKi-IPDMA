@@ -1667,6 +1667,89 @@ summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 
+# Assess poisson distribution and if overdispersion, change to negative binomial)
+
+```r
+# Residuals
+deviance_residuals <- residuals(ae.28.sev, type = "deviance")
+pearson_residuals <- residuals(ae.28.sev, type = "pearson")
+
+# Residual Plots
+par(mfrow = c(2, 2))  # Plot layout
+
+# Deviance residuals vs fitted values
+plot(fitted(ae.28.sev), deviance_residuals, main = "Deviance Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Deviance Residuals")
+abline(h = 0, col = "red")
+
+# Pearson residuals vs fitted values
+plot(fitted(ae.28.sev), pearson_residuals, main = "Pearson Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Pearson Residuals")
+abline(h = 0, col = "blue")
+
+# QQ plot for residuals
+qqnorm(deviance_residuals, main = "QQ Plot for Deviance Residuals")
+qqline(deviance_residuals, col = "red")
+
+# Histogram of residuals
+hist(deviance_residuals, breaks = 20, main = "Histogram of Deviance Residuals",
+     xlab = "Deviance Residuals")
+```
+
+![](stopcovid_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+
+```r
+# Fit the negative binomial model, otherwise using the same model structure
+library(glmmTMB)
+```
+
+```
+## Warning in checkDepPackageVersion(dep_pkg = "TMB"): Package version inconsistency detected.
+## glmmTMB was built with TMB version 1.9.6
+## Current TMB version is 1.9.4
+## Please re-install glmmTMB from source or restore original 'TMB' package (see '?reinstalling' for more information)
+```
+
+```r
+ae.28.sev <- df %>% 
+  glmmTMB(ae_28_sev ~ trt 
+      + age + clinstatus_baseline
+      , family = "nbinom2", data=.)
+summary(ae.28.sev)
+```
+
+```
+##  Family: nbinom2  ( log )
+## Formula:          ae_28_sev ~ trt + age + clinstatus_baseline
+## Data: .
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##      410      432     -199      398      283 
+## 
+## 
+## Dispersion parameter for nbinom2 family (): 0.41 
+## 
+## Conditional model:
+##                      Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)          -3.16962    0.75418  -4.203 2.64e-05 ***
+## trt                   0.57050    0.29137   1.958   0.0502 .  
+## age                   0.02525    0.01082   2.334   0.0196 *  
+## clinstatus_baseline3  0.19169    0.35706   0.537   0.5914    
+## clinstatus_baseline4  0.71962    0.49080   1.466   0.1426    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+# tab_model(ae.28.sev)
+# tab_model(ae.28.sev.nb)
+
+# Compare models
+# cat("Poisson AIC:", AIC(ae.28.sev), "\n")
+# cat("Negative Binomial AIC:", AIC(ae.28.sev.nb), "\n")
+```
+Overdispersion detected => changed from Poisson to neg binomial
+
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
 ```r
@@ -4500,6 +4583,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont, e_int, e_co
     ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
     se <- model$std.error[2]
     p_value <- model$p.value[2]
+  } else if (inherits(model, "glmmTMB")) {
+    trt_coef <- confint(model)["trt", "Estimate"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(confint(model)["trt", "2.5 %"]), exp(confint(model)["trt", "97.5 %"]))
+    se <- summary(model)$coefficients$cond["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients$cond["trt", "Pr(>|z|)"]
   } else {
     stop("Unsupported model class")
   }
@@ -4642,7 +4731,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt10 |discharge within 28 days, death=hypo.event |         1.2670038|  0.9930710| 1.6164995|      0.1242921| 0.0569073|   144|    145|   134|    129|STOP-COVID |Tofacitinib |
 |trt11 |sustained discharge within 28 days         |         1.1596379|  0.9097293| 1.4781981|      0.1238370| 0.2317003|   144|    145|   134|    129|STOP-COVID |Tofacitinib |
 |trt12 |Any AE grade 3,4 within 28 days            |         1.2954502|  0.7260883| 2.3271217|      0.2960734| 0.3819526|   144|    145|    32|     27|STOP-COVID |Tofacitinib |
-|trt13 |AEs grade 3,4 within 28 days               |         1.7165679|  1.1285958| 2.6509672|      0.2170154| 0.0127812|   144|    145|    NA|     NA|STOP-COVID |Tofacitinib |
+|1     |AEs grade 3,4 within 28 days               |         1.7691525|  0.9994262| 3.1316975|      0.2913699| 0.0502307|   144|    145|    NA|     NA|STOP-COVID |Tofacitinib |
 
 ```r
 # Save

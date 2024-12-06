@@ -283,7 +283,7 @@ table(df$ae_28, df$trt, useNA = "always")
 ```
 
 ```r
-# table(df$ae_28, df$mort_28, useNA = "always") # corresponds to publication and excludes the death
+# table(df$ae_28, df$mort_28, useNA = "always") # corresponds to publication
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
 df$ae_28_sev <- df$ae_28 # there were only 1 AE grade 3/4 per person 
@@ -2718,6 +2718,97 @@ summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+# Assess poisson distribution and if overdispersion, change to negative binomial)
+
+```r
+# Residuals
+deviance_residuals <- residuals(ae.28.sev, type = "deviance")
+pearson_residuals <- residuals(ae.28.sev, type = "pearson")
+
+# Residual Plots
+par(mfrow = c(2, 2))  # Plot layout
+
+# Deviance residuals vs fitted values
+plot(fitted(ae.28.sev), deviance_residuals, main = "Deviance Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Deviance Residuals")
+abline(h = 0, col = "red")
+
+# Pearson residuals vs fitted values
+plot(fitted(ae.28.sev), pearson_residuals, main = "Pearson Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Pearson Residuals")
+abline(h = 0, col = "blue")
+
+# QQ plot for residuals
+qqnorm(deviance_residuals, main = "QQ Plot for Deviance Residuals")
+qqline(deviance_residuals, col = "red")
+
+# Histogram of residuals
+hist(deviance_residuals, breaks = 20, main = "Histogram of Deviance Residuals",
+     xlab = "Deviance Residuals")
+```
+
+![](tofacov_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+
+```r
+# Fit the negative binomial model, otherwise using the same model structure
+library(glmmTMB)
+```
+
+```
+## Warning in checkDepPackageVersion(dep_pkg = "TMB"): Package version inconsistency detected.
+## glmmTMB was built with TMB version 1.9.6
+## Current TMB version is 1.9.4
+## Please re-install glmmTMB from source or restore original 'TMB' package (see '?reinstalling' for more information)
+```
+
+```r
+ae.28.sev <- df %>% 
+  glmmTMB(ae_28_sev ~ trt 
+      + age + clinstatus_baseline
+      , family = "nbinom2", data=.)
+```
+
+```
+## Warning in finalizeTMB(TMBStruc, obj, fit, h, data.tmb.old): Model convergence
+## problem; false convergence (8). See vignette('troubleshooting'),
+## help('diagnose')
+```
+
+```r
+summary(ae.28.sev)
+```
+
+```
+##  Family: nbinom2  ( log )
+## Formula:          ae_28_sev ~ trt + age + clinstatus_baseline
+## Data: .
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##    113.1    126.9    -51.6    103.1      111 
+## 
+## 
+## Dispersion parameter for nbinom2 family (): 7.68e+07 
+## 
+## Conditional model:
+##                      Estimate Std. Error z value Pr(>|z|)   
+## (Intercept)           0.55995    1.11535   0.502   0.6156   
+## trt                  -0.25102    0.44030  -0.570   0.5686   
+## age                  -0.05923    0.01842  -3.215   0.0013 **
+## clinstatus_baseline3  1.31796    0.74488   1.769   0.0768 . 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+# tab_model(ae.28.sev)
+# tab_model(ae.28.sev.nb)
+
+# Compare models
+# cat("Poisson AIC:", AIC(ae.28.sev), "\n")
+# cat("Negative Binomial AIC:", AIC(ae.28.sev.nb), "\n")
+```
+Overdispersion detected => changed from Poisson to neg binomial
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -5245,6 +5336,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont, e_int, e_co
     ci <- c(model$lower, model$upper)
     se <- model$SE
     p_value <- model$p
+  } else if (inherits(model, "glmmTMB")) {
+    trt_coef <- confint(model)["trt", "Estimate"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(confint(model)["trt", "2.5 %"]), exp(confint(model)["trt", "97.5 %"]))
+    se <- summary(model)$coefficients$cond["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients$cond["trt", "Pr(>|z|)"]
   } else {
     stop("Unsupported model class")
   }
@@ -5432,7 +5529,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt9  |discharge within 28 days, death=hypo.event |         1.2836003|  0.8804226|  1.871408e+00|      0.1923618| 0.1943172|    58|     58|    56|     54|TOFACOV |Tofacitinib |
 |trt10 |sustained discharge within 28 days         |         1.2836003|  0.8804226|  1.871408e+00|      0.1923618| 0.1943172|    58|     58|    56|     54|TOFACOV |Tofacitinib |
 |trt11 |any AE grade 3,4 within 28 days            |         0.6936245|  0.2408177|  1.956966e+00|      0.5287298| 0.4890045|    58|     58|     9|     13|TOFACOV |Tofacitinib |
-|trt12 |AEs grade 3,4 within 28 days               |         0.6936245|  0.2408177|  1.956966e+00|      0.5287298| 0.4890045|    58|     58|    NA|     NA|TOFACOV |Tofacitinib |
+|11    |AEs grade 3,4 within 28 days               |         0.7780074|  0.3282442|  1.844040e+00|      0.4403031| 0.5686060|    58|     58|    NA|     NA|TOFACOV |Tofacitinib |
 
 ```r
 # Save

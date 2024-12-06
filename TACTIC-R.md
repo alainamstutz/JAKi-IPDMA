@@ -3730,39 +3730,126 @@ table(df$ae_28_sev, df$trt, useNA = "always")
 ```
 
 ```r
-ae.28.sev.firth <- df %>% 
-  logistf(ae_28_sev ~ trt 
+ae.28.sev <- df %>% 
+  glm(ae_28_sev ~ trt 
       + age + clinstatus_baseline 
       , family = "poisson", data=.)
-summary(ae.28.sev.firth)
+summary(ae.28.sev)
 ```
 
 ```
-## logistf(formula = ae_28_sev ~ trt + age + clinstatus_baseline, 
-##     data = ., family = "poisson")
 ## 
-## Model fitted by Penalized ML
+## Call:
+## glm(formula = ae_28_sev ~ trt + age + clinstatus_baseline, family = "poisson", 
+##     data = .)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.4068  -0.8202  -0.6348  -0.2997   4.0276  
+## 
 ## Coefficients:
-##                             coef   se(coef)  lower 0.95 upper 0.95       Chisq
-## (Intercept)          -6.78215741 1.18695734 -9.27323247 -4.5346617 39.57529979
-## trt                   0.27920918 0.28088704 -0.27366853  0.8343912  0.98138355
-## age                   0.08655261 0.01366255  0.06069874  0.1149448 51.96575592
-## clinstatus_baseline3  0.17741371 0.69883909 -1.17994948  1.6441322  0.06301488
-## clinstatus_baseline4  1.00410544 0.70081436 -0.35014364  2.4817266  2.08998757
-## clinstatus_baseline5 -2.02726977 1.74658294 -7.13334779  1.1682608  1.50876464
-##                                 p method
-## (Intercept)          3.156505e-10      2
-## trt                  3.218575e-01      2
-## age                  5.647705e-13      2
-## clinstatus_baseline3 8.017927e-01      2
-## clinstatus_baseline4 1.482673e-01      2
-## clinstatus_baseline5 2.193277e-01      2
+##                       Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)           -4.63376    0.83724  -5.535 3.12e-08 ***
+## trt                    0.16140    0.20715   0.779    0.436    
+## age                    0.04892    0.00887   5.515 3.49e-08 ***
+## clinstatus_baseline3   0.09682    0.53622   0.181    0.857    
+## clinstatus_baseline4   0.54866    0.52759   1.040    0.298    
+## clinstatus_baseline5 -14.50960  862.87421  -0.017    0.987    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Method: 1-Wald, 2-Profile penalized log-likelihood, 3-None
+## (Dispersion parameter for poisson family taken to be 1)
 ## 
-## Likelihood ratio test=60.74029 on 5 df, p=8.545054e-12, n=282
-## Wald test = 58.4901 on 5 df, p = 2.492051e-11
+##     Null deviance: 303.08  on 281  degrees of freedom
+## Residual deviance: 264.22  on 276  degrees of freedom
+## AIC: 424.72
+## 
+## Number of Fisher Scoring iterations: 13
 ```
+
+# Assess poisson distribution and if overdispersion, change to negative binomial)
+
+```r
+# Residuals
+deviance_residuals <- residuals(ae.28.sev, type = "deviance")
+pearson_residuals <- residuals(ae.28.sev, type = "pearson")
+
+# Residual Plots
+par(mfrow = c(2, 2))  # Plot layout
+
+# Deviance residuals vs fitted values
+plot(fitted(ae.28.sev), deviance_residuals, main = "Deviance Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Deviance Residuals")
+abline(h = 0, col = "red")
+
+# Pearson residuals vs fitted values
+plot(fitted(ae.28.sev), pearson_residuals, main = "Pearson Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Pearson Residuals")
+abline(h = 0, col = "blue")
+
+# QQ plot for residuals
+qqnorm(deviance_residuals, main = "QQ Plot for Deviance Residuals")
+qqline(deviance_residuals, col = "red")
+
+# Histogram of residuals
+hist(deviance_residuals, breaks = 20, main = "Histogram of Deviance Residuals",
+     xlab = "Deviance Residuals")
+```
+
+![](TACTIC-R_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
+
+```r
+# Fit the negative binomial model, otherwise using the same model structure
+library(glmmTMB)
+```
+
+```
+## Warning in checkDepPackageVersion(dep_pkg = "TMB"): Package version inconsistency detected.
+## glmmTMB was built with TMB version 1.9.6
+## Current TMB version is 1.9.4
+## Please re-install glmmTMB from source or restore original 'TMB' package (see '?reinstalling' for more information)
+```
+
+```r
+ae.28.sev <- df %>% 
+  glmmTMB(ae_28_sev ~ trt 
+      + age + clinstatus_baseline
+      , family = "nbinom2", data=.)
+summary(ae.28.sev)
+```
+
+```
+##  Family: nbinom2  ( log )
+## Formula:          ae_28_sev ~ trt + age + clinstatus_baseline
+## Data: .
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##    413.5    439.0   -199.7    399.5      275 
+## 
+## 
+## Dispersion parameter for nbinom2 family (): 1.01 
+## 
+## Conditional model:
+##                        Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)            -4.74995    1.00932  -4.706 2.53e-06 ***
+## trt                     0.17960    0.24676   0.728    0.467    
+## age                     0.04933    0.01072   4.603 4.17e-06 ***
+## clinstatus_baseline3    0.17042    0.63998   0.266    0.790    
+## clinstatus_baseline4    0.64000    0.63363   1.010    0.312    
+## clinstatus_baseline5  -17.74002 7453.19808  -0.002    0.998    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+# tab_model(ae.28.sev)
+# tab_model(ae.28.sev.nb)
+
+# Compare models
+# cat("Poisson AIC:", AIC(ae.28.sev), "\n")
+# cat("Negative Binomial AIC:", AIC(ae.28.sev.nb), "\n")
+```
+Overdispersion detected => changed from Poisson to neg binomial
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -7564,6 +7651,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont, e_int, e_co
     ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
     se <- sqrt(diag(vcov(model)))["trt"]
     p_value <- model$prob["trt"]
+  } else if (inherits(model, "glmmTMB")) {
+    trt_coef <- confint(model)["trt", "Estimate"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(confint(model)["trt", "2.5 %"]), exp(confint(model)["trt", "97.5 %"]))
+    se <- summary(model)$coefficients$cond["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients$cond["trt", "Pr(>|z|)"]
   } else {
     stop("Unsupported model class")
   }
@@ -7671,7 +7764,7 @@ result_list[[17]] <- extract_trt_results(ae.28, "Any AE grade 3,4 within 28 days
                                          addmargins(table(df$ae_28, df$trt))[3,1],
                                          addmargins(table(df$ae_28, df$trt))[2,2], 
                                          addmargins(table(df$ae_28, df$trt))[2,1])
-result_list[[18]] <- extract_trt_results(ae.28.sev.firth, "AEs grade 3,4 within 28 days",
+result_list[[18]] <- extract_trt_results(ae.28.sev, "AEs grade 3,4 within 28 days",
                                          addmargins(table(df$ae_28_sev, df$trt))[7,2], 
                                          addmargins(table(df$ae_28_sev, df$trt))[7,1],
                                          NA,
@@ -7709,7 +7802,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt13 |viral clearance until day 10               |         0.8137138|  0.2763189| 2.3841343|      0.5455649| 0.7055353|    34|     30|    13|     13|TACTIC-R |Baricitinib |
 |trt14 |viral clearance until day 15               |         0.9679081|  0.3419839| 2.7433679|      0.5277283| 0.9507152|    34|     31|    15|     14|TACTIC-R |Baricitinib |
 |trt15 |Any AE grade 3,4 within 28 days            |         1.1283082|  0.6242726| 2.0415061|      0.3013016| 0.6886709|   137|    145|    36|     31|TACTIC-R |Baricitinib |
-|trt16 |AEs grade 3,4 within 28 days               |         1.3220839|  0.7605841| 2.3034114|      0.2808870| 0.3218575|   137|    145|    NA|     NA|TACTIC-R |Baricitinib |
+|1     |AEs grade 3,4 within 28 days               |         1.1967367|  0.7378365| 1.9410516|      0.2467553| 0.4667114|   137|    145|    NA|     NA|TACTIC-R |Baricitinib |
 
 ```r
 # Save

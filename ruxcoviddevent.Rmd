@@ -740,13 +740,56 @@ ae.28 <- df %>%
 summ(ae.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
-# table(df$ae_28_sev, df$trt, useNA = "always")
+table(df$ae_28_sev, df$trt, useNA = "always")
 ae.28.sev <- df %>% 
   glm(ae_28_sev ~ trt 
       + age
       , family = "poisson", data=.)
 summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 ```
+
+# Assess poisson distribution and if overdispersion, change to negative binomial)
+```{r, echo=TRUE, fig.height=5, fig.width=8}
+# Residuals
+deviance_residuals <- residuals(ae.28.sev, type = "deviance")
+pearson_residuals <- residuals(ae.28.sev, type = "pearson")
+
+# Residual Plots
+par(mfrow = c(2, 2))  # Plot layout
+
+# Deviance residuals vs fitted values
+plot(fitted(ae.28.sev), deviance_residuals, main = "Deviance Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Deviance Residuals")
+abline(h = 0, col = "red")
+
+# Pearson residuals vs fitted values
+plot(fitted(ae.28.sev), pearson_residuals, main = "Pearson Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Pearson Residuals")
+abline(h = 0, col = "blue")
+
+# QQ plot for residuals
+qqnorm(deviance_residuals, main = "QQ Plot for Deviance Residuals")
+qqline(deviance_residuals, col = "red")
+
+# Histogram of residuals
+hist(deviance_residuals, breaks = 20, main = "Histogram of Deviance Residuals",
+     xlab = "Deviance Residuals")
+
+# Fit the negative binomial model, otherwise using the same model structure
+library(glmmTMB)
+ae.28.sev <- df %>% 
+  glmmTMB(ae_28_sev ~ trt 
+      + age
+      , family = "nbinom2", data=.)
+summary(ae.28.sev)
+# tab_model(ae.28.sev)
+# tab_model(ae.28.sev.nb)
+
+# Compare models
+# cat("Poisson AIC:", AIC(ae.28.sev), "\n")
+# cat("Negative Binomial AIC:", AIC(ae.28.sev.nb), "\n")
+```
+Overdispersion detected => changed from Poisson to neg binomial
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}
@@ -1167,6 +1210,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont, e_int, e_co
     ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
     se <- model$std.error[2]
     p_value <- model$p.value[2]
+  } else if (inherits(model, "glmmTMB")) {
+    trt_coef <- confint(model)["trt", "Estimate"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(confint(model)["trt", "2.5 %"]), exp(confint(model)["trt", "97.5 %"]))
+    se <- summary(model)$coefficients$cond["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients$cond["trt", "Pr(>|z|)"]
   } else {
     stop("Unsupported model class")
   }

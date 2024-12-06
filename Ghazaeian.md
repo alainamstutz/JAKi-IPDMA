@@ -2170,7 +2170,7 @@ summary(ae.28.sev.firth)
 ## Wald test = 31.11608 on 3 df, p = 8.035271e-07
 ```
 Discussion points
-1. only 1 event, in int
+1. only 1 event, in int. No further model inspection, keep firth regression.
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 

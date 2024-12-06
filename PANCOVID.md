@@ -2634,6 +2634,88 @@ summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
 
+# Assess poisson distribution and if overdispersion, change to negative binomial)
+
+```r
+# Residuals
+deviance_residuals <- residuals(ae.28.sev, type = "deviance")
+pearson_residuals <- residuals(ae.28.sev, type = "pearson")
+
+# Residual Plots
+par(mfrow = c(2, 2))  # Plot layout
+
+# Deviance residuals vs fitted values
+plot(fitted(ae.28.sev), deviance_residuals, main = "Deviance Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Deviance Residuals")
+abline(h = 0, col = "red")
+
+# Pearson residuals vs fitted values
+plot(fitted(ae.28.sev), pearson_residuals, main = "Pearson Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Pearson Residuals")
+abline(h = 0, col = "blue")
+
+# QQ plot for residuals
+qqnorm(deviance_residuals, main = "QQ Plot for Deviance Residuals")
+qqline(deviance_residuals, col = "red")
+
+# Histogram of residuals
+hist(deviance_residuals, breaks = 20, main = "Histogram of Deviance Residuals",
+     xlab = "Deviance Residuals")
+```
+
+![](PANCOVID_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+
+```r
+# Fit the negative binomial model, otherwise using the same model structure
+library(glmmTMB)
+```
+
+```
+## Warning in checkDepPackageVersion(dep_pkg = "TMB"): Package version inconsistency detected.
+## glmmTMB was built with TMB version 1.9.6
+## Current TMB version is 1.9.4
+## Please re-install glmmTMB from source or restore original 'TMB' package (see '?reinstalling' for more information)
+```
+
+```r
+ae.28.sev <- df %>% 
+  glmmTMB(ae_28_sev ~ trt 
+      + age + clinstatus_baseline
+      , family = "nbinom2", data=.)
+summary(ae.28.sev)
+```
+
+```
+##  Family: nbinom2  ( log )
+## Formula:          ae_28_sev ~ trt + age + clinstatus_baseline
+## Data: .
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##    309.2    331.2   -148.6    297.2      281 
+## 
+## 
+## Dispersion parameter for nbinom2 family (): 0.289 
+## 
+## Conditional model:
+##                      Estimate Std. Error z value Pr(>|z|)  
+## (Intercept)          -2.99661    1.36587  -2.194   0.0282 *
+## trt                  -0.09232    0.35480  -0.260   0.7947  
+## age                   0.01410    0.01914   0.737   0.4614  
+## clinstatus_baseline3  0.54876    0.44705   1.228   0.2196  
+## clinstatus_baseline4  1.86418    1.06749   1.746   0.0808 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+# tab_model(ae.28.sev)
+# tab_model(ae.28.sev.nb)
+
+# Compare models
+# cat("Poisson AIC:", AIC(ae.28.sev), "\n")
+# cat("Negative Binomial AIC:", AIC(ae.28.sev.nb), "\n")
+```
+Overdispersion detected => changed from Poisson to neg binomial
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -5963,6 +6045,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont, e_int, e_co
     ci <- c(exp(model$ci.lower["trt"]), exp(model$ci.upper["trt"]))
     se <- sqrt(diag(vcov(model)))["trt"]
     p_value <- model$prob["trt"]
+  } else if (inherits(model, "glmmTMB")) {
+    trt_coef <- confint(model)["trt", "Estimate"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(confint(model)["trt", "2.5 %"]), exp(confint(model)["trt", "97.5 %"]))
+    se <- summary(model)$coefficients$cond["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients$cond["trt", "Pr(>|z|)"]
   } else {
     stop("Unsupported model class")
   }
@@ -6096,7 +6184,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt10 |discharge within 28 days, death=hypo.event |         1.3901249|  1.0185580| 1.8972383|      0.1586793| 0.0379083|   145|    142|    93|     72|PANCOVID |Baricitinib |
 |trt11 |sustained discharge within 28 days         |         1.3210084|  0.9681911| 1.8023953|      0.1585341| 0.0790782|   145|    142|    93|     72|PANCOVID |Baricitinib |
 |trt12 |Any AE grade 3,4 within 28 days            |         1.0064847|  0.5087400| 1.9929726|      0.3462932| 0.9851080|   145|    142|    20|     20|PANCOVID |Baricitinib |
-|trt13 |AEs grade 3,4 within 28 days               |         0.8616374|  0.5059762| 1.4554617|      0.2680822| 0.5785498|   145|    142|    NA|     NA|PANCOVID |Baricitinib |
+|1     |AEs grade 3,4 within 28 days               |         0.9118157|  0.4548825| 1.8277422|      0.3548018| 0.7947140|   145|    142|    NA|     NA|PANCOVID |Baricitinib |
 
 ```r
 # Save

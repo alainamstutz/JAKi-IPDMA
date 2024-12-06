@@ -1069,7 +1069,7 @@ ae.28.sev.firth <- df %>%
 summary(ae.28.sev.firth)
 ```
 Discussion points
-1. only 1 event, in int
+1. only 1 event, in int. No further model inspection, keep firth regression.
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 ```{r warning=FALSE}

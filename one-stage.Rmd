@@ -614,6 +614,8 @@ ggplot(result_df, aes(x = variable, y = hazard_odds_ratio)) +
 
 # (i) Mortality at day 28
 ```{r}
+table(df_tot$age)
+
 mort28 <- glmmTMB(mort_28 ~ trt_centered_n 
                   + trial_f # stratified intercept
                   + (trt_centered_n -1 | trial_f) -1 # random treatment effect (and centered)
@@ -706,6 +708,12 @@ ttdeath <- coxme(Surv(death_time_60, death_reached_60) ~ trt_centered_n
                   + (clinstatus_baseline_n -1 | trial_f)
                   , data = df_tot)
 tab_model(ttdeath)
+
+
+# Visual Check Using Schoenfeld Residuals re PH
+km.ttdeath_trt <- survfit(Surv(death_time_60, death_reached_60) ~ trt, data=df_tot)
+plot(km.ttdeath_trt, fun = "cloglog", col = c("red", "blue"))
+
 ```
 
 # (iv) New mechanical ventilation or death within 28 days
@@ -1037,10 +1045,61 @@ ae28sev <- glmmTMB(ae_28_sev ~ trt_centered_n
                   + age_cent_trial_3
                   + age_cent_trial_4
                   + age_cent_trial_5
-                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 + age_cent_trial_11
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 
+                  + age_cent_trial_11
                   + (clinstatus_baseline_n -1 | trial_f)
-                  , data = df_tot, family = poisson) # double-check !
+                  , data = df_tot, family = poisson)
 tab_model(ae28sev)
+
+```
+
+# Assess poisson distribution and possible alternative if overdispersion (negative binomial)
+```{r, echo=TRUE, fig.height=5, fig.width=8}
+# Residuals
+deviance_residuals <- residuals(ae28sev, type = "deviance")
+pearson_residuals <- residuals(ae28sev, type = "pearson")
+
+# Residual Plots
+par(mfrow = c(2, 2))  # Plot layout
+
+# Deviance residuals vs fitted values
+plot(fitted(ae28sev), deviance_residuals, main = "Deviance Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Deviance Residuals")
+abline(h = 0, col = "red")
+
+# Pearson residuals vs fitted values
+plot(fitted(ae28sev), pearson_residuals, main = "Pearson Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Pearson Residuals")
+abline(h = 0, col = "blue")
+
+# QQ plot for residuals
+qqnorm(deviance_residuals, main = "QQ Plot for Deviance Residuals")
+qqline(deviance_residuals, col = "red")
+
+# Histogram of residuals
+hist(deviance_residuals, breaks = 20, main = "Histogram of Deviance Residuals",
+     xlab = "Deviance Residuals")
+
+# Fit Negative Binomial model, using the same model structure as for poisson model
+ae28sev.nb <- glmmTMB(ae_28_sev ~ trt_centered_n 
+                  + trial_f 
+                  + (trt_centered_n -1 | trial_f) -1 
+                  + age_cent_trial_1 
+                  + age_cent_trial_2
+                  + age_cent_trial_3
+                  + age_cent_trial_4
+                  + age_cent_trial_5
+                  + age_cent_trial_6 + age_cent_trial_7 + age_cent_trial_8 + age_cent_trial_9 + age_cent_trial_10 
+                  + age_cent_trial_11
+                  + (clinstatus_baseline_n -1 | trial_f)
+                  , data = df_tot, family = nbinom2)
+
+tab_model(ae28sev)
+tab_model(ae28sev.nb)
+
+# Compare models
+cat("Poisson AIC:", AIC(ae28sev), "\n")
+cat("Negative Binomial AIC:", AIC(ae28sev.nb), "\n")
 ```
 
 # Collect all treatment effect estimates across endpoints

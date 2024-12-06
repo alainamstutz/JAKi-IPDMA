@@ -1532,7 +1532,31 @@ summ(ae.28, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 
 ```r
 # (ix) Sens-analysis: Alternative definition/analysis of outcome: incidence rate ratio (Poisson regression) -> AE per person by d28
-# table(df$ae_28_sev, df$trt, useNA = "always")
+table(df$ae_28_sev, df$trt, useNA = "always")
+```
+
+```
+##       
+##         0  1 <NA>
+##   0    20 78    0
+##   1    14 32    0
+##   2     3 15    0
+##   3     3 17    0
+##   4     0  9    0
+##   5     2  3    0
+##   6     1  3    0
+##   7     1  1    0
+##   8     1  1    0
+##   11    1  0    0
+##   12    0  1    0
+##   13    0  1    0
+##   14    0  2    0
+##   17    1  0    0
+##   19    0  1    0
+##   <NA>  0  0    0
+```
+
+```r
 ae.28.sev <- df %>% 
   glm(ae_28_sev ~ trt 
       + age
@@ -1603,6 +1627,87 @@ summ(ae.28.sev, exp = T, confint = T, model.info = T, model.fit = F, digits = 2)
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
+# Assess poisson distribution and if overdispersion, change to negative binomial)
+
+```r
+# Residuals
+deviance_residuals <- residuals(ae.28.sev, type = "deviance")
+pearson_residuals <- residuals(ae.28.sev, type = "pearson")
+
+# Residual Plots
+par(mfrow = c(2, 2))  # Plot layout
+
+# Deviance residuals vs fitted values
+plot(fitted(ae.28.sev), deviance_residuals, main = "Deviance Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Deviance Residuals")
+abline(h = 0, col = "red")
+
+# Pearson residuals vs fitted values
+plot(fitted(ae.28.sev), pearson_residuals, main = "Pearson Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Pearson Residuals")
+abline(h = 0, col = "blue")
+
+# QQ plot for residuals
+qqnorm(deviance_residuals, main = "QQ Plot for Deviance Residuals")
+qqline(deviance_residuals, col = "red")
+
+# Histogram of residuals
+hist(deviance_residuals, breaks = 20, main = "Histogram of Deviance Residuals",
+     xlab = "Deviance Residuals")
+```
+
+![](ruxcoviddevent_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+
+```r
+# Fit the negative binomial model, otherwise using the same model structure
+library(glmmTMB)
+```
+
+```
+## Warning in checkDepPackageVersion(dep_pkg = "TMB"): Package version inconsistency detected.
+## glmmTMB was built with TMB version 1.9.6
+## Current TMB version is 1.9.4
+## Please re-install glmmTMB from source or restore original 'TMB' package (see '?reinstalling' for more information)
+```
+
+```r
+ae.28.sev <- df %>% 
+  glmmTMB(ae_28_sev ~ trt 
+      + age
+      , family = "nbinom2", data=.)
+summary(ae.28.sev)
+```
+
+```
+##  Family: nbinom2  ( log )
+## Formula:          ae_28_sev ~ trt + age
+## Data: .
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##    737.4    750.8   -364.7    729.4      207 
+## 
+## 
+## Dispersion parameter for nbinom2 family (): 0.512 
+## 
+## Conditional model:
+##             Estimate Std. Error z value Pr(>|z|)  
+## (Intercept)   0.4654     0.2668   1.745   0.0811 .
+## trt          -0.1151     0.2626  -0.438   0.6611  
+## age           0.2594     0.2217   1.170   0.2420  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```r
+# tab_model(ae.28.sev)
+# tab_model(ae.28.sev.nb)
+
+# Compare models
+# cat("Poisson AIC:", AIC(ae.28.sev), "\n")
+# cat("Negative Binomial AIC:", AIC(ae.28.sev.nb), "\n")
+```
+Overdispersion detected => changed from Poisson to neg binomial
 
 # Subgroup analysis: Ventilation requirement (proxy for disease severity) on primary endpoint
 
@@ -3950,6 +4055,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont, e_int, e_co
     ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
     se <- model$std.error[2]
     p_value <- model$p.value[2]
+  } else if (inherits(model, "glmmTMB")) {
+    trt_coef <- confint(model)["trt", "Estimate"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(confint(model)["trt", "2.5 %"]), exp(confint(model)["trt", "97.5 %"]))
+    se <- summary(model)$coefficients$cond["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients$cond["trt", "Pr(>|z|)"]
   } else {
     stop("Unsupported model class")
   }
@@ -4090,7 +4201,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |trt8  |discharge within 28 days, death=hypo.event |         2.0230815|  0.8576856|  4.7719800|      0.4378343| 0.1075432|   164|     47|    40|      6|RUXCOVID-DEVENT |Ruxolitinib |
 |trt9  |sustained discharge within 28 days         |         1.1982608|  0.5070034|  2.8319907|      0.4388390| 0.6802234|   164|     47|    40|      6|RUXCOVID-DEVENT |Ruxolitinib |
 |trt10 |Any AE grade 3,4 within 28 days            |         0.8184751|  0.4206487|  1.5724423|      0.3348784| 0.5497303|   164|     47|    86|     27|RUXCOVID-DEVENT |Ruxolitinib |
-|trt11 |AEs grade 3,4 within 28 days               |         0.8735719|  0.6898535|  1.1171313|      0.1228103| 0.2710713|   164|     47|    NA|     NA|RUXCOVID-DEVENT |Ruxolitinib |
+|1     |AEs grade 3,4 within 28 days               |         0.8912556|  0.5327019|  1.4911466|      0.2625912| 0.6610853|   164|     47|    NA|     NA|RUXCOVID-DEVENT |Ruxolitinib |
 
 ```r
 # Save
