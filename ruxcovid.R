@@ -1405,7 +1405,11 @@ ae.28.sev <- df %>%
   glm(ae_28_sev ~ trt
       + age + clinstatus_baseline
       , family = "poisson", data=.)
-
+library(glmmTMB)
+ae.28.sev <- df %>%
+  glmmTMB(ae_28_sev ~ trt
+      + age + clinstatus_baseline
+      , family = "nbinom2", data=.)
 
 ################
 ##### INTERACTION/SUBGROUP ANALYSES
@@ -1852,6 +1856,12 @@ extract_trt_results <- function(model, variable_name, n_int, n_cont, e_int, e_co
     ci <- c(model$`2.5 %`[2], model$`97.5 %`[2])
     se <- model$std.error[2]
     p_value <- model$p.value[2]
+  } else if (inherits(model, "glmmTMB")) {
+    trt_coef <- confint(model)["trt", "Estimate"]
+    hazard_odds_ratio <- exp(trt_coef)
+    ci <- c(exp(confint(model)["trt", "2.5 %"]), exp(confint(model)["trt", "97.5 %"]))
+    se <- summary(model)$coefficients$cond["trt", "Std. Error"]
+    p_value <- summary(model)$coefficients$cond["trt", "Pr(>|z|)"]
   } else {
     stop("Unsupported model class")
   }
@@ -1971,15 +1981,17 @@ result_ame <- data.frame(
   ci_upper = adj_mean_ci[2],
   standard_error = adj_mean_se,
   p_value = NA,
-  n_intervention = 287,
-  n_control = 145,
+  n_int = 287,
+  n_cont = 145,
+  e_int = 9,
+  e_cont = 3,
   trial = "RUXCOVID",
   JAKi = "Ruxolitinib"
 )
 result_df <- rbind(result_df, result_ame)
 
 # Save
-saveRDS(result_df, file = "trt_effects_ruxcovid_31082024.RData")
+saveRDS(result_df, file = "trt_effects_ruxcovid_06122024.RData")
 
 
 
