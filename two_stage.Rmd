@@ -47,7 +47,7 @@ df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
-df_ruxcovid <- readRDS("trt_effects_ruxcovid_31082024.RData")
+df_ruxcovid <- readRDS("trt_effects_ruxcovid_06122024.RData")
 df_pancovid <- readRDS("trt_effects_pancovid.RData")
 df_stopcovid <- readRDS("trt_effects_stopcovid.RData")
 df_ruxcoviddevent <- readRDS("trt_effects_ruxcoviddevent.RData")
@@ -1716,7 +1716,7 @@ dev.off()
 
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
 ```{r warning=FALSE, fig.width=12, fig.height=4}
-# str(df_ae28sev)
+str(df_ae28sev)
 ae28sev <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -1731,8 +1731,8 @@ ae28sev <- metagen(TE = log(hazard_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      #subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      #exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
                       )
 summary(ae28sev)
 forest.meta(ae28sev,

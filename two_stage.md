@@ -49,7 +49,7 @@ df_covinib <- readRDS("trt_effects_covinib.RData")
 df_covbarrier <- readRDS("trt_effects_cov-barrier.RData")
 df_recovery <- readRDS("trt_effects_recovery.RData")
 df_tactic_r <- readRDS("trt_effects_tactic-r.RData")
-df_ruxcovid <- readRDS("trt_effects_ruxcovid_31082024.RData")
+df_ruxcovid <- readRDS("trt_effects_ruxcovid_06122024.RData")
 df_pancovid <- readRDS("trt_effects_pancovid.RData")
 df_stopcovid <- readRDS("trt_effects_stopcovid.RData")
 df_ruxcoviddevent <- readRDS("trt_effects_ruxcoviddevent.RData")
@@ -309,6 +309,7 @@ kable(df_mort28_ame, format = "markdown", table.attr = 'class="table"') %>%
 |trt23 |death at day 28_marginal |        -0.0621199| -0.0934182| -0.0308217|      0.0159688| 0.0001002|   758|    765|    82|    129|COV-BARRIER     |Baricitinib |
 |trt24 |death at day 28_marginal |        -0.0199695| -0.0335891| -0.0063500|      0.0069489| 0.0040560|  4061|   3940|   513|    545|RECOVERY        |Baricitinib |
 |trt25 |death at day 28_marginal |        -0.0182545| -0.0965741|  0.0600651|      0.0399597| 0.6477979|   130|    138|    18|     17|TACTIC-R        |Baricitinib |
+|111   |death at day 28_marginal |         0.0094185| -0.0215980|  0.0404350|      0.0158250|        NA|   287|    145|     9|      3|RUXCOVID        |Ruxolitinib |
 |trt26 |death at day 28_marginal |        -0.0310762| -0.0754655|  0.0133132|      0.0226480| 0.1700214|   140|    136|     2|      6|PANCOVID        |Baricitinib |
 |trt27 |death at day 28_marginal |        -0.0310324| -0.0829920|  0.0209271|      0.0265105| 0.2417705|   144|    145|     4|      8|STOP-COVID      |Tofacitinib |
 |trt28 |death at day 28_marginal |        -0.1893527| -0.3481597| -0.0305456|      0.0810255| 0.0194417|   162|     47|    84|     33|RUXCOVID-DEVENT |Ruxolitinib |
@@ -560,20 +561,20 @@ kable(df_ae28sev, format = "markdown", table.attr = 'class="table"') %>%
 
 
 
-|       |variable                           | hazard_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value| n_int| n_cont| e_int| e_cont|trial           |JAKi        |
-|:------|:----------------------------------|-----------------:|---------:|-----------:|--------------:|---------:|-----:|------:|-----:|------:|:---------------|:-----------|
-|trt16  |AEs grade 3,4 within 28 days       |         0.8880244| 0.7053892|   1.1164281|      0.1170019| 0.3101094|   145|    144|    NA|     NA|Bari-SolidAct   |Baricitinib |
-|trt161 |AEs grade 3,4 within 28 days       |         0.7990002| 0.7173997|   0.8893710|      0.0548047| 0.0000423|   515|    518|    NA|     NA|ACTT-2          |Baricitinib |
-|trt12  |AEs grade 3,4 within 28 days_firth |         3.2247381| 0.1701822| 472.4508978|      1.4759989| 0.4412199|    46|     51|    NA|     NA|Ghazaeian       |Tofacitinib |
-|trt121 |AEs grade 3,4 within 28 days       |         0.6936245| 0.2408177|   1.9569664|      0.5287298| 0.4890045|    58|     58|    NA|     NA|TOFACOV         |Tofacitinib |
-|trt122 |AEs grade 3,4 within 28 days       |         0.4994331| 0.2808138|   0.8602145|      0.2836944| 0.0143936|    55|     55|    NA|     NA|COVINIB         |Baricitinib |
-|trt162 |AEs grade 3,4 within 28 days       |         1.0414037| 0.9359631|   1.1588239|      0.0544738| 0.4564218|   815|    811|    NA|     NA|COV-BARRIER     |Baricitinib |
-|trt163 |AEs grade 3,4 within 28 days       |         0.8735036| 0.7528565|   1.0132185|      0.0757350| 0.0741414|  4136|   3994|    NA|     NA|RECOVERY        |Baricitinib |
-|trt164 |AEs grade 3,4 within 28 days       |         1.3220839| 0.7605841|   2.3034114|      0.2808870| 0.3218575|   137|    145|    NA|     NA|TACTIC-R        |Baricitinib |
-|trt123 |AEs grade 3,4 within 28 days       |         0.7046262| 0.4862652|   1.0294640|      0.1907894| 0.0665140|   287|    145|    NA|     NA|RUXCOVID        |Ruxolitinib |
-|trt13  |AEs grade 3,4 within 28 days       |         0.8616374| 0.5059762|   1.4554617|      0.2680822| 0.5785498|   145|    142|    NA|     NA|PANCOVID        |Baricitinib |
-|trt131 |AEs grade 3,4 within 28 days       |         1.7165679| 1.1285958|   2.6509672|      0.2170154| 0.0127812|   144|    145|    NA|     NA|STOP-COVID      |Tofacitinib |
-|trt11  |AEs grade 3,4 within 28 days       |         0.8735719| 0.6898535|   1.1171313|      0.1228103| 0.2710713|   164|     47|    NA|     NA|RUXCOVID-DEVENT |Ruxolitinib |
+|      |variable                           | hazard_odds_ratio|  ci_lower|    ci_upper| standard_error|   p_value| n_int| n_cont| e_int| e_cont|trial           |JAKi        |
+|:-----|:----------------------------------|-----------------:|---------:|-----------:|--------------:|---------:|-----:|------:|-----:|------:|:---------------|:-----------|
+|1     |AEs grade 3,4 within 28 days       |         0.8942967| 0.6142610|   1.3019980|      0.1916452| 0.5599335|   145|    144|    NA|     NA|Bari-SolidAct   |Baricitinib |
+|11    |AEs grade 3,4 within 28 days       |         0.7993881| 0.6565090|   0.9733628|      0.1004663| 0.0258342|   515|    518|    NA|     NA|ACTT-2          |Baricitinib |
+|trt12 |AEs grade 3,4 within 28 days_firth |         3.2247381| 0.1701822| 472.4508978|      1.4759989| 0.4412199|    46|     51|    NA|     NA|Ghazaeian       |Tofacitinib |
+|111   |AEs grade 3,4 within 28 days       |         0.7780074| 0.3282442|   1.8440402|      0.4403031| 0.5686060|    58|     58|    NA|     NA|TOFACOV         |Tofacitinib |
+|112   |AEs grade 3,4 within 28 days       |         0.5920940| 0.2297201|   1.5260980|      0.4830721| 0.2779615|    55|     55|    NA|     NA|COVINIB         |Baricitinib |
+|12    |AEs grade 3,4 within 28 days       |         0.9968116| 0.8212915|   1.2098424|      0.0988200| 0.9742195|   815|    811|    NA|     NA|COV-BARRIER     |Baricitinib |
+|13    |AEs grade 3,4 within 28 days       |         0.8799904| 0.7513073|   1.0307143|      0.0806628| 0.1129842|  4136|   3994|    NA|     NA|RECOVERY        |Baricitinib |
+|14    |AEs grade 3,4 within 28 days       |         1.1967367| 0.7378365|   1.9410516|      0.2467553| 0.4667114|   137|    145|    NA|     NA|TACTIC-R        |Baricitinib |
+|15    |AEs grade 3,4 within 28 days       |         0.7023140| 0.3748485|   1.3158516|      0.3203420| 0.2699764|   287|    145|    NA|     NA|RUXCOVID        |Ruxolitinib |
+|16    |AEs grade 3,4 within 28 days       |         0.9118157| 0.4548825|   1.8277422|      0.3548018| 0.7947140|   145|    142|    NA|     NA|PANCOVID        |Baricitinib |
+|17    |AEs grade 3,4 within 28 days       |         1.7691525| 0.9994262|   3.1316975|      0.2913699| 0.0502307|   144|    145|    NA|     NA|STOP-COVID      |Tofacitinib |
+|18    |AEs grade 3,4 within 28 days       |         0.8912556| 0.5327019|   1.4911466|      0.2625912| 0.6610853|   164|     47|    NA|     NA|RUXCOVID-DEVENT |Ruxolitinib |
 
 
 # (i) Primary outcome: Mortality at day 28. Only IPD trials
@@ -1689,36 +1690,37 @@ summary(mort28.ame)
 ## 
 ##                                     95%-CI %W(random)
 ## Bari-SolidAct   -0.0411 [-0.1170;  0.0348]        3.5
-## ACTT-2          -0.0177 [-0.0465;  0.0111]       15.1
-## Ghazaeian       -0.0155 [-0.1229;  0.0920]        1.8
-## TOFACOV          0.0150 [-0.0186;  0.0487]       12.6
-## COVINIB         -0.0377 [-0.0879;  0.0125]        7.1
-## COV-BARRIER     -0.0621 [-0.0934; -0.0308]       13.7
-## RECOVERY        -0.0200 [-0.0336; -0.0063]       26.7
+## ACTT-2          -0.0177 [-0.0465;  0.0111]       13.1
+## Ghazaeian       -0.0155 [-0.1229;  0.0920]        1.9
+## TOFACOV          0.0150 [-0.0186;  0.0487]       11.2
+## COVINIB         -0.0377 [-0.0879;  0.0125]        6.7
+## COV-BARRIER     -0.0621 [-0.0934; -0.0308]       12.1
+## RECOVERY        -0.0200 [-0.0336; -0.0063]       20.6
 ## TACTIC-R        -0.0183 [-0.0966;  0.0601]        3.3
-## PANCOVID        -0.0311 [-0.0755;  0.0133]        8.6
-## STOP-COVID      -0.0310 [-0.0830;  0.0209]        6.7
+## RUXCOVID         0.0094 [-0.0216;  0.0404]       12.2
+## PANCOVID        -0.0311 [-0.0755;  0.0133]        8.0
+## STOP-COVID      -0.0310 [-0.0830;  0.0209]        6.4
 ## RUXCOVID-DEVENT -0.1894 [-0.3482; -0.0305]        0.9
 ## 
-## Number of studies: k = 11
-## Number of observations: o = 12149
+## Number of studies: k = 12
+## Number of observations: o = 12581
 ## 
 ##                                               95%-CI     t p-value
-## Random effects model (HK) -0.0260 [-0.0443; -0.0078] -3.18  0.0098
+## Random effects model (HK) -0.0222 [-0.0405; -0.0038] -2.65  0.0224
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0002 [0.0000; 0.0040]; tau = 0.0131 [0.0000; 0.0633]
-##  I^2 = 38.4% [0.0%; 69.7%]; H = 1.27 [1.00; 1.82]
+##  tau^2 = 0.0002 [0.0000; 0.0036]; tau = 0.0157 [0.0000; 0.0604]
+##  I^2 = 45.5% [0.0%; 72.1%]; H = 1.35 [1.00; 1.89]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f. p-value
-##  16.25   10  0.0928
+##  20.17   11  0.0431
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
 ## - Maximum-likelihood estimator for tau^2
 ## - Q-Profile method for confidence interval of tau^2 and tau
-## - Hartung-Knapp adjustment for random effects model (df = 10)
+## - Hartung-Knapp adjustment for random effects model (df = 11)
 ```
 
 ```r
@@ -3369,7 +3371,26 @@ dev.off()
 # (x.i) Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL
 
 ```r
-# str(df_ae28sev)
+str(df_ae28sev)
+```
+
+```
+## 'data.frame':	12 obs. of  12 variables:
+##  $ variable         : chr  "AEs grade 3,4 within 28 days" "AEs grade 3,4 within 28 days" "AEs grade 3,4 within 28 days_firth" "AEs grade 3,4 within 28 days" ...
+##  $ hazard_odds_ratio: num  0.894 0.799 3.225 0.778 0.592 ...
+##  $ ci_lower         : num  0.614 0.657 0.17 0.328 0.23 ...
+##  $ ci_upper         : num  1.302 0.973 472.451 1.844 1.526 ...
+##  $ standard_error   : num  0.192 0.1 1.476 0.44 0.483 ...
+##  $ p_value          : num  0.5599 0.0258 0.4412 0.5686 0.278 ...
+##  $ n_int            : num  145 515 46 58 55 ...
+##  $ n_cont           : num  144 518 51 58 55 ...
+##  $ e_int            : num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ e_cont           : num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ trial            : chr  "Bari-SolidAct" "ACTT-2" "Ghazaeian" "TOFACOV" ...
+##  $ JAKi             : chr  "Baricitinib" "Baricitinib" "Tofacitinib" "Tofacitinib" ...
+```
+
+```r
 ae28sev <- metagen(TE = log(hazard_odds_ratio),
                       seTE = standard_error,
                       studlab = trial,
@@ -3384,8 +3405,8 @@ ae28sev <- metagen(TE = log(hazard_odds_ratio),
                       hakn = T, # Hartung-Knapp- Sidik-Jonkman (HKSJ) modified estimate of the variance / 95% CI -> notes
                       adhoc.hakn.ci = "", # Argument 'adhoc.hakn.ci' must be "", "se", "ci", or "IQWiG6".
                       title = "Average treatment effect - Adverse event(s) grade 3 or 4, or a serious adverse event(s), excluding death, by day 28. SEVERAL",
-                      # subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
-                      # exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
+                      #subset = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # exclude entirely
+                      #exclude = trial %in% c("Bari-SolidAct", "ACTT-2", "Ghazaeian") # include in forestplot but exclude from analysis
                       )
 summary(ae28sev)
 ```
@@ -3394,33 +3415,33 @@ summary(ae28sev)
 ## Review:     Average treatment effect - Adverse event(s) grade 3 or 4, or a s ...
 ## 
 ##                     OR            95%-CI %W(random)
-## Bari-SolidAct   0.8880 [0.7060;  1.1169]       11.6
-## ACTT-2          0.7990 [0.7176;  0.8896]       18.5
-## Ghazaeian       3.2247 [0.1787; 58.1925]        0.2
-## TOFACOV         0.6936 [0.2461;  1.9552]        1.1
-## COVINIB         0.4994 [0.2864;  0.8709]        3.5
-## COV-BARRIER     1.0414 [0.9359;  1.1587]       18.6
-## RECOVERY        0.8735 [0.7530;  1.0133]       16.1
-## TACTIC-R        1.3221 [0.7624;  2.2927]        3.6
-## RUXCOVID        0.7046 [0.4848;  1.0241]        6.5
-## PANCOVID        0.8616 [0.5095;  1.4572]        3.9
-## STOP-COVID      1.7166 [1.1219;  2.6265]        5.4
-## RUXCOVID-DEVENT 0.8736 [0.6867;  1.1113]       11.1
+## Bari-SolidAct   0.8943 [0.6143;  1.3020]        6.0
+## ACTT-2          0.7994 [0.6565;  0.9734]       21.9
+## Ghazaeian       3.2247 [0.1787; 58.1925]        0.1
+## TOFACOV         0.7780 [0.3282;  1.8440]        1.1
+## COVINIB         0.5921 [0.2297;  1.5261]        0.9
+## COV-BARRIER     0.9968 [0.8213;  1.2098]       22.6
+## RECOVERY        0.8800 [0.7513;  1.0307]       34.0
+## TACTIC-R        1.1967 [0.7378;  1.9411]        3.6
+## RUXCOVID        0.7023 [0.3748;  1.3159]        2.2
+## PANCOVID        0.9118 [0.4549;  1.8277]        1.8
+## STOP-COVID      1.7692 [0.9994;  3.1317]        2.6
+## RUXCOVID-DEVENT 0.8913 [0.5327;  1.4911]        3.2
 ## 
 ## Number of studies: k = 12
 ## Number of observations: o = 12902
 ## 
 ##                               OR           95%-CI     t p-value
-## Random effects model (HK) 0.9041 [0.7750; 1.0548] -1.44  0.1779
-## Prediction interval              [0.6682; 1.2235]              
+## Random effects model (HK) 0.9066 [0.8158; 1.0075] -2.05  0.0655
+## Prediction interval              [0.8165; 1.0067]              
 ## 
 ## Quantifying heterogeneity:
-##  tau^2 = 0.0151 [0.0038; 0.2735]; tau = 0.1228 [0.0619; 0.5230]
-##  I^2 = 63.1% [31.2%; 80.2%]; H = 1.65 [1.21; 2.25]
+##  tau^2 = 0 [0.0000; 0.1542]; tau = 0 [0.0000; 0.3927]
+##  I^2 = 3.8% [0.0%; 59.9%]; H = 1.02 [1.00; 1.58]
 ## 
 ## Test of heterogeneity:
 ##      Q d.f. p-value
-##  29.80   11  0.0017
+##  11.44   11  0.4071
 ## 
 ## Details on meta-analytical method:
 ## - Inverse variance method
@@ -3617,7 +3638,7 @@ kable(result_df, format = "markdown", table.attr = 'class="table"') %>%
 |viral clearance until day 10               |         0.9422592| 0.8649134| 1.0265218|      0.0308492| 0.1261162|            459|               4928|       465|          4788|two-stage |
 |viral clearance until day 15               |         0.9586996| 0.8755424| 1.0497550|      0.0326800| 0.2663823|            559|               4983|       564|          4848|two-stage |
 |Any AE grade 3,4 within 28 days            |         0.8997103| 0.8332908| 0.9714239|      0.0348435| 0.0113869|           1072|               6647|      1047|          6255|two-stage |
-|AEs grade 3,4 within 28 days               |         0.9041428| 0.7750218| 1.0547758|      0.0700124| 0.1779122|           6633|               6633|      6249|          6249|two-stage |
+|AEs grade 3,4 within 28 days               |         0.9066143| 0.8158413| 1.0074869|      0.0479318| 0.0654961|           6633|               6633|      6249|          6249|two-stage |
 
 ```r
 # Save
@@ -8468,7 +8489,7 @@ mort_28_ci_lower <- result_df$ci_lower[1]
 mort_28_ci_upper <- result_df$ci_upper[1]
 
 # ...and ICEMAN assessments
-iceman <- c("not assessed", "", "", "", "moderate credibility", "", "low credibility", "", "", "", "not assessed", "", "", "", "not assessed", "", "", "not assessed", "")
+iceman <- c("not assessed", "", "", "", "moderate credibility", "", "not assessed", "", "", "", "not assessed", "", "", "", "not assessed", "", "", "not assessed", "")
 
 # build forestplot
 base_data <- tibble(mean = subgroup_df$odds_ratio,
