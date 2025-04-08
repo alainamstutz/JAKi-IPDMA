@@ -3,13 +3,15 @@ title: "two_stage"
 author: "A.Amstutz"
 date: "2023-10-15"
 output:
-  html_document:
-    keep_md: yes
-    toc: yes
-    toc_float: yes
-    code_folding: hide
   pdf_document:
-    toc: yes
+    toc: true
+  word_document:
+    toc: true
+  html_document:
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
 # Load packages
@@ -289,7 +291,7 @@ forest(mort28,
             rightcols = c("effect", "ci", "w.random"),
             rightlabs = c("aOR", "95%-CI", "Weight"),
             leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
-            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            leftlabs = c("Trial", "JAKi", "Deaths\nJAKi", "no JAKi", "Deaths\nno JAKi"),
             text.random = "Average treatment effect",
             # xlim = c(0.15,5),
             sortvar = +TE,
@@ -304,7 +306,7 @@ forestplot <- forest(mort28,
             rightcols = c("effect", "ci", "w.random"),
             rightlabs = c("aOR", "95%-CI", "Weight"),
             leftcols = c("studlab", "n.e", "e_int", "n.c", "e_cont"),
-            leftlabs = c("Trial", "JAKi", "Events\nJAKi", "no JAKi", "Events\nno JAKi"),
+            leftlabs = c("Trial", "JAKi", "Deaths\nJAKi", "no JAKi", "Deaths\nno JAKi"),
             text.random = "Average treatment effect   ",
             # xlim = c(0.15,5),
             sortvar = +TE,
@@ -3058,9 +3060,25 @@ forest.meta(age.mort28,
             text.random = "",
             xlab = "    older: greater effect < > younger: greater effect",
             xlab.pos = 0.0,
-            fs.xlab = 11
+            fs.xlab = 11,
+            digits = 3  # Set decimal places to 4
             )
 
+# Open a pdf file
+pdf("./fp_interactions_age.pdf", width=10, height=5)
+forest.meta(age.mort28,
+            hetstat = F,
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
+            # text.common = "Average interaction effect (common effect model)*",
+            # text.random = "Average interaction effect (random effect model)*",
+            text.random = "",
+            xlab = "    older: greater effect < > younger: greater effect",
+            xlab.pos = 0.0,
+            fs.xlab = 11,
+            digits = 3  # Set decimal places to 4
+            )
+dev.off()
 ```
 
 # Subgroups: Age on primary endpoint: Descriptive
@@ -3123,6 +3141,41 @@ forest.meta(mort28.age,
             rightlabs = c("aOR"),
             leftcols = c("studlab", "n_intervention_tot", "n_intervention", "prop_int", "n_control_tot", "n_control", "prop_cont"),
             leftlabs = c("Trial", "JAKi", "Events\nJAKi", "Prop.\nJAKi", "no JAKi", "Events\nno JAKi", "Prop.\nno JAKi"),
+            text.random = "",
+            # xlim = c(0.10,5),
+            # label.left = "Favours JAKi",  
+            # label.right = "Favours No JAKi",
+            overall.hetstat = F,
+            test.subgroup = F,
+            overall = F,
+            hetstat = F
+            )
+
+dev.off()
+
+# Open a pdf file
+pdf("./fp_sg_age_red.pdf", width=10, height=10)
+
+mort28.age.red <- metagen(TE = log(hazard_odds_ratio),
+                      seTE = standard_error,
+                      studlab = variable,
+                      data = df_sg_age_mort28,
+                      #n.e = n_intervention_tot,
+                      #n.c = n_control_tot,
+                      sm = "OR",
+                      fixed = F,
+                      random = F,
+                      prediction = F,
+                      subgroup = trial,
+                      method.tau = "ML",
+                      method.random.ci = "HK",
+                      )
+summary(mort28.age.red)
+forest.meta(mort28.age.red,
+            rightcols = c("effect"),
+            rightlabs = c("aOR"),
+            leftcols = c("studlab"),
+            leftlabs = c("Trial"),
             text.random = "",
             # xlim = c(0.10,5),
             # label.left = "Favours JAKi",  
@@ -4337,6 +4390,10 @@ mort_28_ci_upper <- result_df$ci_upper[1]
 # ...and ICEMAN assessments
 iceman <- c("not assessed", "", "", "", "moderate credibility", "", "not assessed", "", "", "", "not assessed", "", "", "", "not assessed", "", "", "not assessed", "")
 
+# pdf(file = "Fig3_main_foresplot.pdf",
+#     width = 15, 
+#     height = 15)
+
 # build forestplot
 base_data <- tibble(mean = subgroup_df$odds_ratio,
                     lower = subgroup_df$ci_lower,
@@ -4397,6 +4454,7 @@ mort28_fp %>%
              graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
             )
 
+# dev.off()
 
 # ## main forestplot
 # mort28_fp_main <- mort28_fp %>% 
@@ -4445,6 +4503,79 @@ First, to produce a treatment-covariate interaction estimate and its variance, a
 Second, the interaction estimates were combined across trials in a random-effect model (the true interactions are assumed random across trials), using restricted maximum likelihood estimation and the confidence interval for the summary interaction derived using the Hartung-Knapp Sidik-Jonkman approach. 
 Sizing of all squares are in proportion to the inverse variance of the estimates. 
 For continuous covariates (age, symptom duration, and CRP), a cut-off was chosen for descriptive purpose, but these covariates were included as a continuous treatment-covariate interaction assuming linearity. Ordinal covariates (respiratory support, comorbidities and comedication) were included similarly. 
+
+# Forestplot subgroup - on primary endpoint - for POSTER
+```{r, fig.width=10, fig.height=10}
+# ...and ICEMAN assessments
+iceman <- c("NA", "", "", "", "moderate\ncredibility", "", "NA", "", "", "", "NA", "", "", "", "NA", "", "", "NA", "")
+
+pdf(file = "Fig3_main_foresplot_poster.pdf",
+    width = 9,
+    height = 10)
+
+# build forestplot
+base_data <- tibble(mean = subgroup_df$odds_ratio,
+                    lower = subgroup_df$ci_lower,
+                    upper = subgroup_df$ci_upper,
+                    subgroup = as.character(subgroup_df$variable),
+                    # tot_i = as.character(tot_i),
+                    # events_i = as.character(events_i),
+                    # tot_c = as.character(tot_c),
+                    # events_c = as.character(events_c),
+                    p_int = as.character(p_int),
+                    iceman = as.character(iceman))
+summary <- tibble(mean  = mort_28_OR,
+                  lower = mort_28_ci_lower,
+                  upper = mort_28_ci_upper,
+                  subgroup = "Overall treatment effect",
+                  summary = TRUE)
+header <- tibble(subgroup = c("Subgroup"),
+                 # tot_i = c("JAKi"),
+                 # events_i = c("Events JAKi"),
+                 # tot_c = c("No JAKi"),
+                 # events_c = c("Events no JAKi"),
+                 p_int = c("p-int*"),
+                 iceman = c("ICEMAN\n assessment"),
+                 summary = TRUE)
+mort28_fp <- bind_rows(header,base_data,summary)
+
+font <- "sans"
+
+mort28_fp %>%
+  forestplot(labeltext = c(subgroup, p_int, iceman),
+             txt_gp = fpTxtGp(label = gpar(fontfamily = font, cex=1),
+                              ticks = gpar(cex=0.88),
+                              summary = gpar(cex=1),
+                              xlab = gpar(cex=0.88)),
+             # title = "Treatment effect on mortality at day 28 by subgroup",
+             is.summary = summary,
+             graph.pos = 2,
+             clip = c(0.1, 2),
+             hrzl_lines = list("2" = gpar(lty = 2),
+                               "6" = gpar(lty = 2),
+                               "8" = gpar(lty = 2),
+                               "12" = gpar(lty = 2),
+                               "16" = gpar(lty = 2),
+                               "19" = gpar(lty = 2),                               
+                               "21" = gpar(lty = 2)),
+             xlog = T,
+             xticks = c(log(0.5), log(0.67), log(1), log(2)), # ADAPT if new point estimate!!
+             psize = sqrt(subgroup_df$inverse_variance),
+             lty.ci = c(1),
+             col = fpColors(box = "maroon4",
+                            line = "maroon1",
+                            summary = "magenta4",
+                            hrz_lines = "gray63"),
+             vertices = TRUE,
+             xlab = "           Favours JAKi < > Favours No JAKi",
+             zero = 1,
+             grid = structure(c(0.67), gp = gpar(lty = 2, col = "gray63")), # ADAPT if new point estimate!!
+             # graphwidth = unit(100, "mm"), colgap = unit(2.5, "mm")
+            )
+
+dev.off()
+
+```
 
 # Forestplot additional subgroups - on primary endpoint
 ```{r, fig.width=14, fig.height=6}
@@ -4663,8 +4794,8 @@ proportions <- df_aesi_tot %>%
   summarise(count = n()) %>%
   group_by(Group) %>%
   # mutate(proportion = (count / sum(count))*100) %>%
-  mutate(denom = case_when(Group == "No JAK inhibitor" ~ 6249, #### ADAPT if NEW TRIALS, see "Collect all treatment effect estimates" - BUT run descriptive first to have updated df_tot !!!
-                           Group == "JAK inhibitor" ~ 6633)) %>%   #### ADAPT if NEW TRIALS, see "Collect all treatment effect estimates" - BUT run descriptive first to have updated df_tot !!!
+  mutate(denom = case_when(Group == "No JAK inhibitor" ~ 6255, #### ADAPT if NEW TRIALS, see "Collect all treatment effect estimates" - BUT run descriptive first to have updated df_tot !!!
+                           Group == "JAK inhibitor" ~ 6647)) %>%   #### ADAPT if NEW TRIALS, see "Collect all treatment effect estimates" - BUT run descriptive first to have updated df_tot !!!
   mutate(proportion = (count / denom)*100)
 ggplot(proportions, aes(x = proportion, y = aesi, color = Group, shape = Group)) +
   geom_point(size = 2.5) +
